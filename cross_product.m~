@@ -1,0 +1,5 @@
+function out = cross_product(ax,ay,ax,bx,by,bz);
+% Calculates cross product
+% out = cross_product(ax,ay,ax,bx,by,bz);
+
+out_x = a

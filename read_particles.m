@@ -121,7 +121,7 @@ function [xe,ze,e,b,ni1,ne1,ni2,ne2,vi1,ve1,vi2,ve2,ji1,je1,ji2,je2,...
   ey=ey*sqrt(mass(1))*wpewce(1)^2;
   ez=ez*sqrt(mass(1))*wpewce(1)^2;
   
-  time = time/wpewce/mass(1);
+  time = time/wpewce/sqrt(mass(1));
   
 %% Species 1,2
 ion = 1;

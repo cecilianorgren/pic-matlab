@@ -6,7 +6,9 @@ txtfile = '/Users/cno062/Data/PIC/df_cold_protons/data/fields-02200.dat';
     wpewce,mass,pxxi_h,pyyi_h,pzzi_h,pxxe_h,pyye_h,pzze_h,vex_h,vey_h,vez_h,vex,vey,vez] ...
     = func_read_file_fields_oxygen(txtfile);  
 %%
-[time,r,e,b,ni,ne,ve,vi,je,ji,pe,pi,dfac,teti,nnx,nnz,wpewce,mass,it,dt,xmax,zmax,q] = read_fields_basic(txtfile);  
+%[time,r,e,b,ni,ne,ve,vi,je,ji,pe,pi,dfac,teti,nnx,nnz,wpewce,mass,it,dt,xmax,zmax,q] = read_fields_basic(txtfile);  
+%%
+[time,r,e,b,ni,ne,ve,vi,je,ji,pe,pi,dfac,teti,nnx,nnz,wpewce,mass,it,dt,xmax,zmax,q] = read_fields_ieie(txtfile);  
   
 %% Plot
 nrows = 2;

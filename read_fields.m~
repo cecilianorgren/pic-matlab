@@ -1,5 +1,5 @@
 function [xe,ze,e,b,ni1,ne1,ni2,ne2,vi1,ve1,vi2,ve2,ji1,je1,ji2,je2,...
-    pi1,pe1,pi2,pe2,ti1,te1,ti2,te2,dfac,teti,nnx,nnz,wpewce,mass,it,time,dt,xmax,zmax,q] ...
+    pi1,pe1,pi2,pe2,dfac,teti,nnx,nnz,wpewce,mass,it,dt,xmax,zmax,q] ...
     = read_fields(txtfile,varargin)  
   % READ_FILES
   %   Reads files and return normalized quantities
@@ -121,7 +121,7 @@ function [xe,ze,e,b,ni1,ne1,ni2,ne2,vi1,ve1,vi2,ve2,ji1,je1,ji2,je2,...
   ey=ey*sqrt(mass(1))*wpewce(1)^2;
   ez=ez*sqrt(mass(1))*wpewce(1)^2;
   
-  time = time/wpewce/mass(1);
+  time = time/wpewce/sqrt(mass(1));
   
 %% Species 1,2
 ion = 1;
@@ -421,14 +421,14 @@ ne2 = dne_h;
 % velocity
 ve1.units = 've/vA';
 ve1.x = vex;
-ve1.y = vey;
-ve1.z = vez;
+ve1.y = vex;
+ve1.z = vey;
 ve1.par = (ve1.x.*bx + ve1.y.*by + ve1.z.*bz)./b.abs;
 
 ve2.units = 've/vA';
 ve2.x = vex_h;
-ve2.y = vey_h;
-ve2.z = vez_h;
+ve2.y = vex_h;
+ve2.z = vey_h;
 ve2.par = (ve2.x.*bx + ve2.y.*by + ve2.z.*bz)./b.abs;
 
 vi1.units = 'vi/vA';
@@ -507,38 +507,39 @@ pi2.yz = pyzi_h;
 pi2.scalar = (pxxi_h + pyyi_h + pzzi_h)/3;
 
 % temperature
-te1.units = 'te/(...)';
-te1.xx = pe1.xx./ne1;
-te1.yy = pe1.yy./ne1;
-te1.zz = pe1.zz./ne1;
-te1.xy = pe1.xy./ne1;
-te1.xz = pe1.xz./ne1;
-te1.yz = pe1.yz./ne1;
-te1.scalar = (te1.xx + te1.yy + te1.zz)/3;
+te1.units = 'pe/(...)';
+te1.xx = pxxe;
+te1.yy = pyye;
+te1.zz = pzze;
+te1.xy = pxye;
+te1.xz = pxze;
+te1.yz = pyze;
+te1.scalar = (pxxe + pyye + pzze)/3;
 
-te2.units = 'te/(...)';
-te2.xx = pe2.xx./ne2;
-te2.yy = pe2.yy./ne2;
-te2.zz = pe2.zz./ne2;
-te2.xy = pe2.xy./ne2;
-te2.xz = pe2.xz./ne2;
-te2.yz = pe2.yz./ne2;
-te2.scalar = (te2.xx + te2.yy + te2.zz)/3;
+te2.units = 'pe/(...)';
+te2.xx = pxxe_h;
+te2.yy = pyye_h;
+te2.zz = pzze_h;
+te2.xy = pxye_h;
+te2.xz = pxze_h;
+te2.yz = pyze_h;
+te2.scalar = (pxxe_h + pyye_h + pzze_h)/3;
 
-ti1.units = 'ti/(...)';
-ti1.xx = pi1.xx./ni1;
-ti1.yy = pi1.yy./ni1;
-ti1.zz = pi1.zz./ni1;
-ti1.xy = pi1.xy./ni1;
-ti1.xz = pi1.xz./ni1;
-ti1.yz = pi1.yz./ni1;
-ti1.scalar = (ti1.xx + ti1.yy + ti1.zz)/3;
 
-ti2.units = 'ti/(...)';
-ti2.xx = pi2.xx./ni2;
-ti2.yy = pi2.yy./ni2;
-ti2.zz = pi2.zz./ni2;
-ti2.xy = pi2.xy./ni2;
-ti2.xz = pi2.xz./ni2;
-ti2.yz = pi2.yz./ni2;
-ti2.scalar = (ti2.xx + ti2.yy + ti2.zz)/3;
+ti1.units = 'pi/(...)';
+ti1.xx = pxxi;
+ti1.yy = pyyi;
+ti1.zz = pzzi;
+ti1.xy = pxyi;
+ti1.xz = pxzi;
+ti1.yz = pyzi;
+ti1.scalar = (pxxi + pyyi + pzzi)/3;
+
+i2.units = 'pi/(...)';
+ti2.xx = ti2.xx;
+ti2.yy = pyyi_h;
+ti2.zz = pzzi_h;
+ti2.xy = pxyi_h;
+ti2.xz = pxzi_h;
+ti2.yz = pyzi_h;
+ti2.scalar = (pxxi_h + pyyi_h + pzzi_h)/3;
