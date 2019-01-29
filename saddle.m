@@ -1,0 +1,40 @@
+function varargout = saddle(A,MinPeakProminence)
+% Find saddle point in 2D matrix.
+% [indx,indy] = saddle(A,option);
+% indxy = saddle(A,option);
+%   option: 
+%     MinPeakProminence - decides the sensitivity to peaks (findpeaks.m), 
+%                         default is 1e-2
+%                         indxy = saddle(A,1e-2);
+
+if not(exist('MinPeakProminence','var'))
+  MinPeakProminence = 1e-2;
+  fprintf('Using ''MinPeakProminence'' %g to find saddle points. \n',MinPeakProminence)
+end
+[nx,ny] = size(A);
+
+indices = nan(nx,1);
+vals = nan(nx,1);
+
+for ix = 1:nx
+  [val,ind] = min(A(ix,:));
+  y_indices_of_min_A(ix) = ind;
+  vals_of_min_A(ix) = val;
+end
+[pks,locs]= findpeaks(vals_of_min_A,'MinPeakProminence',MinPeakProminence);
+ix_saddle = tocolumn(locs);
+iy_saddle = tocolumn(y_indices_of_min_A(locs));
+
+if nargout == 1
+  varargout(1) = {[ix_saddle,iy_saddle]};
+elseif nargout == 2
+  varargout(1) = {[ix_saddle,iy_saddle]};
+  varargout(2) = {vals_of_min_A(locs)};
+end
+if 0 % plot for diagnostics
+  imagesc(A')
+  hold on
+  plot(ix_saddle,iy_saddle,'k*')
+  contour(A',vals_of_min_A(locs))
+  hold off
+end
