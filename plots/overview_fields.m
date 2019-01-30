@@ -1,7 +1,8 @@
 %% Load data
-timestep = 07400;
+timestep = 08200;
 txtfile = sprintf('/Users/cecilia/Data/PIC/data/fields-%05.0f.dat',timestep); % michael's perturbation
-%txtfile = sprintf('/Users/cno062/Data/PIC/df_cold_protons/data/fields-%05.0f.dat',timestep); % michael's perturbation
+%txtfile = sprintf('/Users/cno062/Data/PIC/df_cold_protons_1/data/fields-%05.0f.dat',timestep); % michael's perturbation
+txtfile = sprintf('/Volumes/Fountain/Data/PIC/df_cold_protons_1/data/fields-%05.0f.dat',timestep); % michael's perturbation
 
 %timestep = 055;
 %txtfile = sprintf('/Users/cno062/Data/PIC/df_cold_protons_2/data/fields-%05.0f.dat',timestep); % try-out with larger perturbation
@@ -19,7 +20,8 @@ tic; [x,z,E,B,...
 % Calculate auxillary quantities
 tic; A = vector_potential(x,z,B.x,B.z); toc % vector potential
 [saddle_locations,saddle_values] = saddle(A);
-[saddle_locations,saddle_values] = fluxtube_volume(A);
+%[saddle_locations,saddle_values] = fluxtube_volume(A);
+
 pB = B.abs.^2/2; % magnetic pressure
 bcurv = magnetic_field_curvature(x,z,B.x,B.y,B.z); % magnetic curvature
 c_eval('ve?xB = cross_product(ve?.x,ve?.y,ve?.z,B.x,B.y,B.z);',1:2) % electron motional electric field
@@ -33,12 +35,12 @@ UB.tot = 0.5*B.abs.^2;
 UB.x = 0.5*B.x.^2;
 UB.y = 0.5*B.y.^2;
 UB.z = 0.5*B.z.^2;
-c_eval('Uke? = mass(2)*0.5*ne?.*(ve?.x.^2 + ve?.y.^2 + ve?.z.^2);',1:2)
-c_eval('Uke? = mass(1)*0.5*ni?.*(vi?.x.^2 + vi?.y.^2 + vi?.z.^2);',1:2)
+c_eval('Uke? = mass(2)/mass(1)*0.5*ne?.*(ve?.x.^2 + ve?.y.^2 + ve?.z.^2);',1:2)
+c_eval('Uki? = mass(1)/mass(1)*0.5*ni?.*(vi?.x.^2 + vi?.y.^2 + vi?.z.^2);',1:2)
 c_eval('Ute? = pe?.scalar;',1:2)
 c_eval('Uti? = pi?.scalar;',1:2)
-Uktot = Uik1 + Uik2 + Uek1 + Uek2;
-Uttot = Uit1 + Uit2 + Uet1 + Uet2;
+Uktot = Uki1 + Uki2 + Uke1 + Uke2;
+Uttot = Uti1 + Uti2 + Ute1 + Ute2;
 jtot.x = ji1.x + ji2.x - je1.x - je2.x;
 jtot.y = ji1.y + ji2.y - je1.y - je2.y;
 jtot.z = ji1.z + ji2.z - je1.z - je2.z;
@@ -1367,8 +1369,12 @@ varstrs = {'ve1.x','ve2.x','B.z','E.z','-ve1xB.x','A'};
 varstrs = {'ve1.perp.x','ve2.perp.x','vi1.perp.x','vi2.perp.x','ExB.x'};
 varstrs = {'ve1.perp.z','ve2.perp.z','vi1.perp.z','vi2.perp.z','ExB.z'};
 varstrs = {'ne1','ne2','ni1','ni2','te2.scalar','ti2.scalar','pe2.scalar','pi2.scalar'};
+varstrs = {'ne1','ne2','ni1','ni2'};
 varstrs = {'ve1.x','ve2.x','vi1.x','vi2.x'};
-varstrs = {'Ute1','Ute2','Uti1','Uti2','UB.tot','UB.tot+Uti1+Ute1'};
+varstrs = {'Ute1','Ute2','Uti1','Uti2','Uke1','Uke2','Uki1','Uki2'}; clim = 12*[-1 1];
+varstrs = {'pe1.xx','pe1.xy','pe1.yy','pe1.xz','pe1.zz','pe1.yz'}; clim = 0.25*[-1 1];
+varstrs = {'ne1','ne2','ni1','ni2'}; clim = 2*[-1 1];
+
 nvars = numel(varstrs);
 
 %xlim = torow(x([1 end])) + [100 -100];
@@ -1385,7 +1391,7 @@ ipz = ipz1:2:ipz2;
 
 % Initialize figure
 npanels = nvars;
-nrows = 3;
+nrows = 2;
 ncols = ceil(npanels/nrows);
 npanels = nrows*ncols;
 isub = 1; 
@@ -1399,7 +1405,7 @@ doA = 0;
 cA = [0.8 0.8 0.8];
 nA = 20;
 nA = [0:-2:min(A(:))];
-sepA = A(find(B.abs(:)==min(B.abs(:))));
+%sepA = A(find(B.abs(:)==min(B.abs(:))));
 
 % Quivers
 doQ = 0;
@@ -1458,6 +1464,6 @@ for ipanel = 1:npanels
   h(ipanel).YDir = 'normal';
   h(ipanel).XLim = xlim;
   h(ipanel).YLim = zlim;
-  h(ipanel).CLim = 1*[-1 1];
+  h(ipanel).CLim = clim;
 end
 toc

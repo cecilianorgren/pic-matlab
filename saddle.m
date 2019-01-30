@@ -22,8 +22,13 @@ for ix = 1:nx
   vals_of_min_A(ix) = val;
 end
 [pks,locs]= findpeaks(vals_of_min_A,'MinPeakProminence',MinPeakProminence);
-ix_saddle = tocolumn(locs);
-iy_saddle = tocolumn(y_indices_of_min_A(locs));
+if numel(locs) == 1
+  ix_saddle = locs;
+  iy_saddle = y_indices_of_min_A(locs);
+else
+  ix_saddle = tocolumn(locs);
+  iy_saddle = tocolumn(y_indices_of_min_A(locs));
+end
 
 if nargout == 1
   varargout(1) = {[ix_saddle,iy_saddle]};

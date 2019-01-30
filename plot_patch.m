@@ -1,4 +1,8 @@
 function varargout = plot_patch(varargin)
+% PLOT_PATCH Plots stacked (default) patches of timeseries (or whatever).
+%   [h1,h2] = plot_patch(timesteps/wpewce/mass(1),[UB_ts; Uke1_ts; Uke2_ts; Uki1_ts; Uki2_ts; Ute1_ts; Ute2_ts; Uti1_ts; Uti2_ts],'base',0);
+%   legend(h1,{'UB','Uke1','Uke2','Uki1','Uki2','Ute1','Ute2','Uti1','Uti2'})
+
 
 [ax,args,nargs] = axescheck(varargin{:});
 if isempty(ax), ax = gca; end

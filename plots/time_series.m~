@@ -76,15 +76,15 @@ for itime = 1:ntimes
   UBz_ts(1,itime) = sum(UB.z(:));
   UB_ts(1,itime) = sum(UB.tot(:));
   
-  if 1 % Plot, energy densities
-    %% Save and print info
+  if 1 % Plot, energy densities    
+    % Save and print info
     subdir = 'energy_density_1';
     savedir = [savedir_root,subdir];
     mkdir(savedir)
     savestr = sprintf('%s_t%05.0f',subdir,timestep);
     % Define what variables to plot
     %varstrs = {'ve1.x','ve2.x','ve1.z','ve2.z','ve1.par','ve2.par','-ve1xB.x','-ve2xB.x','-ve1xB.z','-ve2xB.z','E.x','E.z'};
-    varstrs = {'UB.tot','Uke1','Uke2','Uki1','Uki2','Ute1','Ute2','Uti1','Uti2'};
+    varstrs = {'UB','Uke1','Uke2','Uki1','Uki2','Ute1','Ute2','Uti1','Uti2'};
     clim = [-1 1];
     nvars = numel(varstrs);
 
@@ -108,7 +108,7 @@ for itime = 1:ntimes
       nA = [0:-2:min(A(:))];
     end
     
-    % Plot part of data
+    %% Plot part of data
     xlim = [x(1) x(end)] + [100 -100];
     zlim = [-10 10];
     ix1 = find(x>xlim(1),1,'first');
@@ -126,11 +126,8 @@ for itime = 1:ntimes
       variables = nan(numel(ts_varstrs),ntimes);
       for ivar = 1:numel(ts_varstrs)
         variables(ivar,:) = eval([ts_varstrs{ivar} '_ts']);
-      end         
-      hlines = plot(hca,timesteps/wpewce/mass(1),[UB_ts; Uke1_ts; Uke2_ts; Uki1_ts; Uki2_ts; Ute1_ts; Ute2_ts; Uti1_ts; Uti2_ts]);      
-      for iline = 1:numel(hlines)
-        hlines(iline).Marker = '.';
       end
+      plot(hca,timesteps/wpewce/mass(1),[UB_ts; Uke1_ts; Uke2_ts; Uki1_ts; Uki2_ts; Ute1_ts; Ute2_ts; Uti1_ts; Uti2_ts])     
       legend(hca,ts_varstrs,'location','eastoutside')
 %      labels = arrayfun(@(x,y) {[num2str(x) ' > Q_{||} > ' num2str(y)]}, edgesQ(end:-1:2),edgesQ(end-1:-1:1));
       hca.XLim = [0 (timesteps(end)+200)/wpewce/mass(1)];
@@ -163,7 +160,7 @@ for itime = 1:ntimes
       h(ipanel).XLim = xlim;
       h(ipanel).YLim = zlim;
       h(ipanel).CLim = clim;
-      hb(ipanel-1).Limits(1) = 0;
+      hb(ipanel).YLim(1) = 0;
     end
     
     print('-dpng','-r200',[savedir '/' savestr '.png']);
@@ -171,7 +168,7 @@ for itime = 1:ntimes
   if 1 % Plot, vex
     %%
     % Save and print info
-    subdir = 'vex';
+    subdir = 'vx';
     savedir = [savedir_root,subdir];
     mkdir(savedir)
     savestr = sprintf('%s_t%05.0f',subdir,timestep);
@@ -182,7 +179,7 @@ for itime = 1:ntimes
     nvars = numel(varstrs);
 
     % Initialize figure
-    fig = figure(6);
+    fig = figure(5);
     fig.Position = [screensize(1) screensize(2) screensize(3)*0.4 screensize(4)*0.7];
     npanels = nvars + doTs;
     nrows = 3;
@@ -201,234 +198,7 @@ for itime = 1:ntimes
       nA = [0:-2:min(A(:))];
     end
     
-    % Plot part of data
-    xlim = [x(1) x(end)] + [100 -100];
-    zlim = [-10 10];
-    
-    ix1 = find(x>xlim(1),1,'first');
-    ix2 = find(x<xlim(2),1,'last');
-    iz1 = find(z>zlim(1),1,'first');
-    iz2 = find(z<zlim(2),1,'last');
-    ipx = ix1:2:ix2;
-    ipz = iz1:2:iz2;
-    
-    % Panels
-    isub = 1;
-    for ivar = 1:nvars
-      hca = h(isub); isub = isub + 1;
-      varstr = varstrs{ivar};
-      variable = eval(varstr);  
-      himag = imagesc(hca,x(ipx),z(ipz),variable(ipx,ipz)');
-      hca.XLabel.String = 'x (d_i)';
-      hca.YLabel.String = 'z (d_i)';
-      %hca.Title.String = sprintf('%s, sum(%s) = %g',varstr,varstr,sum(variable(:))); 
-      hca.Title.String = sprintf('%s',varstr); 
-      hca.CLim = max(abs(himag.CData(:)))*[-1 1];  
-      hcb = colorbar('peer',hca);
-      hb(ivar) = hcb;
-      %hcb.YLim = hca.CLim(2)*[-1 1];
-      colormap(hca,pic_colors('blue_red'));
-
-      if doA
-        hold(hca,'on')
-        hcont = contour(hca,x(ipx),z(ipz),A(ipx,ipz)',nA,'color',cA,'linewidth',1.0);  
-        hold(hca,'off')  
-      end
-    end
-    for ipanel = 1:npanels
-      h(ipanel).YDir = 'normal';
-      h(ipanel).XLim = xlim;
-      h(ipanel).YLim = zlim;
-      h(ipanel).CLim = clim;      
-    end
-    
-    print('-dpng','-r200',[savedir '/' savestr '.png']);
-  end
-  if 1 % Plot, vez
-    %%
-    % Save and print info
-    subdir = 'vez';
-    savedir = [savedir_root,subdir];
-    mkdir(savedir)
-    savestr = sprintf('%s_t%05.0f',subdir,timestep);
-    % Define what variables to plot
-    varstrs = {'ve1.z','ve2.z','ve1.z','ve2.z','ve1.par','ve2.par'};
-    clim = [-3 3];
-    
-    nvars = numel(varstrs);
-
-    % Initialize figure
-    fig = figure(6);
-    fig.Position = [screensize(1) screensize(2) screensize(3)*0.4 screensize(4)*0.7];
-    npanels = nvars + doTs;
-    nrows = 3;
-    ncols = ceil(npanels/nrows);
-    npanels = nrows*ncols;
-    isub = 1; 
-    for ipanel = 1:npanels  
-      h(isub) = subplot(nrows,ncols,ipanel); isub = isub + 1;  
-    end
-    clear hb;
-
-    doA = 0;
-    if doA    
-      cA = [0.8 0.8 0.8];
-      nA = 20;
-      nA = [0:-2:min(A(:))];
-    end
-    
-    % Plot part of data
-    xlim = [x(1) x(end)] + [100 -100];
-    zlim = [-10 10];
-    
-    ix1 = find(x>xlim(1),1,'first');
-    ix2 = find(x<xlim(2),1,'last');
-    iz1 = find(z>zlim(1),1,'first');
-    iz2 = find(z<zlim(2),1,'last');
-    ipx = ix1:2:ix2;
-    ipz = iz1:2:iz2;
-    
-    % Panels
-    isub = 1;
-    for ivar = 1:nvars
-      hca = h(isub); isub = isub + 1;
-      varstr = varstrs{ivar};
-      variable = eval(varstr);  
-      himag = imagesc(hca,x(ipx),z(ipz),variable(ipx,ipz)');
-      hca.XLabel.String = 'x (d_i)';
-      hca.YLabel.String = 'z (d_i)';
-      %hca.Title.String = sprintf('%s, sum(%s) = %g',varstr,varstr,sum(variable(:))); 
-      hca.Title.String = sprintf('%s',varstr); 
-      hca.CLim = max(abs(himag.CData(:)))*[-1 1];  
-      hcb = colorbar('peer',hca);
-      hb(ivar) = hcb;
-      %hcb.YLim = hca.CLim(2)*[-1 1];
-      colormap(hca,pic_colors('blue_red'));
-
-      if doA
-        hold(hca,'on')
-        hcont = contour(hca,x(ipx),z(ipz),A(ipx,ipz)',nA,'color',cA,'linewidth',1.0);  
-        hold(hca,'off')  
-      end
-    end
-    for ipanel = 1:npanels
-      h(ipanel).YDir = 'normal';
-      h(ipanel).XLim = xlim;
-      h(ipanel).YLim = zlim;
-      h(ipanel).CLim = clim;      
-    end
-    
-    print('-dpng','-r200',[savedir '/' savestr '.png']);
-  end
-  if 1 % Plot, vix
-    % Save and print info
-    subdir = 'vix';
-    savedir = [savedir_root,subdir];
-    mkdir(savedir)
-    savestr = sprintf('%s_t%05.0f',subdir,timestep);
-    % Define what variables to plot
-    varstrs = {'vi1.x','vi2.x','vi1.x','vi2.x','vi1.par','vi2.par'};
-    clim = [-3 3];
-    
-    nvars = numel(varstrs);
-
-    % Initialize figure
-    fig = figure(6);
-    fig.Position = [screensize(1) screensize(2) screensize(3)*0.4 screensize(4)*0.7];
-    npanels = nvars + doTs;
-    nrows = 3;
-    ncols = ceil(npanels/nrows);
-    npanels = nrows*ncols;
-    isub = 1; 
-    for ipanel = 1:npanels  
-      h(isub) = subplot(nrows,ncols,ipanel); isub = isub + 1;  
-    end
-    clear hb;
-
-    doA = 0;
-    if doA    
-      cA = [0.8 0.8 0.8];
-      nA = 20;
-      nA = [0:-2:min(A(:))];
-    end
-    
-    % Plot part of data
-    xlim = [x(1) x(end)] + [100 -100];
-    zlim = [-10 10];
-    
-    ix1 = find(x>xlim(1),1,'first');
-    ix2 = find(x<xlim(2),1,'last');
-    iz1 = find(z>zlim(1),1,'first');
-    iz2 = find(z<zlim(2),1,'last');
-    ipx = ix1:2:ix2;
-    ipz = iz1:2:iz2;
-    
-    % Panels
-    isub = 1;
-    for ivar = 1:nvars
-      hca = h(isub); isub = isub + 1;
-      varstr = varstrs{ivar};
-      variable = eval(varstr);  
-      himag = imagesc(hca,x(ipx),z(ipz),variable(ipx,ipz)');
-      hca.XLabel.String = 'x (d_i)';
-      hca.YLabel.String = 'z (d_i)';
-      %hca.Title.String = sprintf('%s, sum(%s) = %g',varstr,varstr,sum(variable(:))); 
-      hca.Title.String = sprintf('%s',varstr); 
-      hca.CLim = max(abs(himag.CData(:)))*[-1 1];  
-      hcb = colorbar('peer',hca);
-      hb(ivar) = hcb;
-      %hcb.YLim = hca.CLim(2)*[-1 1];
-      colormap(hca,pic_colors('blue_red'));
-
-      if doA
-        hold(hca,'on')
-        hcont = contour(hca,x(ipx),z(ipz),A(ipx,ipz)',nA,'color',cA,'linewidth',1.0);  
-        hold(hca,'off')  
-      end
-    end
-    for ipanel = 1:npanels
-      h(ipanel).YDir = 'normal';
-      h(ipanel).XLim = xlim;
-      h(ipanel).YLim = zlim;
-      h(ipanel).CLim = clim;      
-    end
-    
-    print('-dpng','-r200',[savedir '/' savestr '.png']);
-  end
-  if 1 % Plot, viz
-    %%
-    % Save and print info
-    subdir = 'viz';
-    savedir = [savedir_root,subdir];
-    mkdir(savedir)
-    savestr = sprintf('%s_t%05.0f',subdir,timestep);
-    % Define what variables to plot
-    varstrs = {'vi1.z','vi2.z','vi1.z','vi2.z','vi1.par','vi2.par'};
-    clim = [-3 3];
-    
-    nvars = numel(varstrs);
-
-    % Initialize figure
-    fig = figure(6);
-    fig.Position = [screensize(1) screensize(2) screensize(3)*0.4 screensize(4)*0.7];
-    npanels = nvars + doTs;
-    nrows = 3;
-    ncols = ceil(npanels/nrows);
-    npanels = nrows*ncols;
-    isub = 1; 
-    for ipanel = 1:npanels  
-      h(isub) = subplot(nrows,ncols,ipanel); isub = isub + 1;  
-    end
-    clear hb;
-
-    doA = 0;
-    if doA    
-      cA = [0.8 0.8 0.8];
-      nA = 20;
-      nA = [0:-2:min(A(:))];
-    end
-    
-    % Plot part of data
+    %% Plot part of data
     xlim = [x(1) x(end)] + [100 -100];
     zlim = [-10 10];
     
@@ -484,10 +254,9 @@ for itime = 1:ntimes
     
     nvars = numel(varstrs);
 
-    doTs = 0;
     % Initialize figure
-    fig = figure(7);
-    fig.Position = [screensize(1) screensize(2) screensize(3)*0.5 screensize(4)*0.5];
+    fig = figure(5);
+    fig.Position = [screensize(1) screensize(2) screensize(3)*0.4 screensize(4)*0.7];
     npanels = nvars + doTs;
     nrows = 2;
     ncols = ceil(npanels/nrows);
@@ -505,7 +274,7 @@ for itime = 1:ntimes
       nA = [0:-2:min(A(:))];
     end
     
-    % Plot part of data
+    %% Plot part of data
     xlim = [x(1) x(end)] + [100 -100];
     zlim = [-10 10];
     
@@ -544,14 +313,15 @@ for itime = 1:ntimes
       h(ipanel).XLim = xlim;
       h(ipanel).YLim = zlim;
       h(ipanel).CLim = clim;
-      hb(ipanel).Limits(1) = 0;
+      hb(ipanel).YLim(1) = 0;
     end
     
     print('-dpng','-r200',[savedir '/' savestr '.png']);
   end
-  if 1 % Plot, pe1      
-    %% Save and print info
-    subdir = 'pe_tensor';
+  if 1 % Plot, pe1
+    %%
+    % Save and print info
+    subdir = 'n';
     savedir = [savedir_root,subdir];
     mkdir(savedir)
     savestr = sprintf('%s_t%05.0f',subdir,timestep);
@@ -561,7 +331,7 @@ for itime = 1:ntimes
     nvars = numel(varstrs);
 
     % Initialize figure
-    fig = figure(8);
+    fig = figure(5);
     fig.Position = [screensize(1) screensize(2) screensize(3)*0.4 screensize(4)*0.7];
     npanels = nvars + doTs;
     nrows = 3;
@@ -580,7 +350,7 @@ for itime = 1:ntimes
       nA = [0:-2:min(A(:))];
     end
     
-    % Plot part of data
+    %% Plot part of data
     xlim = [x(1) x(end)] + [100 -100];
     zlim = [-10 10];
     clim = [-1 1];
