@@ -5,17 +5,17 @@ savedir_root = '/Users/cno062/Research/PIC/df_cold_protons_1/';
 screensize = get( groot, 'Screensize' );
 
 %% Time loop
-Uek1_ts = nan(1,ntimes); 
-Uek2_ts = nan(1,ntimes); 
-Uik1_ts = nan(1,ntimes); 
-Uik2_ts = nan(1,ntimes); 
-Uet1_ts = nan(1,ntimes); 
-Uet2_ts = nan(1,ntimes); 
-Uit1_ts = nan(1,ntimes); 
-Uit2_ts = nan(1,ntimes); 
+Uke1_ts = nan(1,ntimes); 
+Uke2_ts = nan(1,ntimes); 
+Uki1_ts = nan(1,ntimes); 
+Uki2_ts = nan(1,ntimes); 
+Ute1_ts = nan(1,ntimes); 
+Ute2_ts = nan(1,ntimes); 
+Uti1_ts = nan(1,ntimes); 
+Uti2_ts = nan(1,ntimes); 
 UB_ts = nan(1,ntimes); 
 doTs = 1;
-
+doPatch = 1;
 for itime = 1:ntimes
   % Load data
   timestep = timesteps(itime);
@@ -40,31 +40,37 @@ for itime = 1:ntimes
   c_eval('E_vi?xB.x = E.x + vi?xB.x; E_vi?xB.y = E.y + vi?xB.y; E_vi?xB.z = E.z + vi?xB.z;',1:2) % electron motional electric field
   c_eval('je?E = je?.x.*E.x + je?.y.*E.y + je?.y.*E.z;',1:2)
   c_eval('ji?E = ji?.x.*E.x + ji?.y.*E.y + ji?.y.*E.z;',1:2)
-  UB = 0.5*B.abs.^2;
-  c_eval('Uek? = mass(2)*0.5*ne?.*(ve?.x.^2 + ve?.y.^2 + ve?.z.^2);',1:2)
-  c_eval('Uik? = mass(1)*0.5*ni?.*(vi?.x.^2 + vi?.y.^2 + vi?.z.^2);',1:2)
-  c_eval('Uet? = pe?.scalar;',1:2)
-  c_eval('Uit? = pi?.scalar;',1:2)
-  Uek = Uek1 + Uek2;
-  Uik = Uik1 + Uik2;
-  Uktot = Uek + Uik;
-  Uet = Uet1 + Uet2;
-  Uit = Uit1 + Uit2;
-  Uttot = Uet + Uit;
+  UB.x = 0.5*B.x.^2;
+  UB.y = 0.5*B.y.^2;
+  UB.z = 0.5*B.z.^2;
+  UB.tot = 0.5*B.abs.^2;
+  c_eval('Uke? = mass(2)*0.5*ne?.*(ve?.x.^2 + ve?.y.^2 + ve?.z.^2);',1:2)
+  c_eval('Uki? = mass(1)*0.5*ni?.*(vi?.x.^2 + vi?.y.^2 + vi?.z.^2);',1:2)
+  c_eval('Ute? = pe?.scalar;',1:2)
+  c_eval('Uti? = pi?.scalar;',1:2)
+  Uke = Uke1 + Uke2;
+  Uki = Uki1 + Uki2;
+  Uktot = Uke + Uki;
+  Ute = Ute1 + Ute2;
+  Uti = Uti1 + Uti2;
+  Uttot = Ute + Uti;
   jtot.x = ji1.x + ji2.x - je1.x - je2.x;
   jtot.y = ji1.y + ji2.y - je1.y - je2.y;
   jtot.z = ji1.z + ji2.z - je1.z - je2.z;
   
   % Collect time series
-  Uek1_ts(1,itime) = sum(Uek1(:));
-  Uek2_ts(1,itime) = sum(Uek2(:));
-  Uik1_ts(1,itime) = sum(Uik1(:));
-  Uik2_ts(1,itime) = sum(Uik2(:));
-  Uet1_ts(1,itime) = sum(Uet1(:));
-  Uet2_ts(1,itime) = sum(Uet2(:));
-  Uit1_ts(1,itime) = sum(Uit1(:));
-  Uit2_ts(1,itime) = sum(Uit2(:));
-  UB_ts(1,itime) = sum(UB(:));
+  Uke1_ts(1,itime) = sum(Uke1(:));
+  Uke2_ts(1,itime) = sum(Uke2(:));
+  Uki1_ts(1,itime) = sum(Uki1(:));
+  Uki2_ts(1,itime) = sum(Uki2(:));
+  Ute1_ts(1,itime) = sum(Ute1(:));
+  Ute2_ts(1,itime) = sum(Ute2(:));
+  Uti1_ts(1,itime) = sum(Uti1(:));
+  Uti2_ts(1,itime) = sum(Uti2(:));
+  UBx_ts(1,itime) = sum(UB.x(:));
+  UBy_ts(1,itime) = sum(UB.y(:));
+  UBz_ts(1,itime) = sum(UB.z(:));
+  UB_ts(1,itime) = sum(UB.tot(:));
   
   if 1 % Plot, define variable in cell array
     %%
@@ -75,7 +81,7 @@ for itime = 1:ntimes
     savestr = sprintf('%s_t%05.0f',subdir,timestep);
     % Define what variables to plot
     %varstrs = {'ve1.x','ve2.x','ve1.z','ve2.z','ve1.par','ve2.par','-ve1xB.x','-ve2xB.x','-ve1xB.z','-ve2xB.z','E.x','E.z'};
-    varstrs = {'UB','Uek1','Uek2','Uik1','Uik2','Uet1','Uet2','Uit1','Uit2'};
+    varstrs = {'UB','Uke1','Uke2','Uki1','Uki2','Ute1','Ute2','Uti1','Uti2'};
     nvars = numel(varstrs);
 
     % Initialize figure
@@ -111,8 +117,15 @@ for itime = 1:ntimes
     isub = 1;
     if doTs % ts plot of energy
       hca = h(isub); isub = isub + 1;
-      plot(hca,timesteps/wpewce/mass(1),[UB_ts; Uek1_ts; Uek2_ts; Uik1_ts; Uik2_ts; Uet1_ts; Uet2_ts; Uit1_ts; Uit2_ts])
-      hca.XLim = [0 timesteps(end)+200];
+      ts_varstrs = {'UB','Uke1','Uke2','Uki1','Uki2','Ute1','Ute2','Uti1','Uti2'};
+      variables = nan(numel(ts_varstrs),ntimes);
+      for ivar = 1:numel(ts_varstrs)
+        variables(ivar,:) = eval([ts_varstrs{ivar} '_ts']);
+      end
+      plot(hca,timesteps/wpewce/mass(1),[UB_ts; Uke1_ts; Uke2_ts; Uki1_ts; Uki2_ts; Ute1_ts; Ute2_ts; Uti1_ts; Uti2_ts])     
+      legend(hca,ts_varstrs,'location','eastoutside')
+      labels = arrayfun(@(x,y) {[num2str(x) ' > Q_{||} > ' num2str(y)]}, edgesQ(end:-1:2),edgesQ(end-1:-1:1));
+      hca.XLim = [0 (timesteps(end)+200)/wpewce/mass(1)];
       hca.XLabel.String = 'time (omega_{ci})';
       hca.YLabel.String = 'Energy density (...)';
     end
@@ -496,9 +509,9 @@ for itime = 1:ntimes
     cA = [0.8 0.8 0.8];
     nA = 20;
     isub = 1;
-    if 1 % Uek1
+    if 1 % Uke1
       hca = h(isub); isub = isub + 1;
-      himag = imagesc(hca,x,z,Uek1');
+      himag = imagesc(hca,x,z,Uke1');
       hca.XLabel.String = 'x (d_i)';
       hca.YLabel.String = 'z (d_i)';
       hca.Title.String = 'U_{ek1}';
@@ -514,9 +527,9 @@ for itime = 1:ntimes
         hold(hca,'off')  
       end
     end
-    if 0 % Uek2
+    if 0 % Uke2
       hca = h(isub); isub = isub + 1;
-      himag = imagesc(hca,x,z,Uek2');
+      himag = imagesc(hca,x,z,Uke2');
       hca.XLabel.String = 'x (d_i)';
       hca.YLabel.String = 'z (d_i)';
       hca.Title.String = 'U_{ek2}';
@@ -532,9 +545,9 @@ for itime = 1:ntimes
         hold(hca,'off')  
       end
     end
-    if 1 % Uik1
+    if 1 % Uki1
       hca = h(isub); isub = isub + 1;
-      himag = imagesc(hca,x,z,Uik1');
+      himag = imagesc(hca,x,z,Uki1');
       hca.XLabel.String = 'x (d_i)';
       hca.YLabel.String = 'z (d_i)';
       hca.Title.String = 'U_{ik1}';
@@ -550,9 +563,9 @@ for itime = 1:ntimes
         hold(hca,'off')  
       end
     end
-    if 0 % Uik2
+    if 0 % Uki2
       hca = h(isub); isub = isub + 1;
-      himag = imagesc(hca,x,z,Uik2');
+      himag = imagesc(hca,x,z,Uki2');
       hca.XLabel.String = 'x (d_i)';
       hca.YLabel.String = 'z (d_i)';
       hca.Title.String = 'U_{ik2}';
@@ -568,9 +581,9 @@ for itime = 1:ntimes
         hold(hca,'off')  
       end
     end
-    if 1 % Uet1
+    if 1 % Ute1
       hca = h(isub); isub = isub + 1;
-      himag = imagesc(hca,x,z,Uet1');
+      himag = imagesc(hca,x,z,Ute1');
       hca.XLabel.String = 'x (d_i)';
       hca.YLabel.String = 'z (d_i)';
       hca.Title.String = 'U_{et1}';
@@ -586,9 +599,9 @@ for itime = 1:ntimes
         hold(hca,'off')  
       end
     end
-    if 0 % Uet2
+    if 0 % Ute2
       hca = h(isub); isub = isub + 1;
-      himag = imagesc(hca,x,z,Uet2');
+      himag = imagesc(hca,x,z,Ute2');
       hca.XLabel.String = 'x (d_i)';
       hca.YLabel.String = 'z (d_i)';
       hca.Title.String = 'U_{et2}';
@@ -604,9 +617,9 @@ for itime = 1:ntimes
         hold(hca,'off')  
       end
     end
-    if 1 % Uit1
+    if 1 % Uti1
       hca = h(isub); isub = isub + 1;
-      himag = imagesc(hca,x,z,Uit1');
+      himag = imagesc(hca,x,z,Uti1');
       hca.XLabel.String = 'x (d_i)';
       hca.YLabel.String = 'z (d_i)';
       hca.Title.String = 'U_{it1}';
@@ -622,9 +635,9 @@ for itime = 1:ntimes
         hold(hca,'off')  
       end
     end
-    if 0 % Uit2
+    if 0 % Uti2
       hca = h(isub); isub = isub + 1;
-      himag = imagesc(hca,x,z,Uit2');
+      himag = imagesc(hca,x,z,Uti2');
       hca.XLabel.String = 'x (d_i)';
       hca.YLabel.String = 'z (d_i)';
       hca.Title.String = 'U_{it2}';
@@ -1740,9 +1753,9 @@ if 0 % Panels
       hold(hca,'off')  
     end
   end
-  if 1 % Uek1
+  if 1 % Uke1
     hca = h(isub); isub = isub + 1;
-    himag = imagesc(hca,x,z,Uek1');
+    himag = imagesc(hca,x,z,Uke1');
     hca.XLabel.String = 'x (d_i)';
     hca.YLabel.String = 'z (d_i)';
     hca.Title.String = 'U_{ek1}';
@@ -1758,9 +1771,9 @@ if 0 % Panels
       hold(hca,'off')  
     end
   end
-  if 1 % Uek2
+  if 1 % Uke2
     hca = h(isub); isub = isub + 1;
-    himag = imagesc(hca,x,z,Uek2');
+    himag = imagesc(hca,x,z,Uke2');
     hca.XLabel.String = 'x (d_i)';
     hca.YLabel.String = 'z (d_i)';
     hca.Title.String = 'U_{ek2}';
@@ -1776,9 +1789,9 @@ if 0 % Panels
       hold(hca,'off')  
     end
   end
-  if 1 % Uik1
+  if 1 % Uki1
     hca = h(isub); isub = isub + 1;
-    himag = imagesc(hca,x,z,Uik1');
+    himag = imagesc(hca,x,z,Uki1');
     hca.XLabel.String = 'x (d_i)';
     hca.YLabel.String = 'z (d_i)';
     hca.Title.String = 'U_{ik1}';
@@ -1794,9 +1807,9 @@ if 0 % Panels
       hold(hca,'off')  
     end
   end
-  if 1 % Uik2
+  if 1 % Uki2
     hca = h(isub); isub = isub + 1;
-    himag = imagesc(hca,x,z,Uik2');
+    himag = imagesc(hca,x,z,Uki2');
     hca.XLabel.String = 'x (d_i)';
     hca.YLabel.String = 'z (d_i)';
     hca.Title.String = 'U_{ik2}';
@@ -1812,9 +1825,9 @@ if 0 % Panels
       hold(hca,'off')  
     end
   end
-  if 1 % Uet1
+  if 1 % Ute1
     hca = h(isub); isub = isub + 1;
-    himag = imagesc(hca,x,z,Uet1');
+    himag = imagesc(hca,x,z,Ute1');
     hca.XLabel.String = 'x (d_i)';
     hca.YLabel.String = 'z (d_i)';
     hca.Title.String = 'U_{et1}';
@@ -1830,9 +1843,9 @@ if 0 % Panels
       hold(hca,'off')  
     end
   end
-  if 1 % Uet1
+  if 1 % Ute1
     hca = h(isub); isub = isub + 1;
-    himag = imagesc(hca,x,z,Uet2');
+    himag = imagesc(hca,x,z,Ute2');
     hca.XLabel.String = 'x (d_i)';
     hca.YLabel.String = 'z (d_i)';
     hca.Title.String = 'U_{et2}';
@@ -1848,9 +1861,9 @@ if 0 % Panels
       hold(hca,'off')  
     end
   end
-  if 1 % Uit1
+  if 1 % Uti1
     hca = h(isub); isub = isub + 1;
-    himag = imagesc(hca,x,z,Uit1');
+    himag = imagesc(hca,x,z,Uti1');
     hca.XLabel.String = 'x (d_i)';
     hca.YLabel.String = 'z (d_i)';
     hca.Title.String = 'U_{it1}';
@@ -1866,9 +1879,9 @@ if 0 % Panels
       hold(hca,'off')  
     end
   end
-  if 1 % Uit2
+  if 1 % Uti2
     hca = h(isub); isub = isub + 1;
-    himag = imagesc(hca,x,z,Uit2');
+    himag = imagesc(hca,x,z,Uti2');
     hca.XLabel.String = 'x (d_i)';
     hca.YLabel.String = 'z (d_i)';
     hca.Title.String = 'U_{it2}';
