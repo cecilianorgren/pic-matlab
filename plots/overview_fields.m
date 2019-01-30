@@ -1,6 +1,7 @@
 %% Load data
-timestep = 04800;
-txtfile = sprintf('/Users/cno062/Data/PIC/df_cold_protons/data/fields-%05.0f.dat',timestep); % michael's perturbation
+timestep = 07400;
+txtfile = sprintf('/Users/cecilia/Data/PIC/data/fields-%05.0f.dat',timestep); % michael's perturbation
+%txtfile = sprintf('/Users/cno062/Data/PIC/df_cold_protons/data/fields-%05.0f.dat',timestep); % michael's perturbation
 
 %timestep = 055;
 %txtfile = sprintf('/Users/cno062/Data/PIC/df_cold_protons_2/data/fields-%05.0f.dat',timestep); % try-out with larger perturbation
@@ -17,7 +18,9 @@ tic; [x,z,E,B,...
 
 % Calculate auxillary quantities
 tic; A = vector_potential(x,z,B.x,B.z); toc % vector potential
-pb = B.abs.^2/2; % magnetic pressure
+[saddle_locations,saddle_values] = saddle(A);
+[saddle_locations,saddle_values] = fluxtube_volume(A);
+pB = B.abs.^2/2; % magnetic pressure
 bcurv = magnetic_field_curvature(x,z,B.x,B.y,B.z); % magnetic curvature
 c_eval('ve?xB = cross_product(ve?.x,ve?.y,ve?.z,B.x,B.y,B.z);',1:2) % electron motional electric field
 c_eval('vi?xB = cross_product(vi?.x,vi?.y,vi?.z,B.x,B.y,B.z);',1:2) % ion motional electric field
@@ -26,16 +29,25 @@ c_eval('E_ve?xB.x = E.x + ve?xB.x; E_ve?xB.y = E.y + ve?xB.y; E_ve?xB.z = E.z + 
 c_eval('E_vi?xB.x = E.x + vi?xB.x; E_vi?xB.y = E.y + vi?xB.y; E_vi?xB.z = E.z + vi?xB.z;',1:2) % electron motional electric field
 c_eval('je?E = je?.x.*E.x + je?.y.*E.y + je?.y.*E.z;',1:2)
 c_eval('ji?E = ji?.x.*E.x + ji?.y.*E.y + ji?.y.*E.z;',1:2)
-UB = 0.5*B.abs.^2;
-c_eval('Uek? = mass(2)*0.5*ne?.*(ve?.x.^2 + ve?.y.^2 + ve?.z.^2);',1:2)
-c_eval('Uik? = mass(1)*0.5*ni?.*(vi?.x.^2 + vi?.y.^2 + vi?.z.^2);',1:2)
-c_eval('Uet? = pe?.scalar;',1:2)
-c_eval('Uit? = pi?.scalar;',1:2)
+UB.tot = 0.5*B.abs.^2;
+UB.x = 0.5*B.x.^2;
+UB.y = 0.5*B.y.^2;
+UB.z = 0.5*B.z.^2;
+c_eval('Uke? = mass(2)*0.5*ne?.*(ve?.x.^2 + ve?.y.^2 + ve?.z.^2);',1:2)
+c_eval('Uke? = mass(1)*0.5*ni?.*(vi?.x.^2 + vi?.y.^2 + vi?.z.^2);',1:2)
+c_eval('Ute? = pe?.scalar;',1:2)
+c_eval('Uti? = pi?.scalar;',1:2)
 Uktot = Uik1 + Uik2 + Uek1 + Uek2;
 Uttot = Uit1 + Uit2 + Uet1 + Uet2;
 jtot.x = ji1.x + ji2.x - je1.x - je2.x;
 jtot.y = ji1.y + ji2.y - je1.y - je2.y;
 jtot.z = ji1.z + ji2.z - je1.z - je2.z;
+c_eval('ve?.perp.x = ve?.x-ve?.par.*B.x./B.abs;',1:2)
+c_eval('ve?.perp.y = ve?.y-ve?.par.*B.y./B.abs;',1:2)
+c_eval('ve?.perp.z = ve?.z-ve?.par.*B.z./B.abs;',1:2)
+c_eval('vi?.perp.x = vi?.x-vi?.par.*B.x./B.abs;',1:2)
+c_eval('vi?.perp.y = vi?.y-vi?.par.*B.y./B.abs;',1:2)
+c_eval('vi?.perp.z = vi?.z-vi?.par.*B.z./B.abs;',1:2)
 
 %% Plot 1, 4 species plasma properties, 1 species per column
 % Initialize figure
@@ -1351,42 +1363,92 @@ end
 %% Plot, define variable in cell array
 % Define what variables to plot
 varstrs = {'ve1.x','ve2.x','ve1.z','ve2.z','ve1.par','ve2.par','ExB.x','ExB.z','-ve1xB.x','-ve2xB.x','-ve1xB.z','-ve2xB.z','E.x','E.z'};
+varstrs = {'ve1.x','ve2.x','B.z','E.z','-ve1xB.x','A'};
+varstrs = {'ve1.perp.x','ve2.perp.x','vi1.perp.x','vi2.perp.x','ExB.x'};
+varstrs = {'ve1.perp.z','ve2.perp.z','vi1.perp.z','vi2.perp.z','ExB.z'};
+varstrs = {'ne1','ne2','ni1','ni2','te2.scalar','ti2.scalar','pe2.scalar','pi2.scalar'};
+varstrs = {'ve1.x','ve2.x','vi1.x','vi2.x'};
+varstrs = {'Ute1','Ute2','Uti1','Uti2','UB.tot','UB.tot+Uti1+Ute1'};
 nvars = numel(varstrs);
+
+%xlim = torow(x([1 end])) + [100 -100];
+%zlim = [-15 15];z([1 end]);
+xlim = torow(x([1 end]));
+zlim = torow(z([1 end]));
+
+ipx1 = find(x>xlim(1),1,'first');
+ipx2 = find(x<xlim(2),1,'last');
+ipz1 = find(z>zlim(1),1,'first');
+ipz2 = find(z<zlim(2),1,'last');
+ipx = ipx1:2:ipx2;
+ipz = ipz1:2:ipz2;
 
 % Initialize figure
 npanels = nvars;
-nrows = 7;
+nrows = 3;
 ncols = ceil(npanels/nrows);
 npanels = nrows*ncols;
 isub = 1; 
 for ipanel = 1:npanels  
   h(isub) = subplot(nrows,ncols,ipanel); isub = isub + 1;  
 end
+linkaxes(h);
 
-% Panels
+% Flux function
 doA = 0;
 cA = [0.8 0.8 0.8];
 nA = 20;
 nA = [0:-2:min(A(:))];
-ipx = 1:2:nnx;
-ipz = 1:2:nnz;
+sepA = A(find(B.abs(:)==min(B.abs(:))));
+
+% Quivers
+doQ = 0;
+nQx = 200;
+nQz = 50;
+[Z,X] = meshgrid(z,x);
+ipxQ = fix(linspace(ipx1,ipx2,nQx));
+ipzQ = fix(linspace(ipz1,ipz2,nQz));
+[dataQx,dataQz] = meshgrid(ipxQ,ipzQ);
+ipXQ = dataQx; ipZQ = dataQz;
+dataQ.x = ve2.x;
+dataQ.y = ve2.y;
+dataQ.z = ve2.z;
+maxQ = 0.3;
+dataQ.abs = sqrt(dataQ.x.^2 + dataQ.z.^2);
+dataQ.x(dataQ.abs>maxQ) = NaN;
+dataQ.y(dataQ.abs>maxQ) = NaN;
+dataQ.z(dataQ.abs>maxQ) = NaN;
+
+
+% Panels
 isub = 1;
+tic;
 for ivar = 1:nvars  
   hca = h(isub); isub = isub + 1;
   varstr = varstrs{ivar};
   variable = eval(varstr);  
-  himag = imagesc(hca,x,z,variable(ipx,ipz)');
+  himag = imagesc(hca,x(ipx),z(ipz),variable(ipx,ipz)');
   hca.XLabel.String = 'x (d_i)';
   hca.YLabel.String = 'z (d_i)';
   hca.Title.String = sprintf('%s, sum(%s) = %g',varstr,varstr,sum(variable(:))); 
   hca.CLim = max(abs(himag.CData(:)))*[-1 1];  
   hcb = colorbar('peer',hca);
+  hb(isub-1) = hcb;
   %hcb.YLim = hca.CLim(2)*[-1 1];
   colormap(hca,cn.cmap('blue_red'));
     
   if doA
     hold(hca,'on')
-    hcont = contour(hca,xe,ze,A',nA,'color',cA,'linewidth',1.0);  
+    hcont = contour(hca,x(ipx),z(ipz),A(ipx,ipz)',nA,'color',cA,'linewidth',1.0); 
+    for ixline = 1:size(saddle_locations,1)
+      sepA = saddle_values(ixline);
+      hcont = contour(hca,x(ipx),z(ipz),A(ipx,ipz)',sepA*[1 1],'color',cA.^4,'linewidth',2.0);  
+    end
+    hold(hca,'off')  
+  end
+  if doQ    
+    hold(hca,'on')
+    hquiv = quiver(hca,X(ipxQ,ipzQ),Z(ipxQ,ipzQ),dataQ.x(ipxQ,ipzQ),dataQ.z(ipxQ,ipzQ));
     hold(hca,'off')  
   end
 end
@@ -1394,6 +1456,8 @@ end
 
 for ipanel = 1:npanels
   h(ipanel).YDir = 'normal';
-  h(ipanel).XLim = h(ipanel).XLim + [140 -140];
-  h(ipanel).YLim = [-5 5];
+  h(ipanel).XLim = xlim;
+  h(ipanel).YLim = zlim;
+  h(ipanel).CLim = 1*[-1 1];
 end
+toc
