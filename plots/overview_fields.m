@@ -1374,6 +1374,9 @@ varstrs = {'ve1.x','ve2.x','vi1.x','vi2.x'};
 varstrs = {'Ute1','Ute2','Uti1','Uti2','Uke1','Uke2','Uki1','Uki2'}; clim = 12*[-1 1];
 varstrs = {'pe1.xx','pe1.xy','pe1.yy','pe1.xz','pe1.zz','pe1.yz'}; clim = 0.25*[-1 1];
 varstrs = {'ne1','ne2','ni1','ni2'}; clim = 2*[-1 1];
+varstrs = {'pe2.xx','pe2.xy','pe2.yy','pe2.xz','pe2.zz','pe2.yz'}; clim = 0.25*[-1 1];
+varstrs = {'pi2.xx','pi2.xy','pi2.yy','pi2.xz','pi2.zz','pi2.yz'}; clim = 0.3*[-1 1];
+varstrs = {'ve1.x','ve1.y','ve1.z','ExB.x','ExB.y','ExB.z','-ve1xB.x','-ve1xB.y','-ve1xB.z','-E.x','-E.y','-E.z','-ve1xB.x-E.x','-ve1xB.y-E.y','-ve1xB.z-E.z'}; clim = [-1 1];
 
 nvars = numel(varstrs);
 
@@ -1391,7 +1394,7 @@ ipz = ipz1:2:ipz2;
 
 % Initialize figure
 npanels = nvars;
-nrows = 2;
+nrows = 5;
 ncols = ceil(npanels/nrows);
 npanels = nrows*ncols;
 isub = 1; 
@@ -1405,6 +1408,9 @@ doA = 0;
 cA = [0.8 0.8 0.8];
 nA = 20;
 nA = [0:-2:min(A(:))];
+ipxA = ipx1:20:ipx2;
+ipzA = ipz1:20:ipz2;
+
 %sepA = A(find(B.abs(:)==min(B.abs(:))));
 
 % Quivers
@@ -1446,13 +1452,13 @@ for ivar = 1:nvars
   if doA
     hold(hca,'on')
     hcont = contour(hca,x(ipx),z(ipz),A(ipx,ipz)',nA,'color',cA,'linewidth',1.0); 
-    for ixline = 1:size(saddle_locations,1)
-      sepA = saddle_values(ixline);
-      hcont = contour(hca,x(ipx),z(ipz),A(ipx,ipz)',sepA*[1 1],'color',cA.^4,'linewidth',2.0);  
-    end
+%     for ixline = 1:size(saddle_locations,1)
+%       sepA = saddle_values(ixline);
+%       hcont = contour(hca,x(ipx),z(ipz),A(ipx,ipz)',sepA*[1 1],'color',cA.^4,'linewidth',2.0);  
+%     end
     hold(hca,'off')  
   end
-  if doQ    
+  if doQ
     hold(hca,'on')
     hquiv = quiver(hca,X(ipxQ,ipzQ),Z(ipxQ,ipzQ),dataQ.x(ipxQ,ipzQ),dataQ.z(ipxQ,ipzQ));
     hold(hca,'off')  

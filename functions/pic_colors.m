@@ -3,7 +3,7 @@ function colors = pic_colors(colorOption)
 %   colors = mms_colors('1234'); % mms1, mms2, mms3, mms4
 %   colors = mms_colors('xyza'); % x, y, z, abs
 %   colors = mms_colors('12yzab'); % mms1, mms2, y, z, abs, unknown (=yellow)
-path_pic = fileparts(which('pic_colors.m'));
+path_pic = fileparts(which('pic_startup.m'));
 
 switch colorOption
   case 'matlab'

@@ -1,10 +1,223 @@
 %% Define times
-timesteps = 200:200:8200;
+timesteps = 00200:200:09200;
 ntimes = numel(timesteps);
 savedir_root = '/Users/cno062/Research/PIC/df_cold_protons_1/';
 data_dir = '/Volumes/Fountain/Data/PIC/df_cold_protons_1/data/';
 screensize = get( groot, 'Screensize' );
 
+
+%% Quantities to plot
+clear subdirs_all varstrs_all clims_all cylims_all nrows_all plot_structure      
+iplot = 0;
+if 0 % vex, vepar
+  iplot = iplot + 1;
+
+  subdirs_all{iplot} = 'vex_vepar';
+  varstrs_all{iplot} = {'ve1.x','ve2.x','ve1.par','ve2.par'};
+  clims_all{iplot} = [-3 3];        
+  cylims_all{iplot} = clims_all{iplot};
+  nrows_all{iplot} = 2; % ncols is calculated from nrows and nvars
+
+  plot_structure.subdir = subdirs_all{iplot};
+  plot_structure.varstrs = varstrs_all{iplot};
+  plot_structure.clim = clims_all{iplot};
+  plot_structure.cylim = cylims_all{iplot};
+  plot_structure.nrows = nrows_all{iplot};
+  plot_structures_all{iplot} = plot_structure;
+end
+if 0 % vix, vipar
+  iplot = iplot + 1;
+
+  subdirs_all{iplot} = 'vix_vipar';
+  varstrs_all{iplot} = {'vi1.x','vi2.x','vi1.par','vi2.par'};
+  clims_all{iplot} = 0.5*[-1 1];        
+  cylims_all{iplot} = clims_all{iplot};
+  nrows_all{iplot} = 2; % ncols is calculated from nrows and nvars
+
+  plot_structure.subdir = subdirs_all{iplot};
+  plot_structure.varstrs = varstrs_all{iplot};
+  plot_structure.clim = clims_all{iplot};
+  plot_structure.cylim = cylims_all{iplot};
+  plot_structure.nrows = nrows_all{iplot};
+  plot_structures_all{iplot} = plot_structure;
+end
+if 0 % vex vey vez
+  iplot = iplot + 1;
+
+  subdirs_all{iplot} = 've_xyz';
+  varstrs_all{iplot} = {'ve1.x','ve2.x','ve1.y','ve2.y','ve1.z','ve2.z'};
+  clims_all{iplot} = [-3 3];        
+  cylims_all{iplot} = clims_all{iplot};
+  nrows_all{iplot} = 3; % ncols is calculated from nrows and nvars
+
+  plot_structure.subdir = subdirs_all{iplot};
+  plot_structure.varstrs = varstrs_all{iplot};
+  plot_structure.clim = clims_all{iplot};
+  plot_structure.cylim = cylims_all{iplot};
+  plot_structure.nrows = nrows_all{iplot};
+  plot_structures_all{iplot} = plot_structure;
+end
+if 0 % vix viy viz
+  iplot = iplot + 1;
+
+  subdirs_all{iplot} = 'vi_xyz';
+  varstrs_all{iplot} = {'vi1.x','vi2.x','vi1.y','vi2.y','vi1.z','vi2.z'};
+  clims_all{iplot} = 0.5*[-1 1];        
+  cylims_all{iplot} = clims_all{iplot};
+  nrows_all{iplot} = 3; % ncols is calculated from nrows and nvars
+
+  plot_structure.subdir = subdirs_all{iplot};
+  plot_structure.varstrs = varstrs_all{iplot};
+  plot_structure.clim = clims_all{iplot};
+  plot_structure.cylim = cylims_all{iplot};
+  plot_structure.nrows = nrows_all{iplot};
+  plot_structures_all{iplot} = plot_structure;
+end  
+if 0 % ni, ne
+  iplot = iplot + 1;
+
+  subdirs_all{iplot} = 'n';
+  varstrs_all{iplot} = {'ne1','ne2','ni1','ni2'};
+  clims_all{iplot} = [-3 3];        
+  cylims_all{iplot} = [0 clims_all{iplot}(2)];
+  nrows_all{iplot} = 2; % ncols is calculated from nrows and nvars
+
+  plot_structure.subdir = subdirs_all{iplot};
+  plot_structure.varstrs = varstrs_all{iplot};
+  plot_structure.clim = clims_all{iplot};
+  plot_structure.cylim = cylims_all{iplot};
+  plot_structure.nrows = nrows_all{iplot};
+  plot_structures_all{iplot} = plot_structure;
+end
+if 0 % Pe1 tensor
+  iplot = iplot + 1;
+
+  subdirs_all{iplot} = 'pe1_tensor';
+  varstrs_all{iplot} = {'pe1.xx','pe1.xy','pe1.yy','pe1.xz','pe1.zz','pe1.yz'};
+  clims_all{iplot} = 0.25*[-1 1];        
+  cylims_all{iplot} = [0 clims_all{iplot}(2)];
+  nrows_all{iplot} = 3; % ncols is calculated from nrows and nvars
+
+  plot_structure.subdir = subdirs_all{iplot};
+  plot_structure.varstrs = varstrs_all{iplot};
+  plot_structure.clim = clims_all{iplot};
+  plot_structure.cylim = cylims_all{iplot};
+  plot_structure.nrows = nrows_all{iplot};
+  plot_structures_all{iplot} = plot_structure;
+end
+if 0 % Pi1 tensor
+  iplot = iplot + 1;
+
+  subdirs_all{iplot} = 'pi1_tensor';
+  varstrs_all{iplot} = {'pi1.xx','pi1.xy','pi1.yy','pi1.xz','pi1.zz','pi1.yz'};
+  clims_all{iplot} = 1*[-1 1];        
+  cylims_all{iplot} = [0 clims_all{iplot}(2)];
+  nrows_all{iplot} = 3; % ncols is calculated from nrows and nvars
+
+  plot_structure.subdir = subdirs_all{iplot};
+  plot_structure.varstrs = varstrs_all{iplot};
+  plot_structure.clim = clims_all{iplot};
+  plot_structure.cylim = cylims_all{iplot};
+  plot_structure.nrows = nrows_all{iplot};
+  plot_structures_all{iplot} = plot_structure;
+end
+if 1 % Pe2 tensor
+  iplot = iplot + 1;
+
+  subdirs_all{iplot} = 'pe2_tensor';
+  varstrs_all{iplot} = {'pe2.xx','pe2.xy','pe2.yy','pe2.xz','pe2.zz','pe2.yz'};
+  clims_all{iplot} = 0.25*[-1 1];        
+  cylims_all{iplot} = [0 clims_all{iplot}(2)];
+  nrows_all{iplot} = 3; % ncols is calculated from nrows and nvars
+
+  plot_structure.subdir = subdirs_all{iplot};
+  plot_structure.varstrs = varstrs_all{iplot};
+  plot_structure.clim = clims_all{iplot};
+  plot_structure.cylim = cylims_all{iplot};
+  plot_structure.nrows = nrows_all{iplot};
+  plot_structures_all{iplot} = plot_structure;
+end
+if 1 % Pi2 tensor
+  iplot = iplot + 1;
+
+  subdirs_all{iplot} = 'pi2_tensor';
+  varstrs_all{iplot} = {'pi2.xx','pi2.xy','pi2.yy','pi2.xz','pi2.zz','pi2.yz'};
+  clims_all{iplot} = 1*[-1 1];        
+  cylims_all{iplot} = [0 clims_all{iplot}(2)];
+  nrows_all{iplot} = 3; % ncols is calculated from nrows and nvars
+
+  plot_structure.subdir = subdirs_all{iplot};
+  plot_structure.varstrs = varstrs_all{iplot};
+  plot_structure.clim = clims_all{iplot};
+  plot_structure.cylim = cylims_all{iplot};
+  plot_structure.nrows = nrows_all{iplot};
+  plot_structures_all{iplot} = plot_structure;
+end
+if 1 % forces on hot electrons
+  iplot = iplot + 1;
+
+  subdirs_all{iplot} = '-ve1xB_E_sum_xyz';
+  varstrs_all{iplot} = {'-ve1xB.x','-ve1xB.y','-ve1xB.z','-E.x','-E.y','-E.z','-ve1xB.x-E.x','-ve1xB.y-E.y','-ve1xB.z-E.z'};
+  clims_all{iplot} = [-1 1];        
+  cylims_all{iplot} = clims_all{iplot};
+  nrows_all{iplot} = 3; % ncols is calculated from nrows and nvars
+
+  plot_structure.subdir = subdirs_all{iplot};
+  plot_structure.varstrs = varstrs_all{iplot};
+  plot_structure.clim = clims_all{iplot};
+  plot_structure.cylim = cylims_all{iplot};
+  plot_structure.nrows = nrows_all{iplot};
+  plot_structures_all{iplot} = plot_structure;
+end
+if 1 % forces on cold electrons
+  iplot = iplot + 1;
+
+  subdirs_all{iplot} = '-ve2xB_E_sum_xyz';
+  varstrs_all{iplot} = {'-ve2xB.x','-ve2xB.y','-ve2xB.z','-E.x','-E.y','-E.z','-ve2xB.x-E.x','-ve2xB.y-E.y','-ve2xB.z-E.z'};
+  clims_all{iplot} = [-1 1];        
+  cylims_all{iplot} = clims_all{iplot};
+  nrows_all{iplot} = 3; % ncols is calculated from nrows and nvars
+
+  plot_structure.subdir = subdirs_all{iplot};
+  plot_structure.varstrs = varstrs_all{iplot};
+  plot_structure.clim = clims_all{iplot};
+  plot_structure.cylim = cylims_all{iplot};
+  plot_structure.nrows = nrows_all{iplot};
+  plot_structures_all{iplot} = plot_structure;
+end
+if 1 % forces on hot electrons
+  iplot = iplot + 1;
+
+  subdirs_all{iplot} = 'vi1xB_E_xyz';
+  varstrs_all{iplot} = {'vi1xB.x','vi1xB.y','vi1xB.z','E.x','E.y','E.z','vi1xB.x+E.x','vi1xB.y+E.y','vi1xB.z+E.z'};
+  clims_all{iplot} = [-1 1];        
+  cylims_all{iplot} = clims_all{iplot};
+  nrows_all{iplot} = 3; % ncols is calculated from nrows and nvars
+
+  plot_structure.subdir = subdirs_all{iplot};
+  plot_structure.varstrs = varstrs_all{iplot};
+  plot_structure.clim = clims_all{iplot};
+  plot_structure.cylim = cylims_all{iplot};
+  plot_structure.nrows = nrows_all{iplot};
+  plot_structures_all{iplot} = plot_structure;
+end
+if 1 % forces on cold electrons
+  iplot = iplot + 1;
+
+  subdirs_all{iplot} = 'vi2xB_E_sum_xyz';
+  varstrs_all{iplot} = {'vi2xB.x','vi2xB.y','vi2xB.z','E.x','E.y','E.z','vi2xB.x+E.x','vi2xB.y+E.y','vi2xB.z+E.z'};
+  clims_all{iplot} = [-1 1];        
+  cylims_all{iplot} = clims_all{iplot};
+  nrows_all{iplot} = 3; % ncols is calculated from nrows and nvars
+
+  plot_structure.subdir = subdirs_all{iplot};
+  plot_structure.varstrs = varstrs_all{iplot};
+  plot_structure.clim = clims_all{iplot};
+  plot_structure.cylim = cylims_all{iplot};
+  plot_structure.nrows = nrows_all{iplot};
+  plot_structures_all{iplot} = plot_structure;
+end
+  
 %% Time loop
 Uke1_ts = nan(1,ntimes); 
 Uke2_ts = nan(1,ntimes); 
@@ -35,7 +248,7 @@ for itime = 1:ntimes
         = read_fields(txtfile); toc
 
   % Calculate auxillary quantities
-  %tic; A = vector_potential(x,z,B.x,B.z); toc % vector potential
+  tic; A = vector_potential(x,z,B.x,B.z); toc % vector potential
   pb = B.abs.^2/2; % magnetic pressure
   bcurv = magnetic_field_curvature(x,z,B.x,B.y,B.z); % magnetic curvature
   c_eval('ve?xB = cross_product(ve?.x,ve?.y,ve?.z,B.x,B.y,B.z);',1:2) % electron motional electric field
@@ -175,57 +388,6 @@ for itime = 1:ntimes
   xlim = [x(1) x(end)] + [100 -100];
   zlim = [-10 10];
   
-  % Quantities to plot
-  clear subdirs_all varstrs_all clims_all cylims_all nrows_all plot_structure      
-  iplot = 0;
-  if 1 % vex, vepar
-    iplot = iplot + 1;
-    
-    subdirs_all{iplot} = 'vex_vepar';
-    varstrs_all{iplot} = {'ve1.x','ve2.x','ve1.x','ve2.x','ve1.par','ve2.par'};
-    clims_all{iplot} = [-3 3];        
-    cylims_all{iplot} = clims_all{iplot};
-    nrows_all{iplot} = 3; % ncols is calculated from nrows and nvars
-    
-    plot_structure.subdir = subdirs_all{iplot};
-    plot_structure.varstrs = varstrs_all{iplot};
-    plot_structure.clim = clims_all{iplot};
-    plot_structure.cylim = cylims_all{iplot};
-    plot_structure.nrows = nrows_all{iplot};
-    plot_structures_all{iplot} = plot_structure;
-  end  
-  if 0 % vix, vipar
-    iplot = iplot + 1;
-    
-    subdirs_all{iplot} = 'vix_vipar';
-    varstrs_all{iplot} = {'vi1.x','vi2.x','vi1.x','vi2.x','vi1.par','vi2.par'};
-    clims_all{iplot} = [-3 3];        
-    cylims_all{iplot} = clims_all{iplot};
-    nrows_all{iplot} = 3; % ncols is calculated from nrows and nvars
-    
-    plot_structure.subdir = subdirs_all{iplot};
-    plot_structure.varstrs = varstrs_all{iplot};
-    plot_structure.clim = clims_all{iplot};
-    plot_structure.cylim = cylims_all{iplot};
-    plot_structure.nrows = nrows_all{iplot};
-    plot_structures_all{iplot} = plot_structure;
-  end   
-  if 1 % ni, ne
-    iplot = iplot + 1;
-    
-    subdirs_all{iplot} = 'n';
-    varstrs_all{iplot} = {'ne1','ne2','ni1','ni2'};
-    clims_all{iplot} = [-3 3];        
-    cylims_all{iplot} = [0 clims_all{iplot}(2)];
-    nrows_all{iplot} = 2; % ncols is calculated from nrows and nvars
-    
-    plot_structure.subdir = subdirs_all{iplot};
-    plot_structure.varstrs = varstrs_all{iplot};
-    plot_structure.clim = clims_all{iplot};
-    plot_structure.cylim = cylims_all{iplot};
-    plot_structure.nrows = nrows_all{iplot};
-    plot_structures_all{iplot} = plot_structure;
-  end
   nplots = iplot;
   
   for iplot = 1:nplots % Plot, adaptive
@@ -261,11 +423,13 @@ for itime = 1:ntimes
     end
     clear hb;
 
-    doA = 0;
+    doA = 1;
     if doA    
       cA = [0.8 0.8 0.8];
       nA = 20;
       nA = [0:-2:min(A(:))];
+      ipxA = ipx1:20:ipx2;
+      ipzA = ipz1:20:ipz2;
     end
     
     % Plot part of data    
@@ -295,7 +459,7 @@ for itime = 1:ntimes
 
       if doA
         hold(hca,'on')
-        hcont = contour(hca,x(ipx),z(ipz),A(ipx,ipz)',nA,'color',cA,'linewidth',1.0);  
+        hcont = contour(hca,x(ipxA),z(ipzA),A(ipxA,ipzA)',nA,'color',cA,'linewidth',1.0);  
         hold(hca,'off')  
       end
     end

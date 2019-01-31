@@ -549,7 +549,7 @@ for itime = 1:ntimes
     
     print('-dpng','-r200',[savedir '/' savestr '.png']);
   end
-  if 1 % Plot, pe1      
+  if 1 % Plot, pe1
     %% Save and print info
     subdir = 'pe_tensor';
     savedir = [savedir_root,subdir];

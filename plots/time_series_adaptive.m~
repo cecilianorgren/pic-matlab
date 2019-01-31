@@ -19,7 +19,8 @@ UBx_ts = nan(1,ntimes);
 UBy_ts = nan(1,ntimes); 
 UBz_ts = nan(1,ntimes); 
 doTs = 1;
-doPatch = 1;
+doPatch = 0;
+
 for itime = 1:ntimes
   % Load data
   timestep = timesteps(itime);
@@ -47,9 +48,9 @@ for itime = 1:ntimes
   UB.x = 0.5*B.x.^2;
   UB.y = 0.5*B.y.^2;
   UB.z = 0.5*B.z.^2;
-  UB.tot = 0.5*B.abs.^2;
-  c_eval('Uke? = mass(2)*0.5*ne?.*(ve?.x.^2 + ve?.y.^2 + ve?.z.^2);',1:2)
-  c_eval('Uki? = mass(1)*0.5*ni?.*(vi?.x.^2 + vi?.y.^2 + vi?.z.^2);',1:2)
+  UB.tot = 0.5*B.abs.^2; 
+  c_eval('Uke? = mass(2)/mass(1)*0.5*ne?.*(ve?.x.^2 + ve?.y.^2 + ve?.z.^2);',1:2)
+  c_eval('Uki? = mass(1)/mass(1)*0.5*ni?.*(vi?.x.^2 + vi?.y.^2 + vi?.z.^2);',1:2)
   c_eval('Ute? = pe?.scalar;',1:2)
   c_eval('Uti? = pi?.scalar;',1:2)
   Uke = Uke1 + Uke2;
@@ -90,7 +91,7 @@ for itime = 1:ntimes
     nvars = numel(varstrs);
 
     % Initialize figure
-    fig = figure(1);
+    fig = figure(101);
     fig.Position = [screensize(1) screensize(2) screensize(3)*0.4 screensize(4)*0.7];
     npanels = nvars + doTs;
     nrows = 5;
@@ -170,10 +171,14 @@ for itime = 1:ntimes
     print('-dpng','-r200',[savedir '/' savestr '.png']);
   end
   
+  % Common for all figures
+  xlim = [x(1) x(end)] + [100 -100];
+  zlim = [-10 10];
+  
   % Quantities to plot
   clear subdirs_all varstrs_all clims_all cylims_all nrows_all plot_structure      
   iplot = 0;
-  if 1 % vex, vepar
+  if 0 % vex, vepar
     iplot = iplot + 1;
     
     subdirs_all{iplot} = 'vex_vepar';
@@ -188,7 +193,7 @@ for itime = 1:ntimes
     plot_structure.cylim = cylims_all{iplot};
     plot_structure.nrows = nrows_all{iplot};
     plot_structures_all{iplot} = plot_structure;
-  end  
+  end
   if 1 % vix, vipar
     iplot = iplot + 1;
     
@@ -204,8 +209,8 @@ for itime = 1:ntimes
     plot_structure.cylim = cylims_all{iplot};
     plot_structure.nrows = nrows_all{iplot};
     plot_structures_all{iplot} = plot_structure;
-  end   
-  if 1 % ni, ne
+  end
+  if 0 % ni, ne
     iplot = iplot + 1;
     
     subdirs_all{iplot} = 'n';
@@ -221,6 +226,71 @@ for itime = 1:ntimes
     plot_structure.nrows = nrows_all{iplot};
     plot_structures_all{iplot} = plot_structure;
   end
+  if 1 % Pe tensor
+    iplot = iplot + 1;
+    
+    subdirs_all{iplot} = 'pe_tensor';
+    varstrs_all{iplot} = {'pe1.xx','pe1.xy','pe1.yy','pe1.xz','pe1.zz','pe1.yz'};
+    clims_all{iplot} = 0.25*[-1 1];        
+    cylims_all{iplot} = [0 clims_all{iplot}(2)];
+    nrows_all{iplot} = 3; % ncols is calculated from nrows and nvars
+    
+    plot_structure.subdir = subdirs_all{iplot};
+    plot_structure.varstrs = varstrs_all{iplot};
+    plot_structure.clim = clims_all{iplot};
+    plot_structure.cylim = cylims_all{iplot};
+    plot_structure.nrows = nrows_all{iplot};
+    plot_structures_all{iplot} = plot_structure;
+  end
+  if 1 % Pi tensor
+    iplot = iplot + 1;
+    
+    subdirs_all{iplot} = '';
+    varstrs_all{iplot} = {'pe1.xx','pe1.xy','pe1.yy','pe1.xz','pe1.zz','pe1.yz'};
+    clims_all{iplot} = 0.25*[-1 1];        
+    cylims_all{iplot} = [0 clims_all{iplot}(2)];
+    nrows_all{iplot} = 3; % ncols is calculated from nrows and nvars
+    
+    plot_structure.subdir = subdirs_all{iplot};
+    plot_structure.varstrs = varstrs_all{iplot};
+    plot_structure.clim = clims_all{iplot};
+    plot_structure.cylim = cylims_all{iplot};
+    plot_structure.nrows = nrows_all{iplot};
+    plot_structures_all{iplot} = plot_structure;
+  end
+  if 0 % ni, ne
+    iplot = iplot + 1;
+    
+    subdirs_all{iplot} = 'n';
+    varstrs_all{iplot} = {'ne1','ne2','ni1','ni2'};
+    clims_all{iplot} = [-3 3];        
+    cylims_all{iplot} = [0 clims_all{iplot}(2)];
+    nrows_all{iplot} = 2; % ncols is calculated from nrows and nvars
+    
+    plot_structure.subdir = subdirs_all{iplot};
+    plot_structure.varstrs = varstrs_all{iplot};
+    plot_structure.clim = clims_all{iplot};
+    plot_structure.cylim = cylims_all{iplot};
+    plot_structure.nrows = nrows_all{iplot};
+    plot_structures_all{iplot} = plot_structure;
+  end
+  if 0 % ni, ne
+    iplot = iplot + 1;
+    
+    subdirs_all{iplot} = 'n';
+    varstrs_all{iplot} = {'ne1','ne2','ni1','ni2'};
+    clims_all{iplot} = [-3 3];        
+    cylims_all{iplot} = [0 clims_all{iplot}(2)];
+    nrows_all{iplot} = 2; % ncols is calculated from nrows and nvars
+    
+    plot_structure.subdir = subdirs_all{iplot};
+    plot_structure.varstrs = varstrs_all{iplot};
+    plot_structure.clim = clims_all{iplot};
+    plot_structure.cylim = cylims_all{iplot};
+    plot_structure.nrows = nrows_all{iplot};
+    plot_structures_all{iplot} = plot_structure;
+  end
+  nplots = iplot;
   
   for iplot = 1:nplots % Plot, adaptive
     %% Save and print info
@@ -231,19 +301,24 @@ for itime = 1:ntimes
     cylim = cylims_all{iplot};
     nrows = nrows_all{iplot};
     
+    nvars = numel(varstrs);
+    npanels = nvars;        
+    ncols = ceil(npanels/nrows);
+    % set figure position
+    screensize = get(groot,'Screensize');
+    figure_position(1) = 1;
+    figure_position(2) = 1;
+    figure_position(3) = screensize(3)/4*ncols;
+    figure_position(4) = figure_position(3)*nrows/ncols*0.5;
+    
     savedir = [savedir_root,subdir];
     mkdir(savedir)
-    savestr = sprintf('%s_t%05.0f',subdir,timestep);
-        
-    nvars = numel(varstrs);
+    savestr = sprintf('%s_t%05.0f',subdir,timestep);            
 
     % Initialize figure
-    fig = figure(6);
-    fig.Position = [screensize(1) screensize(2) screensize(3)*0.4 screensize(4)*0.7];
-    npanels = nvars;
-    % nrows defined above
-    ncols = ceil(npanels/nrows);
-    npanels = nrows*ncols;
+    fig = figure(102);
+    fig.Position = figure_position;
+
     isub = 1; 
     for ipanel = 1:npanels  
       h(isub) = subplot(nrows,ncols,ipanel); isub = isub + 1;  

@@ -1,0 +1,2 @@
+%pic_startup
+%localuser
