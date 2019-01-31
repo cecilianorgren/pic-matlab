@@ -1,30 +1,22 @@
 function A = vector_potential(x,z,bx,bz)
 % A Calculates the xz-plane magnetic vector potential.
-%   A = A(x,z,bx,bz)
+%   A = vector_potential(x,z,bx,bz)
+%   B = rot(A) = xhat(dA/dz) - zhat(dA/dx)
+%   Bx = dA/dz
+%   Bz = -dA/dx
 
 % Grid
 dx = x(2)-x(1);
 dz = z(2)-z(1);
-[X,Z] = meshgrid(x,z);
+nz = numel(z);
+nx = numel(x);
 
-nnz = numel(z);
-nnx = numel(x);
-% Vector potential, for plotting xz-plane magnetic field lines
-%Ay1 = cumsum(bz,1)*dx; - cumsum(bx,2)*dz;
-
-% Pauls, looks better
+% Dont put zero right at the edge 
 ixm = 10;
-Ay2(ixm,1) = 0;
-for j=2:nnz 
-  Ay2(ixm,j) = Ay2(ixm,j-1) + dz*bx(ixm,j-1);
-end
-for ix=ixm+1:nnx
-  Ay2(ix,:) = Ay2(ix-1,:) - bz(ix-1,:)*dx; % ;     advance to the right
-end
-for ix=ixm-1:-1:1
-  Ay2(ix,:) = Ay2(ix+1,:)+ bz(ix,:)*dx; % ;     advance to the left
-end
-
-A = Ay2;
-
-
+A = zeros(nx,nz);
+% Advance up
+A(ixm,:) = cumsum(bx(ixm,:),2)*dz;
+% Advance to the right
+A((ixm+1):end,:) = repmat(A(ixm,:),nx-ixm,1) + cumsum(-bz((ixm+1):end,:),1)*dx;
+% Advance to the left
+A((ixm-1):-1:1,:) = repmat(A(ixm,:),ixm-1,1) + cumsum(-bz((ixm-1):-1:1,:),1)*dx;
