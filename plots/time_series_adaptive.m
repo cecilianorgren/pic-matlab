@@ -121,7 +121,7 @@ if 0 % Pi1 tensor
   plot_structure.nrows = nrows_all{iplot};
   plot_structures_all{iplot} = plot_structure;
 end
-if 1 % Pe2 tensor
+if 0 % Pe2 tensor
   iplot = iplot + 1;
 
   subdirs_all{iplot} = 'pe2_tensor';
@@ -137,7 +137,7 @@ if 1 % Pe2 tensor
   plot_structure.nrows = nrows_all{iplot};
   plot_structures_all{iplot} = plot_structure;
 end
-if 1 % Pi2 tensor
+if 0 % Pi2 tensor
   iplot = iplot + 1;
 
   subdirs_all{iplot} = 'pi2_tensor';
@@ -153,7 +153,7 @@ if 1 % Pi2 tensor
   plot_structure.nrows = nrows_all{iplot};
   plot_structures_all{iplot} = plot_structure;
 end
-if 1 % forces on hot electrons
+if 0 % E,B forces on hot electrons
   iplot = iplot + 1;
 
   subdirs_all{iplot} = '-ve1xB_E_sum_xyz';
@@ -169,7 +169,7 @@ if 1 % forces on hot electrons
   plot_structure.nrows = nrows_all{iplot};
   plot_structures_all{iplot} = plot_structure;
 end
-if 1 % forces on cold electrons
+if 0 % E,B forces on cold electrons
   iplot = iplot + 1;
 
   subdirs_all{iplot} = '-ve2xB_E_sum_xyz';
@@ -185,10 +185,10 @@ if 1 % forces on cold electrons
   plot_structure.nrows = nrows_all{iplot};
   plot_structures_all{iplot} = plot_structure;
 end
-if 1 % forces on hot electrons
+if 0 % E,B forces on hot electrons
   iplot = iplot + 1;
 
-  subdirs_all{iplot} = 'vi1xB_E_xyz';
+  subdirs_all{iplot} = 'vi1xB_E_sum_xyz';
   varstrs_all{iplot} = {'vi1xB.x','vi1xB.y','vi1xB.z','E.x','E.y','E.z','vi1xB.x+E.x','vi1xB.y+E.y','vi1xB.z+E.z'};
   clims_all{iplot} = [-1 1];        
   cylims_all{iplot} = clims_all{iplot};
@@ -201,7 +201,7 @@ if 1 % forces on hot electrons
   plot_structure.nrows = nrows_all{iplot};
   plot_structures_all{iplot} = plot_structure;
 end
-if 1 % forces on cold electrons
+if 0 % E,B forces on cold electrons
   iplot = iplot + 1;
 
   subdirs_all{iplot} = 'vi2xB_E_sum_xyz';
@@ -209,6 +209,86 @@ if 1 % forces on cold electrons
   clims_all{iplot} = [-1 1];        
   cylims_all{iplot} = clims_all{iplot};
   nrows_all{iplot} = 3; % ncols is calculated from nrows and nvars
+
+  plot_structure.subdir = subdirs_all{iplot};
+  plot_structure.varstrs = varstrs_all{iplot};
+  plot_structure.clim = clims_all{iplot};
+  plot_structure.cylim = cylims_all{iplot};
+  plot_structure.nrows = nrows_all{iplot};
+  plot_structures_all{iplot} = plot_structure;
+end
+if 1 % E,B,divP forces on hot electrons
+  iplot = iplot + 1;
+
+  subdirs_all{iplot} = 'e1_force_terms';
+  varstrs_all{iplot} ={'-ne1.*ve1xB.x','-ne1.*ve1xB.y','-ne1.*ve1xB.z','-ne1.*E.x','-ne1.*E.y','-ne1.*E.z',...
+           '-ne1.*(ve1xB.x+E.x)','-ne1.*(ve1xB.y+E.y)','-ne1.*(ve1xB.z+E.z)',...
+           '-gradpe1_smooth.x','-gradpe1_smooth.y','-gradpe1_smooth.z',...
+           '-ne1.*(ve1xB.x+E.x)-gradpe1_smooth.x','-ne1.*(ve1xB.y+E.y)-gradpe1_smooth.y','-ne1.*(ve1xB.z+E.z)-gradpe1_smooth.z'...
+           }; 
+  clims_all{iplot} = 0.5*[-1 1];        
+  cylims_all{iplot} = clims_all{iplot};
+  nrows_all{iplot} = 5; % ncols is calculated from nrows and nvars
+
+  plot_structure.subdir = subdirs_all{iplot};
+  plot_structure.varstrs = varstrs_all{iplot};
+  plot_structure.clim = clims_all{iplot};
+  plot_structure.cylim = cylims_all{iplot};
+  plot_structure.nrows = nrows_all{iplot};
+  plot_structures_all{iplot} = plot_structure;
+end
+if 1 % E,B forces on cold electrons
+  iplot = iplot + 1;
+
+  subdirs_all{iplot} = 'e2_force_terms';
+  varstrs_all{iplot} ={'-ne2.*ve2xB.x','-ne2.*ve2xB.y','-ne2.*ve2xB.z','-ne2.*E.x','-ne2.*E.y','-ne2.*E.z',...
+           '-ne2.*(ve2xB.x+E.x)','-ne2.*(ve2xB.y+E.y)','-ne2.*(ve2xB.z+E.z)',...
+           '-gradpe2_smooth.x','-gradpe2_smooth.y','-gradpe2_smooth.z',...
+           '-ne2.*(ve2xB.x+E.x)-gradpe2_smooth.x','-ne2.*(ve2xB.y+E.y)-gradpe2_smooth.y','-ne2.*(ve2xB.z+E.z)-gradpe2_smooth.z'...
+           }; 
+  clims_all{iplot} = 0.5*[-1 1];        
+  cylims_all{iplot} = clims_all{iplot};
+  nrows_all{iplot} = 5; % ncols is calculated from nrows and nvars
+
+  plot_structure.subdir = subdirs_all{iplot};
+  plot_structure.varstrs = varstrs_all{iplot};
+  plot_structure.clim = clims_all{iplot};
+  plot_structure.cylim = cylims_all{iplot};
+  plot_structure.nrows = nrows_all{iplot};
+  plot_structures_all{iplot} = plot_structure;
+end
+if 1 % E,B forces on hot electrons
+  iplot = iplot + 1;
+
+  subdirs_all{iplot} = 'i1_force_terms';
+  varstrs_all{iplot} ={'-ni1.*vi1xB.x','-ni1.*vi1xB.y','-ni1.*vi1xB.z','-ni1.*E.x','-ni1.*E.y','-ni1.*E.z',...
+           '-ni1.*(vi1xB.x+E.x)','-ni1.*(vi1xB.y+E.y)','-ni1.*(vi1xB.z+E.z)',...
+           '-gradpi1_smooth.x','-gradpi1_smooth.y','-gradpi1_smooth.z',...
+           '-ni1.*(vi1xB.x+E.x)-gradpi1_smooth.x','-ni1.*(vi1xB.y+E.y)-gradpi1_smooth.y','-ni1.*(vi1xB.z+E.z)-gradpi1_smooth.z'...
+           }; 
+  clims_all{iplot} = 0.5*[-1 1];        
+  cylims_all{iplot} = clims_all{iplot};
+  nrows_all{iplot} = 5; % ncols is calculated from nrows and nvars
+
+  plot_structure.subdir = subdirs_all{iplot};
+  plot_structure.varstrs = varstrs_all{iplot};
+  plot_structure.clim = clims_all{iplot};
+  plot_structure.cylim = cylims_all{iplot};
+  plot_structure.nrows = nrows_all{iplot};
+  plot_structures_all{iplot} = plot_structure;
+end
+if 1 % E,B forces on cold electrons
+  iplot = iplot + 1;
+
+  subdirs_all{iplot} = 'i2_force_terms';
+  varstrs_all{iplot} ={'-ni2.*vi2xB.x','-ni2.*vi2xB.y','-ni2.*vi2xB.z','-ni2.*E.x','-ni2.*E.y','-ni2.*E.z',...
+           '-ni2.*(vi2xB.x+E.x)','-ni2.*(vi2xB.y+E.y)','-ni2.*(vi2xB.z+E.z)',...
+           '-gradpi2_smooth.x','-gradpi2_smooth.y','-gradpi2_smooth.z',...
+           '-ni2.*(vi2xB.x+E.x)-gradpi2_smooth.x','-ni2.*(vi2xB.y+E.y)-gradpi2_smooth.y','-ni2.*(vi2xB.z+E.z)-gradpi2_smooth.z'...
+           }; 
+  clims_all{iplot} = 0.5*[-1 1];        
+  cylims_all{iplot} = clims_all{iplot};
+  nrows_all{iplot} = 5; % ncols is calculated from nrows and nvars
 
   plot_structure.subdir = subdirs_all{iplot};
   plot_structure.varstrs = varstrs_all{iplot};
@@ -248,7 +328,7 @@ for itime = 1:ntimes
         = read_fields(txtfile); toc
 
   % Calculate auxillary quantities
-  tic; A = vector_potential(x,z,B.x,B.z); toc % vector potential
+  A = vector_potential(x,z,B.x,B.z); % vector potential
   pb = B.abs.^2/2; % magnetic pressure
   bcurv = magnetic_field_curvature(x,z,B.x,B.y,B.z); % magnetic curvature
   c_eval('ve?xB = cross_product(ve?.x,ve?.y,ve?.z,B.x,B.y,B.z);',1:2) % electron motional electric field
@@ -262,6 +342,10 @@ for itime = 1:ntimes
   UB.y = 0.5*B.y.^2;
   UB.z = 0.5*B.z.^2;
   UB.tot = 0.5*B.abs.^2; 
+  c_eval('gradpe? = grad_scalar(x,z,pe?.scalar);',1:2) %
+  c_eval('gradpi? = grad_scalar(x,z,pi?.scalar);',1:2) %
+  c_eval('gradpe?_smooth = grad_scalar(x,z,smooth2(pe?.scalar,1));',1:2) %
+  c_eval('gradpi?_smooth = grad_scalar(x,z,smooth2(pi?.scalar,1));',1:2) %
   c_eval('Uke? = mass(2)/mass(1)*0.5*ne?.*(ve?.x.^2 + ve?.y.^2 + ve?.z.^2);',1:2)
   c_eval('Uki? = mass(1)/mass(1)*0.5*ni?.*(vi?.x.^2 + vi?.y.^2 + vi?.z.^2);',1:2)
   c_eval('Ute? = pe?.scalar;',1:2)
@@ -291,7 +375,7 @@ for itime = 1:ntimes
   UB_ts(1,itime) = sum(UB.tot(:));
   
   % Plots
-  if 1 % Plot, energy densities
+  if 0 % Plot, energy densities
     %% Save and print info
     subdir = 'energy_density_1';
     savedir = [savedir_root,subdir];
@@ -426,7 +510,7 @@ for itime = 1:ntimes
     doA = 1;
     if doA    
       cA = [0.8 0.8 0.8];
-      nA = 20;
+      nA = 40;
       nA = [0:-2:min(A(:))];
       ipxA = ipx1:20:ipx2;
       ipzA = ipz1:20:ipz2;
@@ -451,7 +535,9 @@ for itime = 1:ntimes
       hca.YLabel.String = 'z (d_i)';
       %hca.Title.String = sprintf('%s, sum(%s) = %g',varstr,varstr,sum(variable(:))); 
       hca.Title.String = sprintf('%s',varstr); 
-      hca.CLim = max(abs(himag.CData(:)))*[-1 1];  
+      if abs(himag.CData(:)) % dont do if is zero
+        hca.CLim = max(abs(himag.CData(:)))*[-1 1];  
+      end
       hcb = colorbar('peer',hca);
       hb(ivar) = hcb;
       %hcb.YLim = hca.CLim(2)*[-1 1];
