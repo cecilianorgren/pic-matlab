@@ -261,10 +261,10 @@ if 1 % E,B forces on hot electrons
   iplot = iplot + 1;
 
   subdirs_all{iplot} = 'i1_force_terms';
-  varstrs_all{iplot} ={'-ni1.*vi1xB.x','-ni1.*vi1xB.y','-ni1.*vi1xB.z','-ni1.*E.x','-ni1.*E.y','-ni1.*E.z',...
-           '-ni1.*(vi1xB.x+E.x)','-ni1.*(vi1xB.y+E.y)','-ni1.*(vi1xB.z+E.z)',...
+  varstrs_all{iplot} ={'ni1.*vi1xB.x','ni1.*vi1xB.y','ni1.*vi1xB.z','ni1.*E.x','ni1.*E.y','ni1.*E.z',...
+           'ni1.*(vi1xB.x+E.x)','ni1.*(vi1xB.y+E.y)','ni1.*(vi1xB.z+E.z)',...
            '-gradpi1_smooth.x','-gradpi1_smooth.y','-gradpi1_smooth.z',...
-           '-ni1.*(vi1xB.x+E.x)-gradpi1_smooth.x','-ni1.*(vi1xB.y+E.y)-gradpi1_smooth.y','-ni1.*(vi1xB.z+E.z)-gradpi1_smooth.z'...
+           'ni1.*(vi1xB.x+E.x)-gradpi1_smooth.x','ni1.*(vi1xB.y+E.y)-gradpi1_smooth.y','ni1.*(vi1xB.z+E.z)-gradpi1_smooth.z'...
            }; 
   clims_all{iplot} = 0.5*[-1 1];        
   cylims_all{iplot} = clims_all{iplot};
@@ -281,10 +281,10 @@ if 1 % E,B forces on cold electrons
   iplot = iplot + 1;
 
   subdirs_all{iplot} = 'i2_force_terms';
-  varstrs_all{iplot} ={'-ni2.*vi2xB.x','-ni2.*vi2xB.y','-ni2.*vi2xB.z','-ni2.*E.x','-ni2.*E.y','-ni2.*E.z',...
-           '-ni2.*(vi2xB.x+E.x)','-ni2.*(vi2xB.y+E.y)','-ni2.*(vi2xB.z+E.z)',...
+  varstrs_all{iplot} ={'ni2.*vi2xB.x','ni2.*vi2xB.y','ni2.*vi2xB.z','ni2.*E.x','ni2.*E.y','ni2.*E.z',...
+           'ni2.*(vi2xB.x+E.x)','ni2.*(vi2xB.y+E.y)','ni2.*(vi2xB.z+E.z)',...
            '-gradpi2_smooth.x','-gradpi2_smooth.y','-gradpi2_smooth.z',...
-           '-ni2.*(vi2xB.x+E.x)-gradpi2_smooth.x','-ni2.*(vi2xB.y+E.y)-gradpi2_smooth.y','-ni2.*(vi2xB.z+E.z)-gradpi2_smooth.z'...
+           'ni2.*(vi2xB.x+E.x)-gradpi2_smooth.x','ni2.*(vi2xB.y+E.y)-gradpi2_smooth.y','ni2.*(vi2xB.z+E.z)-gradpi2_smooth.z'...
            }; 
   clims_all{iplot} = 0.5*[-1 1];        
   cylims_all{iplot} = clims_all{iplot};
@@ -510,8 +510,9 @@ for itime = 1:ntimes
     doA = 1;
     if doA    
       cA = [0.8 0.8 0.8];
+      cA = [0.7 0.7 0.7];
       nA = 40;
-      nA = [0:-2:min(A(:))];
+      nA = [0:-1:min(A(:))];
       ipxA = ipx1:20:ipx2;
       ipzA = ipz1:20:ipz2;
     end
@@ -535,6 +536,7 @@ for itime = 1:ntimes
       hca.YLabel.String = 'z (d_i)';
       %hca.Title.String = sprintf('%s, sum(%s) = %g',varstr,varstr,sum(variable(:))); 
       hca.Title.String = sprintf('%s',varstr); 
+      hca.Title.Interpreter = 'none';
       if abs(himag.CData(:)) % dont do if is zero
         hca.CLim = max(abs(himag.CData(:)))*[-1 1];  
       end

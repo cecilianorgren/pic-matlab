@@ -81,6 +81,7 @@ varstrs = {'-ne2.*ve2xB.x','-ne2.*ve2xB.y','-ne2.*ve2xB.z','-ne2.*E.x','-ne2.*E.
            '-gradpe2_smooth.x','-gradpe2_smooth.y','-gradpe2_smooth.z',...
            '-ne2.*(ve2xB.x+E.x)-gradpe2_smooth.x','-ne2.*(ve2xB.y+E.y)-gradpe2_smooth.y','-ne2.*(ve2xB.z+E.z)-gradpe2_smooth.z'...
            }; clim = 0.5*[-1 1];
+varstrs = {'ve1.x','ve2.x','vi1.x','vi2.x'}; clim = 3*[-1 1];
 nvars = numel(varstrs);
 
 %xlim = torow(x([1 end])) + [100 -100];
