@@ -1,0 +1,15 @@
+% Stream functions
+c_eval('Se?.xz = vector_potential(x,z,ve?.x,ve?.z);',1:2) % stream function
+c_eval('Si?.xz = vector_potential(x,z,vi?.x,vi?.z);',1:2) % stream function
+
+
+
+nrows = 2;
+ncols = 2;
+npanels = nrows*ncols;
+clear h;
+isub = 1;
+for ipanel = 1:npanels
+  h(ipanel) = subplot(nrows,ncols,ipanel);
+end
+

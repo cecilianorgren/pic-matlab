@@ -446,14 +446,14 @@ vi2.par = (vi2.x.*bx + vi2.y.*by + vi2.z.*bz)./b.abs;
 % current
 je1.units = 'je/(n0*vA)';
 je1.x = jex;
-je1.y = jex;
-je1.z = jey;
+je1.y = jey;
+je1.z = jez;
 je1.par = (je1.x.*bx + je1.y.*by + je1.z.*bz)./b.abs;
 
 je2.units = 'je/(n0*vA)';
 je2.x = jex_h;
-je2.y = jex_h;
-je2.z = jey_h;
+je2.y = jey_h;
+je2.z = jez_h;
 je2.par = (je2.x.*bx + je2.y.*by + je2.z.*bz)./b.abs;
 
 ji1.units = 'ji/(n0*vA)';

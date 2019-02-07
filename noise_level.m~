@@ -1,0 +1,13 @@
+% Check noise level: std/mean, within given box
+
+varstr = {'pe1.scalar','pe2.scalar'};
+nvar = numel(cartrs)
+xbox = [20 25];
+zbox = [20 25];
+
+val_mean = 
+val_std = 
+
+
+
+

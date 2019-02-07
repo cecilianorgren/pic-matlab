@@ -4,32 +4,26 @@ function varargout = fluxtube_volume(A,levels,varargin)
 %   [A_volume,A_map,A_levels] = FLUXTUBE_VOLUME(A,-30:1:1,'interpolate',2);
 %       A_volume - relative volume 
 %       A_map - map of relative volume
-%       A_levels - map of levels - same as contourf
+%       A_levels - map of levels - same as conto
 %   
 %   Options:
 %     'interpolate' - interpolates the matrix using interp2, a value of k=1
 %                     results in 2^k-1 interpolated points between sample 
 %                     values, used for better accuracy
-%     'repolate' - downsamples data to original size (buggy: only works for 
-%                  integer values of (1+k))
 %
 % See also: vector_potential, interp2
 
 % Defualt options
 doInterpolate = 0;
-doRepolate = 0;
- 
+
 have_options = nargin > 2;
 args = varargin;
 while have_options
   switch(lower(args{1}))
-    case {'interpolate'}
+    case {'interpolate'} % time
       l = 2;
       interpolate_value = args{2};      
       doInterpolate = 1;
-    case {'repolate'}
-      l = 1;      
-      doRepolate = 1;  
     otherwise 
       warning(sprintf('Input argument unknown. Skipping.'))
   end
@@ -72,14 +66,6 @@ for ilevel = 1:nlevels
   n_points_within_level(ilevel) = numel(C);
   A_map(C) = numel(C)/n_points_total;
   A_levels(C) = mean(levels(ilevel:ilevel+1));
-end
-
-if doRepolate % sample matrices back down to original size
-  %A_map = interp2(A_map,1/(1+interpolate_value));
-  A_map = downsample(A_map,1+interpolate_value);
-  A_map = downsample(A_map',1+interpolate_value)';  
-  A_levels = downsample(A_levels,1+interpolate_value);
-  A_levels = downsample(A_levels',1+interpolate_value)';  
 end
 
 if nargout == 1

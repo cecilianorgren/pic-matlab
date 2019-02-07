@@ -1,5 +1,5 @@
 %% Load data
-timestep = 08200;
+timestep = 09200;
 txtfile = sprintf('/Users/cecilia/Data/PIC/data/fields-%05.0f.dat',timestep); % michael's perturbation
 %txtfile = sprintf('/Users/cno062/Data/PIC/df_cold_protons_1/data/fields-%05.0f.dat',timestep); % michael's perturbation
 txtfile = sprintf('/Volumes/Fountain/Data/PIC/df_cold_protons_1/data/fields-%05.0f.dat',timestep); % michael's perturbation
@@ -18,9 +18,14 @@ tic; [x,z,E,B,...
   dfac,teti,nnx,nnz,wpewce,mass,it,time,dt,xmax,zmax,q] = read_fields(txtfile); toc
 
 % Calculate auxillary quantities
-tic; A = vector_potential(x,z,B.x,B.z); toc % vector potential
+A = vector_potential(x,z,B.x,B.z); % vector potential
 [saddle_locations,saddle_values] = saddle(A);
+[A_volume,A_map] = fluxtube_volume(A,-30:1:1);
 %[saddle_locations,saddle_values] = fluxtube_volume(A);
+
+% Stream functions
+c_eval('Se?.xz = vector_potential(x,z,ve?.x,ve?.z);',1:2) % stream function
+c_eval('Si?.xz = vector_potential(x,z,vi?.x,vi?.z);',1:2) % stream function
 
 pB = B.abs.^2/2; % magnetic pressure
 bcurv = magnetic_field_curvature(x,z,B.x,B.y,B.z); % magnetic curvature
@@ -35,7 +40,12 @@ c_eval('gradpe? = grad_scalar(x,z,pe?.scalar);',1:2) %
 c_eval('gradpi? = grad_scalar(x,z,pi?.scalar);',1:2) %
 c_eval('gradpe?_smooth = grad_scalar(x,z,smooth2(pe?.scalar,1));',1:2) %
 c_eval('gradpi?_smooth = grad_scalar(x,z,smooth2(pi?.scalar,1));',1:2) %
-c_eval('ve?xB = cross_product(ve?.x,ve?.y,ve?.z,B.x,B.y,B.z);',1:2) %
+c_eval('vte? = 2*sqrt(te?.scalar/(mass(2)/mass(1))); vte? = real(vte?);',1:2) % obs, fix temperature instead
+c_eval('vti? = 2*sqrt(ti?.scalar/(mass(1)/mass(1))); vti? = real(vti?);',1:2) % obs, fix temperature instead
+c_eval('wce? = B.abs/(mass(2)/mass(1));',1:2)
+c_eval('wci? = B.abs/(mass(1)/mass(1));',1:2)
+c_eval('re? = vte?./wce?;',1:2)
+c_eval('ri? = vti?./wci?;',1:2)
 UB.tot = 0.5*B.abs.^2;
 UB.x = 0.5*B.x.^2;
 UB.y = 0.5*B.y.^2;
@@ -57,6 +67,7 @@ c_eval('vi?.perp.y = vi?.y-vi?.par.*B.y./B.abs;',1:2)
 c_eval('vi?.perp.z = vi?.z-vi?.par.*B.z./B.abs;',1:2)
 
 
+
 %% Plot, define variable in cell array
 % Define what variables to plot
 varstrs = {'ve1.x','ve2.x','ve1.z','ve2.z','ve1.par','ve2.par','ExB.x','ExB.z','-ve1xB.x','-ve2xB.x','-ve1xB.z','-ve2xB.z','E.x','E.z'};
@@ -65,7 +76,7 @@ varstrs = {'ve1.perp.x','ve2.perp.x','vi1.perp.x','vi2.perp.x','ExB.x'};
 varstrs = {'ve1.perp.z','ve2.perp.z','vi1.perp.z','vi2.perp.z','ExB.z'};
 varstrs = {'ne1','ne2','ni1','ni2','te2.scalar','ti2.scalar','pe2.scalar','pi2.scalar'};
 varstrs = {'ne1','ne2','ni1','ni2'};
-varstrs = {'ve1.x','ve2.x','vi1.x','vi2.x'};
+
 varstrs = {'Ute1','Ute2','Uti1','Uti2','Uke1','Uke2','Uki1','Uki2'}; clim = 12*[-1 1];
 varstrs = {'pe1.xx','pe1.xy','pe1.yy','pe1.xz','pe1.zz','pe1.yz'}; clim = 0.25*[-1 1];
 varstrs = {'ne1','ne2','ni1','ni2'}; clim = 2*[-1 1];
@@ -82,23 +93,31 @@ varstrs = {'-ne2.*ve2xB.x','-ne2.*ve2xB.y','-ne2.*ve2xB.z','-ne2.*E.x','-ne2.*E.
            '-ne2.*(ve2xB.x+E.x)-gradpe2_smooth.x','-ne2.*(ve2xB.y+E.y)-gradpe2_smooth.y','-ne2.*(ve2xB.z+E.z)-gradpe2_smooth.z'...
            }; clim = 0.5*[-1 1];
 varstrs = {'ve1.x','ve2.x','vi1.x','vi2.x'}; clim = 3*[-1 1];
+varstrs = {'te1.scalar','te2.scalar','te2.scalar./te1.scalar','ti1.scalar','ti2.scalar','ti2.scalar./ti1.scalar'}; clim = 0.8*[-1 1];
+varstrs = {'te1.scalar','te2.scalar','te1.scalar./te2.scalar','ne1','ne2'}; clim = 3*[-1 1];
+varstrs = {'ve1.par','ve1.perp.x','ve1.perp.y','ve1.perp.z','ve1.par./sqrt(ve1.perp.x.^2+ve1.perp.y.^2+ve1.perp.z.^2)'}; clim = 3*[-1 1];
+%varstrs = {'vi1.par','vi1.perp.x','vi1.perp.y','vi1.perp.z','vi1.par./sqrt(vi1.perp.x.^2+vi1.perp.y.^2+vi1.perp.z.^2)'}; clim = 3*[-1 1];
+varstrs = {'ne1','ne2'}; clim = 3*[-1 1];
+varstrs = {'(-ve1xB.y+ve2xB.y)','(-vi1xB.y+vi2xB.y)','vi1.y','vi2.y'}; clim = 0.1*[-1 1];
+varstrs = {'(-vi1xB.y+vi2xB.y)','vi1.y','vi2.y'}; clim = [];0.2*[-1 1];
+varstrs = {'vi2xB.y','vi2xB.y_zx','vi2xB.y_xz'}; clim = [];0.2*[-1 1];
+varstrs = {'vi1xB.y','vi2xB.y','vi1xB.y_zx','vi2xB.y_zx','vi1xB.y_xz','vi2xB.y_xz'}; clim = 0.5*[-1 1];
+varstrs = {'vi1xB.y','vi2xB.y','-vi1xB.y+vi2xB.y','vi1xB.y_zx','vi2xB.y_zx','-vi1xB.y_zx+vi2xB.y_zx','vi1xB.y_xz','vi2xB.y_xz','-vi1xB.y_xz+vi2xB.y_xz'}; clim = 0.2*[-1 1];
+%varstrs = {'-vi1xB.y+vi2xB.y','-vi1xB.y_zx+vi2xB.y_zx','-vi1xB.y_xz+vi2xB.y_xz','vi1.x','vi1.y','vi1.z','vi2.x','vi2.y','vi2.z'}; clim = 0.2*[-1 1];
+%varstrs = {'vte1','vte2','vti1','vti2'}; clim = [];0.2*[-1 1];
+%varstrs = {'wce1','wce2','wci1','wci2','vte1','vte2','vti1','vti2','re1','re2','ri1','ri2'}; clim = 10*[-1 1];0.2*[-1 1];
+%varstrs = {'vte1','vte2','vti1','vti2','re1','re2','ri1','ri2'}; clim = 3*[-1 1];0.2*[-1 1];
+varstrs = {'ve1.x','ve2.x','vi1.x','vi2.x'};
+
+
 nvars = numel(varstrs);
 
 %xlim = torow(x([1 end])) + [100 -100];
 %zlim = [-15 15];z([1 end]);
-xlim = torow(x([1 end]));
-zlim = torow(z([1 end]));
-
-ipx1 = find(x>xlim(1),1,'first');
-ipx2 = find(x<xlim(2),1,'last');
-ipz1 = find(z>zlim(1),1,'first');
-ipz2 = find(z<zlim(2),1,'last');
-ipx = ipx1:2:ipx2;
-ipz = ipz1:2:ipz2;
 
 % Initialize figure
 npanels = nvars;
-nrows = 5;
+nrows = 2;
 ncols = ceil(npanels/nrows);
 npanels = nrows*ncols;
 isub = 1; 
@@ -109,9 +128,9 @@ linkaxes(h);
 
 % Flux function
 doA = 0;
-cA = [0.8 0.8 0.8];
+cA = 0*[0.8 0.8 0.8];
 nA = 20;
-nA = [0:-2:min(A(:))];
+nA = [0:-1:min(A(:))];
 ipxA = ipx1:20:ipx2;
 ipzA = ipz1:20:ipz2;
 
@@ -148,8 +167,8 @@ for ivar = 1:nvars
   hca.YLabel.String = 'z (d_i)';
   %hca.Title.String = sprintf('%s, sum(%s) = %g',varstr,varstr,sum(variable(:))); 
   hca.Title.String = sprintf('%s',varstr); 
-  hca.Title.Interpreter = 'none';
-  if abs(himag.CData(:)) % dont do if is zero
+  hca.Title.Interpreter = 'none';  
+  if any(abs(himag.CData(not(isnan(himag.CData(:)))))) % do if any value is non-zero
     hca.CLim = max(abs(himag.CData(:)))*[-1 1];  
   end
   hcb = colorbar('peer',hca);
@@ -159,7 +178,7 @@ for ivar = 1:nvars
     
   if doA
     hold(hca,'on')
-    hcont = contour(hca,x(ipx),z(ipz),A(ipx,ipz)',nA,'color',cA,'linewidth',1.0); 
+    hcont = contour(hca,x(ipx),z(ipz),A(ipx,ipz)',nA,'color',cA,'linewidth',0.5); 
 %     for ixline = 1:size(saddle_locations,1)
 %       sepA = saddle_values(ixline);
 %       hcont = contour(hca,x(ipx),z(ipz),A(ipx,ipz)',sepA*[1 1],'color',cA.^4,'linewidth',2.0);  
@@ -178,7 +197,7 @@ for ipanel = 1:npanels
   h(ipanel).YDir = 'normal';
   h(ipanel).XLim = xlim;
   h(ipanel).YLim = zlim;
-  h(ipanel).CLim = clim;
+  if not(isempty(clim)), h(ipanel).CLim = clim; end
 end
 toc
 

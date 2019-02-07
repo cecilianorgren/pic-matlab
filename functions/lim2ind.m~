@@ -1,0 +1,6 @@
+function out = lim2ind(varargin)
+if nargin 
+
+i1 = find(val>lim(1),1,'first');
+i2 = find(val<lim(2),1,'last');  
+out = i1:1:i2;
