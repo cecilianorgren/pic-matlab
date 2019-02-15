@@ -1,5 +1,5 @@
 %% Load data
-timestep = 09200;
+timestep = 05000;
 txtfile = sprintf('/Users/cecilia/Data/PIC/data/fields-%05.0f.dat',timestep); % michael's perturbation
 %txtfile = sprintf('/Users/cno062/Data/PIC/df_cold_protons_1/data/fields-%05.0f.dat',timestep); % michael's perturbation
 txtfile = sprintf('/Volumes/Fountain/Data/PIC/df_cold_protons_1/data/fields-%05.0f.dat',timestep); % michael's perturbation
@@ -32,6 +32,12 @@ bcurv = magnetic_field_curvature(x,z,B.x,B.y,B.z); % magnetic curvature
 c_eval('ve?xB = cross_product(ve?.x,ve?.y,ve?.z,B.x,B.y,B.z);',1:2) % electron motional electric field
 c_eval('vi?xB = cross_product(vi?.x,vi?.y,vi?.z,B.x,B.y,B.z);',1:2) % ion motional electric field
 ExB = cross_product(E.x,E.y,E.z,B.x,B.y,B.z); % Poynting flux
+vExB = cross_product(E.x,E.y,E.z,B.x./B.abs./B.abs,B.y./B.abs./B.abs,B.z./B.abs./B.abs); % Poynting flux
+
+vExB.x = ExB.x./B.abs./B.abs; vExB.x(B.abs<0.1) = 0;
+vExB.y = ExB.y./B.abs./B.abs; vExB.y(B.abs<0.1) = 0;
+vExB.z = ExB.z./B.abs./B.abs; vExB.z(B.abs<0.1) = 0;
+
 c_eval('E_ve?xB.x = E.x + ve?xB.x; E_ve?xB.y = E.y + ve?xB.y; E_ve?xB.z = E.z + ve?xB.z;',1:2) % electron motional electric field
 c_eval('E_vi?xB.x = E.x + vi?xB.x; E_vi?xB.y = E.y + vi?xB.y; E_vi?xB.z = E.z + vi?xB.z;',1:2) % electron motional electric field
 c_eval('je?E = je?.x.*E.x + je?.y.*E.y + je?.y.*E.z;',1:2)
@@ -59,20 +65,32 @@ Uttot = Uti1 + Uti2 + Ute1 + Ute2;
 jtot.x = ji1.x + ji2.x - je1.x - je2.x;
 jtot.y = ji1.y + ji2.y - je1.y - je2.y;
 jtot.z = ji1.z + ji2.z - je1.z - je2.z;
+je.x = je1.x + je2.x;
+je.y = je1.y + je2.y;
+je.z = je1.z + je2.z;
+ji.x = ji1.x + ji2.x;
+ji.y = ji1.y + ji2.y;
+ji.z = ji1.z + ji2.z;
 c_eval('ve?.perp.x = ve?.x-ve?.par.*B.x./B.abs;',1:2)
 c_eval('ve?.perp.y = ve?.y-ve?.par.*B.y./B.abs;',1:2)
 c_eval('ve?.perp.z = ve?.z-ve?.par.*B.z./B.abs;',1:2)
 c_eval('vi?.perp.x = vi?.x-vi?.par.*B.x./B.abs;',1:2)
 c_eval('vi?.perp.y = vi?.y-vi?.par.*B.y./B.abs;',1:2)
 c_eval('vi?.perp.z = vi?.z-vi?.par.*B.z./B.abs;',1:2)
-
+c_eval('pae? = acosd(ve?.par./sqrt(ve?.x.^2+ve?.y.^2+ve?.z.^2));',1:2)
+c_eval('pai? = acosd(vi?.par./sqrt(vi?.x.^2+vi?.y.^2+vi?.z.^2));',1:2)
+c_eval('angle_Bve? = angle_vec(B,ve?);',1:2)
+c_eval('angle_Bvi? = angle_vec(B,vi?);',1:2)
+angle_vi1vi2 = angle_vec(vi1,vi2);
+angle_ve1ve2 = angle_vec(ve1,ve2);
+angle_jije = angle_vec(ji,je);
 
 
 %% Plot, define variable in cell array
 % Define what variables to plot
 varstrs = {'ve1.x','ve2.x','ve1.z','ve2.z','ve1.par','ve2.par','ExB.x','ExB.z','-ve1xB.x','-ve2xB.x','-ve1xB.z','-ve2xB.z','E.x','E.z'};
 varstrs = {'ve1.x','ve2.x','B.z','E.z','-ve1xB.x','A'};
-varstrs = {'ve1.perp.x','ve2.perp.x','vi1.perp.x','vi2.perp.x','ExB.x'};
+varstrs = {'ve1.perp.x','ve2.perp.x','vi1.perp.x','vi2.perp.x','ExB.x'};  
 varstrs = {'ve1.perp.z','ve2.perp.z','vi1.perp.z','vi2.perp.z','ExB.z'};
 varstrs = {'ne1','ne2','ni1','ni2','te2.scalar','ti2.scalar','pe2.scalar','pi2.scalar'};
 varstrs = {'ne1','ne2','ni1','ni2'};
@@ -107,8 +125,14 @@ varstrs = {'vi1xB.y','vi2xB.y','-vi1xB.y+vi2xB.y','vi1xB.y_zx','vi2xB.y_zx','-vi
 %varstrs = {'vte1','vte2','vti1','vti2'}; clim = [];0.2*[-1 1];
 %varstrs = {'wce1','wce2','wci1','wci2','vte1','vte2','vti1','vti2','re1','re2','ri1','ri2'}; clim = 10*[-1 1];0.2*[-1 1];
 %varstrs = {'vte1','vte2','vti1','vti2','re1','re2','ri1','ri2'}; clim = 3*[-1 1];0.2*[-1 1];
-varstrs = {'ve1.x','ve2.x','vi1.x','vi2.x'};
+varstrs = {'pi1.scalar','gradpi1.x','gradpi1.z','vExB.x','vExB.y','vExB.z'}; clim = [];
+varstrs = {'vExB.x_yz','vExB.x_zy','vExB.y_zx','vExB.y_xz','vExB.z_xy','vExB.z_yx'}; clim = [];
+varstrs = {'vExB.x','vExB.y','vExB.z','vExB.x_yz','vExB.x_zy','vExB.y_zx','vExB.y_xz','vExB.z_xy','vExB.z_yx'}; clim = [-2 2];
+varstrs = {'vExB.x','vExB.x_yz','vExB.x_zy','vExB.y','vExB.y_zx','vExB.y_xz','vExB.z','vExB.z_xy','vExB.z_yx'}; clim = [-2 2];
 
+varstrs = {'vExB.x','vExB.y','vExB.z','vDi1.x','vDi1.y','vDi1.z'}; clim = [];
+varstrs = {'vExB.x','vExB.y','vExB.z','vDi1.x','vDi1.y','vDi1.z','vDi2.x','vDi2.y','vDi2.z','vDe1.x','vDe1.y','vDe1.z','vDe2.x','vDe2.y','vDe2.z'}; clim = [-1.1 1.1];
+varstrs = {'vi1.y','vDi1.y','vExB.y','vDi1.y+vExB.y','vi2.y','vDi2.y','vExB.y','vDi2.y+vExB.y','ve1.y','vDe1.y','vExB.y','vDe1.y+vExB.y','ve2.y','vDe2.y','vExB.y','vDe2.y+vExB.y'}; clim = [-1.1 1.1];
 
 nvars = numel(varstrs);
 
@@ -117,7 +141,7 @@ nvars = numel(varstrs);
 
 % Initialize figure
 npanels = nvars;
-nrows = 2;
+nrows = 4;
 ncols = ceil(npanels/nrows);
 npanels = nrows*ncols;
 isub = 1; 
@@ -126,8 +150,17 @@ for ipanel = 1:npanels
 end
 linkaxes(h);
 
+xlim = [x(1) x(end)] + 150*[1 -1];
+zlim = [z(1) z(end)]; zlim = 5*[-1 1];
+ipx1 = find(x>xlim(1),1,'first');
+ipx2 = find(x<xlim(2),1,'last');
+ipz1 = find(z>zlim(1),1,'first');
+ipz2 = find(z<zlim(2),1,'last');
+ipx = ipx1:2:ipx2;
+ipz = ipz1:2:ipz2;
+    
 % Flux function
-doA = 0;
+doA = 1;
 cA = 0*[0.8 0.8 0.8];
 nA = 20;
 nA = [0:-1:min(A(:))];

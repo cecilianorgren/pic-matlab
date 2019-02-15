@@ -7,6 +7,7 @@ function [xe,ze,e,b,ni1,ne1,ni2,ne2,vi1,ve1,vi2,ve2,ji1,je1,ji2,je2,...
   %% defaults
   nss = 4; % numer of species
   numberel = 101; % number of bins for particle distributions
+  doFixNegDensities = 0;
   %groups = {[1 3],[2 4]}; % electron and ions
   
   % read input
@@ -30,6 +31,9 @@ function [xe,ze,e,b,ni1,ne1,ni2,ne2,vi1,ve1,vi2,ve2,ji1,je1,ji2,je2,...
 %       case 'groupmass'
 %         l = 1;
 %         doGroupMass = 1;
+      case 'rem_neg_n' % number of bins for particle distributions
+        l = 1;
+        doFixNegDensities = 1;
     end
     args = args((l+1):end);
     if isempty(args), break, end
@@ -221,7 +225,6 @@ jez=jez*wpewce(1)*sqrt(mass(1));
 vex = jex./dne;
 vey = jey./dne;
 vez = jez./dne;
-
 vex(dne < 0.005) = 0;
 vey(dne < 0.005) = 0;
 vez(dne < 0.005) = 0;
@@ -292,7 +295,6 @@ jez_h=squeeze(vzs(:,:,ele(1)))*dfac(ele(1));
 vex_h = jex_h./dne_h;
 vey_h = jey_h./dne_h;
 vez_h = jez_h./dne_h;
-
 vex_h(dne_h < 0.005) = 0;
 vey_h(dne_h < 0.005) = 0;
 vez_h(dne_h < 0.005) = 0;
@@ -327,7 +329,7 @@ pzze_h=mass(ele)*(pzze_h-vez_h.*jez_h);
 
 
 
- jex_h=jex_h*wpewce(1)*sqrt(mass(1));
+jex_h=jex_h*wpewce(1)*sqrt(mass(1));
 jey_h=jey_h*wpewce(1)*sqrt(mass(1));
 jez_h=jez_h*wpewce(1)*sqrt(mass(1));
 
@@ -390,6 +392,12 @@ pyze_h=pyze_h*wpewce(1)^2;
 %     Vixz_o_divergence
 
 %     
+
+%% Fix data
+if doFixNegDensities
+  pxxe()
+end
+
 %% Collect data in structures, r, b, e, ni, ne, vi, ve, ji, je, pi, pe
 r.units = 'r/di';
 r.x = xe;

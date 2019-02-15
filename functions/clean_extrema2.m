@@ -1,0 +1,1 @@
+function [] = clean_extrema2(all_XMAX,all_IMAX)

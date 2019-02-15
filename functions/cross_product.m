@@ -4,8 +4,8 @@ function out = cross_product(ax,ay,az,bx,by,bz)
 
 out_x_yz = ay.*bz;
 out_x_zy = - az.*by;
-out_y_xz = az.*bx;
-out_y_zx = - ax.*bz;
+out_y_zx = az.*bx;
+out_y_xz = - ax.*bz;
 out_z_xy = ax.*by;
 out_z_yx = - ay.*bx;
 

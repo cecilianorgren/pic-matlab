@@ -406,6 +406,9 @@ for itime = 1:ntimes
   c_eval('ve?xB = cross_product(ve?.x,ve?.y,ve?.z,B.x,B.y,B.z);',1:2) % electron motional electric field
   c_eval('vi?xB = cross_product(vi?.x,vi?.y,vi?.z,B.x,B.y,B.z);',1:2) % ion motional electric field
   ExB = cross_product(E.x,E.y,E.z,B.x,B.y,B.z); % Poynting flux
+  vExB.x = ExB.x./B.abs./B.abs;
+  vExB.y = ExB.y./B.abs./B.abs;
+  vExB.z = ExB.z./B.abs./B.abs;
   c_eval('E_ve?xB.x = E.x + ve?xB.x; E_ve?xB.y = E.y + ve?xB.y; E_ve?xB.z = E.z + ve?xB.z;',1:2) % electron motional electric field
   c_eval('E_vi?xB.x = E.x + vi?xB.x; E_vi?xB.y = E.y + vi?xB.y; E_vi?xB.z = E.z + vi?xB.z;',1:2) % electron motional electric field
   c_eval('je?E = je?.x.*E.x + je?.y.*E.y + je?.y.*E.z;',1:2)

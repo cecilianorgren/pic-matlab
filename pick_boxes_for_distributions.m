@@ -1,4 +1,9 @@
-%% Pattern governed by A
+%% See what distributions we have already
+timestep = 08000;
+root_dir = '/Volumes/Fountain/Data/PIC/df_cold_protons_1/distributions/';
+txtfile = sprintf('/Volumes/Fountain/Data/PIC/df_cold_protons_1/distributions/%.0f.dat',distnumber);
+
+%% Pattern governed by A, timestep 08000
 x_center = 150:1:205;
 z_center = 0:1:10;
 dx_box = 0.5;
@@ -40,6 +45,7 @@ n_boxes = size(keep_boxes,1);
 figure(401)
 hca = subplot(1,1,1);
 imagesc(hca,x,z,ne2')
+%imagesc(hca,x,z,pi1.scalar')
 hca.XLim = [100 210];
 hca.YLim = [-12 12];
 hca.Title.String = sprintf('n_boxes = %g',n_boxes);
@@ -57,6 +63,153 @@ for ibox = 1:n_boxes
   
 end
 hold(hca,'off')   
+
+%% Pattern governed by A, timestep 05000
+x_center = 184:0.5:205;
+z_center = 0:0.5:5;
+dx_box = 0.25;
+dz_box = 0.25;
+% x_center = 150:0.5:205;
+% z_center = 0:0.5:10;
+% dx_box = 0.25;
+% dz_box = 0.25;
+
+xlow = x_center-dx_box;
+xhigh = x_center+dx_box;
+zlow = z_center-dz_box;
+zhigh = z_center+dz_box;
+
+[XC,ZC] = meshgrid(x_center,z_center);
+
+XC = reshape(XC,prod(size(XC)),1);
+ZC = reshape(ZC,prod(size(ZC)),1);
+
+nboxes = numel(XC);
+Alim = [-24 -17];
+Alim = [-23.3 -21.7];
+ind_keep = zeros(nboxes,1);
+for ibox = 1:nboxes
+  xind = find(abs(x-XC(ibox))==min(abs(x-XC(ibox))));
+  zind = find(abs(z-ZC(ibox))==min(abs(z-ZC(ibox))));
+  A(xind,zind);
+  if A(xind,zind)>Alim(1) && A(xind,zind)<Alim(2) % keep
+    ind_keep(ibox) = 1;
+  else
+    ind_keep(ibox) = 0;
+  end
+end
+
+all_boxes = [XC-dx_box XC+dx_box ZC-dz_box ZC+dz_box];
+keep_boxes = all_boxes(find(ind_keep==1),:);
+n_boxes = size(keep_boxes,1);
+
+figure(401)
+hca = subplot(1,1,1);
+imagesc(hca,x,z,jtot.y')
+%imagesc(hca,x,z,pi1.scalar')
+hca.YDir = 'normal';
+hca.XLim = [100 210];
+hca.YLim = [-12 12];
+hca.Title.String = sprintf('n_boxes = %g',n_boxes);
+hca.Title.Interpreter = 'none';
+hcb = colorbar('peer',hca);
+
+
+hold(hca,'on')
+for ibox = 1:n_boxes      
+  %hstar = plot(hca,[xlo xlo xhi xhi],[zlo zhi zhi zlo],'*k');
+  %hpatch = patch(hca,[keep_boxes(ibox,1) keep_boxes(ibox,1) keep_boxes(ibox,2) keep_boxes(ibox,2)],[keep_boxes(ibox,1) keep_boxes(ibox,2) keep_boxes(ibox,2) keep_boxes(ibox,1)],'w');
+  hpatch = patch(hca,keep_boxes(ibox,[1 1 2 2]),keep_boxes(ibox,[3 4 4 3]),'w');
+  hpatch.FaceAlpha = 0;
+  hpatch.LineWidth = 1;   
+  
+end
+hold(hca,'off')   
+
+%% Pattern governed by A, timestep 06000
+x_center = 180:0.5:205;
+z_center = 0:0.5:5;
+dx_box = 0.25;
+dz_box = 0.25;
+% x_center = 150:0.5:205;
+% z_center = 0:0.5:10;
+% dx_box = 0.25;
+% dz_box = 0.25;
+
+xlow = x_center-dx_box;
+xhigh = x_center+dx_box;
+zlow = z_center-dz_box;
+zhigh = z_center+dz_box;
+
+[XC,ZC] = meshgrid(x_center,z_center);
+
+XC = reshape(XC,prod(size(XC)),1);
+ZC = reshape(ZC,prod(size(ZC)),1);
+
+nboxes = numel(XC);
+Alim = [-24 -17];
+Alim = [-23.3 -20.5];
+ind_keep = zeros(nboxes,1);
+for ibox = 1:nboxes
+  xind = find(abs(x-XC(ibox))==min(abs(x-XC(ibox))));
+  zind = find(abs(z-ZC(ibox))==min(abs(z-ZC(ibox))));
+  A(xind,zind);
+  if A(xind,zind)>Alim(1) && A(xind,zind)<Alim(2) % keep
+    ind_keep(ibox) = 1;
+  else
+    ind_keep(ibox) = 0;
+  end
+end
+
+all_boxes = [XC-dx_box XC+dx_box ZC-dz_box ZC+dz_box];
+keep_boxes = all_boxes(find(ind_keep==1),:);
+n_boxes = size(keep_boxes,1);
+
+% Plot 
+figure(401)
+hca = subplot(2,1,1);
+imagesc(hca,x,z,B.y')
+%imagesc(hca,x,z,pi1.scalar')
+hca.YDir = 'normal';
+hca.XLim = [140 210];
+hca.YLim = [-12 12];
+hca.Title.String = sprintf('n_boxes = %g',n_boxes);
+hca.Title.Interpreter = 'none';
+hcb = colorbar('peer',hca);
+
+hold(hca,'on')
+for ibox = 1:n_boxes      
+  %hstar = plot(hca,[xlo xlo xhi xhi],[zlo zhi zhi zlo],'*k');
+  %hpatch = patch(hca,[keep_boxes(ibox,1) keep_boxes(ibox,1) keep_boxes(ibox,2) keep_boxes(ibox,2)],[keep_boxes(ibox,1) keep_boxes(ibox,2) keep_boxes(ibox,2) keep_boxes(ibox,1)],'w');
+  hpatch = patch(hca,keep_boxes(ibox,[1 1 2 2]),keep_boxes(ibox,[3 4 4 3]),'w');
+  hpatch.FaceAlpha = 0;
+  hpatch.LineWidth = 1;   
+  
+end
+hold(hca,'off')   
+
+hca = subplot(2,1,2);
+imagesc(hca,x,z,ExB')
+%imagesc(hca,x,z,pi1.scalar')
+hca.YDir = 'normal';
+hca.XLim = [140 210];
+hca.YLim = [-12 12];
+hca.Title.String = sprintf('n_boxes = %g',n_boxes);
+hca.Title.Interpreter = 'none';
+hcb = colorbar('peer',hca);
+
+
+hold(hca,'on')
+for ibox = 1:n_boxes      
+  %hstar = plot(hca,[xlo xlo xhi xhi],[zlo zhi zhi zlo],'*k');
+  %hpatch = patch(hca,[keep_boxes(ibox,1) keep_boxes(ibox,1) keep_boxes(ibox,2) keep_boxes(ibox,2)],[keep_boxes(ibox,1) keep_boxes(ibox,2) keep_boxes(ibox,2) keep_boxes(ibox,1)],'w');
+  hpatch = patch(hca,keep_boxes(ibox,[1 1 2 2]),keep_boxes(ibox,[3 4 4 3]),'w');
+  hpatch.FaceAlpha = 0;
+  hpatch.LineWidth = 1;   
+  
+end
+hold(hca,'off')   
+
 
 %% Tight smaller boxes along separatrix
 x_center = 150:0.5:205;

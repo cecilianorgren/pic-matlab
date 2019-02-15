@@ -1,5 +1,5 @@
 function A = vector_potential(x,z,bx,bz)
-% A Calculates the xz-plane magnetic vector potential.
+% Calculates the xz-plane magnetic vector potential.
 %   A = vector_potential(x,z,bx,bz)
 %   B = rot(A) = xhat(dA/dz) - zhat(dA/dx)
 %   Bx = dA/dz

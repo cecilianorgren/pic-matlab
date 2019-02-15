@@ -33,6 +33,7 @@ vya = fread(fid,nss,'real*4');
 vza = fread(fid,nss,'real*4');
 
 remainder = fread(fid);
+%numel(remainder)
 
 %% readu,1,axes,xlo,xhi,zlo,zhi,ic,fxyz,fxy,fxz,fyz,vxa,vya,vza
 
