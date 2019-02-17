@@ -1,11 +1,12 @@
 function varargout = saddle(A,MinPeakProminence)
 % Find saddle point in 2D matrix.
-% [indx,indy] = saddle(A,option);
+% [inds,vals] = saddle(A,option);
 % indxy = saddle(A,option);
+% inds - array with: [indx,indy]
 %   option: 
 %     MinPeakProminence - decides the sensitivity to peaks (findpeaks.m), 
 %                         default is 1e-2
-%                         indxy = saddle(A,1e-2);
+%                         inds = saddle(A,1e-2);
 
 if not(exist('MinPeakProminence','var'))
   MinPeakProminence = 1e-2;
