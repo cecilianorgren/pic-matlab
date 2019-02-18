@@ -24,7 +24,6 @@ function varargout = saddle(A,varargin)
 doPlot = 0;
 doSort = 0;
 MinPeakProminence = 1e-2;
-findpeaks_varargin = {};
 
 args = varargin;
 nargs = numel(args);
@@ -35,24 +34,19 @@ while have_options
     case 'minpeakprominence'
       l = 2;
       MinPeakProminence = args{2};   
-      % add to findpeaks_varargin below
     case 'plot'
       l = 1;      
       doPlot = 1;
     case 'sort'
       l = 1;
-      doSort = 0;
-      findpeaks_varargin{end+1} = 'SortStr';
-      findpeaks_varargin{end+1} = 'descend';
+      doSort = 1;
     otherwise
       disp(sprintf('Unknown argument: %s',args{1}))
   end
   args = args(l+1:end);  
   if isempty(args), break, end    
 end
-%disp(sprintf('MinPeakProminence = %g',MinPeakProminence))
-findpeaks_varargin{end+1} = 'MinPeakProminence';
-findpeaks_varargin{end+1} = MinPeakProminence;
+disp(sprintf('MinPeakProminence = %g',MinPeakProminence))
 % if not(exist('MinPeakProminence','var'))
 %   MinPeakProminence = 1e-2;
 %   fprintf('Using ''MinPeakProminence'' %g to find saddle points. \n',MinPeakProminence)
@@ -67,11 +61,10 @@ for ix = 1:nx
   y_indices_of_min_A(ix) = ind;
   vals_of_min_A(ix) = val;
 end
-%[pks,locs,W,P] = findpeaks(vals_of_min_A,'MinPeakProminence',MinPeakProminence);
-[pks,locs,W,P] = findpeaks(vals_of_min_A,findpeaks_varargin{:});
-A_saddle = pks;
+[pks,locs,W,P] = findpeaks(vals_of_min_A,'MinPeakProminence',MinPeakProminence);
+A_saddle = vals_of_min_A(locs);
 if isempty(A_saddle)
-  warning('No saddle points found, consider changing ''MinPeakProminence''.')  
+  warning('No saddle points found, consider changing ''MinPeakProminence''.')
 end
 
 if numel(locs) == 1
@@ -82,7 +75,7 @@ else
   iy_saddle = tocolumn(y_indices_of_min_A(locs));
 end
 
-if doSort % not used, insert arguments directly into findpeaks
+if doSort  
   [~,ind_sort] = sort(A_saddle,'descend');
   ix_saddle = ix_saddle(ind_sort);
   iy_saddle = iy_saddle(ind_sort);
@@ -93,8 +86,7 @@ if doPlot % plot for diagnostics
   ax = plotyy(hca,1:nx,vals_of_min_A,1:nx,y_indices_of_min_A);  
   hold(hca,'on')
   h_saddle = plot(hca,ix_saddle,A_saddle,'cx');
-  h_prominence = errorbar(ix_saddle,A_saddle,P,'m.');
-  h_min_prominence = errorbar(ix_saddle,A_saddle,ones(size(A_saddle))*MinPeakProminence,'k.');
+  h_prominence = errorbar(ix_saddle,A_saddle,ones(size(A_saddle))*MinPeakProminence,'k.');
   hold(hca,'off')
   ax(1).YLim = [floor(min(vals_of_min_A(:))-MinPeakProminence) ceil(max(vals_of_min_A(:))+MinPeakProminence)];
   ax(1).XLabel.String = 'x index';
@@ -102,7 +94,7 @@ if doPlot % plot for diagnostics
   ax(2).YLabel.String = 'y index where A is minimum';
   ax(1).XLim = [1 nx];
   ax(2).XLim = [1 nx];  
-  legend([h_saddle,h_min_prominence,h_prominence],{'chosen saddle points','MinPeakProminence','PeakProminence'},'location','northwest')
+  legend([h_saddle,h_prominence],{'chosen saddle points','MinPeakProminence'},'location','northwest')
   ax(1).Title.String = sprintf('MeanPeakProminence = %g',MinPeakProminence);
   
   hca = subplot(2,1,2);
