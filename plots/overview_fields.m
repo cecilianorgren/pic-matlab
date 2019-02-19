@@ -1,8 +1,8 @@
 %% Load data
-timestep = 05000;
+timestep = 08000;
 txtfile = sprintf('/Users/cecilia/Data/PIC/data/fields-%05.0f.dat',timestep); % michael's perturbation
 %txtfile = sprintf('/Users/cno062/Data/PIC/df_cold_protons_1/data/fields-%05.0f.dat',timestep); % michael's perturbation
-txtfile = sprintf('/Volumes/Fountain/Data/PIC/df_cold_protons_1/data/fields-%05.0f.dat',timestep); % michael's perturbation
+%txtfile = sprintf('/Volumes/Fountain/Data/PIC/df_cold_protons_1/data/fields-%05.0f.dat',timestep); % michael's perturbation
 
 %timestep = 055;
 %txtfile = sprintf('/Users/cno062/Data/PIC/df_cold_protons_2/data/fields-%05.0f.dat',timestep); % try-out with larger perturbation
