@@ -85,10 +85,24 @@ switch colorOption
         75,107,187 ... % 55,137,187 ...
         ]/255;
     colors = interp1(linspace(1,64,size(c,1)),c,1:64);  
-  otherwise % xyz,1234,a
+  otherwise % abcd,xyz,1234,g
     colors = [];
     for ii = 1:numel(colorOption)
       switch colorOption(ii)
+        case 'a' % hot ions
+          newColor = [0.8500    0.3250    0.0980];
+          %newColor = [0.4940    0.1840    0.5560];
+          %newColor = [147    112 219]/255;  
+        case 'b' % hot electrons
+          newColor = [0.9290    0.6940    0.1250];
+          newColor = [219    112    147]/255;
+          newColor = [255    182    193]/255;
+        case 'c' % cold ions
+          newColor = [0.0000    0.4470    0.7410];
+          %newColor = [147    112 219]/255;          
+        case 'd' % cold electrons
+          newColor = [0.3010    0.7450    0.9330];
+          %newColor = [ 0.4660    0.6740    0.1880];          
         case '1' % mms1, black
           newColor = [0 0 0];
         case '2' % mms2, red
@@ -103,8 +117,14 @@ switch colorOption
           newColor = [0 0.7 0.0];
         case 'z' % z
           newColor = [1 0.2 0];
-        case 'a' % absolute value
+        case 'g' % absolute value
           newColor = [0.3 0.3 0.3]; 
+        case '0'
+           newColor = [   0.9290    0.6940    0.1250];
+        case 'm' % purple
+          newColor = [ 0.5540    0.2340    0.6060];
+        case 'p' % light purple
+          newColor = [216 191 216]/255;  
         otherwise 
           irf.log('warning',['Can''t recognize input ''' colorOption(ii) '''. Inserting a nice yellow instead.']);
           newColor = [0.95 0.7 0.0]; 

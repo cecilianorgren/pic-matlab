@@ -1,7 +1,0 @@
-function fe = rebin(f,old_grid,new_grid)
-
-method = 'cart_3D_to_radial_1D';
-% cart_3D_to_radial_1D
-% bins can 
-
-switch

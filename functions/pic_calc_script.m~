@@ -125,17 +125,8 @@ angle_vi1vi2 = angle_vec(vi1,vi2);
 angle_ve1ve2 = angle_vec(ve1,ve2);
 angle_jije = angle_vec(ji,je);
 
-% Combine densities
-ne = ne1 + ne2;
-ni = ni1 + ni2;
-
 % Combined velocities 
-ve.x = je.x./(ne1+ne2);
-ve.y = je.y./(ne1+ne2);
-ve.z = je.z./(ne1+ne2);
-vi.x = ji.x./(ni1+ni2);
-vi.y = ji.y./(ni1+ni2);
-vi.z = ji.z./(ni1+ni2);
+ve = je1+je1
 
 % Remove some moments with very low densities
 nlim = 0.05;

@@ -21,7 +21,7 @@ if 1 % vex
   iplot = iplot + 1;
   doMovie(iplot) = 1; imovie = imovie + 1;
   
-  subdirs_all{iplot} = 'mov';
+  subdirs_all{iplot} = 'vex_mov';
   varstrs_all{iplot} = {'ve.x'};
   clims_all{iplot} = [-2 2];        
   cylims_all{iplot} = clims_all{iplot};
@@ -38,26 +38,9 @@ if 1 % vix
   iplot = iplot + 1;
   doMovie(iplot) = 1; imovie = imovie + 1;
 
-  subdirs_all{iplot} = 'mov';
+  subdirs_all{iplot} = 'vix_mov';
   varstrs_all{iplot} = {'vi.x'};
   clims_all{iplot} = [-2 2];        
-  cylims_all{iplot} = clims_all{iplot};
-  nrows_all{iplot} = 1; % ncols is calculated from nrows and nvars
-
-  plot_structure.subdir = subdirs_all{iplot};
-  plot_structure.varstrs = varstrs_all{iplot};
-  plot_structure.clim = clims_all{iplot};
-  plot_structure.cylim = cylims_all{iplot};
-  plot_structure.nrows = nrows_all{iplot};
-  plot_structures_all{iplot} = plot_structure;
-end
-if 1 % ne
-  iplot = iplot + 1;
-  doMovie(iplot) = 1; imovie = imovie + 1;
-
-  subdirs_all{iplot} = 'mov';
-  varstrs_all{iplot} = {'ne'};
-  clims_all{iplot} = [0 3];        
   cylims_all{iplot} = clims_all{iplot};
   nrows_all{iplot} = 1; % ncols is calculated from nrows and nvars
 
@@ -410,7 +393,7 @@ varstrs_ts_line_x = {...
   've1.x','ve2.x','vi1.x','vi2.x',...
   've1.y','ve2.y','vi1.y','vi2.y',...
   'ne1','ne2','ni1','ni2',...
-  'J.y',...
+  'jtot.y',...
   'pe1.scalar','pe2.scalar','pi1.scalar','pi2.scalar',...
   'te1.scalar','te2.scalar','ti1.scalar','ti2.scalar'...
   };
@@ -439,7 +422,7 @@ cell_movies = cell(nMovies,2);
 doTs = 1;
 doPatch = 0;
 
-for itime = 1:ntimes
+for itime = 1%:ntimes
   %% Load data
   timestep = timesteps(itime);
   txtfile = sprintf('%s/fields-%05.0f.dat',data_dir,timestep); % michael's perturbation
@@ -843,7 +826,6 @@ for itime = 1:ntimes
         hca.CLim = max(abs(himag.CData(:)))*[-1 1];  
       end
       hcb = colorbar('peer',hca);
-      hcb.YLabel.String = varstr;
       hb(ivar) = hcb;
       %hcb.YLim = hca.CLim(2)*[-1 1];
       colormap(hca,pic_colors('blue_red'));
@@ -856,30 +838,22 @@ for itime = 1:ntimes
     end
     for ipanel = 1:npanels
       h(ipanel).YDir = 'normal';
-      h(ipanel).XDir = 'reverse';
       h(ipanel).XLim = xlim;
       h(ipanel).YLim = zlim;
       h(ipanel).CLim = clim;      
     end
-    h(1).Title.String = sprintf('time = %g (1/wci) = %g (1/wpe)',time,timestep);
-
-    set(gcf,'color',[1 1 1]);
     
-    if doMovie(iplot) % Collect frame for movie    
-      currentBackgroundColor = get(gcf,'color');
-      %set(gcf,'color',[0 1 0]);
-      drawnow
+    if doMovie(iplot) % Collect frame for movie      
       imovie = sum(doMovie(1:iplot));
       tmp_frame = getframe(gcf);
       %cell_movies{imovie}(itime) = tmp_frame;
       if itime == 1 % initialize animated gif matrix
         [im_tmp,map] = rgb2ind(tmp_frame.cdata,256,'nodither');
-        %map(end+1,:) = get(gcf,'color');
         im_tmp(1,1,1,ntimes) = 0;
         cell_movies{imovie,1} = map;
         cell_movies{imovie,2} = im_tmp;
       else
-        cell_movies{imovie,2}(:,:,1,itime) = rgb2ind(tmp_frame.cdata,map,'nodither');
+        cell_movies{imovie,2}(:,:,1,itime) = rgb2ind(f.cdata,map,'nodither');
       end       
     else % print
       print('-dpng','-r200',[savedir '/' savestr '.png']);

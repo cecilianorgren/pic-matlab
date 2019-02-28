@@ -86,7 +86,7 @@ varstrs = {'vExB.x','vExB.y','vExB.z','vDi1.x','vDi1.y','vDi1.z'}; clim = [];
 varstrs = {'vExB.x','vExB.y','vExB.z','vDi1.x','vDi1.y','vDi1.z','vDi2.x','vDi2.y','vDi2.z','vDe1.x','vDe1.y','vDe1.z','vDe2.x','vDe2.y','vDe2.z'}; clim = [-1.1 1.1];
 varstrs = {'vi1.y','vDi1.y','vExB.y','vDi1.y+vExB.y','vi2.y','vDi2.y','vExB.y','vDi2.y+vExB.y','ve1.y','vDe1.y','vExB.y','vDe1.y+vExB.y','ve2.y','vDe2.y','vExB.y','vDe2.y+vExB.y'}; clim = [-1.1 1.1];
 varstrs = {'ve.x','ve.y','ve.z','vi.x','vi.y','vi.z'}; clim = 3*[-1 1];
-%varstrs = {'ne1','ne2','ne','ni1','ni2','ni'}; clim = [];
+varstrs = {'ne1','ne1','ne.z','vi.x','vi.y','vi.z'}; clim = [];
 nvars = numel(varstrs);
 
 %xlim = torow(x([1 end])) + [100 -100];

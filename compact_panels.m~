@@ -1,0 +1,28 @@
+function compact_panels(varargin)
+
+if nargin == 1
+  space = varargin{1};
+else
+  space = 0.01;
+end
+
+fig = gcf;
+ax = findobj(fig.Children,'Type','Axes');
+nax = numel(ax);
+for iax = 1:nax
+  positions(iax,:) = ax(iax).Position;
+end
+ax = ax(sort(positions()));
+
+yminus = positions(:,2);
+yplus =  positions(:,2) + positions(:,4);
+
+ylowbound = min(yminus);
+yhighbound = max(yplus);
+miny = min(positions(:,2));
+
+new_yheight = (yhighbound-ylowbound-(nax-1)*space)/nax;
+for iax = 1:nax
+  ax(iax).Position(4) = new_yheight;
+end
+1;
