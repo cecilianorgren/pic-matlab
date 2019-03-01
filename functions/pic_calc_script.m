@@ -105,6 +105,7 @@ ji.z = ji1.z + ji2.z;
 J.x = ji1.x + ji2.x - je1.x - je2.x;
 J.y = ji1.y + ji2.y - je1.y - je2.y;
 J.z = ji1.z + ji2.z - je1.z - je2.z;
+J.abs = sqrt(J.x.^2+J.y.^2+J.z.^2);
 
 % Perpendicular velocities
 c_eval('ve?.perp.x = ve?.x-ve?.par.*B.x./B.abs;',1:2)
@@ -121,8 +122,24 @@ c_eval('pai? = acosd(vi?.par./sqrt(vi?.x.^2+vi?.y.^2+vi?.z.^2));',1:2)
 c_eval('angle_Bve? = angle_vec(B,ve?);',1:2)
 c_eval('angle_Bvi? = angle_vec(B,vi?);',1:2)
 
+angles_to_do = {'vi1','vi2','ve1','ve2'};
+for ia = 1:3
+  for ib = (ia+1):4
+    aa = angles_to_do{ia};
+    bb = angles_to_do{ib};
+    eval(sprintf('angle_%s%s = angle_vec(%s,%s);',aa,bb,aa,bb))
+  end
+end
 angle_vi1vi2 = angle_vec(vi1,vi2);
 angle_ve1ve2 = angle_vec(ve1,ve2);
+
+angle_vi1vi2 = angle_vec(vi1,vi2);
+angle_ve1ve2 = angle_vec(ve1,ve2);
+angle_vi1vi2 = angle_vec(vi1,vi2);
+angle_ve1ve2 = angle_vec(ve1,ve2);
+angle_vi1vi2 = angle_vec(vi1,vi2);
+angle_ve1ve2 = angle_vec(ve1,ve2);
+
 angle_jije = angle_vec(ji,je);
 
 % Combine densities
@@ -145,4 +162,12 @@ ve2.y(ne2<nlim) = 0;
 ve2.z(ne2<nlim) = 0;  
 vi2.x(ni2<nlim) = 0;  
 vi2.y(ni2<nlim) = 0;  
-vi2.z(ni2<nlim) = 0;  
+vi2.z(ni2<nlim) = 0; 
+nlim = 0.05;
+indrem = find(ne1<nlim);
+te2.scalar(ne2<nlim) = NaN;  
+te2.scalar(ne2<nlim) = NaN;  
+te2.scalar(ne2<nlim) = NaN;  
+ti2.scalar(ni2<nlim) = NaN;  
+ti2.scalar(ni2<nlim) = NaN;  
+ti2.scalar(ni2<nlim) = NaN;  

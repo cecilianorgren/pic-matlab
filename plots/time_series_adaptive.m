@@ -1,5 +1,6 @@
 %% Define times
 timesteps = 00200:200:10800;
+times = timesteps/50;
 ntimes = numel(timesteps);
 savedir_root = '/Users/cno062/Research/PIC/df_cold_protons_1/';
 data_dir = '/Volumes/Fountain/Data/PIC/df_cold_protons_1/data/';
@@ -17,7 +18,296 @@ clear subdirs_all varstrs_all clims_all cylims_all nrows_all plot_structure
 clear doMovie movies
 iplot = 0;
 imovie = 0;
-if 1 % vex
+if 0 % By
+  iplot = iplot + 1;
+  doMovie(iplot) = 1; imovie = imovie + 1;
+  
+  subdirs_all{iplot} = 'mov';
+  varstrs_all{iplot} = {'B.y'};
+  clims_all{iplot} = [-0.6 0.6];        
+  cylims_all{iplot} = clims_all{iplot};
+  nrows_all{iplot} = 1; % ncols is calculated from nrows and nvars
+
+  plot_structure.subdir = subdirs_all{iplot};
+  plot_structure.varstrs = varstrs_all{iplot};
+  plot_structure.clim = clims_all{iplot};
+  plot_structure.cylim = cylims_all{iplot};
+  plot_structure.nrows = nrows_all{iplot};
+  plot_structures_all{iplot} = plot_structure;
+end
+if 1 % Bz
+  iplot = iplot + 1;
+  doMovie(iplot) = 1; imovie = imovie + 1;
+  
+  subdirs_all{iplot} = 'mov';
+  varstrs_all{iplot} = {'B.z'};
+  clims_all{iplot} = [-0.6 0.6];        
+  cylims_all{iplot} = clims_all{iplot};
+  nrows_all{iplot} = 1; % ncols is calculated from nrows and nvars
+
+  plot_structure.subdir = subdirs_all{iplot};
+  plot_structure.varstrs = varstrs_all{iplot};
+  plot_structure.clim = clims_all{iplot};
+  plot_structure.cylim = cylims_all{iplot};
+  plot_structure.nrows = nrows_all{iplot};
+  plot_structures_all{iplot} = plot_structure;
+end
+if 0 % Ez
+  iplot = iplot + 1;
+  doMovie(iplot) = 1; imovie = imovie + 1;
+  
+  subdirs_all{iplot} = 'mov';
+  varstrs_all{iplot} = {'E.z'};
+  clims_all{iplot} = [-2 2];        
+  cylims_all{iplot} = clims_all{iplot};
+  nrows_all{iplot} = 1; % ncols is calculated from nrows and nvars
+
+  plot_structure.subdir = subdirs_all{iplot};
+  plot_structure.varstrs = varstrs_all{iplot};
+  plot_structure.clim = clims_all{iplot};
+  plot_structure.cylim = cylims_all{iplot};
+  plot_structure.nrows = nrows_all{iplot};
+  plot_structures_all{iplot} = plot_structure;
+end
+if 0 % Ey
+  iplot = iplot + 1;
+  doMovie(iplot) = 1; imovie = imovie + 1;
+  
+  subdirs_all{iplot} = 'mov';
+  varstrs_all{iplot} = {'E.y'};
+  clims_all{iplot} = [-0.4 0.4];        
+  cylims_all{iplot} = clims_all{iplot};
+  nrows_all{iplot} = 1; % ncols is calculated from nrows and nvars
+
+  plot_structure.subdir = subdirs_all{iplot};
+  plot_structure.varstrs = varstrs_all{iplot};
+  plot_structure.clim = clims_all{iplot};
+  plot_structure.cylim = cylims_all{iplot};
+  plot_structure.nrows = nrows_all{iplot};
+  plot_structures_all{iplot} = plot_structure;
+end
+if 0 % Te1.scalar
+  iplot = iplot + 1;
+  doMovie(iplot) = 1; imovie = imovie + 1;
+  
+  subdirs_all{iplot} = 'mov';
+  varstrs_all{iplot} = {'te1.scalar'};
+  clims_all{iplot} = [-0.2 0.2];        
+  cylims_all{iplot} = [0 clims_all{iplot}(2)];
+  nrows_all{iplot} = 1; % ncols is calculated from nrows and nvars
+
+  plot_structure.subdir = subdirs_all{iplot};
+  plot_structure.varstrs = varstrs_all{iplot};
+  plot_structure.clim = clims_all{iplot};
+  plot_structure.cylim = cylims_all{iplot};
+  plot_structure.nrows = nrows_all{iplot};
+  plot_structures_all{iplot} = plot_structure;
+end
+if 1 % Te2.scalar
+  iplot = iplot + 1;
+  doMovie(iplot) = 1; imovie = imovie + 1;
+  
+  subdirs_all{iplot} = 'mov';
+  varstrs_all{iplot} = {'te2.scalar'};
+  clims_all{iplot} = [-0.1 0.1];        
+  cylims_all{iplot} = [0 clims_all{iplot}(2)];
+  nrows_all{iplot} = 1; % ncols is calculated from nrows and nvars
+
+  plot_structure.subdir = subdirs_all{iplot};
+  plot_structure.varstrs = varstrs_all{iplot};
+  plot_structure.clim = clims_all{iplot};
+  plot_structure.cylim = cylims_all{iplot};
+  plot_structure.nrows = nrows_all{iplot};
+  plot_structures_all{iplot} = plot_structure;
+end
+if 0 % Ti1.scalar
+  iplot = iplot + 1;
+  doMovie(iplot) = 1; imovie = imovie + 1;
+  
+  subdirs_all{iplot} = 'mov';
+  varstrs_all{iplot} = {'ti1.scalar'};
+  clims_all{iplot} = [-0.8 0.8];  
+  cylims_all{iplot} = [0 clims_all{iplot}(2)];
+  nrows_all{iplot} = 1; % ncols is calculated from nrows and nvars
+
+  plot_structure.subdir = subdirs_all{iplot};
+  plot_structure.varstrs = varstrs_all{iplot};
+  plot_structure.clim = clims_all{iplot};
+  plot_structure.cylim = cylims_all{iplot};
+  plot_structure.nrows = nrows_all{iplot};
+  plot_structures_all{iplot} = plot_structure;
+end
+if 1 % Ti2.scalar
+  iplot = iplot + 1;
+  doMovie(iplot) = 1; imovie = imovie + 1;
+  
+  subdirs_all{iplot} = 'mov';
+  varstrs_all{iplot} = {'ti2.scalar'};
+  clims_all{iplot} = [-0.2 0.2];        
+  cylims_all{iplot} = [0 clims_all{iplot}(2)];
+  nrows_all{iplot} = 1; % ncols is calculated from nrows and nvars
+
+  plot_structure.subdir = subdirs_all{iplot};
+  plot_structure.varstrs = varstrs_all{iplot};
+  plot_structure.clim = clims_all{iplot};
+  plot_structure.cylim = cylims_all{iplot};
+  plot_structure.nrows = nrows_all{iplot};
+  plot_structures_all{iplot} = plot_structure;
+end
+if 1 % angle_ve1ve2
+  iplot = iplot + 1;
+  doMovie(iplot) = 1; imovie = imovie + 1;
+  
+  subdirs_all{iplot} = 'mov';
+  varstrs_all{iplot} = {'angle_ve1ve2'};
+  clims_all{iplot} = [0 180];        
+  cylims_all{iplot} = clims_all{iplot};
+  nrows_all{iplot} = 1; % ncols is calculated from nrows and nvars
+
+  plot_structure.subdir = subdirs_all{iplot};
+  plot_structure.varstrs = varstrs_all{iplot};
+  plot_structure.clim = clims_all{iplot};
+  plot_structure.cylim = cylims_all{iplot};
+  plot_structure.nrows = nrows_all{iplot};
+  plot_structures_all{iplot} = plot_structure;
+end
+if 1 % angle_vi1ve1
+  iplot = iplot + 1;
+  doMovie(iplot) = 1; imovie = imovie + 1;
+  
+  subdirs_all{iplot} = 'mov';
+  varstrs_all{iplot} = {'angle_vi1ve1'};
+  clims_all{iplot} = [0 180];        
+  cylims_all{iplot} = clims_all{iplot};
+  nrows_all{iplot} = 1; % ncols is calculated from nrows and nvars
+
+  plot_structure.subdir = subdirs_all{iplot};
+  plot_structure.varstrs = varstrs_all{iplot};
+  plot_structure.clim = clims_all{iplot};
+  plot_structure.cylim = cylims_all{iplot};
+  plot_structure.nrows = nrows_all{iplot};
+  plot_structures_all{iplot} = plot_structure;
+end
+if 1 % angle_vi1ve2
+  iplot = iplot + 1;
+  doMovie(iplot) = 1; imovie = imovie + 1;
+  
+  subdirs_all{iplot} = 'mov';
+  varstrs_all{iplot} = {'angle_vi1ve2'};
+  clims_all{iplot} = [0 180];        
+  cylims_all{iplot} = clims_all{iplot};
+  nrows_all{iplot} = 1; % ncols is calculated from nrows and nvars
+
+  plot_structure.subdir = subdirs_all{iplot};
+  plot_structure.varstrs = varstrs_all{iplot};
+  plot_structure.clim = clims_all{iplot};
+  plot_structure.cylim = cylims_all{iplot};
+  plot_structure.nrows = nrows_all{iplot};
+  plot_structures_all{iplot} = plot_structure;
+end
+if 1 % angle_vi1vi2
+  iplot = iplot + 1;
+  doMovie(iplot) = 1; imovie = imovie + 1;
+  
+  subdirs_all{iplot} = 'mov';
+  varstrs_all{iplot} = {'angle_vi1vi2'};
+  clims_all{iplot} = [0 180];        
+  cylims_all{iplot} = clims_all{iplot};
+  nrows_all{iplot} = 1; % ncols is calculated from nrows and nvars
+
+  plot_structure.subdir = subdirs_all{iplot};
+  plot_structure.varstrs = varstrs_all{iplot};
+  plot_structure.clim = clims_all{iplot};
+  plot_structure.cylim = cylims_all{iplot};
+  plot_structure.nrows = nrows_all{iplot};
+  plot_structures_all{iplot} = plot_structure;
+end
+if 1 % angle_vi2ve1
+  iplot = iplot + 1;
+  doMovie(iplot) = 1; imovie = imovie + 1;
+  
+  subdirs_all{iplot} = 'mov';
+  varstrs_all{iplot} = {'angle_vi2ve1'};
+  clims_all{iplot} = [0 180];        
+  cylims_all{iplot} = clims_all{iplot};
+  nrows_all{iplot} = 1; % ncols is calculated from nrows and nvars
+
+  plot_structure.subdir = subdirs_all{iplot};
+  plot_structure.varstrs = varstrs_all{iplot};
+  plot_structure.clim = clims_all{iplot};
+  plot_structure.cylim = cylims_all{iplot};
+  plot_structure.nrows = nrows_all{iplot};
+  plot_structures_all{iplot} = plot_structure;
+end
+if 1 % angle_vi2ve2
+  iplot = iplot + 1;
+  doMovie(iplot) = 1; imovie = imovie + 1;
+  
+  subdirs_all{iplot} = 'mov';
+  varstrs_all{iplot} = {'angle_vi2ve2'};
+  clims_all{iplot} = [0 180];        
+  cylims_all{iplot} = clims_all{iplot};
+  nrows_all{iplot} = 1; % ncols is calculated from nrows and nvars
+
+  plot_structure.subdir = subdirs_all{iplot};
+  plot_structure.varstrs = varstrs_all{iplot};
+  plot_structure.clim = clims_all{iplot};
+  plot_structure.cylim = cylims_all{iplot};
+  plot_structure.nrows = nrows_all{iplot};
+  plot_structures_all{iplot} = plot_structure;
+end
+if 1 % jiy
+  iplot = iplot + 1;
+  doMovie(iplot) = 1; imovie = imovie + 1;
+  
+  subdirs_all{iplot} = 'mov';
+  varstrs_all{iplot} = {'ji.y'};
+  clims_all{iplot} = [-1 1];        
+  cylims_all{iplot} = clims_all{iplot};
+  nrows_all{iplot} = 1; % ncols is calculated from nrows and nvars
+
+  plot_structure.subdir = subdirs_all{iplot};
+  plot_structure.varstrs = varstrs_all{iplot};
+  plot_structure.clim = clims_all{iplot};
+  plot_structure.cylim = cylims_all{iplot};
+  plot_structure.nrows = nrows_all{iplot};
+  plot_structures_all{iplot} = plot_structure;
+end
+if 1 % jey
+  iplot = iplot + 1;
+  doMovie(iplot) = 1; imovie = imovie + 1;
+  
+  subdirs_all{iplot} = 'mov';
+  varstrs_all{iplot} = {'je.y'};
+  clims_all{iplot} = [-1 1];        
+  cylims_all{iplot} = clims_all{iplot};
+  nrows_all{iplot} = 1; % ncols is calculated from nrows and nvars
+
+  plot_structure.subdir = subdirs_all{iplot};
+  plot_structure.varstrs = varstrs_all{iplot};
+  plot_structure.clim = clims_all{iplot};
+  plot_structure.cylim = cylims_all{iplot};
+  plot_structure.nrows = nrows_all{iplot};
+  plot_structures_all{iplot} = plot_structure;
+end
+if 0 % Jy
+  iplot = iplot + 1;
+  doMovie(iplot) = 1; imovie = imovie + 1;
+  
+  subdirs_all{iplot} = 'mov';
+  varstrs_all{iplot} = {'J.y'};
+  clims_all{iplot} = [-2.5 2.5];        
+  cylims_all{iplot} = clims_all{iplot};
+  nrows_all{iplot} = 1; % ncols is calculated from nrows and nvars
+
+  plot_structure.subdir = subdirs_all{iplot};
+  plot_structure.varstrs = varstrs_all{iplot};
+  plot_structure.clim = clims_all{iplot};
+  plot_structure.cylim = cylims_all{iplot};
+  plot_structure.nrows = nrows_all{iplot};
+  plot_structures_all{iplot} = plot_structure;
+end
+if 0 % vex
   iplot = iplot + 1;
   doMovie(iplot) = 1; imovie = imovie + 1;
   
@@ -34,7 +324,7 @@ if 1 % vex
   plot_structure.nrows = nrows_all{iplot};
   plot_structures_all{iplot} = plot_structure;
 end
-if 1 % vix
+if 0 % vix
   iplot = iplot + 1;
   doMovie(iplot) = 1; imovie = imovie + 1;
 
@@ -51,14 +341,14 @@ if 1 % vix
   plot_structure.nrows = nrows_all{iplot};
   plot_structures_all{iplot} = plot_structure;
 end
-if 1 % ne
+if 0 % ne
   iplot = iplot + 1;
   doMovie(iplot) = 1; imovie = imovie + 1;
 
   subdirs_all{iplot} = 'mov';
   varstrs_all{iplot} = {'ne'};
-  clims_all{iplot} = [0 3];        
-  cylims_all{iplot} = clims_all{iplot};
+  clims_all{iplot} = [-3 3];        
+  cylims_all{iplot} = [0 clims_all{iplot}(2)];
   nrows_all{iplot} = 1; % ncols is calculated from nrows and nvars
 
   plot_structure.subdir = subdirs_all{iplot};
@@ -68,6 +358,7 @@ if 1 % ne
   plot_structure.nrows = nrows_all{iplot};
   plot_structures_all{iplot} = plot_structure;
 end
+
 if 0 % vex, vepar
   iplot = iplot + 1;
 
@@ -406,6 +697,7 @@ clear varstrs_ts_line_x
 zval_collect = [-10:1:10]; % collect for a number of different z's
 nz_collect = numel(zval_collect);
 varstrs_ts_line_x = {...
+  'A',...
   'B.z','E.y',...
   've1.x','ve2.x','vi1.x','vi2.x',...
   've1.y','ve2.y','vi1.y','vi2.y',...
@@ -439,10 +731,13 @@ cell_movies = cell(nMovies,2);
 doTs = 1;
 doPatch = 0;
 
+tstart = tic;
 for itime = 1:ntimes
   %% Load data
   timestep = timesteps(itime);
+  disp(sprintf('timestep = %05.0f/%05.0f',timestep,timesteps(end)))
   txtfile = sprintf('%s/fields-%05.0f.dat',data_dir,timestep); % michael's perturbation
+  disp('Loading data...')
   tic; [x,z,E,B,...
         ni1,ne1,ni2,ne2,...
         vi1,ve1,vi2,ve2,...
@@ -457,8 +752,8 @@ for itime = 1:ntimes
   
   ind_z0 = find_closest_ind(z,zval_collect);
   
-  xlim = [x(1) x(end)];
-  zlim = [z(1) z(end)];
+  xlim = [-150 150]; [x(1) x(end)];
+  zlim = [-15 15];   [z(1) z(end)];
   
   %% Calculate auxillary quantities
   A = vector_potential(x,z,B.x,B.z); % vector potential
@@ -839,11 +1134,12 @@ for itime = 1:ntimes
       %hca.Title.String = sprintf('%s, sum(%s) = %g',varstr,varstr,sum(variable(:))); 
       hca.Title.String = sprintf('%s',varstr); 
       hca.Title.Interpreter = 'none';
-      if abs(himag.CData(:)) % dont do if is zero
+      if abs(himag.CData(not(isnan(himag.CData)))) % dont do if is zero
         hca.CLim = max(abs(himag.CData(:)))*[-1 1];  
       end
       hcb = colorbar('peer',hca);
       hcb.YLabel.String = varstr;
+      hcb.YLim = cylim;
       hb(ivar) = hcb;
       %hcb.YLim = hca.CLim(2)*[-1 1];
       colormap(hca,pic_colors('blue_red'));
@@ -879,7 +1175,7 @@ for itime = 1:ntimes
         cell_movies{imovie,1} = map;
         cell_movies{imovie,2} = im_tmp;
       else
-        cell_movies{imovie,2}(:,:,1,itime) = rgb2ind(tmp_frame.cdata,map,'nodither');
+        cell_movies{imovie,2}(:,:,1,itime) = rgb2ind(tmp_frame.cdata,cell_movies{imovie,1},'nodither');
       end       
     else % print
       print('-dpng','-r200',[savedir '/' savestr '.png']);
@@ -888,5 +1184,5 @@ for itime = 1:ntimes
     
   end
 
-  
+disp(sprintf('Total elapsed time is %.0f seconds',toc(tstart)))
 end
