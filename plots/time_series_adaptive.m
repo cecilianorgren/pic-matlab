@@ -86,6 +86,74 @@ if 0 % Ey
   plot_structure.nrows = nrows_all{iplot};
   plot_structures_all{iplot} = plot_structure;
 end
+if 1 % pe1.scalar
+  iplot = iplot + 1;
+  doMovie(iplot) = 1; imovie = imovie + 1;
+  
+  subdirs_all{iplot} = 'mov';
+  varstrs_all{iplot} = {'pe1.scalar'};
+  clims_all{iplot} = [-0.19 0.19];        
+  cylims_all{iplot} = [0 clims_all{iplot}(2)];
+  nrows_all{iplot} = 1; % ncols is calculated from nrows and nvars
+
+  plot_structure.subdir = subdirs_all{iplot};
+  plot_structure.varstrs = varstrs_all{iplot};
+  plot_structure.clim = clims_all{iplot};
+  plot_structure.cylim = cylims_all{iplot};
+  plot_structure.nrows = nrows_all{iplot};
+  plot_structures_all{iplot} = plot_structure;
+end
+if 1 % pe2.scalar
+  iplot = iplot + 1;
+  doMovie(iplot) = 1; imovie = imovie + 1;
+  
+  subdirs_all{iplot} = 'mov';
+  varstrs_all{iplot} = {'pe2.scalar'};
+  clims_all{iplot} = [-0.19 0.19];        
+  cylims_all{iplot} = [0 clims_all{iplot}(2)];
+  nrows_all{iplot} = 1; % ncols is calculated from nrows and nvars
+
+  plot_structure.subdir = subdirs_all{iplot};
+  plot_structure.varstrs = varstrs_all{iplot};
+  plot_structure.clim = clims_all{iplot};
+  plot_structure.cylim = cylims_all{iplot};
+  plot_structure.nrows = nrows_all{iplot};
+  plot_structures_all{iplot} = plot_structure;
+end
+if 1 % pi1.scalar
+  iplot = iplot + 1;
+  doMovie(iplot) = 1; imovie = imovie + 1;
+  
+  subdirs_all{iplot} = 'mov';
+  varstrs_all{iplot} = {'pi1.scalar'};
+  clims_all{iplot} = [-0.9 0.9];  
+  cylims_all{iplot} = [0 clims_all{iplot}(2)];
+  nrows_all{iplot} = 1; % ncols is calculated from nrows and nvars
+
+  plot_structure.subdir = subdirs_all{iplot};
+  plot_structure.varstrs = varstrs_all{iplot};
+  plot_structure.clim = clims_all{iplot};
+  plot_structure.cylim = cylims_all{iplot};
+  plot_structure.nrows = nrows_all{iplot};
+  plot_structures_all{iplot} = plot_structure;
+end
+if 1 % pi2.scalar
+  iplot = iplot + 1;
+  doMovie(iplot) = 1; imovie = imovie + 1;
+  
+  subdirs_all{iplot} = 'mov';
+  varstrs_all{iplot} = {'pi2.scalar'};
+  clims_all{iplot} = [-0.15 0.15];        
+  cylims_all{iplot} = [0 clims_all{iplot}(2)];
+  nrows_all{iplot} = 1; % ncols is calculated from nrows and nvars
+
+  plot_structure.subdir = subdirs_all{iplot};
+  plot_structure.varstrs = varstrs_all{iplot};
+  plot_structure.clim = clims_all{iplot};
+  plot_structure.cylim = cylims_all{iplot};
+  plot_structure.nrows = nrows_all{iplot};
+  plot_structures_all{iplot} = plot_structure;
+end
 if 0 % Te1.scalar
   iplot = iplot + 1;
   doMovie(iplot) = 1; imovie = imovie + 1;
