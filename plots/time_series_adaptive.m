@@ -86,7 +86,7 @@ if 0 % Ey
   plot_structure.nrows = nrows_all{iplot};
   plot_structures_all{iplot} = plot_structure;
 end
-if 1 % pe1.scalar
+if 0 % pe1.scalar
   iplot = iplot + 1;
   doMovie(iplot) = 1; imovie = imovie + 1;
   
@@ -103,7 +103,7 @@ if 1 % pe1.scalar
   plot_structure.nrows = nrows_all{iplot};
   plot_structures_all{iplot} = plot_structure;
 end
-if 1 % pe2.scalar
+if 0 % pe2.scalar
   iplot = iplot + 1;
   doMovie(iplot) = 1; imovie = imovie + 1;
   
@@ -120,7 +120,7 @@ if 1 % pe2.scalar
   plot_structure.nrows = nrows_all{iplot};
   plot_structures_all{iplot} = plot_structure;
 end
-if 1 % pi1.scalar
+if 0 % pi1.scalar
   iplot = iplot + 1;
   doMovie(iplot) = 1; imovie = imovie + 1;
   
@@ -137,7 +137,7 @@ if 1 % pi1.scalar
   plot_structure.nrows = nrows_all{iplot};
   plot_structures_all{iplot} = plot_structure;
 end
-if 1 % pi2.scalar
+if 0 % pi2.scalar
   iplot = iplot + 1;
   doMovie(iplot) = 1; imovie = imovie + 1;
   
@@ -154,7 +154,7 @@ if 1 % pi2.scalar
   plot_structure.nrows = nrows_all{iplot};
   plot_structures_all{iplot} = plot_structure;
 end
-if 0 % Te1.scalar
+if 1 % Te1.scalar
   iplot = iplot + 1;
   doMovie(iplot) = 1; imovie = imovie + 1;
   
@@ -171,7 +171,7 @@ if 0 % Te1.scalar
   plot_structure.nrows = nrows_all{iplot};
   plot_structures_all{iplot} = plot_structure;
 end
-if 1 % Te2.scalar
+if 0 % Te2.scalar
   iplot = iplot + 1;
   doMovie(iplot) = 1; imovie = imovie + 1;
   
@@ -188,7 +188,7 @@ if 1 % Te2.scalar
   plot_structure.nrows = nrows_all{iplot};
   plot_structures_all{iplot} = plot_structure;
 end
-if 0 % Ti1.scalar
+if 1 % Ti1.scalar
   iplot = iplot + 1;
   doMovie(iplot) = 1; imovie = imovie + 1;
   
@@ -205,7 +205,7 @@ if 0 % Ti1.scalar
   plot_structure.nrows = nrows_all{iplot};
   plot_structures_all{iplot} = plot_structure;
 end
-if 1 % Ti2.scalar
+if 0 % Ti2.scalar
   iplot = iplot + 1;
   doMovie(iplot) = 1; imovie = imovie + 1;
   
@@ -222,7 +222,7 @@ if 1 % Ti2.scalar
   plot_structure.nrows = nrows_all{iplot};
   plot_structures_all{iplot} = plot_structure;
 end
-if 1 % angle_ve1ve2
+if 0 % angle_ve1ve2
   iplot = iplot + 1;
   doMovie(iplot) = 1; imovie = imovie + 1;
   
@@ -239,7 +239,7 @@ if 1 % angle_ve1ve2
   plot_structure.nrows = nrows_all{iplot};
   plot_structures_all{iplot} = plot_structure;
 end
-if 1 % angle_vi1ve1
+if 0 % angle_vi1ve1
   iplot = iplot + 1;
   doMovie(iplot) = 1; imovie = imovie + 1;
   
@@ -256,7 +256,7 @@ if 1 % angle_vi1ve1
   plot_structure.nrows = nrows_all{iplot};
   plot_structures_all{iplot} = plot_structure;
 end
-if 1 % angle_vi1ve2
+if 0 % angle_vi1ve2
   iplot = iplot + 1;
   doMovie(iplot) = 1; imovie = imovie + 1;
   
@@ -273,7 +273,7 @@ if 1 % angle_vi1ve2
   plot_structure.nrows = nrows_all{iplot};
   plot_structures_all{iplot} = plot_structure;
 end
-if 1 % angle_vi1vi2
+if 0 % angle_vi1vi2
   iplot = iplot + 1;
   doMovie(iplot) = 1; imovie = imovie + 1;
   
@@ -290,7 +290,7 @@ if 1 % angle_vi1vi2
   plot_structure.nrows = nrows_all{iplot};
   plot_structures_all{iplot} = plot_structure;
 end
-if 1 % angle_vi2ve1
+if 0 % angle_vi2ve1
   iplot = iplot + 1;
   doMovie(iplot) = 1; imovie = imovie + 1;
   
@@ -307,7 +307,7 @@ if 1 % angle_vi2ve1
   plot_structure.nrows = nrows_all{iplot};
   plot_structures_all{iplot} = plot_structure;
 end
-if 1 % angle_vi2ve2
+if 0 % angle_vi2ve2
   iplot = iplot + 1;
   doMovie(iplot) = 1; imovie = imovie + 1;
   
@@ -324,7 +324,7 @@ if 1 % angle_vi2ve2
   plot_structure.nrows = nrows_all{iplot};
   plot_structures_all{iplot} = plot_structure;
 end
-if 1 % jiy
+if 0 % jiy
   iplot = iplot + 1;
   doMovie(iplot) = 1; imovie = imovie + 1;
   
@@ -341,7 +341,7 @@ if 1 % jiy
   plot_structure.nrows = nrows_all{iplot};
   plot_structures_all{iplot} = plot_structure;
 end
-if 1 % jey
+if 0 % jey
   iplot = iplot + 1;
   doMovie(iplot) = 1; imovie = imovie + 1;
   
@@ -742,7 +742,8 @@ clear varstrs_ts_scalar
 varstrs_ts_scalar = {...
   'Uke1','Uke1','Uki1','Uki2',...
   'Ute1','Ute2','Uti1','Uti2',...
-  'UB.tot','UB.x','UB.y','UB.z',...              
+  'UB.tot','UB.x','UB.y','UB.z',...
+  'U.B_mean','U.B_sum','U.Uke1_mean','U.Uke2_mean','U.Uki1_mean','U.Uki2_mean','','','','','','','','','','',''
   'pe1_mean','pe2_mean','pi1_mean','pi2_mean',...              
   'pe1_std','pe2_std','pi1_std','pi2_std',...
   'E_mean','E_std'};
@@ -855,7 +856,14 @@ for itime = 1:ntimes
     %disp([varstrs_ts_scalar{ivar_ts_scalar} '(1,itime) = sum(' varstrs_ts_scalar{ivar_ts_scalar} '(:));']);    
     %eval([varstrs_ts_scalar{ivar_ts_scalar} '(1,itime) = sum(' varstrs_ts{ivar_ts_scalar} '(:));']);    
     tmp_var = eval(varstrs_ts_scalar{ivar_ts_scalar});
-    cell_ts_scalar{ivar_ts_scalar}(1,itime) = sum(tmp_var(:));
+    if isa(tmp_var,'struct')
+      tmp_var_fields = fields(U);
+      for ifield = 1:numel(tmp_var_fields)
+        cell_ts_scalar{ivar_ts_scalar}(ifield,itime) = eval(['sum(tmp_var.' tmp_var_fields{ifields} '(:))']);
+      end
+    else
+      cell_ts_scalar{ivar_ts_scalar}(1,itime) = sum(tmp_var(:));
+    end
   end
   
   %% Collect stacked time series (lines)

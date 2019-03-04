@@ -13,7 +13,7 @@ txtfile = sprintf('/Volumes/Fountain/Data/PIC/df_cold_protons_1/data/fields-%05.
 
 
 %tic; [time,r,e,b,n1,ne,ve,vi,je,ji,pe,pi,dfac,teti,nnx,nnz,wpewce,mass,it,dt,xmax,zmax,q] = read_fields_ieie(txtfile); toc
-tic; [x,z,E,B,...
+tic; [x,z,E,B,...s
   ni1,ne1,ni2,ne2,...
   vi1,ve1,vi2,ve2,...
   ji1,je1,ji2,je2,...
@@ -28,6 +28,30 @@ A = vector_potential(x,z,B.x,B.z); % vector potential
 %[saddle_locations,saddle_values] = fluxtube_volume(A);
 
 pic_calc_script
+
+r1 = b; % magnetic field unit vector
+r2 = cross_product(r1.x,r1.y,r1.z,0,1,0);
+r2.abs = sqrt(r2.x.^2 + r2.y.^2 + r2.z.^2);
+r2.x = r2.x./r2.abs;
+r2.y = r2.y./r2.abs;
+r2.z = r2.z./r2.abs;
+r2.abs = sqrt(r2.x.^2 + r2.y.^2 + r2.z.^2);
+r2 = cross_product(r2.x,r2.y,r2.z,r1.x,r1.y,r1.z);
+r3 = cross_product(r1.x,r1.y,r1.z,r2.x,r2.y,r2.z);
+r3.abs = sqrt(r3.x.^2 + r3.y.^2 + r3.z.^2);
+
+tic;te1_fac = rotate_tens(te1,r1,r2,r3); toc
+tic;te2_fac = rotate_tens(te2,r1,r2,r3); toc
+tic;ti1_fac = rotate_tens(ti1,r1,r2,r3); toc
+tic;ti2_fac = rotate_tens(ti2,r1,r2,r3); toc
+te1_perp = 0.5*(te1.yy + te1.zz);
+te1_par = te1.xx;
+te2_perp = 0.5*(te2.yy + te2.zz);
+te2_par = te2.xx;
+ti1_perp = 0.5*(ti1.yy + ti1.zz);
+ti1_par = ti1.xx;
+ti2_perp = 0.5*(ti2.yy + ti2.zz);
+ti2_par = ti2.xx;
 
 % Stream functions
 c_eval('Se?.xz = vector_potential(x,z,ve?.x,ve?.z);',1:2) % stream function
@@ -293,7 +317,7 @@ var_operation = 'diff';
 npanels = numel(varstrs);
 nvars = cellfun(@numel, varstrs);
 
-plotaxis = 'z'; % 'x' for horizontal cut, 'z' for vertical cut
+plotaxis = 'x'; % 'x' for horizontal cut, 'z' for vertical cut
 zpick = 0;
 xpick = 200;
 zind = find_closest_ind(z,zpick);

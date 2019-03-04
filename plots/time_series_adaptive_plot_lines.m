@@ -58,7 +58,66 @@ izpick = find_closest_ind(zpicks,0);
 Ey = squeeze(cell_ts_line_x{ivar}(ix0,izpick,:)); % Ey(x,z=0,t)
 R.Ey = reshape(Ey,1,numel(Ey));
 
+%% Plot reconnected flux as a function of time
+h = setup_subplots(4,1);
+isub = 1;
+if 1 % time map of Ey at z = 0
+  hca = h(isub); isub = isub + 1;
+  ivar = find(cellfun(@(x)strcmp(x,'E.y'),varstrs_ts_line_x));
+  izpick = find_closest_ind(zpicks,0);
+  imagesc(hca,times,x,squeeze(cell_ts_line_x{ivar}(:,izpick,:)));  
+  hca.YDir = 'normal';
+  hca.CLim = max(max(abs(cell_ts_line_x{ivar}(:,izpick,:))))*[-1 1];  
+  hca.XLabel.String = sprintf('time (1/wci)');
+  hca.YLabel.String = sprintf('x (di)');
+  %hca.Title.String = sprintf('z = %g (di)',zpicks(izpick));    
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = varstrs_ts_line_x{ivar};  
+  colormap(hca,pic_colors('blue_red'))
+  hca.YLim = [-100 100];
+  htext = text(hca,hca.XLim(1),hca.YLim(2), sprintf('z = %g (di)',zpicks(izpick)),'horizontalalignment','left','verticalalignment','top','fontsize',12);
+end
+if 1 % time map of Bz at z = 0
+  hca = h(isub); isub = isub + 1;
+  ivar = find(cellfun(@(x)strcmp(x,'B.z'),varstrs_ts_line_x));
+  izpick = find_closest_ind(zpicks,0);
+  imagesc(hca,times,x,squeeze(cell_ts_line_x{ivar}(:,izpick,:)));  
+  hca.YDir = 'normal';  
+  hca.CLim = max(max(abs(cell_ts_line_x{ivar}(:,izpick,:))))*[-1 1];
+  hca.XLabel.String = sprintf('time (1/wci)');
+  hca.YLabel.String = sprintf('x (di)');
+  %hca.Title.String = sprintf('z = %g (di)',zpicks(izpick));    
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = varstrs_ts_line_x{ivar};
+  colormap(hca,pic_colors('blue_red'))
+  hca.YLim = [-100 100];
+  htext = text(hca,hca.XLim(1),hca.YLim(2), sprintf('z = %g (di)',zpicks(izpick)),'horizontalalignment','left','verticalalignment','top','fontsize',12);
+end
+if 1 % reconnected flux
+  hca = h(isub); isub = isub + 1;
+  plot(hca,R.times,R.flux)
+  hca.YLabel.String = 'Outflow flux (...)';
+  hca.XLabel.String = sprintf('time (1/wci)');
+  legend(hca,{sprintf('int(Bzdx), x=[%.0f,%.0f]',x(ix0),x(end))},'location','northwest','box','off')
+end
+if 1 % reconnection rate
+  hca = h(isub); isub = isub + 1;
+  plot(hca,R.times,[R.Bz; R.Ey])
+  hca.YLabel.String = 'Reconnection rate (...)';
+  legend(hca,{sprintf('(d/dt)int(Bzdx), x=[%.0f,%.0f]',x(ix0),x(end)),'Ey @ x=z=0'},'location','northwest','box','off')
+  hca.XLabel.String = sprintf('time (1/wci)');
+end
 
+arrayfun(@(x)set(x,'FontSize',12),h)
+arrayfun(@(x)set(x,'XLim',[0 times(end)]),h)
+arrayfun(@(x)set(x,'XGrid','on','YGrid','on'),h)
+for ipanel = 1:numel(h)
+  h(ipanel).Position(3) = 0.7;
+end
+arrayfun(@(x)set(x,'XTickLabels',[],'XLabel',[]),h(1:end-1))
+compact_panels
+
+%% Plot reconnected flux as a function of 
 h = setup_subplots(4,1);
 isub = 1;
 if 1 % time map of Ey at z = 0

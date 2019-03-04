@@ -26,7 +26,7 @@ ZC = reshape(ZC,prod(size(ZC)),1);
 nboxes = numel(XC);
 Alim = [-24 -17];
 Alim = [-24 -18];
-Alim = [-20 -16];
+Alim = [-2 -18];
 ind_keep = zeros(nboxes,1);
 for ibox = 1:nboxes
   xind = find(abs(x-XC(ibox))==min(abs(x-XC(ibox))));

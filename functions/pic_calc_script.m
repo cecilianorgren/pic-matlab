@@ -93,6 +93,27 @@ c_eval('Uti? = pi?.scalar;',1:2)
 Uktot = Uki1 + Uki2 + Uke1 + Uke2;
 Uttot = Uti1 + Uti2 + Ute1 + Ute2;
 
+% Mean energy densitites, multiply with the box size to get integrated
+% quantities
+U.B_mean = mean(UB.tot(:));
+U.Uke1_mean = mean(Uke1(:));
+U.Uke2_mean = mean(Uke2(:));
+U.Uki1_mean = mean(Uki1(:));
+U.Uki2_mean = mean(Uki2(:));
+U.Ute1_mean = mean(Ute1(:));
+U.Ute2_mean = mean(Ute2(:));
+U.Uti1_mean = mean(Uti1(:));
+U.Uti2_mean = mean(Uti2(:));
+U.B_sum = sum(UB.tot(:));
+U.Uke1_sum = sum(Uke1(:));
+U.Uke2_sum = sum(Uke2(:));
+U.Uki1_sum = sum(Uki1(:));
+U.Uki2_sum = sum(Uki2(:));
+U.Ute1_sum = sum(Ute1(:));
+U.Ute2_sum = sum(Ute2(:));
+U.Uti1_sum = sum(Uti1(:));
+U.Uti2_sum = sum(Uti2(:));
+
 % Fluxes
 je.x = je1.x + je2.x;
 je.y = je1.y + je2.y;

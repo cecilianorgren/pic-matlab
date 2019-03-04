@@ -1,6 +1,6 @@
 function varargout = find_dist_peaks(f)
 % find peaks of distributions
-doPlot = 1;
+doPlot = 0;
 
 f_size = size(f);
 ndim = numel(f_size);
