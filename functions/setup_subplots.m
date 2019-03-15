@@ -10,14 +10,25 @@ end
   
 npanels = nrows*ncols;
 ipanel = 0;
-for icol = 1:ncols
+if strcmp(orientation,'vertical')
   for irow = 1:nrows
-    ipanel = ipanel + 1;
-    h(irow,icol) = subplot(nrows,ncols,ipanel);
+    for icol = 1:ncols
+      ipanel = ipanel + 1;
+      h(irow,icol) = subplot(nrows,ncols,ipanel);
+      h_ind(irow,icol) = ipanel;
+    end
+  end  
+else
+  for icol = 1:ncols
+    for irow = 1:nrows
+      ipanel = ipanel + 1;
+      h(irow,icol) = subplot(nrows,ncols,ipanel);
+      h_ind(irow,icol) = ipanel;
+    end
   end
 end
-
-if strcmp(orientation,'vertical')
-  h = h';
-end
+%%
+%if strcmp(orientation,'vertical')
+%  h = h';
+%end
 h = h(:);

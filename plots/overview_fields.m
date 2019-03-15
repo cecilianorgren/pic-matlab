@@ -20,9 +20,11 @@ tic; [x,z,E,B,...s
   pi1,pe1,pi2,pe2,...
   ti1,te1,ti2,te2,...
   dfac,teti,nnx,nnz,wpewce,mass,it,time,dt,xmax,zmax,q] = read_fields(txtfile); toc
+x0 = mean(x); x = x-x0;
 
 % Calculate auxillary quantities
 A = vector_potential(x,z,B.x,B.z); % vector potential
+%phi = scalar_potential(x,z,E.x,E.z); % vector potential
 [saddle_locations,saddle_values] = saddle(A);
 %[A_volume,A_map] = fluxtube_volume(A,-30:1:1);
 %[saddle_locations,saddle_values] = fluxtube_volume(A);
@@ -110,6 +112,10 @@ varstrs = {'vExB.x','vExB.y','vExB.z','vDi1.x','vDi1.y','vDi1.z'}; clim = [];
 varstrs = {'vExB.x','vExB.y','vExB.z','vDi1.x','vDi1.y','vDi1.z','vDi2.x','vDi2.y','vDi2.z','vDe1.x','vDe1.y','vDe1.z','vDe2.x','vDe2.y','vDe2.z'}; clim = [-1.1 1.1];
 varstrs = {'vi1.y','vDi1.y','vExB.y','vDi1.y+vExB.y','vi2.y','vDi2.y','vExB.y','vDi2.y+vExB.y','ve1.y','vDe1.y','vExB.y','vDe1.y+vExB.y','ve2.y','vDe2.y','vExB.y','vDe2.y+vExB.y'}; clim = [-1.1 1.1];
 varstrs = {'ve.x','ve.y','ve.z','vi.x','vi.y','vi.z'}; clim = 3*[-1 1];
+varstrs = {'vi1.x','ve1.x','vi2.x','ve2.x','vExB.x','vi1.x-vDF','ve1.x-vDF','vi2.x-vDF','ve2.x-vDF','vExB.x-vDF','vi1.x-vExB.x','ve1.x-vExB.x','vi2.x-vExB.x','ve2.x-vExB.x','vExB.x-vExB.x'}; clim = 2*[-1 1];
+varstrs = {'vi1.z','ve1.z','vi2.z','ve2.z','vExB.z','vi1.x-vDF','ve1.x-vDF','vi2.x-vDF','ve2.x-vDF','vExB.x-vDF','vi1.x-vExB.x','ve1.x-vExB.x','vi2.x-vExB.x','ve2.x-vExB.x','vExB.x-vExB.x'}; clim = 2*[-1 1];
+varstrs = {'B.y'}; clim = 0.5*[-1 1];
+%varstrs = {'ji1.x','je1.x','ji1.x-je1.x','ji2.x','je2.x','ji2.x-je2.x','ji1.x-je1.x+ji2.x-je2.x'}; clim = 1.2*[-1 1];
 %varstrs = {'ne1','ne2','ne','ni1','ni2','ni'}; clim = [];
 nvars = numel(varstrs);
 
@@ -118,17 +124,19 @@ nvars = numel(varstrs);
 
 % Initialize figure
 npanels = nvars;
-nrows = 2;
+nrows = 1;
 ncols = ceil(npanels/nrows);
 npanels = nrows*ncols;
 isub = 1; 
 for ipanel = 1:npanels  
   h(isub) = subplot(nrows,ncols,ipanel); isub = isub + 1;  
 end
+%h = setup_subplots(nrows,ncols,'horizontal');
+h = setup_subplots(nrows,ncols,'vertical');
 linkaxes(h);
 
-xlim = [x(1) x(end)] + 150*[1 -1];
-zlim = [z(1) z(end)]; zlim = 5*[-1 1];
+xlim = [0 70];%[x(1) x(end)] + 150*[1 -1];
+zlim = [z(1) z(end)]; zlim = 8*[-1 1];
 ipx1 = find(x>xlim(1),1,'first');
 ipx2 = find(x<xlim(2),1,'last');
 ipz1 = find(z>zlim(1),1,'first');
@@ -155,10 +163,11 @@ ipxQ = fix(linspace(ipx1,ipx2,nQx));
 ipzQ = fix(linspace(ipz1,ipz2,nQz));
 [dataQx,dataQz] = meshgrid(ipxQ,ipzQ);
 ipXQ = dataQx; ipZQ = dataQz;
-dataQ.x = ve2.x;
-dataQ.y = ve2.y;
-dataQ.z = ve2.z;
-maxQ = 0.3;
+dataQ.x = E.perp.x;
+dataQ.y = E.perp.y;
+dataQ.z = E.perp.z;
+dataQ = J.perp;
+maxQ = 2;
 dataQ.abs = sqrt(dataQ.x.^2 + dataQ.z.^2);
 dataQ.x(dataQ.abs>maxQ) = NaN;
 dataQ.y(dataQ.abs>maxQ) = NaN;
@@ -205,6 +214,7 @@ end
 
 for ipanel = 1:npanels
   h(ipanel).YDir = 'normal';
+  h(ipanel).XDir = 'reverse';
   h(ipanel).XLim = xlim;
   h(ipanel).YLim = zlim;
   if not(isempty(clim)), h(ipanel).CLim = clim; end

@@ -8,15 +8,17 @@ zpicks = zval_collect;
 
 xlim = [-200 200];
 
-for ivar = 1%:nvars
+for ivar = [10]%:nvars
   subdir = 'lines_x/';
   cmax = max(cell_ts_line_x{ivar}(:));
   cmin = min(cell_ts_line_x{ivar}(:));  
   clim = max(abs([cmin cmax]))*[-1 0];
   
   
-  %if cmax+cmin < 0.1*max(abs([cmin cmax])) % they are symmetrical    
-  %end
+  if cmax+cmin < 0.1*max(abs([cmin cmax])) % they are symmetrical    
+     clim = max(abs([cmin cmax]))*[-1 1];
+  end
+  clim = 0.2*[-1 1];
   for  izpick = 1:nzpicks
     savestr = sprintf('%s_z_%s',strrep(varstrs_ts_line_x{ivar},'.','_'),strrep(num2str(zpicks(izpick)),'.','_'));    
     hca = subplot(1,1,1);imagesc(x,times,squeeze(cell_ts_line_x{ivar}(:,izpick,:))');
@@ -51,7 +53,7 @@ Bz = squeeze(cell_ts_line_x{ivar}(:,izpick,:)); % Bz(x,z=0,t)
 flux = sum(Bz(ix0:end,:),1)*dx;
 R.flux = flux;
 R.Bz = interp1(times(2:end)-0.5*dt,diff(flux)/dt,times);
-
+  
 % Ey
 ivar = find(cellfun(@(x)strcmp(x,'E.y'),varstrs_ts_line_x));
 izpick = find_closest_ind(zpicks,0);

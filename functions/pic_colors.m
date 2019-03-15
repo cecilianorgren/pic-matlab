@@ -118,7 +118,7 @@ switch colorOption
         case 'z' % z
           newColor = [1 0.2 0];
         case 'g' % absolute value
-          newColor = [0.3 0.3 0.3]; 
+          newColor = [0.7 0.7 0.7]; 
         case '0'
            newColor = [   0.9290    0.6940    0.1250];
         case 'm' % purple

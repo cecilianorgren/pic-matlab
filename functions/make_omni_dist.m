@@ -50,7 +50,7 @@ for idist = 1:ndists
   vx = axes;
   vy = axes;
   vz = axes;
-  disp(sprintf('distnumber: %g, %7.2f %7.2f %7.2f %7.2f',distnumber,xlo,xhi,zlo,zhi))  
+  disp(sprintf('distnumber: %4.f, [xlo xhi zlo zhi] = [%7.2f %7.2f %7.2f %7.2f]',distnumber,xlo,xhi,zlo,zhi))  
   
   vabs = sqrt(vx.^2+vy.^2+vz.^2); %vabs = vabs(51:end,:);
   for ispecies = 1:4
@@ -58,10 +58,10 @@ for idist = 1:ndists
       if not(energy_set) % Base energy on velocity axes
         energy = mass(ispecies)/mass(1)*vabs.^2/2;    
         f{ispecies}.energy_edges = linspace(0,0.2*max(energy(:,ispecies)),nbins);
-        f{ispecies}.energy_centers = tocolumn((energy_edges(2:end)+energy_edges(1:end-1))*0.5);      
+        f{ispecies}.energy_centers = torow((f{ispecies}.energy_edges(2:end)+f{ispecies}.energy_edges(1:end-1))*0.5);      
       else
         f{ispecies}.energy_edges = energy_edges;
-        f{ispecies}.energy_centers = energy_centers;  
+        f{ispecies}.energy_centers = torow(energy_centers);  
       end      
     end
   

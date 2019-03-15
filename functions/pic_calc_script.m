@@ -13,6 +13,14 @@
 c_eval('Se?.xz = vector_potential(x,z,ve?.x,ve?.z);',1:2) % stream function
 c_eval('Si?.xz = vector_potential(x,z,vi?.x,vi?.z);',1:2) % stream function
 
+E_smooth.x = smooth2(E.x,1);
+E_smooth.y = smooth2(E.y,1);
+E_smooth.z = smooth2(E.z,1);
+
+E_smooth2.x = smooth2(E_smooth.x,1);
+E_smooth2.y = smooth2(E_smooth.y,1);
+E_smooth2.z = smooth2(E_smooth.z,1);
+
 pB = B.abs.^2/2; % magnetic pressure
 KB = magnetic_field_curvature(x,z,B.x,B.y,B.z); % magnetic curvature
 BB = tensor_product(B.x,B.y,B.z,B.x,B.y,B.z);
@@ -58,6 +66,14 @@ c_eval('gradpe? = grad_scalar(x,z,pe?.scalar);',1:2) %
 c_eval('gradpi? = grad_scalar(x,z,pi?.scalar);',1:2) %
 c_eval('gradpe?_smooth = grad_scalar(x,z,smooth2(pe?.scalar,1));',1:2)
 c_eval('gradpi?_smooth = grad_scalar(x,z,smooth2(pi?.scalar,1));',1:2)
+
+% Inertia gradients
+c_eval('gradx_nmvve?xx = grad_scalar(x,z,nmvve?.xx);',1:2) %
+c_eval('gradx_nmvvi?xx = grad_scalar(x,z,nmvvi?.xx);',1:2) %
+
+c_eval('div_nmvvi? = div_tensor(x,z,nmvvi?);',1:2) %
+c_eval('div_nmvve? = div_tensor(x,z,nmvve?);',1:2) %
+
 
 % Diamagnetic drifts
 c_eval('vDe? = cross_product(gradpe?_smooth.x,gradpe?_smooth.y,gradpe?_smooth.z,B.x./B.abs./B.abs./ne?,B.y./B.abs./B.abs./ne?,B.z./B.abs./B.abs./ne?);',1:2)
@@ -122,11 +138,43 @@ ji.x = ji1.x + ji2.x;
 ji.y = ji1.y + ji2.y;
 ji.z = ji1.z + ji2.z;
 
+ratio.jije.x = ji.x./je.x;
+ratio.jije.y = ji.y./je.y;
+ratio.jije.z = ji.z./je.z;
+
+% Perpendicular fluxes
+c_eval('je?.perp.x = je?.x-je?.par.*B.x./B.abs;',1:2)
+c_eval('je?.perp.y = je?.y-je?.par.*B.y./B.abs;',1:2)
+c_eval('je?.perp.z = je?.z-je?.par.*B.z./B.abs;',1:2)
+c_eval('ji?.perp.x = ji?.x-ji?.par.*B.x./B.abs;',1:2)
+c_eval('ji?.perp.y = ji?.y-ji?.par.*B.y./B.abs;',1:2)
+c_eval('ji?.perp.z = ji?.z-ji?.par.*B.z./B.abs;',1:2)
+je.perp.x = je1.perp.x + je2.perp.x;
+je.perp.y = je1.perp.y + je2.perp.y;
+je.perp.z = je1.perp.z + je2.perp.z;
+ji.perp.x = ji1.perp.x + ji2.perp.x;
+ji.perp.y = ji1.perp.y + ji2.perp.y;
+ji.perp.z = ji1.perp.z + ji2.perp.z;
+
+c_eval('je?.par = ne?.*ve?.par;',1:2)
+c_eval('ji?.par = ni?.*vi?.par;',1:2)
+ji.par = ji1.par + ji2.par;
+je.par = je1.par + je2.par;
+
+
+je.abs = sqrt(je.x.^2 + je.y.^2 + je.z.^2);
+ji.abs = sqrt(ji.x.^2 + ji.y.^2 + ji.z.^2);
+
 % Current, previously called jtot
 J.x = ji1.x + ji2.x - je1.x - je2.x;
 J.y = ji1.y + ji2.y - je1.y - je2.y;
 J.z = ji1.z + ji2.z - je1.z - je2.z;
 J.abs = sqrt(J.x.^2+J.y.^2+J.z.^2);
+J.perp.x = ji1.perp.x + ji2.perp.x - je1.perp.x - je2.perp.x;
+J.perp.y = ji1.perp.y + ji2.perp.y - je1.perp.y - je2.perp.y;
+J.perp.z = ji1.perp.z + ji2.perp.z - je1.perp.z - je2.perp.z;
+J.par = ji1.par + ji2.par - je1.par - je2.par;
+
 
 % Perpendicular velocities
 c_eval('ve?.perp.x = ve?.x-ve?.par.*B.x./B.abs;',1:2)
