@@ -1,4 +1,4 @@
-function matrixOut = smooth2a(matrixIn,Nr,Nc)
+function matrixOut = smooth2(matrixIn,Nr,Nc)
 % Smooths 2D array data.  Ignores NaN's.
 %
 %function matrixOut = smooth2a(matrixIn,Nr,Nc)
@@ -34,6 +34,14 @@ function matrixOut = smooth2a(matrixIn,Nr,Nc)
 %
 % Initial error statements and definitions
 %
+
+% if isa(matrixIn,'struct');
+%   struct_fields = fields(struct);
+%   for ifield = 1:numel(struct_fields)
+%     
+%   end
+% end
+  
 
 if nargin < 2, error('Not enough input arguments!'), end
 N(1) = Nr; 

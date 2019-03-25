@@ -1,6 +1,6 @@
 %% Load data
-for timestep = [4200:200:4800 5200:200:5800]
-%timestep = 8000;
+%for timestep = 8000%[4200:200:4800 5200:200:5800]
+timestep = 8000;
 txtfile = sprintf('/Volumes/Fountain/Data/PIC/df_cold_protons_1/data/fields-%05.0f.dat',timestep); % michael's perturbation
 
 tic; [x,z,E,B,...
@@ -16,6 +16,64 @@ x0 = mean(x); x = x - x0;
 A = vector_potential(x,z,B.x,B.z); % vector potential
 [saddle_locations,saddle_values] = saddle(A);
 pic_calc_script
+
+%%
+T.xx = nmvvi1.xx + nmvve1.xx + nmvvi2.xx + nmvve2.xx + pi1.xx + pe1.xx + pi2.xx + pe2.xx + BB.xx + pB;
+T.xy = nmvvi1.xy + nmvve1.xy + nmvvi2.xy + nmvve2.xy + pi1.xy + pe1.xy + pi2.xy + pe2.xy + BB.xy;
+T.xz = nmvvi1.xz + nmvve1.xz + nmvvi2.xz + nmvve2.xz + pi1.xz + pe1.xz + pi2.xz + pe2.xz + BB.xz;
+T.yy = nmvvi1.yy + nmvve1.yy + nmvvi2.yy + nmvve2.yy + pi1.yy + pe1.yy + pi2.yy + pe2.yy + BB.yy + pB;
+T.yz = nmvvi1.yz + nmvve1.yz + nmvvi2.yz + nmvve2.yz + pi1.yz + pe1.yz + pi2.yz + pe2.yz + BB.yz;
+T.zz = nmvvi1.zz + nmvve1.zz + nmvvi2.zz + nmvve2.zz + pi1.zz + pe1.zz + pi2.zz + pe2.zz + BB.zz + pB;
+divT = div_tensor(x,z,T);
+
+%% Plot T
+nrows = 1;
+ncols = 3;
+h = setup_subplots(nrows,ncols,'horizontal');
+isub = 1;
+
+varstr_structure = 'T';
+structure = eval(varstr_structure);
+structure_fields = fields(structure);
+structure_fields = {'xx','yy','zz'};
+nfields = numel(structure_fields);
+for ifield = 1:nfields
+  hca = h(isub); isub = isub + 1;
+  varstr = sprintf('%s.%s',varstr_struct,structure_fields{ifield});
+  variable = eval(varstr);
+  imagesc(hca,x,z,variable');
+  hca.XLabel.String = 'x (di)';
+  hca.YLabel.String = 'z (di)';
+  hcb = colorbar('peer',hca);
+  hca.Title.String = varstr;
+  colormap(hca,pic_colors('blue_red'))
+end
+hlink = linkprop(h,{'CLim','XLim','YLim'});
+h(1).CLim = [-2 2];
+
+%% Plot divT
+nrows = 1;
+ncols = 3;
+h = setup_subplots(nrows,ncols,'horizontal');
+isub = 1;
+
+structure_fields = fields(divT);
+structure_fields = {'x','y','z'};
+nfields = numel(structure_fields);
+for ifield = 1:nfields
+  hca = h(isub); isub = isub + 1;
+  varstr = sprintf('divT.%s',structure_fields{ifield});
+  variable = eval(varstr);
+  imagesc(hca,x,z,variable');
+  hca.XLabel.String = 'x (di)';
+  hca.YLabel.String = 'z (di)';
+  hcb = colorbar('peer',hca);
+  hca.Title.String = varstr;
+  colormap(hca,pic_colors('blue_red'))
+end
+hlink = linkprop(h,{'CLim','XLim','YLim'});
+h(1).CLim = [-2 2];
+
 
 %% Line plot at given x or z, define variable in cell array
 if 0
@@ -569,4 +627,4 @@ h(5).YLim = [0 1];
 h(6).YLim = [0 1.5];
 h(7).YLim = [0 1.5];
 cn.print(sprintf('mhd_mom_eq_i_x_z0_twpe%05.0f',timestep),'path',savedir_root)
-end
+%end
