@@ -104,8 +104,8 @@ UB.y = 0.5*B.y.^2;
 UB.z = 0.5*B.z.^2;
 c_eval('Uke? = mass(2)/mass(1)*0.5*ne?.*(ve?.x.^2 + ve?.y.^2 + ve?.z.^2);',1:2)
 c_eval('Uki? = mass(1)/mass(1)*0.5*ni?.*(vi?.x.^2 + vi?.y.^2 + vi?.z.^2);',1:2)
-c_eval('Ute? = pe?.scalar;',1:2)
-c_eval('Uti? = pi?.scalar;',1:2)
+c_eval('Ute? = 3/2*pe?.scalar;',1:2)
+c_eval('Uti? = 3/2*pi?.scalar;',1:2)
 Uktot = Uki1 + Uki2 + Uke1 + Uke2;
 Uttot = Uti1 + Uti2 + Ute1 + Ute2;
 

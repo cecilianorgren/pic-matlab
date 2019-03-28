@@ -115,8 +115,17 @@ varstrs = {'ve.x','ve.y','ve.z','vi.x','vi.y','vi.z'}; clim = 3*[-1 1];
 varstrs = {'vi1.x','ve1.x','vi2.x','ve2.x','vExB.x','vi1.x-vDF','ve1.x-vDF','vi2.x-vDF','ve2.x-vDF','vExB.x-vDF','vi1.x-vExB.x','ve1.x-vExB.x','vi2.x-vExB.x','ve2.x-vExB.x','vExB.x-vExB.x'}; clim = 2*[-1 1];
 varstrs = {'vi1.z','ve1.z','vi2.z','ve2.z','vExB.z','vi1.x-vDF','ve1.x-vDF','vi2.x-vDF','ve2.x-vDF','vExB.x-vDF','vi1.x-vExB.x','ve1.x-vExB.x','vi2.x-vExB.x','ve2.x-vExB.x','vExB.x-vExB.x'}; clim = 2*[-1 1];
 varstrs = {'B.y'}; clim = 0.5*[-1 1];
+varstrs = {'Uti1-Uki1','Uke1-Ute1','Uki2-Uti2','Uke2-Ute2+0.02'}; clim = [-0.3 0.3];
 %varstrs = {'ji1.x','je1.x','ji1.x-je1.x','ji2.x','je2.x','ji2.x-je2.x','ji1.x-je1.x+ji2.x-je2.x'}; clim = 1.2*[-1 1];
 %varstrs = {'ne1','ne2','ne','ni1','ni2','ni'}; clim = [];
+varstrs = {'T_smooth.xx','T_smooth.xy','T_smooth.xz','T_smooth.yy','T_smooth.yz','T_smooth.zz'}; clim = 1.5*[-1 1];
+varstrs = {'nmvvi1_smooth.xx ','nmvve1_smooth.xx','nmvvi2_smooth.xx','nmvve2_smooth.xx','pi1_smooth.xx','pe1_smooth.xx','pi2_smooth.xx','pe2_smooth.xx','-BB.xx','pB'}; clim = 1.5*[-1 1];
+%varstrs = {'nmvvi1_smooth.xy ','nmvve1_smooth.xy','nmvvi2_smooth.xy','nmvve2_smooth.xy','pi1_smooth.xy','pe1_smooth.xy','pi2_smooth.xy','pe2_smooth.xy','-BB.xy'}; clim = 1.5*[-1 1];
+%varstrs = {'nmvvi1_smooth.xz ','nmvve1_smooth.xz','nmvvi2_smooth.xz','nmvve2_smooth.xz','pi1_smooth.xz','pe1_smooth.xz','pi2_smooth.xz','pe2_smooth.xz','-BB.xz'}; clim = 1.5*[-1 1];
+%varstrs = {'nmvvi1_smooth.yy ','nmvve1_smooth.yy','nmvvi2_smooth.yy','nmvve2_smooth.yy','pi1_smooth.yy','pe1_smooth.yy','pi2_smooth.yy','pe2_smooth.yy','-BB.yy','pB'}; clim = 1.5*[-1 1];
+%varstrs = {'nmvvi1_smooth.yz ','nmvve1_smooth.yz','nmvvi2_smooth.yz','nmvve2_smooth.yz','pi1_smooth.yz','pe1_smooth.yz','pi2_smooth.yz','pe2_smooth.yz','-BB.yz'}; clim = 1.5*[-1 1];
+%varstrs = {'nmvvi1_smooth.zz ','nmvve1_smooth.zz','nmvvi2_smooth.zz','nmvve2_smooth.zz','pi1_smooth.zz','pe1_smooth.zz','pi2_smooth.zz','pe2_smooth.zz','-BB.zz','pB'}; clim = 1.5*[-1 1];
+
 nvars = numel(varstrs);
 
 %xlim = torow(x([1 end])) + [100 -100];
@@ -124,7 +133,7 @@ nvars = numel(varstrs);
 
 % Initialize figure
 npanels = nvars;
-nrows = 1;
+nrows = 4;
 ncols = ceil(npanels/nrows);
 npanels = nrows*ncols;
 isub = 1; 
@@ -135,8 +144,8 @@ end
 h = setup_subplots(nrows,ncols,'vertical');
 linkaxes(h);
 
-xlim = [0 70];%[x(1) x(end)] + 150*[1 -1];
-zlim = [z(1) z(end)]; zlim = 8*[-1 1];
+xlim = [x(1) x(end)]; xlim = [0 70];%[x(1) x(end)] + 150*[1 -1];
+zlim = [z(1) z(end)]; zlim = 10*[-1 1];
 ipx1 = find(x>xlim(1),1,'first');
 ipx2 = find(x<xlim(2),1,'last');
 ipz1 = find(z>zlim(1),1,'first');

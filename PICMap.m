@@ -1,68 +1,16 @@
- classdef PICMap
+ classdef PICData
   %PICMap Generic particle-in-cell map, dependent on time, x, and y coordinates 
   %   Time varibale has 2 fields: T - time [GenericTimeArray] and DATA
   %
-  %   TS = TSeries(T,DATA,[ARGS])
+  %   PM = PICMAP(T,DATA,[ARGS])
   %
-  %   ARGS:
-  %      'to','TensorOrder' - 0 (scalar-default), 1 (vector), 2 (tensor)
-  %      'tb','TensorBasis' -
-  %                           xyz (Cartesian)
-  %                           rtp (Spherical,colatitude)
-  %                           rlp (Spherical,latitude)
-  %                           rpz (Cylindrical)
-  %                           xy (Cartesian 2D)
-  %                           tp (Polar 2D)
-  %      'repres' - Representation for each of the dimensions of the DATA
-  %      as a cell array containing description of tensor dimensionality
-  %      or {} if the DATA dimension correspond to variables associated
-  %      with other independent variables of the data product, such and a
-  %      particle energy or a spectral frequency channel.
-  %
-  %      For more infor on representation see Cluster Metadata Dictionary
-  %           http://caa.estec.esa.int/caa/doc_format_meta.xml
-  %
-  %  ARGS MACROs:
-  %      'vec_xyz','vec_rtp','vec_rlp','vec_rpz' - 3D vectors
-  %      'vec_xy','vec_rp'                       - 2D vectors
-  %
-  %  Example:
-  %
-  %  epoch = EpochUnix(iso2epoch('2002-03-04T09:30:00Z')+(0:3));
-  %  data4x2 = [1 2; 3 4; 5 6; 7 8];
-  %  data4x3 = [1 2 3; 4 5 6; 7 8 9; 10 11 12];
-  %  data4x3x3 = rand(4,3,3);
-  %
-  %  % TensorOrder=1, 2 components of 2D vector
-  %  TsVec2DXY = TSeries(epoch,data4x2,'TensorOrder',1,'TensorBasis','xy',...
-  %          'repres',{'x','y'})
-  %
-  %  % Or using equvivalent macro
-  %  TsVec2DXY = TSeries(epoch,data4x2,'vec_xy')
-  %
-  %  % TensorOrder=1, 3 components of 3D vector
-  %  TsVec3DRTP = TSeries(epoch,data4x3,'vec_rtp')
-  %
-  %  % TensorOrder=1, 2 components (x,z) of incomplete 3D vector
-  %  TsVec3DXZ = TSeries(epoch,data4x2,'TensorOrder',1,'TensorBasis','xyz',...
-  %          'repres',{'x','z'})
-  %
-  %  % TensorOrder=2, 3x3 components of tensor (3D, default basis=xyz)
-  %  TsTen3D = TSeries(epoch,data4x3x3,'TensorOrder',2,...
-  %          'repres',{'x','y','z'},'repres',{'x','y','z'})
-  %
-  %  % TensorOrder=1, 3 energies x 3 components of vector (3D, spherical)
-  %  TsPflux = TSeries(epoch,data4x3x3,'TensorOrder',1,'TensorBasis','rtp',...
-  %          'repres',{},'repres',{'r','t','p'})
-  
-  properties (Access=protected)
-    coordinateSystem_ = '';
-    coordinates_
+
+  properties (Access=protected)    
     data_
-    t_ % GenericTimeArray
-    fullDim_
+    t_ % time
+    x_
+    z_
     tensorOrder_ = 0;
-    tensorBasis_ = '';
   end
   
   properties

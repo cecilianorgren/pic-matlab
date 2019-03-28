@@ -18,6 +18,74 @@ clear subdirs_all varstrs_all clims_all cylims_all nrows_all plot_structure
 clear doMovie movies
 iplot = 0;
 imovie = 0;
+if 1 % Uti1-Uki1
+  iplot = iplot + 1;
+  doMovie(iplot) = 1; imovie = imovie + 1;
+  
+  subdirs_all{iplot} = 'mov';
+  varstrs_all{iplot} = {'Uti1-Uki1'};
+  clims_all{iplot} = [-0.3 0.3];        
+  cylims_all{iplot} = clims_all{iplot};
+  nrows_all{iplot} = 1; % ncols is calculated from nrows and nvars
+
+  plot_structure.subdir = subdirs_all{iplot};
+  plot_structure.varstrs = varstrs_all{iplot};
+  plot_structure.clim = clims_all{iplot};
+  plot_structure.cylim = cylims_all{iplot};
+  plot_structure.nrows = nrows_all{iplot};
+  plot_structures_all{iplot} = plot_structure;
+end
+if 1 % Uti2-Uki2
+  iplot = iplot + 1;
+  doMovie(iplot) = 1; imovie = imovie + 1;
+  
+  subdirs_all{iplot} = 'mov';
+  varstrs_all{iplot} = {'Uti2-Uki2'};
+  clims_all{iplot} = [-0.3 0.3];        
+  cylims_all{iplot} = clims_all{iplot};
+  nrows_all{iplot} = 1; % ncols is calculated from nrows and nvars
+
+  plot_structure.subdir = subdirs_all{iplot};
+  plot_structure.varstrs = varstrs_all{iplot};
+  plot_structure.clim = clims_all{iplot};
+  plot_structure.cylim = cylims_all{iplot};
+  plot_structure.nrows = nrows_all{iplot};
+  plot_structures_all{iplot} = plot_structure;
+end
+if 1 % Ute1-Uke1
+  iplot = iplot + 1;
+  doMovie(iplot) = 1; imovie = imovie + 1;
+  
+  subdirs_all{iplot} = 'mov';
+  varstrs_all{iplot} = {'Ute1-Uke1'};
+  clims_all{iplot} = [-0.3 0.3];        
+  cylims_all{iplot} = clims_all{iplot};
+  nrows_all{iplot} = 1; % ncols is calculated from nrows and nvars
+
+  plot_structure.subdir = subdirs_all{iplot};
+  plot_structure.varstrs = varstrs_all{iplot};
+  plot_structure.clim = clims_all{iplot};
+  plot_structure.cylim = cylims_all{iplot};
+  plot_structure.nrows = nrows_all{iplot};
+  plot_structures_all{iplot} = plot_structure;
+end
+if 1 % Ute2-Uke2
+  iplot = iplot + 1;
+  doMovie(iplot) = 1; imovie = imovie + 1;
+  
+  subdirs_all{iplot} = 'mov';
+  varstrs_all{iplot} = {'Ute2-Uke2'};
+  clims_all{iplot} = [-0.3 0.3];        
+  cylims_all{iplot} = clims_all{iplot};
+  nrows_all{iplot} = 1; % ncols is calculated from nrows and nvars
+
+  plot_structure.subdir = subdirs_all{iplot};
+  plot_structure.varstrs = varstrs_all{iplot};
+  plot_structure.clim = clims_all{iplot};
+  plot_structure.cylim = cylims_all{iplot};
+  plot_structure.nrows = nrows_all{iplot};
+  plot_structures_all{iplot} = plot_structure;
+end
 if 0 % By
   iplot = iplot + 1;
   doMovie(iplot) = 1; imovie = imovie + 1;
@@ -427,6 +495,74 @@ if 0 % ne
   plot_structures_all{iplot} = plot_structure;
 end
 
+if 1 % Ut
+  iplot = iplot + 1;
+  doMovie(iplot) = 0;
+
+  subdirs_all{iplot} = 'Ut';
+  varstrs_all{iplot} = {'Uti1','Ute1','Uti2','Ute2'};
+  clims_all{iplot} = 1*[-1 1];        
+  cylims_all{iplot} = [0 clims_all{iplot}(2)];
+  nrows_all{iplot} = 2; % ncols is calculated from nrows and nvars
+
+  plot_structure.subdir = subdirs_all{iplot};
+  plot_structure.varstrs = varstrs_all{iplot};
+  plot_structure.clim = clims_all{iplot};
+  plot_structure.cylim = cylims_all{iplot};
+  plot_structure.nrows = nrows_all{iplot};
+  plot_structures_all{iplot} = plot_structure;
+end
+if 1 % Uk
+  iplot = iplot + 1;
+  doMovie(iplot) = 0;
+
+  subdirs_all{iplot} = 'Uk';
+  varstrs_all{iplot} = {'Uki1','Uke1','Uki2','Uke2'};
+  clims_all{iplot} = 1*[-1 1];        
+  cylims_all{iplot} = [0 clims_all{iplot}(2)];
+  nrows_all{iplot} = 2; % ncols is calculated from nrows and nvars
+
+  plot_structure.subdir = subdirs_all{iplot};
+  plot_structure.varstrs = varstrs_all{iplot};
+  plot_structure.clim = clims_all{iplot};
+  plot_structure.cylim = cylims_all{iplot};
+  plot_structure.nrows = nrows_all{iplot};
+  plot_structures_all{iplot} = plot_structure;
+end
+if 1 % Ut-Uk
+  iplot = iplot + 1;
+  doMovie(iplot) = 0;
+
+  subdirs_all{iplot} = 'Ut-Uk';
+  varstrs_all{iplot} = {'Uti1-Uki1','Uke1-Ute1','Uki2-Uti2','Uke2-Ute2'};
+  clims_all{iplot} = 0.3*[-1 1];        
+  cylims_all{iplot} = clims_all{iplot};
+  nrows_all{iplot} = 2; % ncols is calculated from nrows and nvars
+
+  plot_structure.subdir = subdirs_all{iplot};
+  plot_structure.varstrs = varstrs_all{iplot};
+  plot_structure.clim = clims_all{iplot};
+  plot_structure.cylim = cylims_all{iplot};
+  plot_structure.nrows = nrows_all{iplot};
+  plot_structures_all{iplot} = plot_structure;
+end
+if 1 % Ut-Uk, 'Uke2-Ute2+0.02'
+  iplot = iplot + 1;
+  doMovie(iplot) = 0;
+
+  subdirs_all{iplot} = 'Ut-Uk_';
+  varstrs_all{iplot} = {'Uti1-Uki1','Uke1-Ute1','Uki2-Uti2','Uke2-Ute2+0.02'};
+  clims_all{iplot} = 1*[-1 1];        
+  cylims_all{iplot} = clims_all{iplot};
+  nrows_all{iplot} = 2; % ncols is calculated from nrows and nvars
+
+  plot_structure.subdir = subdirs_all{iplot};
+  plot_structure.varstrs = varstrs_all{iplot};
+  plot_structure.clim = clims_all{iplot};
+  plot_structure.cylim = cylims_all{iplot};
+  plot_structure.nrows = nrows_all{iplot};
+  plot_structures_all{iplot} = plot_structure;
+end
 if 0 % vex, vepar
   iplot = iplot + 1;
 

@@ -7,7 +7,7 @@ dx_box = x(end)-x(1);
 dz_box = z(end)-z(1);
 dt = times(2)-times(1);
 diff_times = times(1:end-1)+0.5*dt;
-t_ref_index = 1; % 30
+t_ref_index = 15; % 30
 
 colors = pic_colors('matlab');
 colors = [0 0 0; colors([2 1 3 5],:); colors([2 1 3 5],:); 0.8 0.8 0.8];
@@ -32,7 +32,7 @@ if 1 % Mean energy densities
   for ivar = 1:nvars
     varstr = varstrs{ivar};
     ivar_super = find(cellfun(@(x)strcmp(x,varstr),varstrs_ts_scalar));
-    variable = cell_ts_scalar_{ivar_super}(1,1:54);
+    variable = cell_ts_scalar{ivar_super}(1,1:54);
     all_variables(:,ivar) = variable;
     legends{ivar} = varstr;
     hold(hca,'on')
@@ -56,7 +56,7 @@ if 0 % Sum energy densities
   for ivar = 1:nvars
     varstr = varstrs{ivar};
     ivar_super = find(cellfun(@(x)strcmp(x,varstr),varstrs_ts_scalar));
-    variable = cell_ts_scalar_{ivar_super}(1,1:54);
+    variable = cell_ts_scalar{ivar_super}(1,1:54);
     all_variables(:,ivar) = variable;
     legends{ivar} = varstr;
     hold(hca,'on')
@@ -79,7 +79,7 @@ if 1 % Mean energy densities * vol_box
   for ivar = 1:nvars
     varstr = varstrs{ivar};
     ivar_super = find(cellfun(@(x)strcmp(x,varstr),varstrs_ts_scalar));
-    variable = cell_ts_scalar_{ivar_super}(1,1:54)*dx_box*dz_box;
+    variable = cell_ts_scalar{ivar_super}(1,1:54)*dx_box*dz_box;
     all_variables(:,ivar) = variable;    
     legends{ivar} = sprintf('%s*dx_box*dz_box',varstr);
     hold(hca,'on')
@@ -103,7 +103,7 @@ if 0 % Sum energy densities
   for ivar = 1:nvars
     varstr = varstrs{ivar};
     ivar_super = find(cellfun(@(x)strcmp(x,varstr),varstrs_ts_scalar));
-    variable = cell_ts_scalar_{ivar_super}(1,1:54)*dx_grid*dz_grid;
+    variable = cell_ts_scalar{ivar_super}(1,1:54)*dx_grid*dz_grid;
     all_variables(:,ivar) = variable;
     legends{ivar} = sprintf('%s*dx_grid*dz_grid',varstr);
     hold(hca,'on')
@@ -127,7 +127,7 @@ if 1 % Mean energy densities
   for ivar = 1:nvars
     varstr = varstrs{ivar};
     ivar_super = find(cellfun(@(x)strcmp(x,varstr),varstrs_ts_scalar));
-    variable = cell_ts_scalar_{ivar_super}(1,1:54);
+    variable = cell_ts_scalar{ivar_super}(1,1:54);
     variable = variable - variable(t_ref_index);
     all_variables(:,ivar) = variable;
     legends{ivar} = varstr;
@@ -158,7 +158,7 @@ if 0 % Sum energy densities
   for ivar = 1:nvars
     varstr = varstrs{ivar};
     ivar_super = find(cellfun(@(x)strcmp(x,varstr),varstrs_ts_scalar));
-    variable = cell_ts_scalar_{ivar_super}(1,1:54);
+    variable = cell_ts_scalar{ivar_super}(1,1:54);
     variable = variable - variable(t_ref_index);
     all_variables(:,ivar) = variable;
     legends{ivar} = varstr;
@@ -187,7 +187,7 @@ if 1 % Mean energy densities * vol_box
   for ivar = 1:nvars
     varstr = varstrs{ivar};
     ivar_super = find(cellfun(@(x)strcmp(x,varstr),varstrs_ts_scalar));
-    variable = cell_ts_scalar_{ivar_super}(1,1:54)*dx_box*dz_box;
+    variable = cell_ts_scalar{ivar_super}(1,1:54)*dx_box*dz_box;
     variable = variable - variable(t_ref_index);
     all_variables(:,ivar) = variable;    
     legends{ivar} = sprintf('%s*dx_box*dz_box',varstr);
@@ -217,7 +217,7 @@ if 0 % Sum energy densities
   for ivar = 1:nvars
     varstr = varstrs{ivar};
     ivar_super = find(cellfun(@(x)strcmp(x,varstr),varstrs_ts_scalar));
-    variable = cell_ts_scalar_{ivar_super}(1,1:54)*dx_grid*dz_grid;
+    variable = cell_ts_scalar{ivar_super}(1,1:54)*dx_grid*dz_grid;
     variable = variable - variable(t_ref_index);
     all_variables(:,ivar) = variable;
     legends{ivar} = sprintf('%s*dx_grid*dz_grid',varstr);
@@ -248,7 +248,7 @@ if 1 % Mean energy densities
   for ivar = 1:nvars
     varstr = varstrs{ivar};
     ivar_super = find(cellfun(@(x)strcmp(x,varstr),varstrs_ts_scalar));
-    variable = cell_ts_scalar_{ivar_super}(1,1:54);    
+    variable = cell_ts_scalar{ivar_super}(1,1:54);    
     variable = interp1(diff_times,diff(variable),times);
     all_variables(:,ivar) = variable;
     legends{ivar} = varstr;
@@ -273,7 +273,7 @@ if 0 % Sum energy densities
   for ivar = 1:nvars
     varstr = varstrs{ivar};
     ivar_super = find(cellfun(@(x)strcmp(x,varstr),varstrs_ts_scalar));    
-    variable = cell_ts_scalar_{ivar_super}(1,1:54);
+    variable = cell_ts_scalar{ivar_super}(1,1:54);
     variable = interp1(diff_times,diff(variable),times);
     all_variables(:,ivar) = variable;
     legends{ivar} = varstr;
@@ -297,7 +297,7 @@ if 1 % Mean energy densities * vol_box
   for ivar = 1:nvars
     varstr = varstrs{ivar};
     ivar_super = find(cellfun(@(x)strcmp(x,varstr),varstrs_ts_scalar));
-    variable = cell_ts_scalar_{ivar_super}(1,1:54)*dx_box*dz_box;
+    variable = cell_ts_scalar{ivar_super}(1,1:54)*dx_box*dz_box;
     variable = interp1(diff_times,diff(variable),times);
     all_variables(:,ivar) = variable;    
     legends{ivar} = sprintf('%s*dx_box*dz_box',varstr);
@@ -322,7 +322,7 @@ if 0 % Sum energy densities
   for ivar = 1:nvars
     varstr = varstrs{ivar};
     ivar_super = find(cellfun(@(x)strcmp(x,varstr),varstrs_ts_scalar));
-    variable = cell_ts_scalar_{ivar_super}(1,1:54)*dx_grid*dz_grid;
+    variable = cell_ts_scalar{ivar_super}(1,1:54)*dx_grid*dz_grid;
     variable = interp1(diff_times,diff(variable),times);
     all_variables(:,ivar) = variable;
     legends{ivar} = sprintf('%s*dx_grid*dz_grid',varstr);
