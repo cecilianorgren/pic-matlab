@@ -278,33 +278,44 @@
        
     function value = get.data(obj)
       value = obj.data_;
-    end
-    
+    end    
     function value = get.time(obj)
       value = obj.t_;
-    end
-    
+    end    
     function value = get.coordinates(obj)
       value = obj.coordinates_;
-    end
-   
+    end   
     function value = basis(obj)
       value = obj.BASIS{obj.tensorBasis_};
-    end
-    
+    end    
     function value = get.tensorBasis(obj)
       value = [obj.BASIS{obj.tensorBasis_}...
         ' (' obj.BASIS_NAMES{obj.tensorBasis_} ')'];
-    end
-    
+    end    
     function value = get.tensorOrder(obj)
       value = obj.tensorOrder_;
-    end
-        
+    end        
     function obj = set.coordinates(obj,value)
       obj.t_ = value;
     end
         
+    % Construction etc.
+    function obj = append(o)
+      
+    end
+    
+    % Operations
+    function obj = div(obj)
+      obj = [];
+    end
+    function obj = grad(obj)
+      obj = [];
+    end     
+    function obj = ddt(obj)
+      obj = [];
+    end 
+    
+    % Cosmetics etc.
     function obj = lim(obj,xlim,zlim)
       x = obj.coordinates{1};
       z = obj.coordinates{2};      
@@ -332,16 +343,6 @@
       obj.coordinates_{1} = obj.coordinates_{1}(ipx);
       obj.coordinates_{2} = obj.coordinates_{2}(ipz);
     end
-    function obj = div(obj)
-      obj = [];
-    end
-    function obj = grad(obj)
-      obj = [];
-    end     
-    function obj = ddt(obj)
-      obj = [];
-    end 
-    
     function obj = smooth(obj,varargin)
       if isempty(varargin)
         varargin{1} = 1;
@@ -367,17 +368,20 @@
         %end                  
       end
       % shape data back
-      smoothData = reshape(smoothDataReshaped,newSizeData);
-      oldDataOrder = [dataOrder([2 3 1]) dataOrder(4:end)];       
-      newDataOrder = [dataOrder([2 3 1]) dataOrder(4:end)];       
-      smoothData = permute(smoothData,newDataOrder);
+      smoothData = reshape(smoothDataReshaped,newSizeData);      
+      origDataOrder = [dataOrder([3 1 2]) dataOrder(4:end)];       
+      smoothData = permute(smoothData,origDataOrder);
       obj.data_ = smoothData;
     end  
     function obj = interp(obj)
       obj = [];
     end 
     
-    % Plot
+    % Arithmetics
+    function obj = plus(obj1,obj2)
+    end
+    
+    % Plotting
     function varargout = plot(obj,varargin)
       
       imagesc(obj.coordinates{1},obj.coordinates{2},squeeze(obj.data)')

@@ -278,33 +278,52 @@
        
     function value = get.data(obj)
       value = obj.data_;
-    end
-    
+    end    
     function value = get.time(obj)
       value = obj.t_;
-    end
-    
+    end    
     function value = get.coordinates(obj)
       value = obj.coordinates_;
-    end
-   
+    end   
     function value = basis(obj)
       value = obj.BASIS{obj.tensorBasis_};
-    end
-    
+    end    
     function value = get.tensorBasis(obj)
       value = [obj.BASIS{obj.tensorBasis_}...
         ' (' obj.BASIS_NAMES{obj.tensorBasis_} ')'];
-    end
-    
+    end    
     function value = get.tensorOrder(obj)
       value = obj.tensorOrder_;
-    end
-        
+    end        
     function obj = set.coordinates(obj,value)
       obj.t_ = value;
     end
         
+    % Construction etc.
+    function obj_out = append(obj,t,data)
+      % check times to see if they overlap or something
+      % find in which order to insert the new data
+      
+      % check data dimensions
+
+      % make new obj
+      obj_out = obj;
+      obj_out.t_ = 
+      
+    end
+    
+    % Operations
+    function obj = div(obj)
+      obj = [];
+    end
+    function obj = grad(obj)
+      obj = [];
+    end     
+    function obj = ddt(obj)
+      obj = [];
+    end 
+    
+    % Cosmetics etc.
     function obj = lim(obj,xlim,zlim)
       x = obj.coordinates{1};
       z = obj.coordinates{2};      
@@ -332,16 +351,6 @@
       obj.coordinates_{1} = obj.coordinates_{1}(ipx);
       obj.coordinates_{2} = obj.coordinates_{2}(ipz);
     end
-    function obj = div(obj)
-      obj = [];
-    end
-    function obj = grad(obj)
-      obj = [];
-    end     
-    function obj = ddt(obj)
-      obj = [];
-    end 
-    
     function obj = smooth(obj,varargin)
       if isempty(varargin)
         varargin{1} = 1;
@@ -377,9 +386,10 @@
     end 
     
     % Arithmetics
-    function obj = plus
+    function obj = plus(obj1,obj2)
     end
-    % Plot
+    
+    % Plotting
     function varargout = plot(obj,varargin)
       
       imagesc(obj.coordinates{1},obj.coordinates{2},squeeze(obj.data)')
