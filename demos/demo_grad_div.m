@@ -21,9 +21,9 @@ A = vector_potential(x,z,B.x,B.z); % vector potential
 pic_calc_script
 
 %% Smoothing
-structure_strs = {'pi1','pe1','pi2','pe2'};
-structure_strs = {'nmvvi1','nmvve1','nmvve2','nmvve2'};
-structure_strs = {'nmvvi1_smooth','nmvve1_smooth','nmvvi2_smooth','nmvve2_smooth'};
+structure_strs = {'pi1','pe1','pi2','pe2','nmvvi1','nmvve1','nmvvi2','nmvve2'};
+
+%structure_strs = {'nmvvi1_smooth','nmvve1_smooth','nmvvi2_smooth','nmvve2_smooth'};
 nstructures = numel(structure_strs);
 for istructure = 1:nstructures  
   structure_str = structure_strs{istructure};
@@ -35,21 +35,22 @@ for istructure = 1:nstructures
 end
 
 %% Make combines tensor T
-T.xx = nmvvi1.xx + nmvve1.xx + nmvvi2.xx + nmvve2.xx + pi1.xx + pe1.xx + pi2.xx + pe2.xx + BB.xx + pB;
-T.xy = nmvvi1.xy + nmvve1.xy + nmvvi2.xy + nmvve2.xy + pi1.xy + pe1.xy + pi2.xy + pe2.xy + BB.xy;
-T.xz = nmvvi1.xz + nmvve1.xz + nmvvi2.xz + nmvve2.xz + pi1.xz + pe1.xz + pi2.xz + pe2.xz + BB.xz;
-T.yy = nmvvi1.yy + nmvve1.yy + nmvvi2.yy + nmvve2.yy + pi1.yy + pe1.yy + pi2.yy + pe2.yy + BB.yy + pB;
-T.yz = nmvvi1.yz + nmvve1.yz + nmvvi2.yz + nmvve2.yz + pi1.yz + pe1.yz + pi2.yz + pe2.yz + BB.yz;
-T.zz = nmvvi1.zz + nmvve1.zz + nmvvi2.zz + nmvve2.zz + pi1.zz + pe1.zz + pi2.zz + pe2.zz + BB.zz + pB;
+T.xx = nmvvi1.xx + nmvve1.xx + nmvvi2.xx + nmvve2.xx + pi1.xx + pe1.xx + pi2.xx + pe2.xx - BB.xx + pB;
+T.xy = nmvvi1.xy + nmvve1.xy + nmvvi2.xy + nmvve2.xy + pi1.xy + pe1.xy + pi2.xy + pe2.xy - BB.xy;
+T.xz = nmvvi1.xz + nmvve1.xz + nmvvi2.xz + nmvve2.xz + pi1.xz + pe1.xz + pi2.xz + pe2.xz - BB.xz;
+T.yy = nmvvi1.yy + nmvve1.yy + nmvvi2.yy + nmvve2.yy + pi1.yy + pe1.yy + pi2.yy + pe2.yy - BB.yy + pB;
+T.yz = nmvvi1.yz + nmvve1.yz + nmvvi2.yz + nmvve2.yz + pi1.yz + pe1.yz + pi2.yz + pe2.yz - BB.yz;
+T.zz = nmvvi1.zz + nmvve1.zz + nmvvi2.zz + nmvve2.zz + pi1.zz + pe1.zz + pi2.zz + pe2.zz - BB.zz + pB;
 divT = div_tensor(x,z,T);
 
-T_smooth.xx = nmvvi1_smooth.xx + nmvve1_smooth.xx + nmvvi2_smooth.xx + nmvve2_smooth.xx + pi1_smooth.xx + pe1_smooth.xx + pi2_smooth.xx + pe2_smooth.xx + BB.xx + pB;
-T_smooth.xy = nmvvi1_smooth.xy + nmvve1_smooth.xy + nmvvi2_smooth.xy + nmvve2_smooth.xy + pi1_smooth.xy + pe1_smooth.xy + pi2_smooth.xy + pe2_smooth.xy + BB.xy;
-T_smooth.xz = nmvvi1_smooth.xz + nmvve1_smooth.xz + nmvvi2_smooth.xz + nmvve2_smooth.xz + pi1_smooth.xz + pe1_smooth.xz + pi2_smooth.xz + pe2_smooth.xz + BB.xz;
-T_smooth.yy = nmvvi1_smooth.yy + nmvve1_smooth.yy + nmvvi2_smooth.yy + nmvve2_smooth.yy + pi1_smooth.yy + pe1_smooth.yy + pi2_smooth.yy + pe2_smooth.yy + BB.yy + pB;
-T_smooth.yz = nmvvi1_smooth.yz + nmvve1_smooth.yz + nmvvi2_smooth.yz + nmvve2_smooth.yz + pi1_smooth.yz + pe1_smooth.yz + pi2_smooth.yz + pe2_smooth.yz + BB.yz;
-T_smooth.zz = nmvvi1_smooth.zz + nmvve1_smooth.zz + nmvvi2_smooth.zz + nmvve2_smooth.zz + pi1_smooth.zz + pe1_smooth.zz + pi2_smooth.zz + pe2_smooth.zz + BB.zz + pB;
+T_smooth.xx = nmvvi1_smooth.xx + nmvve1_smooth.xx + nmvvi2_smooth.xx + nmvve2_smooth.xx + pi1_smooth.xx + pe1_smooth.xx + pi2_smooth.xx + pe2_smooth.xx - BB.xx + pB;
+T_smooth.xy = nmvvi1_smooth.xy + nmvve1_smooth.xy + nmvvi2_smooth.xy + nmvve2_smooth.xy + pi1_smooth.xy + pe1_smooth.xy + pi2_smooth.xy + pe2_smooth.xy - BB.xy;
+T_smooth.xz = nmvvi1_smooth.xz + nmvve1_smooth.xz + nmvvi2_smooth.xz + nmvve2_smooth.xz + pi1_smooth.xz + pe1_smooth.xz + pi2_smooth.xz + pe2_smooth.xz - BB.xz;
+T_smooth.yy = nmvvi1_smooth.yy + nmvve1_smooth.yy + nmvvi2_smooth.yy + nmvve2_smooth.yy + pi1_smooth.yy + pe1_smooth.yy + pi2_smooth.yy + pe2_smooth.yy - BB.yy + pB;
+T_smooth.yz = nmvvi1_smooth.yz + nmvve1_smooth.yz + nmvvi2_smooth.yz + nmvve2_smooth.yz + pi1_smooth.yz + pe1_smooth.yz + pi2_smooth.yz + pe2_smooth.yz - BB.yz;
+T_smooth.zz = nmvvi1_smooth.zz + nmvve1_smooth.zz + nmvvi2_smooth.zz + nmvve2_smooth.zz + pi1_smooth.zz + pe1_smooth.zz + pi2_smooth.zz + pe2_smooth.zz - BB.zz + pB;
 divT_smooth = div_tensor(x,z,T_smooth);
+
 %% Calculate gradients
 % Ion pressure
 gradpi1 = grad_scalar(x,z,pi1.scalar);
@@ -69,8 +70,8 @@ c_eval('divnmvvi?_smooth = div_tensor(x,z,nmvvi?_smooth);',1:2)
 c_eval('divnmvve? = div_tensor(x,z,nmvve?);',1:2)
 c_eval('divnmvve?_smooth = div_tensor(x,z,nmvve?_smooth);',1:2)
 
-c_eval('divnmvvi?_smooth_smooth = div_tensor(x,z,nmvvi?_smooth_smooth);',1:2)
-c_eval('divnmvve?_smooth_smooth = div_tensor(x,z,nmvve?_smooth_smooth);',1:2)
+%c_eval('divnmvvi?_smooth_smooth = div_tensor(x,z,nmvvi?_smooth_smooth);',1:2)
+%c_eval('divnmvve?_smooth_smooth = div_tensor(x,z,nmvve?_smooth_smooth);',1:2)
 
 % Magnetic field
 divBB = div_tensor(x,z,BB);
@@ -94,21 +95,6 @@ nA = [0:-1:min(A(:))];
 ipxA = ipx1:20:ipx2;
 ipzA = ipz1:20:ipz2;
 
-% Quivers
-doQ = 1;
-nQx = 80;
-nQz = 20;
-[Z,X] = meshgrid(z,x);
-ipxQ = fix(linspace(ipx1,ipx2,nQx));
-ipzQ = fix(linspace(ipz1,ipz2,nQz));
-[dataQx,dataQz] = meshgrid(ipxQ,ipzQ);
-ipXQ = dataQx; ipZQ = dataQz;
-dataQ = divT_smooth;
-maxQ = 1;
-dataQ.abs = sqrt(dataQ.x.^2 + dataQ.z.^2);
-dataQ.x(dataQ.abs>maxQ) = NaN;
-dataQ.y(dataQ.abs>maxQ) = NaN;
-dataQ.z(dataQ.abs>maxQ) = NaN;
 
 % Variables to plot
 varstrs = {'divpi1_smooth.x','divpi1_smooth.y','divpi1_smooth.z',...
@@ -187,11 +173,44 @@ varstrs = {...
   ...%'divT.x','divT.y','divT.z',...
   'divT_smooth.x','divT_smooth.y','divT_smooth.z'...
   };
-%varstrs = {'divBB.x','divBB.y','divBB.z'};
+varstrs = {'divpi1_smooth.x','divpi1_smooth.y','divpi1_smooth.z'};
+%varstrs = {'divpe1_smooth.x','divpe1_smooth.y','divpe1_smooth.z'};
+%varstrs = {'divpi2_smooth.x','divpi2_smooth.y','divpi2_smooth.z'};
+%varstrs = {'divpe2_smooth.x','divpe2_smooth.y','divpe2_smooth.z'};
+
+varstrs = {'divnmvvi1_smooth.x','divnmvvi1_smooth.y','divnmvvi1_smooth.z'};
+varstrs = {'divnmvve1_smooth.x','divnmvve1_smooth.y','divnmvve1_smooth.z'};
+varstrs = {'divnmvvi2_smooth.x','divnmvvi2_smooth.y','divnmvvi2_smooth.z'};
+varstrs = {'divnmvve2_smooth.x','divnmvve2_smooth.y','divnmvve2_smooth.z'};
+varstrs = {'gradpB.x','gradpB.y','gradpB.z'};
+varstrs = {'-divBB.x','-divBB.y','-divBB.z'};
+varstrs = {'divT_smooth.x','divT_smooth.y','divT_smooth.z'};
+%varstrs = {'divT.x','divT.y','divT.z'};
+
+% Quivers
+doQ = 1;
+nQx = 80;
+nQz = 20;
+[Z,X] = meshgrid(z,x);
+ipxQ = fix(linspace(ipx1,ipx2,nQx));
+ipzQ = fix(linspace(ipz1,ipz2,nQz));
+[dataQx,dataQz] = meshgrid(ipxQ,ipzQ);
+ipXQ = dataQx; ipZQ = dataQz;
+dataQ = divT_smooth;
+%dataQ.x = -divBB.x;
+%dataQ.y = -divBB.y;
+%dataQ.z = -divBB.z;
+maxQ = 1;
+dataQ.abs = sqrt(dataQ.x.^2 + dataQ.z.^2);
+dataQ.x(dataQ.abs>maxQ) = NaN;
+dataQ.y(dataQ.abs>maxQ) = NaN;
+dataQ.z(dataQ.abs>maxQ) = NaN;
+
 
 % Set up figure
 nrows = 3;
 ncols = 1;
+npanels = nrows*ncols;
 h = setup_subplots(nrows,ncols,'vertical');
 isub = 1;
 
@@ -219,13 +238,14 @@ for ivar = 1:nvars
     hold(hca,'on')
     hquiv = quiver(hca,X(ipxQ,ipzQ),Z(ipxQ,ipzQ),dataQ.x(ipxQ,ipzQ),dataQ.z(ipxQ,ipzQ));
     hquiv.LineWidth = 1;
-    hquiv.Color = [0.9290    0.6940    0.1250];
+    hquiv.Color = 0*[0.9290    0.6940    0.1250];
     hold(hca,'off')  
   end
 end
 hlink = linkprop(h,{'CLim','XLim','YLim'});
+c_eval('axis(h(?),''equal'')',1:npanels)
 %hlink = linkprop(h,{'XLim','YLim'});
-h(1).CLim = [-0.5 0.5];
+h(1).CLim = [-0.3 0.3];
 
 % %% Step 1, compare div_tensor(tens_P) and grad_scalar(scal_P)
 %% Plot pi1.scalar and pi1_smooth.scalar
