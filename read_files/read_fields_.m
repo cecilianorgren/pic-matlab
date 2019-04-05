@@ -1,17 +1,18 @@
-function [xe,ze,e,b,ni1,ne1,ni2,ne2,vi1,ve1,vi2,ve2,ji1,je1,ji2,je2,...
-    pi1,pe1,pi2,pe2,ti1,te1,ti2,te2,dfac,teti,nnx,nnz,wpewce,mass,it,time,dt,xmax,zmax,q] ...
-    = read_fields_(txtfile,varargin)  
-  % READ_FILES
+function varargout = read_fields_(txtfile,varargin)  
+%[xe,ze,e,b,ni1,ne1,ni2,ne2,vi1,ve1,vi2,ve2,ji1,je1,ji2,je2,...
+    %pi1,pe1,pi2,pe2,ti1,te1,ti2,te2,dfac,teti,nnx,nnz,wpewce,mass,it,time,dt,xmax,zmax,q] ...
+
+    % READ_FILES
   %   Reads files and return normalized quantities
  
   %% defaults
-  nss = 4; % numer of species
-  numberel = 101; % number of bins for particle distributions
+  nss = 6; % number of species
   doFixNegDensities = 0;
   %groups = {[1 3],[2 4]}; % electron and ions
   
   % read input
   nargs = numel(varargin);
+  args = varargin;
   have_options = nargs > 1;
   while have_options
     switch(lower(args{1}))
@@ -81,19 +82,19 @@ function [xe,ze,e,b,ni1,ne1,ni2,ne2,vi1,ve1,vi2,ve2,ji1,je1,ji2,je2,...
   time = fread(fid,1,'real*8');                                 % time 
   wpewce = fread(fid,1,'real*4');                               % wpewce 
   dfac = fread(fid,nss,'real*4');                               % dfac
-  pxx = zeros(nnx,nnz,nss);
-  pyy = zeros(nnx,nnz,nss);
-  pzz = zeros(nnx,nnz,nss);
-  pxy = zeros(nnx,nnz,nss);
-  pxz = zeros(nnx,nnz,nss);
-  pyz = zeros(nnx,nnz,nss);
+  vxx = zeros(nnx,nnz,nss); % vxvx
+  vyy = zeros(nnx,nnz,nss); % vyvy
+  vzz = zeros(nnx,nnz,nss); % vzvz
+  vxy = zeros(nnx,nnz,nss); % vxvy
+  vxz = zeros(nnx,nnz,nss); % vxvz
+  vyz = zeros(nnx,nnz,nss); % vyvz
 
-  for is = 1:nss, pxx(:,:,is) = fread(fid,[nnx nnz],'real*4'); end  % pxx 
-  for is = 1:nss, pyy(:,:,is) = fread(fid,[nnx nnz],'real*4'); end  % pyy 
-  for is = 1:nss, pzz(:,:,is) = fread(fid,[nnx nnz],'real*4'); end  % pzz 
-  for is = 1:nss, pxy(:,:,is) = fread(fid,[nnx nnz],'real*4'); end  % pxy 
-  for is = 1:nss, pxz(:,:,is) = fread(fid,[nnx nnz],'real*4'); end  % pxz 
-  for is = 1:nss, pyz(:,:,is) = fread(fid,[nnx nnz],'real*4'); end  % pyz
+  for is = 1:nss, vxx(:,:,is) = fread(fid,[nnx nnz],'real*4'); end  % vxx 
+  for is = 1:nss, vyy(:,:,is) = fread(fid,[nnx nnz],'real*4'); end  % vyy 
+  for is = 1:nss, vzz(:,:,is) = fread(fid,[nnx nnz],'real*4'); end  % vzz 
+  for is = 1:nss, vxy(:,:,is) = fread(fid,[nnx nnz],'real*4'); end  % vxy 
+  for is = 1:nss, vxz(:,:,is) = fread(fid,[nnx nnz],'real*4'); end  % vxz 
+  for is = 1:nss, vyz(:,:,is) = fread(fid,[nnx nnz],'real*4'); end  % vyz
   remainder = fread(fid);
   st = fclose(fid);
   
@@ -127,384 +128,107 @@ function [xe,ze,e,b,ni1,ne1,ni2,ne2,vi1,ve1,vi2,ve2,ji1,je1,ji2,je2,...
   
   time = time/wpewce/mass(1);
   
-%% Species 1,2
-ion = 1;
-ele = 2;
-
-dni=squeeze(dns(:,:,ion(1)))*dfac(ion(1));
-dne=squeeze(dns(:,:,ele(1)))*dfac(ele(1));
-
-jix=squeeze(vxs(:,:,ion(1)))*dfac(ion(1));
-jiy=squeeze(vys(:,:,ion(1)))*dfac(ion(1));
-jiz=squeeze(vzs(:,:,ion(1)))*dfac(ion(1));
-
-
-
-vix = jix./dni;
-viy = jiy./dni;
-viz = jiz./dni;
-vix(dni < 0.005) = 0;
-viy(dni < 0.005) = 0;
-viz(dni < 0.005) = 0;
-
-jex=squeeze(vxs(:,:,ele(1)))*dfac(ele(1)) ;
-jey=squeeze(vys(:,:,ele(1)))*dfac(ele(1)) ;
-jez=squeeze(vzs(:,:,ele(1)))*dfac(ele(1));
-
-vex = jex./dne;
-vey = jey./dne;
-vez = jez./dne;
-
-vex(dne < 0.005) = 0;
-vey(dne < 0.005) = 0;
-vez(dne < 0.005) = 0;
-
-pxxi=squeeze(pxx(:,:,ion))*dfac(ion);
-pyyi=squeeze(pyy(:,:,ion))*dfac(ion);
-pzzi=squeeze(pzz(:,:,ion))*dfac(ion);
-pxyi=squeeze(pxy(:,:,ion))*dfac(ion);
-pxzi=squeeze(pxz(:,:,ion))*dfac(ion);
-pyzi=squeeze(pyz(:,:,ion))*dfac(ion);
-
-pxzi=mass(ion)*(pxzi-vix.*jiz);
-pxxi=mass(ion)*(pxxi-vix.*jix);
-pxyi=mass(ion)*(pxyi-vix.*jiy);
-pyyi=mass(ion)*(pyyi-viy.*jiy);
-pyzi=mass(ion)*(pyzi-viy.*jiz);
-pzzi=mass(ion)*(pzzi-viz.*jiz);
-
-% Move to right frame
-
-%     pxzi=mass(ion)*(pxzi-vix.*jiz-jix.*viz+dni.*vix.*viz);
-%     pxxi=mass(ion)*(pxxi-vix.*jix-jix.*vix+dni.*vix.*vix);
-%     pxyi=mass(ion)*(pxyi-vix.*jiy-jix.*viy+dni.*vix.*viy);
-%     pyyi=mass(ion)*(pyyi-viy.*jiy-jiy.*viy+dni.*viy.*viy);
-%     pyzi=mass(ion)*(pyzi-viy.*jiz-jiy.*viz+dni.*viy.*viz);
-%     pzzi=mass(ion)*(pzzi-viz.*jiz-jiz.*viz+dni.*viz.*viz);
-
-
-pxxe=squeeze(pxx(:,:,ele))*dfac(ele);
-pyye=squeeze(pyy(:,:,ele))*dfac(ele);
-pzze=squeeze(pzz(:,:,ele))*dfac(ele);
-pxye=squeeze(pxy(:,:,ele))*dfac(ele);
-pxze=squeeze(pxz(:,:,ele))*dfac(ele);
-pyze=squeeze(pyz(:,:,ele))*dfac(ele);
-
-pxze=mass(ele)*(pxze-vex.*jez);
-pxxe=mass(ele)*(pxxe-vex.*jex);
-pxye=mass(ele)*(pxye-vex.*jey);
-pyye=mass(ele)*(pyye-vey.*jey);
-pyze=mass(ele)*(pyze-vey.*jez);
-pzze=mass(ele)*(pzze-vez.*jez);
-
-%     pxze=mass(ele)*(pxze-vex.*jez-jex.*vez+dne.*vex.*vez);
-%     pxxe=mass(ele)*(pxxe-vex.*jex-jex.*vex+dne.*vex.*vex);
-%     pxye=mass(ele)*(pxye-vex.*jey-jex.*vey+dne.*vex.*vey);
-%     pyye=mass(ele)*(pyye-vey.*jey-jey.*vey+dne.*vey.*vey);
-%     pyze=mass(ele)*(pyze-vey.*jez-jey.*vez+dne.*vey.*vez);
-%     pzze=mass(ele)*(pzze-vez.*jez-jez.*vez+dne.*vez.*vez);
-
-% I have no idea 
-
-jix=jix*wpewce(1)*sqrt(mass(1));
-jiy=jiy*wpewce(1)*sqrt(mass(1));
-jiz=jiz*wpewce(1)*sqrt(mass(1));
-
-vix = jix./dni;
-viy = jiy./dni;
-viz = jiz./dni;
-vix(dni < 0.005) = 0;
-viy(dni < 0.005) = 0;
-viz(dni < 0.005) = 0;
-
-
-jex=jex*wpewce(1)*sqrt(mass(1));
-jey=jey*wpewce(1)*sqrt(mass(1));
-jez=jez*wpewce(1)*sqrt(mass(1));
-
-vex = jex./dne;
-vey = jey./dne;
-vez = jez./dne;
-vex(dne < 0.005) = 0;
-vey(dne < 0.005) = 0;
-vez(dne < 0.005) = 0;
-
-
-pxxi=pxxi*wpewce(1)^2;
-pyyi=pyyi*wpewce(1)^2;
-pzzi=pzzi*wpewce(1)^2;
-pxyi=pxyi*wpewce(1)^2;
-pxzi=pxzi*wpewce(1)^2;
-pyzi=pyzi*wpewce(1)^2;
-
-pxxe=pxxe*wpewce(1)^2;
-pyye=pyye*wpewce(1)^2;
-pzze=pzze*wpewce(1)^2;
-pxye=pxye*wpewce(1)^2;
-pxze=pxze*wpewce(1)^2;
-pyze=pyze*wpewce(1)^2;
-
-%     pi=(pxxi+pyyi+pzzi)/3;
-%     pe=(pxxe+pyye+pzze)/3;
-%     
-%     
-%     tmp=(jix.^2+jiy.^2+jiz.^2)/2;
-%     eki = tmp./dni;
-%     eki(dni < threshold) = 0;
-% 
-% 
-%     tmp=(jex.^2+jey.^2+jez.^2)/2;
-% %     dendiv,tmp,dne,eke,threshold
-%     eke = tmp./dne;
-%     eke(dni < threshold) = 0;
-% 
-%     tmp=(pxxi+pyyi+pzzi)/3;
-% %     dendiv,tmp,dni,ti,threshold
-%     ti = tmp./dni;
-%     ti(dni < threshold) = 0;
-% 
-%     tmp=(pxxe+pyye+pzze)/3;
-% %     dendiv,tmp,dne,te,threshold
-%     te = tmp./dne;
-%     te(dni < threshold) = 0;
-% 
-%      Vixz_o_divergence = 1;
-
-%% Species 3,4
-ion = 3;
-ele = 4;
-
-dni_h=squeeze(dns(:,:,ion(1)))*dfac(ion(1));
-dne_h=squeeze(dns(:,:,ele(1)))*dfac(ele(1));
-
-jix_h=squeeze(vxs(:,:,ion(1)))*dfac(ion(1));
-jiy_h=squeeze(vys(:,:,ion(1)))*dfac(ion(1));
-jiz_h=squeeze(vzs(:,:,ion(1)))*dfac(ion(1));
-
-vix_h = jix_h./dni_h;
-viy_h = jiy_h./dni_h;
-viz_h = jiz_h./dni_h;
-vix_h(dni_h < 0.005) = 0;
-viy_h(dni_h < 0.005) = 0;
-viz_h(dni_h < 0.005) = 0;
-
-jex_h=squeeze(vxs(:,:,ele(1)))*dfac(ele(1)) ;
-jey_h=squeeze(vys(:,:,ele(1)))*dfac(ele(1)) ;
-jez_h=squeeze(vzs(:,:,ele(1)))*dfac(ele(1));
-
-vex_h = jex_h./dne_h;
-vey_h = jey_h./dne_h;
-vez_h = jez_h./dne_h;
-vex_h(dne_h < 0.005) = 0;
-vey_h(dne_h < 0.005) = 0;
-vez_h(dne_h < 0.005) = 0;
-
-pxxi_h=squeeze(pxx(:,:,ion))*dfac(ion);
-pyyi_h=squeeze(pyy(:,:,ion))*dfac(ion);
-pzzi_h=squeeze(pzz(:,:,ion))*dfac(ion);
-pxyi_h=squeeze(pxy(:,:,ion))*dfac(ion);
-pxzi_h=squeeze(pxz(:,:,ion))*dfac(ion);
-pyzi_h=squeeze(pyz(:,:,ion))*dfac(ion);
-
-pxzi_h=mass(ion)*(pxzi_h-vix_h.*jiz_h);
-pxxi_h=mass(ion)*(pxxi_h-vix_h.*jix_h);
-pxyi_h=mass(ion)*(pxyi_h-vix_h.*jiy_h);
-pyyi_h=mass(ion)*(pyyi_h-viy_h.*jiy_h);
-pyzi_h=mass(ion)*(pyzi_h-viy_h.*jiz_h);
-pzzi_h=mass(ion)*(pzzi_h-viz_h.*jiz_h);
-
-pxxe_h=squeeze(pxx(:,:,ele))*dfac(ele);
-pyye_h=squeeze(pyy(:,:,ele))*dfac(ele);
-pzze_h=squeeze(pzz(:,:,ele))*dfac(ele);
-pxye_h=squeeze(pxy(:,:,ele))*dfac(ele);
-pxze_h=squeeze(pxz(:,:,ele))*dfac(ele);
-pyze_h=squeeze(pyz(:,:,ele))*dfac(ele);
-
-pxze_h=mass(ele)*(pxze_h-vex_h.*jez_h);
-pxxe_h=mass(ele)*(pxxe_h-vex_h.*jex_h);
-pxye_h=mass(ele)*(pxye_h-vex_h.*jey_h);
-pyye_h=mass(ele)*(pyye_h-vey_h.*jey_h);
-pyze_h=mass(ele)*(pyze_h-vey_h.*jez_h);
-pzze_h=mass(ele)*(pzze_h-vez_h.*jez_h);
-
-
-
-jex_h=jex_h*wpewce(1)*sqrt(mass(1));
-jey_h=jey_h*wpewce(1)*sqrt(mass(1));
-jez_h=jez_h*wpewce(1)*sqrt(mass(1));
-
-    vex_h = jex_h./dne_h;
-    vey_h = jey_h./dne_h;
-    vez_h = jez_h./dne_h;
-    vex_h(dne_h == 0) = 0;
-    vey_h(dne_h == 0) = 0;
-    vez_h(dne_h == 0) = 0;
-
-jix_h=jix_h*wpewce(1)*sqrt(mass(1));
-jiy_h=jiy_h*wpewce(1)*sqrt(mass(1));
-jiz_h=jiz_h*wpewce(1)*sqrt(mass(1));
-
-    vix_h = jix_h./dni_h;
-    viy_h = jiy_h./dni_h;
-    viz_h = jiz_h./dni_h;
-    vix_h(dni_h == 0) = 0;
-    viy_h(dni_h == 0) = 0;
-    viz_h(dni_h == 0) = 0;
-
-pxxi_h=pxxi_h*wpewce(1)^2;
-pyyi_h=pyyi_h*wpewce(1)^2;
-pzzi_h=pzzi_h*wpewce(1)^2;
-pxyi_h=pxyi_h*wpewce(1)^2;
-pxzi_h=pxzi_h*wpewce(1)^2;
-pyzi_h=pyzi_h*wpewce(1)^2;
-
-pxxe_h=pxxe_h*wpewce(1)^2;
-pyye_h=pyye_h*wpewce(1)^2;
-pzze_h=pzze_h*wpewce(1)^2;
-pxye_h=pxye_h*wpewce(1)^2;
-pxze_h=pxze_h*wpewce(1)^2;
-pyze_h=pyze_h*wpewce(1)^2;
-
-%     pi_h=(pxxi_h+pyyi_h+pzzi_h)/3;
-%     pe_h=(pxxe_h+pyye_h+pzze_h)/3;
-%     
-%     tmp=(jix_h.^2+jiy_h.^2+jiz_h.^2)/2;
-%     eki_h = tmp./dni_h;
-% %     dendiv,tmp,dni,eki,threshold
-%     eki_h(dni_h < threshold) = 0;
-% 
-% 
-%     tmp=(jex_h.^2+jey_h.^2+jez_h.^2)/2;
-% %     dendiv,tmp,dne,eke,threshold
-%     eke_h = tmp./dne_h;
-%     eke_h(dni_h < threshold) = 0;
-% 
-%     tmp=(pxxi_h+pyyi_h+pzzi_h)/3;
-% %     dendiv,tmp,dni,ti,threshold
-%     ti_h = tmp./dni_h;
-%     ti_h(dni_h < threshold) = 0;
-% 
-%     tmp=(pxxe_h+pyye_h+pzze_h)/3;
-% %     dendiv,tmp,dne,te,threshold
-%     te_h = tmp./dne_h;
-%     te_h(dni_h < threshold) = 0;
-
-%     Vixz_o_divergence
-
-%     
+  % moments
+  % initialize matrices
+  n = zeros(numel(xe),numel(ze),nss);
+  jx = zeros(numel(xe),numel(ze),nss);
+  jy = zeros(numel(xe),numel(ze),nss);
+  jz = zeros(numel(xe),numel(ze),nss);
+  vx = zeros(numel(xe),numel(ze),nss);
+  vy = zeros(numel(xe),numel(ze),nss);
+  vz = zeros(numel(xe),numel(ze),nss);
+  pxx = zeros(numel(xe),numel(ze),nss);
+  pyy = zeros(numel(xe),numel(ze),nss);
+  pzz = zeros(numel(xe),numel(ze),nss);
+  pxy = zeros(numel(xe),numel(ze),nss);
+  pxz = zeros(numel(xe),numel(ze),nss);
+  pyz = zeros(numel(xe),numel(ze),nss);
+  txx = zeros(numel(xe),numel(ze),nss);
+  tyy = zeros(numel(xe),numel(ze),nss);
+  tzz = zeros(numel(xe),numel(ze),nss);
+  txy = zeros(numel(xe),numel(ze),nss);
+  txz = zeros(numel(xe),numel(ze),nss);
+  tyz = zeros(numel(xe),numel(ze),nss);
+  
+  for iSpecies = 1:nss
+    % density, n
+    n(:,:,iSpecies) = dns(:,:,iSpecies)*dfac(iSpecies);
+    % flux, j = nv
+    jx(:,:,iSpecies) = vxs(:,:,iSpecies)*dfac(iSpecies);
+    jy(:,:,iSpecies) = vys(:,:,iSpecies)*dfac(iSpecies);
+    jz(:,:,iSpecies) = vzs(:,:,iSpecies)*dfac(iSpecies);
+    % velocity, v
+    vx(:,:,iSpecies) = jx(:,:,iSpecies)./n(:,:,iSpecies);
+    vy(:,:,iSpecies) = jy(:,:,iSpecies)./n(:,:,iSpecies);
+    vz(:,:,iSpecies) = jz(:,:,iSpecies)./n(:,:,iSpecies);    
+    % do this here already to not mess up something with the pressure I think
+    vx(n==0) = 0;
+    vy(n==0) = 0;
+    vz(n==0) = 0;
+    % pressure
+    pxx(:,:,iSpecies) = mass(iSpecies)*wpewce^2*( vxx(:,:,iSpecies)*dfac(iSpecies) - vx(:,:,iSpecies).*jx(:,:,iSpecies) );
+    pyy(:,:,iSpecies) = mass(iSpecies)*wpewce^2*( vyy(:,:,iSpecies)*dfac(iSpecies) - vy(:,:,iSpecies).*jy(:,:,iSpecies) );
+    pzz(:,:,iSpecies) = mass(iSpecies)*wpewce^2*( vzz(:,:,iSpecies)*dfac(iSpecies) - vz(:,:,iSpecies).*jz(:,:,iSpecies) );
+    pxy(:,:,iSpecies) = mass(iSpecies)*wpewce^2*( vxy(:,:,iSpecies)*dfac(iSpecies) - vx(:,:,iSpecies).*jy(:,:,iSpecies) );
+    pxz(:,:,iSpecies) = mass(iSpecies)*wpewce^2*( vxz(:,:,iSpecies)*dfac(iSpecies) - vx(:,:,iSpecies).*jz(:,:,iSpecies) );
+    pyz(:,:,iSpecies) = mass(iSpecies)*wpewce^2*( vyz(:,:,iSpecies)*dfac(iSpecies) - vy(:,:,iSpecies).*jz(:,:,iSpecies) );
+    % temperature
+    txx(:,:,iSpecies) = pxx(:,:,iSpecies)./n(:,:,iSpecies);
+    tyy(:,:,iSpecies) = pyy(:,:,iSpecies)./n(:,:,iSpecies);
+    tzz(:,:,iSpecies) = pzz(:,:,iSpecies)./n(:,:,iSpecies);
+    txy(:,:,iSpecies) = pxy(:,:,iSpecies)./n(:,:,iSpecies);
+    txz(:,:,iSpecies) = pxz(:,:,iSpecies)./n(:,:,iSpecies);
+    tyz(:,:,iSpecies) = pyz(:,:,iSpecies)./n(:,:,iSpecies);
+  end
 
 %% Fix data
 if doFixNegDensities
   pxxe()
 end
 
-%% Collect data in structures, r, b, e, ni, ne, vi, ve, ji, je, pi, pe
-r.x = xe;
-r.z = ze;
+%% Collect data in structures, x, z, b, e, ni, ne, vi, ve, ji, je, pi, pe
+x = xe;
+z = ze;
 
-b.x = bx;
-b.y = by;
-b.z = bz;
+B.x = bx;
+B.y = by;
+B.z = bz;
 
-e.x = ex;
-e.y = ey;
-e.z = ez;
+E.x = ex;
+E.y = ey;
+E.z = ez;
 
-% densoty
-ni1 = dni;
-ni2 = dni_h;
+species_str = {};
+for iPop = 1:nss/2
+  species_str{end+1} = sprintf('i%g',iPop);
+  species_str{end+1} = sprintf('e%g',iPop);
+end
+comp_tens = {'xx','xy','xz','yy','yz','zz'};
+comp_vec = {'x','y','z'};
+for iSpecies = 1:nss
+  eval(sprintf('n%s = squeeze(n(:,:,%g));',species_str{iSpecies},iSpecies))
+  for iComp = 1:numel(comp_vec)
+    eval(sprintf('v%s.%s = squeeze(v%s(:,:,%g));',species_str{iSpecies},comp_vec{iComp},comp_vec{iComp},iSpecies))
+    eval(sprintf('j%s.%s = squeeze(j%s(:,:,%g));',species_str{iSpecies},comp_vec{iComp},comp_vec{iComp},iSpecies))
+  end
+  for iComp = 1:numel(comp_tens)
+    eval(sprintf('p%s.%s = squeeze(p%s(:,:,%g));',species_str{iSpecies},comp_tens{iComp},comp_tens{iComp},iSpecies))
+    eval(sprintf('t%s.%s = squeeze(t%s(:,:,%g));',species_str{iSpecies},comp_tens{iComp},comp_tens{iComp},iSpecies))
+  end
+end
 
-ne1 = dne;
-ne2 = dne_h;
+varargout{1} = x; 
+varargout{2} = z; 
+varargout{3} = E;
+varargout{4} = B; 
+varstrs = {'x','z','E','B','dfac','teti','nnx','nnz','wpewce','mass','it','time','dt','xmax','zmax','q'};
+for iSpecies = 1:nss, varstrs{end+1} = sprintf('n%s',species_str{iSpecies}); end
+for iSpecies = 1:nss, varstrs{end+1} = sprintf('v%s',species_str{iSpecies}); end
+for iSpecies = 1:nss, varstrs{end+1} = sprintf('j%s',species_str{iSpecies}); end
+for iSpecies = 1:nss, varstrs{end+1} = sprintf('p%s',species_str{iSpecies}); end
+for iSpecies = 1:nss, varstrs{end+1} = sprintf('t%s',species_str{iSpecies}); end
 
-% velocity
-ve1.x = vex;
-ve1.y = vey;
-ve1.z = vez;
+for iout = 1:numel(varstrs)
+  varargout{iout} = eval(varstrs{iout});
+end
 
-ve2.x = vex_h;
-ve2.y = vey_h;
-ve2.z = vez_h;
-
-vi1.x = vix;
-vi1.y = viy;
-vi1.z = viz;
-
-vi2.x = vix_h;
-vi2.y = viy_h;
-vi2.z = viz_h;
-
-% flux
-je1.x = jex;
-je1.y = jey;
-je1.z = jez;
-
-je2.x = jex_h;
-je2.y = jey_h;
-je2.z = jez_h;
-
-ji1.x = jix;
-ji1.y = jiy;
-ji1.z = jiz;
-
-ji2.x = jix_h;
-ji2.y = jiy_h;
-ji2.z = jiz_h;
-
-% pressure
-pe1.xx = pxxe;
-pe1.yy = pyye;
-pe1.zz = pzze;
-pe1.xy = pxye;
-pe1.xz = pxze;
-pe1.yz = pyze;
-
-pe2.xx = pxxe_h;
-pe2.yy = pyye_h;
-pe2.zz = pzze_h;
-pe2.xy = pxye_h;
-pe2.xz = pxze_h;
-pe2.yz = pyze_h;
-
-pi1.xx = pxxi;
-pi1.yy = pyyi;
-pi1.zz = pzzi;
-pi1.xy = pxyi;
-pi1.xz = pxzi;
-pi1.yz = pyzi;
-
-pi2.xx = pxxi_h;
-pi2.yy = pyyi_h;
-pi2.zz = pzzi_h;
-pi2.xy = pxyi_h;
-pi2.xz = pxzi_h;
-pi2.yz = pyzi_h;
-
-% temperature
-te1.xx = pe1.xx./ne1;
-te1.yy = pe1.yy./ne1;
-te1.zz = pe1.zz./ne1;
-te1.xy = pe1.xy./ne1;
-te1.xz = pe1.xz./ne1;
-te1.yz = pe1.yz./ne1;
-
-te2.xx = pe2.xx./ne2;
-te2.yy = pe2.yy./ne2;
-te2.zz = pe2.zz./ne2;
-te2.xy = pe2.xy./ne2;
-te2.xz = pe2.xz./ne2;
-te2.yz = pe2.yz./ne2;
-
-ti1.xx = pi1.xx./ni1;
-ti1.yy = pi1.yy./ni1;
-ti1.zz = pi1.zz./ni1;
-ti1.xy = pi1.xy./ni1;
-ti1.xz = pi1.xz./ni1;
-ti1.yz = pi1.yz./ni1;
-
-ti2.xx = pi2.xx./ni2;
-ti2.yy = pi2.yy./ni2;
-ti2.zz = pi2.zz./ni2;
-ti2.xy = pi2.xy./ni2;
-ti2.xz = pi2.xz./ni2;
-ti2.yz = pi2.yz./ni2;

@@ -12,6 +12,7 @@ function [xe,ze,e,b,ni1,ne1,ni2,ne2,vi1,ve1,vi2,ve2,ji1,je1,ji2,je2,...
   
   % read input
   nargs = numel(varargin);
+  args = varargin;
   have_options = nargs > 1;
   while have_options
     switch(lower(args{1}))
@@ -96,7 +97,7 @@ function [xe,ze,e,b,ni1,ne1,ni2,ne2,vi1,ve1,vi2,ve2,ji1,je1,ji2,je2,...
   for is = 1:nss, pyz(:,:,is) = fread(fid,[nnx nnz],'real*4'); end  % pyz
   remainder = fread(fid);
   st = fclose(fid);
-  
+  1;
   % Set groups  
 %   if doGroupMass
 %     uniqueMass = unique(mass);

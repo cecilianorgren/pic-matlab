@@ -1,27 +1,52 @@
 
 savedir_root = '/Users/cno062/Research/PIC/df_cold_protons_1/';
 data_dir = '/Volumes/Fountain/Data/PIC/df_cold_protons_1/data/';
-
+nss = 4;
+%%
+savedir_root = '/Users/cno062/Research/PIC/df_cold_protons_04/';
+data_dir = '/Volumes/Fountain/Data/PIC/df_cold_protons_04/data/';
+data_dir = '/Volumes/Fountain/Data/PIC/df_cold_protons_04/data/';
+nss = 6;
 %% Load data
 timestep = 08000;
 txtfile = sprintf('/Users/cecilia/Data/PIC/data/fields-%05.0f.dat',timestep); % michael's perturbation
 %txtfile = sprintf('/Users/cno062/Data/PIC/df_cold_protons_1/data/fields-%05.0f.dat',timestep); % michael's perturbation
 txtfile = sprintf('/Volumes/Fountain/Data/PIC/df_cold_protons_1/data/fields-%05.0f.dat',timestep); % michael's perturbation
+txtfile = sprintf('%s/fields-%05.0f.dat',data_dir,timestep); % michael's perturbation
 
 %timestep = 055;
 %txtfile = sprintf('/Users/cno062/Data/PIC/df_cold_protons_2/data/fields-%05.0f.dat',timestep); % try-out with larger perturbation
 
 
 %tic; [time,r,e,b,n1,ne,ve,vi,je,ji,pe,pi,dfac,teti,nnx,nnz,wpewce,mass,it,dt,xmax,zmax,q] = read_fields_ieie(txtfile); toc
-tic; [x,z,E,B,...s
+if 0
+  %%
+tic; 
+  [x,z,E,B,...
+  dfac,teti,nnx,nnz,wpewce,mass,it,time,dt,xmax,zmax,q,...
+  ni1,ne1,ni2,ne2,ni3,ne3,...
+  vi1,ve1,vi2,ve2,vi3,ve3,...
+  ji1,je1,ji2,je2,ji3,je3,...
+  pi1,pe1,pi2,pe2,pi3,pe3,...
+  ti1,te1,ti2,te2,ti3,te3...
+    ] = read_fields_(txtfile,'nss',nss);
+toc
+x0 = mean(x); x = x-x0;
+else
+tic; [x,z,E,B,...
   ni1,ne1,ni2,ne2,...
   vi1,ve1,vi2,ve2,...
   ji1,je1,ji2,je2,...
   pi1,pe1,pi2,pe2,...
   ti1,te1,ti2,te2,...
-  dfac,teti,nnx,nnz,wpewce,mass,it,time,dt,xmax,zmax,q] = read_fields(txtfile); toc
+  dfac,teti,nnx,nnz,wpewce,mass,it,time,dt,xmax,zmax,q] = read_fields(txtfile,'nss',nss); toc
+end
 x0 = mean(x); x = x-x0;
 
+%imagesc(squeeze(ni2(:,:,:))');
+%colorbar
+
+%%
 % Calculate auxillary quantities
 A = vector_potential(x,z,B.x,B.z); % vector potential
 %phi = scalar_potential(x,z,E.x,E.z); % vector potential
@@ -125,7 +150,10 @@ varstrs = {'nmvvi1_smooth.xx ','nmvve1_smooth.xx','nmvvi2_smooth.xx','nmvve2_smo
 %varstrs = {'nmvvi1_smooth.yy ','nmvve1_smooth.yy','nmvvi2_smooth.yy','nmvve2_smooth.yy','pi1_smooth.yy','pe1_smooth.yy','pi2_smooth.yy','pe2_smooth.yy','-BB.yy','pB'}; clim = 1.5*[-1 1];
 %varstrs = {'nmvvi1_smooth.yz ','nmvve1_smooth.yz','nmvvi2_smooth.yz','nmvve2_smooth.yz','pi1_smooth.yz','pe1_smooth.yz','pi2_smooth.yz','pe2_smooth.yz','-BB.yz'}; clim = 1.5*[-1 1];
 %varstrs = {'nmvvi1_smooth.zz ','nmvve1_smooth.zz','nmvvi2_smooth.zz','nmvve2_smooth.zz','pi1_smooth.zz','pe1_smooth.zz','pi2_smooth.zz','pe2_smooth.zz','-BB.zz','pB'}; clim = 1.5*[-1 1];
-
+varstrs = {'divBB.x','divBB.y','divBB.z','gradpB.x','gradpB.y','gradpB.z','vi1xB.x','vi1xB.y','vi1xB.z'}; clim = [];
+varstrs = {'divBB.x.*vExB.x','divBB.y.*vExB.y','divBB.z.*vExB.z','vi1xB.x','vi1xB.y','vi1xB.z'}; clim = [];
+varstrs = {'divBB.x.*vExB.x','divBB.y.*vExB.y','divBB.z.*vExB.z','vi1xB.x','vi1xB.y','vi1xB.z','E_vi1xB.x','E_vi1xB.y','E_vi1xB.z'}; clim = [];
+%,'vi1.x','vi1.y','vi1.z'
 nvars = numel(varstrs);
 
 %xlim = torow(x([1 end])) + [100 -100];
@@ -133,7 +161,7 @@ nvars = numel(varstrs);
 
 % Initialize figure
 npanels = nvars;
-nrows = 4;
+nrows = 3;
 ncols = ceil(npanels/nrows);
 npanels = nrows*ncols;
 isub = 1; 
@@ -305,6 +333,16 @@ if 1
              {'-0.5*nmvve1.xx','-0.5*nmvve2.xx','-0.5*nmvvi1.xx','-0.5*nmvvi2.xx'}}; vallim = [];
   colororders = {'1','bdacm','bdac','bdac','cd','bdac','','',''};
 end
+
+varstrs = {...
+  {'divpi1_smooth.x',...
+  'divnmvvi1_smooth.x',...  
+  'divpi2_smooth.x',...
+  'divnmvvi2_smooth.x',...  
+  'gradpB.x',...
+  '-divBB.x'}...
+  };
+
 if 0
   varstrs = {{'B.x','E.z'},...
              {'ne1','ne2','ni1','ni2'},...
@@ -337,7 +375,8 @@ npanels = numel(varstrs);
 nvars = cellfun(@numel, varstrs);
 
 plotaxis = 'x'; % 'x' for horizontal cut, 'z' for vertical cut
-zpick = 0;
+zpick = [-0.1 0.1];
+zpick = [0];
 xpick = 200;
 zind = find_closest_ind(z,zpick);
 xind = find_closest_ind(x,xpick);
@@ -345,7 +384,7 @@ xind = find_closest_ind(x,xpick);
 %xlim = x([1 end/2])'+[100 -100];
 xlim = [150 x(fix(end/2))];
 xlim = [x(fix(end/2)) x(end)-150];
-xlim = x([1 end])'+[150 -150];
+xlim = [-10 100];%x([1 end])'+[150 -150];
 zlim = [-10 10];
 
 ipx1 = find(x>xlim(1),1,'first');
@@ -413,7 +452,7 @@ for ipanel = 1:npanels
       hplot_tmp = plot(hca,plot_dep,diff_variable,'LineWidth',linewidth);
       varstrs{ipanel}{ivar} = sprintf('diff(%s)',varstrs{ipanel}{ivar});      
     else
-      hplot_tmp = plot(hca,plot_dep,variable(ipx,ipz),'LineWidth',linewidth);      
+      hplot_tmp = plot(hca,plot_dep,mean(variable(ipx,ipz),2),'LineWidth',linewidth);      
     end
     if doColor, hplot_tmp.Color = colors(ivar,:); end
     hplot{ivar} = hplot_tmp;
@@ -434,6 +473,7 @@ for ipanel = 1:npanels
     end
   end
   hleg_tmp = legend(hca,leg_str_tmp,'box','off','fontsize',fontsize,'location','eastoutside');
+  hleg_tmp.Interpreter = 'none';
   hleg(ipanel) = hleg_tmp;
   hca.FontSize = fontsize;
   hold(hca,'off')
@@ -452,6 +492,8 @@ h(1).Title.String = sprintf('%s = %.0f (d_i), time = %g (1/wci) = %g (1/wpe)',pi
 arrayfun(@(x)eval(sprintf('x.Position(3) = 0.6;'),x),h)
 drawnow
 compact_panels(0.012)
+
+hca.YLim = [-0.4 0.4];
 
 %% (OLD) Plot, 4 species plasma properties, 1 species per column
 % Initialize figure

@@ -84,3 +84,28 @@ if 1
   hca.XGrid = 'on';
   hca.YGrid = 'on';
 end
+
+%% Proton cyclotron frequency
+units = irf_units;
+wc = @(B,m) units.e*B/m; % rad/s
+% fc = wc/(2*pi); % 1/s
+
+h = setup_subplots(2,1);
+isub = 1;
+
+hca = h(isub); isub = isub + 1;
+B_ = (1:0.2:20)*1e-9;
+ax = plotyy(hca,B_*1e9,wc(B_,units.mp),B_*1e9,wc(B_,units.mp)/(2*pi));
+ax(1).YLabel.String = '\omega_{cp} (rad/s)';
+ax(2).YLabel.String = 'f_{cp} (1/s)';
+ax(1).XLabel.String = 'B (nT)';
+hca.XGrid = 'on';
+hca.YGrid = 'on';
+
+hca = h(isub); isub = isub + 1;
+B_ = (1:0.2:20)*1e-9;
+semilogy(hca,B_*1e9,1./(wc(B_,units.mp)/(2*pi)));
+hca.XLabel.String = 'B (nT)';
+hca.YLabel.String = 'f_{cp}^{-1} (s)';
+hca.XGrid = 'on';
+hca.YGrid = 'on';
