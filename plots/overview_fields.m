@@ -8,7 +8,7 @@ data_dir = '/Volumes/Fountain/Data/PIC/df_cold_protons_04/data/';
 data_dir = '/Volumes/Fountain/Data/PIC/df_cold_protons_04/data/';
 nss = 6;
 %% Load data
-timestep = 08000;
+timestep = 03000;
 txtfile = sprintf('/Users/cecilia/Data/PIC/data/fields-%05.0f.dat',timestep); % michael's perturbation
 %txtfile = sprintf('/Users/cno062/Data/PIC/df_cold_protons_1/data/fields-%05.0f.dat',timestep); % michael's perturbation
 txtfile = sprintf('/Volumes/Fountain/Data/PIC/df_cold_protons_1/data/fields-%05.0f.dat',timestep); % michael's perturbation
@@ -19,7 +19,7 @@ txtfile = sprintf('%s/fields-%05.0f.dat',data_dir,timestep); % michael's perturb
 
 
 %tic; [time,r,e,b,n1,ne,ve,vi,je,ji,pe,pi,dfac,teti,nnx,nnz,wpewce,mass,it,dt,xmax,zmax,q] = read_fields_ieie(txtfile); toc
-if 0
+if 1
   %%
 tic; 
   [x,z,E,B,...

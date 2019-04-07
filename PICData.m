@@ -308,7 +308,7 @@
 
       % make new obj
       obj_out = obj;
-      obj_out.t_ = 
+      %obj_out.t_ = 1
       
     end
     
@@ -319,8 +319,11 @@
     function obj = grad(obj)
       obj = [];
     end     
-    function obj = ddt(obj)
-      obj = [];
+    function obj_out = ddt(obj)
+      obj_out = obj;
+      dt = diff(obj_out.t_);
+      obj_out.t_ = obj_out.t_(1:(end-1)) + 0.5*dt;
+      obj_out.data_ = diff(obj_out.data_,1);
     end 
     
     % Cosmetics etc.
