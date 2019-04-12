@@ -21,9 +21,8 @@ E_smooth2.x = smooth2(E_smooth.x,1);
 E_smooth2.y = smooth2(E_smooth.y,1);
 E_smooth2.z = smooth2(E_smooth.z,1);
 
-if not(isfield(B,'abs')) B.abs = sqrt(B.x.^2 + B.y.^2 + B.z.^2); end
 pB = B.abs.^2/2; % magnetic pressure
-
+B.abs = sqrt(B.x^2 + B.y.^2 + B.z.^2);
 KB = magnetic_field_curvature(x,z,B.x,B.y,B.z); % magnetic curvature
 BB = tensor_product(B.x,B.y,B.z,B.x,B.y,B.z);
 

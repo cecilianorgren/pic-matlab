@@ -8,7 +8,7 @@ data_dir = '/Volumes/Fountain/Data/PIC/df_cold_protons_04/data/';
 data_dir = '/Volumes/Fountain/Data/PIC/df_cold_protons_04/data/';
 nss = 6;
 %% Load data
-timestep = 03000;
+timestep = 05600;
 txtfile = sprintf('/Users/cecilia/Data/PIC/data/fields-%05.0f.dat',timestep); % michael's perturbation
 %txtfile = sprintf('/Users/cno062/Data/PIC/df_cold_protons_1/data/fields-%05.0f.dat',timestep); % michael's perturbation
 txtfile = sprintf('/Volumes/Fountain/Data/PIC/df_cold_protons_1/data/fields-%05.0f.dat',timestep); % michael's perturbation
@@ -20,6 +20,32 @@ txtfile = sprintf('%s/fields-%05.0f.dat',data_dir,timestep); % michael's perturb
 
 %tic; [time,r,e,b,n1,ne,ve,vi,je,ji,pe,pi,dfac,teti,nnx,nnz,wpewce,mass,it,dt,xmax,zmax,q] = read_fields_ieie(txtfile); toc
 if 1
+  %%
+tic; 
+  [x,z,E,B,...
+  dfac,teti,nnx,nnz,wpewce,mass,it,time,dt,xmax,zmax,q,...
+  ni1,ne1,ni2,ne2,ni3,ne3,ni23,ne23,ni,ne,...
+  vi1,ve1,vi2,ve2,vi3,ve3,vi23,ve23,vi,ve,...
+  ji1,je1,ji2,je2,ji3,je3,ji23,je23,ji,je,...
+  pi1,pe1,pi2,pe2,pi3,pe3,pi23,pe23,pi,pe,...
+  ti1,te1,ti2,te2,ti3,te3,ti23,te23,ti,te...
+    ] = read_fields_and_combine(txtfile,'nss',nss);
+toc
+x0 = mean(x); x = x-x0;
+elseif 1
+  %%
+tic; 
+  [x,z,E,B,...
+  dfac,teti,nnx,nnz,wpewce,mass,it,time,dt,xmax,zmax,q,...
+  ni1,ne1,ni2,ne2,ni3,ne3,ni23,ne23,...
+  vi1,ve1,vi2,ve2,vi3,ve3,vi23,ve23,...
+  ji1,je1,ji2,je2,ji3,je3,ji23,je23,...
+  pi1,pe1,pi2,pe2,pi3,pe3,pi23,pe23,...
+  ti1,te1,ti2,te2,ti3,te3,ti23,te23...
+    ] = read_fields_and_combine(txtfile,'nss',nss);
+toc
+x0 = mean(x); x = x-x0;
+elseif 1
   %%
 tic; 
   [x,z,E,B,...
@@ -56,29 +82,44 @@ A = vector_potential(x,z,B.x,B.z); % vector potential
 
 pic_calc_script
 
-r1 = b; % magnetic field unit vector
-r2 = cross_product(r1.x,r1.y,r1.z,0,1,0);
-r2.abs = sqrt(r2.x.^2 + r2.y.^2 + r2.z.^2);
-r2.x = r2.x./r2.abs;
-r2.y = r2.y./r2.abs;
-r2.z = r2.z./r2.abs;
-r2.abs = sqrt(r2.x.^2 + r2.y.^2 + r2.z.^2);
-r2 = cross_product(r2.x,r2.y,r2.z,r1.x,r1.y,r1.z);
-r3 = cross_product(r1.x,r1.y,r1.z,r2.x,r2.y,r2.z);
-r3.abs = sqrt(r3.x.^2 + r3.y.^2 + r3.z.^2);
+% r1 = b; % magnetic field unit vector
+% r2 = cross_product(r1.x,r1.y,r1.z,0,1,0);
+% r2.abs = sqrt(r2.x.^2 + r2.y.^2 + r2.z.^2);
+% r2.x = r2.x./r2.abs;
+% r2.y = r2.y./r2.abs;
+% r2.z = r2.z./r2.abs;
+% r2.abs = sqrt(r2.x.^2 + r2.y.^2 + r2.z.^2);
+% r2 = cross_product(r2.x,r2.y,r2.z,r1.x,r1.y,r1.z);
+% r3 = cross_product(r1.x,r1.y,r1.z,r2.x,r2.y,r2.z);
+% r3.abs = sqrt(r3.x.^2 + r3.y.^2 + r3.z.^2);
+
+[r1,r2,r3] = new_csys(B,[0 1 0]);
 
 tic;te1_fac = rotate_tens(te1,r1,r2,r3); toc
 tic;te2_fac = rotate_tens(te2,r1,r2,r3); toc
 tic;ti1_fac = rotate_tens(ti1,r1,r2,r3); toc
 tic;ti2_fac = rotate_tens(ti2,r1,r2,r3); toc
-te1_perp = 0.5*(te1.yy + te1.zz);
-te1_par = te1.xx;
-te2_perp = 0.5*(te2.yy + te2.zz);
-te2_par = te2.xx;
-ti1_perp = 0.5*(ti1.yy + ti1.zz);
-ti1_par = ti1.xx;
-ti2_perp = 0.5*(ti2.yy + ti2.zz);
-ti2_par = ti2.xx;
+te1_perp = 0.5*(te1_fac.yy + te1_fac.zz);
+te1_par = te1_fac.xx;
+te2_perp = 0.5*(te2_fac.yy + te2_fac.zz);
+te2_par = te2_fac.xx;
+ti1_perp = 0.5*(ti1_fac.yy + ti1_fac.zz);
+ti1_par = ti1_fac.xx;
+ti2_perp = 0.5*(ti2_fac.yy + ti2_fac.zz);
+ti2_par = ti2_fac.xx;
+
+tic;te2_fac = rotate_tens(te2,r1,r2,r3); toc
+tic;te23_fac = rotate_tens(te23,r1,r2,r3); toc
+tic;ti2_fac = rotate_tens(ti2,r1,r2,r3); toc
+tic;ti23_fac = rotate_tens(ti23,r1,r2,r3); toc
+te2_perp = 0.5*(te2_fac.yy + te2_fac.zz);
+te2_par = te2_fac.xx;
+te23_perp = 0.5*(te23_fac.yy + te23_fac.zz);
+te23_par = te23.xx;
+ti2_perp = 0.5*(ti2_fac.yy + ti2_fac.zz);
+ti2_par = ti2_fac.xx;
+ti23_perp = 0.5*(ti23_fac.yy + ti23_fac.zz);
+ti23_par = ti23_fac.xx;
 
 % Stream functions
 c_eval('Se?.xz = vector_potential(x,z,ve?.x,ve?.z);',1:2) % stream function
@@ -154,6 +195,20 @@ varstrs = {'divBB.x','divBB.y','divBB.z','gradpB.x','gradpB.y','gradpB.z','vi1xB
 varstrs = {'divBB.x.*vExB.x','divBB.y.*vExB.y','divBB.z.*vExB.z','vi1xB.x','vi1xB.y','vi1xB.z'}; clim = [];
 varstrs = {'divBB.x.*vExB.x','divBB.y.*vExB.y','divBB.z.*vExB.z','vi1xB.x','vi1xB.y','vi1xB.z','E_vi1xB.x','E_vi1xB.y','E_vi1xB.z'}; clim = [];
 %,'vi1.x','vi1.y','vi1.z'
+varstrs = {'ve1.x','vi1.x','ve1.x-vi1.x','ve2.x','vi2.x','ve2.x-vi2.x','ve23.x','vi23.x','ve23.x-vi23.x'}; clim = 1*[-1 1];
+varstrs = {'te1.xx','ti1.xx','te2.xx','ti2.xx','te23.xx','ti23.xx','te2.xx-te23.xx','ti2.xx-ti23.xx'}; clim = 0.2*[-1 1];
+varstrs = {'te1.zz','ti1.zz','te2.zz','ti2.zz','te23.zz','ti23.zz','te2.zz-te23.zz','ti2.zz-ti23.zz'}; clim = 0.2*[-1 1];
+varstrs = {'ve1.z','vi1.z','ve1.z-vi1.z','ve2.z','vi2.z','ve2.z-vi2.z','ve23.z','vi23.z','ve23.z-vi23.z'}; clim = 0.2*[-1 1];
+varstrs = {'ve2.z','ve23.z','ve2.z-ve23.z','vi2.z','vi23.z','vi2.z-vi23.z'}; clim = 0.2*[-1 1];
+varstrs = {'ve2.z','ve23.z','ve2.z-ve23.z','te2.zz','te23.zz','te2.zz-te23.zz'}; clim = 0.2*[-1 1];
+varstrs = {'ve1.x-vExB.x','ve2.x-vExB.x','ve23.x-vExB.x','vi1.x-vExB.x','vi2.z-vExB.x','vi23.z-vExB.x','vExB.x'}; clim = 0.5*[-1 1];
+varstrs = {'te2_par','te2_perp','te23_par','te23_perp'}; clim = 0.2*[-1 1];
+varstrs = {'B.z','E.y'}; clim = 0.1*[0.6 1];
+varstrs = {'ve1.x','ve2.x','ve3.x','ve23.x','ve.x'}; clim = 0.2*[-1 1];
+varstrs = {'je1.x','je2.x','je3.x','je23.x','je.x'}; clim = 0.2*[-1 1];
+varstrs = {'ne1','ni1','ne1-ni1','ne2','ni2','ne2-ni2','ne23-ni23','E.z'}; clim = 1*[-1 1];
+%varstrs = {'ji1.x','ji2.x','ji3.x','ji23.x','ji.x'}; clim = 0.05*[-1 1];
+%varstrs = {'ti2_par','ti2_perp','ti23_par','ti23_perp'}; clim = 0.2*[-1 1];
 nvars = numel(varstrs);
 
 %xlim = torow(x([1 end])) + [100 -100];
@@ -200,10 +255,10 @@ ipxQ = fix(linspace(ipx1,ipx2,nQx));
 ipzQ = fix(linspace(ipz1,ipz2,nQz));
 [dataQx,dataQz] = meshgrid(ipxQ,ipzQ);
 ipXQ = dataQx; ipZQ = dataQz;
-dataQ.x = E.perp.x;
-dataQ.y = E.perp.y;
-dataQ.z = E.perp.z;
-dataQ = J.perp;
+% dataQ.x = E.perp.x;
+% dataQ.y = E.perp.y;
+% dataQ.z = E.perp.z;
+dataQ = ve2;
 maxQ = 2;
 dataQ.abs = sqrt(dataQ.x.^2 + dataQ.z.^2);
 dataQ.x(dataQ.abs>maxQ) = NaN;

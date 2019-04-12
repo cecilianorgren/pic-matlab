@@ -498,7 +498,7 @@ if 0 % ne
   plot_structures_all{iplot} = plot_structure;
 end
 
-if 1 % Ut
+if 0 % Ut
   iplot = iplot + 1;
   doMovie(iplot) = 0;
 
@@ -515,7 +515,7 @@ if 1 % Ut
   plot_structure.nrows = nrows_all{iplot};
   plot_structures_all{iplot} = plot_structure;
 end
-if 1 % Uk
+if 0 % Uk
   iplot = iplot + 1;
   doMovie(iplot) = 0;
 
@@ -532,7 +532,7 @@ if 1 % Uk
   plot_structure.nrows = nrows_all{iplot};
   plot_structures_all{iplot} = plot_structure;
 end
-if 1 % Ut-Uk
+if 0 % Ut-Uk
   iplot = iplot + 1;
   doMovie(iplot) = 0;
 
@@ -549,7 +549,7 @@ if 1 % Ut-Uk
   plot_structure.nrows = nrows_all{iplot};
   plot_structures_all{iplot} = plot_structure;
 end
-if 1 % Ut-Uk, 'Uke2-Ute2+0.02'
+if 0 % Ut-Uk, 'Uke2-Ute2+0.02'
   iplot = iplot + 1;
   doMovie(iplot) = 0;
 
@@ -878,18 +878,19 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Time series of scalar quantities %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clear varstrs_ts_scalar
-varstrs_ts_scalar = {...
-  'Uke1','Uke1','Uki1','Uki2',...
-  'Ute1','Ute2','Uti1','Uti2',...
-  'UB.tot','UB.x','UB.y','UB.z',...
-  'U.B_mean','U.B_sum',...
-  'U.Uke1_mean','U.Uke2_mean','U.Uki1_mean','U.Uki2_mean',...
-  'U.Ute1_mean','U.Ute2_mean','U.Uti1_mean','U.Uti2_mean',...
-  'U.Uke1_sum','U.Uke2_sum','U.Uki1_sum','U.Uki2_sum',...
-  'U.Ute1_sum','U.Ute2_sum','U.Uti1_sum','U.Uti2_sum',...
-  'pe1_mean','pe2_mean','pi1_mean','pi2_mean',...              
-  'pe1_std','pe2_std','pi1_std','pi2_std',...
-  'E_mean','E_std'};
+varstrs_ts_scalar = {};
+% ...
+%   'Uke1','Uke2','Uke3','Uke23','Uki1','Uki2','Uki3','Uki23',...
+%   'Ute1','Ute2','Ute3','Ute23','Uti1','Uti2','Uti3','Uti23',...
+%   'UB.tot','UB.x','UB.y','UB.z',...
+%   'U.B_mean','U.B_sum',...
+%   'U.Uke1_mean','U.Uke2_mean','U.Uki1_mean','U.Uki2_mean',...
+%   'U.Ute1_mean','U.Ute2_mean','U.Uti1_mean','U.Uti2_mean',...
+%   'U.Uke1_sum','U.Uke2_sum','U.Uki1_sum','U.Uki2_sum',...
+%   'U.Ute1_sum','U.Ute2_sum','U.Uti1_sum','U.Uti2_sum',...
+%   'pe1_mean','pe2_mean','pi1_mean','pi2_mean',...              
+%   'pe1_std','pe2_std','pi1_std','pi2_std',...
+%   'E_mean','E_std'};
 nvars_ts_scalar = numel(varstrs_ts_scalar);
 cell_ts_scalar = cell(nvars_ts_scalar,1);
 % %str_ts_scalar = varstrs_ts_scalar;
@@ -906,15 +907,15 @@ cell_ts_scalar = cell(nvars_ts_scalar,1);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Time stacked line plots (for example to see how Bz or vx spread out) %%%%
 clear varstrs_ts_line_x
-zval_collect = [-10:1:10]; % collect for a number of different z's
+zval_collect = [-6:1:6]; % collect for a number of different z's
 nz_collect = numel(zval_collect);
 varstrs_ts_line_x = {...
   'A',...
-  've1.x','ve2.x','vi1.x','vi2.x',...
+  've1.x','ve2.x','ve3.x','ve23.x','vi1.x','vi2.x','vi3.x','vi23.x',...
   'B.y','B.z','E.x','E.y','E.z',...
-  've.x','ve.x','vi.x','vi.x',...
-  've1.y','ve2.y','vi1.y','vi2.y',...
-  'ne1','ne2','ni1','ni2',...
+  ...%'ve.x','ve.x','vi.x','vi.x',...
+  've1.y','ve2.y','ve3.y','ve23.y','vi1.y','vi2.y','vi3.y','vi23.y',...
+  'ne1','ne2','ne3','ne23','ni1','ni2','ni3','ni23',...
   'J.y',...
   'pe1.scalar','pe2.scalar','pi1.scalar','pi2.scalar',...
   'te1.scalar','te2.scalar','ti1.scalar','ti2.scalar'...
@@ -971,29 +972,8 @@ for itime = 1:ntimes
   %% Calculate auxillary quantities
   A = vector_potential(x,z,B.x,B.z); % vector potential
   [saddle_locations,saddle_values] = saddle(A);
-  pic_calc_script  
+  pic_calc_script_nss6  
   
-  % noise levels
-  xbox = [20 25];
-  zbox = [20 25];
-
-  pe1_box = pe1.scalar(lim2ind(x,xbox),lim2ind(z,zbox));
-  pe2_box = pe2.scalar(lim2ind(x,xbox),lim2ind(z,zbox));
-  pi1_box = pi1.scalar(lim2ind(x,xbox),lim2ind(z,zbox));
-  pi2_box = pi2.scalar(lim2ind(x,xbox),lim2ind(z,zbox));
-  E_box = E.abs(lim2ind(x,xbox),lim2ind(z,zbox));
-  
-  pe1_mean = mean(pe1_box(:));
-  pe2_mean = mean(pe2_box(:));
-  pi1_mean = mean(pi1_box(:));
-  pi2_mean = mean(pi2_box(:));
-  E_mean = mean(E_box(:));
-
-  pe1_std = std(pe1_box(:));
-  pe2_std = std(pe2_box(:));
-  pi1_std = std(pi1_box(:));
-  pi2_std = std(pi2_box(:));
-  E_std = std(E_box(:));
   
   %% Collect time series of scalar quantities
   for ivar_ts_scalar = 1:nvars_ts_scalar
