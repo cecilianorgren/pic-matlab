@@ -8,7 +8,7 @@ data_dir = '/Volumes/Fountain/Data/PIC/df_cold_protons_04/data/';
 data_dir = '/Volumes/Fountain/Data/PIC/df_cold_protons_04/data/';
 nss = 6;
 %% Load data
-timestep = 05600;
+timestep = 07000;
 txtfile = sprintf('/Users/cecilia/Data/PIC/data/fields-%05.0f.dat',timestep); % michael's perturbation
 %txtfile = sprintf('/Users/cno062/Data/PIC/df_cold_protons_1/data/fields-%05.0f.dat',timestep); % michael's perturbation
 txtfile = sprintf('/Volumes/Fountain/Data/PIC/df_cold_protons_1/data/fields-%05.0f.dat',timestep); % michael's perturbation
@@ -206,7 +206,7 @@ varstrs = {'te2_par','te2_perp','te23_par','te23_perp'}; clim = 0.2*[-1 1];
 varstrs = {'B.z','E.y'}; clim = 0.1*[0.6 1];
 varstrs = {'ve1.x','ve2.x','ve3.x','ve23.x','ve.x'}; clim = 0.2*[-1 1];
 varstrs = {'je1.x','je2.x','je3.x','je23.x','je.x'}; clim = 0.2*[-1 1];
-varstrs = {'ne1','ni1','ne1-ni1','ne2','ni2','ne2-ni2','ne23-ni23','E.z'}; clim = 1*[-1 1];
+varstrs = {'ne1','ni1','ne1-ni1','ne2','ni2','ne2-ni2','ne23','E.z'}; clim = 1*[-1 1];
 %varstrs = {'ji1.x','ji2.x','ji3.x','ji23.x','ji.x'}; clim = 0.05*[-1 1];
 %varstrs = {'ti2_par','ti2_perp','ti23_par','ti23_perp'}; clim = 0.2*[-1 1];
 nvars = numel(varstrs);
