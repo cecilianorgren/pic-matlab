@@ -1,0 +1,60 @@
+function [vx,vz] = flux_speed(t,x,z,vA,varargin)
+% vA(t,x,z)
+
+%if not(isempty(varargin)) && strcmp(varargin,'plot'); doPlot = 1; else doPlot = 0; end
+
+vx = vA.x;
+vz = vA.z;
+
+
+% Initialize variables
+matsize = size(vA);
+dVxdt = zeros(matsize); % total time derivative
+dVzdt = zeros(matsize); % total time derivative
+
+pdVxdt = zeros(matsize); % partial time derivative
+pdVzdt = zeros(matsize); % partial time derivative
+dVxdx = zeros(matsize); % spatial derivative
+dVxdz = zeros(matsize); % spatial derivative
+dVzdx = zeros(matsize); % spatial derivative
+dVzdz = zeros(matsize); % spatial derivative
+
+%ax = zeros(matsize);
+%az = zeros(matsize);
+
+% Grid size
+dt = t(2)-t(1);
+dx = x(2)-x(1);
+dz = z(2)-z(1);
+
+% Calculate Bz
+% Bx = -dAdz;
+% Bz = dAdx;
+
+dVxdz(:,:,1) = -(vx(:,:,2)-vx(:,:,1))/dz;
+dVxdz(:,:,2:end-1) = -(vx(:,:,3:end)-vx(:,:,1:end-2))/(2*dz);
+dVxdz(:,:,end) = -(vx(:,:,end)-vx(:,:,end-1))/dz;
+dVzdz(:,:,1) = -(vz(:,:,2)-vz(:,:,1))/dz;
+dVzdz(:,:,2:end-1) = -(vz(:,:,3:end)-vz(:,:,1:end-2))/(2*dz);
+dVzdz(:,:,end) = -(vz(:,:,end)-vz(:,:,end-1))/dz;
+
+
+dVxdx(:,1,:) = (vx(:,2,:)-vx(:,1,:))/dx;
+dVxdx(:,2:end-1,:) =(vx(:,3:end,:)-vx(:,1:end-2,:))/(2*dx);
+dVxdx(:,end,:) = (vx(:,end,:)-vx(:,end-1,:))/dx;
+dVzdx(:,1,:) = (vz(:,2,:)-vz(:,1,:))/dx;
+dVzdx(:,2:end-1,:) =(vz(:,3:end,:)-vz(:,1:end-2,:))/(2*dx);
+dVzdx(:,end,:) = (vz(:,end,:)-vz(:,end-1,:))/dx;
+
+% partial time derivative
+pdVxdt(1,:,:) = (vx(2,:,:)-A(1,:,:))/dt;
+pdVxdt(2:end-1,:,:) = (A(3:end,:,:)-A(1:end-2,:,:))/(2*dt);
+pdVxdt(end,:,:) = (A(end,:,:)-A(end-1,:,:))/dt;
+
+% Bx = interp(z(2:end)-0.5*dz,diff(A,3),z);
+% Bz = -dAdz;
+
+% Using total dAdt (laplacian) = 0, and vA.dot(B) = 0;
+vx = -Bz.*dAdt./(Bx.^2+Bz.^2);
+vz = Bx.*dAdt./(Bx.^2+Bz.^2);
+ 

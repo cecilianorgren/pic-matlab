@@ -1,14 +1,16 @@
 
 savedir_root = '/Users/cno062/Research/PIC/df_cold_protons_1/';
 data_dir = '/Volumes/Fountain/Data/PIC/df_cold_protons_1/data/';
+data_dir = '/Volumes/pic/in_progress/df_cold_protons_04/data/';
 nss = 4;
 %%
 savedir_root = '/Users/cno062/Research/PIC/df_cold_protons_04/';
 data_dir = '/Volumes/Fountain/Data/PIC/df_cold_protons_04/data/';
 data_dir = '/Volumes/Fountain/Data/PIC/df_cold_protons_04/data/';
+data_dir = '/Volumes/pic/in_progress/df_cold_protons_04/data/';
 nss = 6;
 %% Load data
-timestep = 07000;
+timestep = 5000;
 txtfile = sprintf('/Users/cecilia/Data/PIC/data/fields-%05.0f.dat',timestep); % michael's perturbation
 %txtfile = sprintf('/Users/cno062/Data/PIC/df_cold_protons_1/data/fields-%05.0f.dat',timestep); % michael's perturbation
 txtfile = sprintf('/Volumes/Fountain/Data/PIC/df_cold_protons_1/data/fields-%05.0f.dat',timestep); % michael's perturbation
@@ -19,6 +21,7 @@ txtfile = sprintf('%s/fields-%05.0f.dat',data_dir,timestep); % michael's perturb
 
 
 %tic; [time,r,e,b,n1,ne,ve,vi,je,ji,pe,pi,dfac,teti,nnx,nnz,wpewce,mass,it,dt,xmax,zmax,q] = read_fields_ieie(txtfile); toc
+%%
 if 1
   %%
 tic; 
@@ -71,6 +74,7 @@ x0 = mean(x); x = x-x0;
 
 %imagesc(squeeze(ni2(:,:,:))');
 %colorbar
+A = vector_potential(x,z,B.x,B.z); % vector potential
 
 %%
 % Calculate auxillary quantities
@@ -207,8 +211,15 @@ varstrs = {'B.z','E.y'}; clim = 0.1*[0.6 1];
 varstrs = {'ve1.x','ve2.x','ve3.x','ve23.x','ve.x'}; clim = 0.2*[-1 1];
 varstrs = {'je1.x','je2.x','je3.x','je23.x','je.x'}; clim = 0.2*[-1 1];
 varstrs = {'ne1','ni1','ne1-ni1','ne2','ni2','ne2-ni2','ne23','E.z'}; clim = 1*[-1 1];
+varstrs = {'ve1.x','ve2.x','ve3.x'}; clim = 0.2*[-1 1];
+%varstrs = {'vi1.x','vi2.x','vi3.x'}; clim = 0.2*[-1 1];
+%varstrs = {'ni1','ni2','ni3','ni1+ni2','ni1+ni2+ni3'}; clim = 1*[-1 1];
 %varstrs = {'ji1.x','ji2.x','ji3.x','ji23.x','ji.x'}; clim = 0.05*[-1 1];
 %varstrs = {'ti2_par','ti2_perp','ti23_par','ti23_perp'}; clim = 0.2*[-1 1];
+varstrs = {'ve1.x','ve2.x','ve3.x','ve1.y','ve2.y','ve3.y','ve1.z','ve2.z','ve3.z'}; clim = 0.2*[-1 1];
+varstrs = {'vi1.x','vi2.x','vi3.x','vi1.y','vi2.y','vi3.y','vi1.z','vi2.z','vi3.z'}; clim = 0.2*[-1 1];
+varstrs = {'vi2.x','vi3.x','vi2.z','vi3.z'}; clim = 0.2*[-1 1];
+varstrs = {'(ti2.xx+ti2.yy+ti2.zz)/3','vi3.x','vi2.z','vi3.z'}; clim = 0.2*[-1 1];
 nvars = numel(varstrs);
 
 %xlim = torow(x([1 end])) + [100 -100];
@@ -216,7 +227,7 @@ nvars = numel(varstrs);
 
 % Initialize figure
 npanels = nvars;
-nrows = 3;
+nrows = 2;
 ncols = ceil(npanels/nrows);
 npanels = nrows*ncols;
 isub = 1; 
@@ -227,14 +238,14 @@ end
 h = setup_subplots(nrows,ncols,'vertical');
 linkaxes(h);
 
-xlim = [x(1) x(end)]; xlim = [0 70];%[x(1) x(end)] + 150*[1 -1];
-zlim = [z(1) z(end)]; zlim = 10*[-1 1];
+xlim = [x(1) x(end)]; xlim = [0 x(end)];%[x(1) x(end)] + 150*[1 -1];
+zlim = [z(1) z(end)]; zlim = 15*[-1 1];
 ipx1 = find(x>xlim(1),1,'first');
 ipx2 = find(x<xlim(2),1,'last');
 ipz1 = find(z>zlim(1),1,'first');
 ipz2 = find(z<zlim(2),1,'last');
-ipx = ipx1:2:ipx2;
-ipz = ipz1:2:ipz2;
+ipx = ipx1:3:ipx2;
+ipz = ipz1:3:ipz2;
     
 % Flux function
 doA = 1;
@@ -247,9 +258,9 @@ ipzA = ipz1:20:ipz2;
 %sepA = A(find(B.abs(:)==min(B.abs(:))));
 
 % Quivers
-doQ = 0;
-nQx = 200;
-nQz = 50;
+doQ = 1;
+nQx = 100;
+nQz = 25;
 [Z,X] = meshgrid(z,x);
 ipxQ = fix(linspace(ipx1,ipx2,nQx));
 ipzQ = fix(linspace(ipz1,ipz2,nQz));
@@ -258,8 +269,8 @@ ipXQ = dataQx; ipZQ = dataQz;
 % dataQ.x = E.perp.x;
 % dataQ.y = E.perp.y;
 % dataQ.z = E.perp.z;
-dataQ = ve2;
-maxQ = 2;
+dataQ = vi2;
+maxQ = 0.2;
 dataQ.abs = sqrt(dataQ.x.^2 + dataQ.z.^2);
 dataQ.x(dataQ.abs>maxQ) = NaN;
 dataQ.y(dataQ.abs>maxQ) = NaN;
@@ -398,6 +409,12 @@ varstrs = {...
   '-divBB.x'}...
   };
 
+varstrs = {{'B.z'},...
+           {'ni1','ni2+ni3','ni1+ni2+ni3'},...
+           ...%{'-(pe1.xx+pe1.xy+pe1.xz)','-(pe2.xx+pe2.xy+pe2.xz)','-(pi1.xx+pi1.xy+pi1.xz)','-(pi2.xx+pi2.xy+pi2.xz)'},...
+           {'pi1.xx','pi1.xy','pi1.xz'},...
+           {'pi2.xx','pi2.xy','pi2.xz'}}; vallim = [];
+         
 if 0
   varstrs = {{'B.x','E.z'},...
              {'ne1','ne2','ni1','ni2'},...

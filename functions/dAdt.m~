@@ -1,0 +1,17 @@
+function out = dAdt(t,A,varargin)
+
+if not(isempty(varargin)) && strcmp(varargin,'xline'); doXline = 1; else doXline = 0; end
+
+dt = t(2)-t(1);
+
+dAdt(1,:,:) = (A(2,:,:)-A(1,:,:))/dt;
+dAdt(2:end-1,:,:) = (A(3:end,:,:)-A(1:end-2,:,:))/(2*dt);
+dAdt(end,:,:) = (A(end,:,:)-A(end-1,:,:))/dt;
+
+if doXline
+  for it
+    
+  end
+end
+
+out = dAdt;

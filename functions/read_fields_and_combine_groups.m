@@ -46,6 +46,7 @@ function varargout = read_fields_and_combine(txtfile,varargin)
   
   groups = {[3 5],[4 6],[1 3 5],[2 4 6]}; % additional groups to combine
   ngroups = numel(groups);
+  
   %% load data, first all the populations separated
   [fid, message] = fopen(txtfile,'r','ieee-le');
   if fid < 0
@@ -61,9 +62,10 @@ function varargout = read_fields_and_combine(txtfile,varargin)
   nnx = fread(fid,1,'integer*4');                               % nnx
   nnz = fread(fid,1,'integer*4');                               % nnz
 
-  vxs = zeros(nnx,nnz,nss + ngroups);
-  vys = zeros(nnx,nnz,nss + ngroups);
-  vzs = zeros(nnx,nnz,nss + ngroups);
+  % initialize flux
+  vxs = zeros(nnx,nnz,nss);
+  vys = zeros(nnx,nnz,nss);
+  vzs = zeros(nnx,nnz,nss);
 
   for is = 1:nss, vxs(:,:,is) = fread(fid,[nnx nnz],'real*4'); end  % vxs 
   for is = 1:nss, vys(:,:,is) = fread(fid,[nnx nnz],'real*4'); end  % vys 
@@ -83,13 +85,14 @@ function varargout = read_fields_and_combine(txtfile,varargin)
   q = fread(fid,nss,'real*4');                                  % q 
   time = fread(fid,1,'real*8');                                 % time 
   wpewce = fread(fid,1,'real*4');                               % wpewce 
-  dfac = fread(fid,nss,'real*4');                               % dfac  
-  vxx = zeros(nnx,nnz,nss + ngroups); % vxvx
-  vyy = zeros(nnx,nnz,nss + ngroups); % vyvy
-  vzz = zeros(nnx,nnz,nss + ngroups); % vzvz
-  vxy = zeros(nnx,nnz,nss + ngroups); % vxvy
-  vxz = zeros(nnx,nnz,nss + ngroups); % vxvz
-  vyz = zeros(nnx,nnz,nss + ngroups); % vyvz
+  dfac = fread(fid,nss,'real*4');  
+  % initialize energy
+  vxx = zeros(nnx,nnz,nss); % vxvx
+  vyy = zeros(nnx,nnz,nss); % vyvy
+  vzz = zeros(nnx,nnz,nss); % vzvz
+  vxy = zeros(nnx,nnz,nss); % vxvy
+  vxz = zeros(nnx,nnz,nss); % vxvz
+  vyz = zeros(nnx,nnz,nss); % vyvz
 
   for is = 1:nss, vxx(:,:,is) = fread(fid,[nnx nnz],'real*4'); end  % vxx 
   for is = 1:nss, vyy(:,:,is) = fread(fid,[nnx nnz],'real*4'); end  % vyy 
@@ -103,22 +106,34 @@ function varargout = read_fields_and_combine(txtfile,varargin)
   %% make a new group with the combined species [3 5], [4 6]  
   % not enough memory to make a nx x nz x (nss + ngroups) species
   
+  vxx_group = zeros(nnx,nnz,ngroups); % vxvx
+  vyy_group = zeros(nnx,nnz,ngroups); % vyvy
+  vzz_group = zeros(nnx,nnz,ngroups); % vzvz
+  vxy_group = zeros(nnx,nnz,ngroups); % vxvy
+  vxz_group = zeros(nnx,nnz,ngroups); % vxvz
+  vyz_group = zeros(nnx,nnz,ngroups); % vyvz
+  
+  % initialize flux
+  vxs_group = zeros(nnx,nnz,ngroups);
+  vys_group = zeros(nnx,nnz,ngroups);
+  vzs_group = zeros(nnx,nnz,ngroups);
+  
   for igroup = 1:ngroups
-    dns(:,:,nss+igroup) = sum(dns(:,:,groups{igroup}),3);
+    dns_group(:,:,igroup) = sum(dns(:,:,groups{igroup}),3);
     
-    vxs(:,:,nss+igroup) = sum(vxs(:,:,groups{igroup}),3);
-    vys(:,:,nss+igroup) = sum(vys(:,:,groups{igroup}),3);
-    vzs(:,:,nss+igroup) = sum(vzs(:,:,groups{igroup}),3);
+    vxs_group(:,:,igroup) = sum(vxs(:,:,groups{igroup}),3);
+    vys_group(:,:,igroup) = sum(vys(:,:,groups{igroup}),3);
+    vzs_group(:,:,igroup) = sum(vzs(:,:,groups{igroup}),3);
     
-    vxx(:,:,nss+igroup) = sum(vxx(:,:,groups{igroup}),3);
-    vxy(:,:,nss+igroup) = sum(vxy(:,:,groups{igroup}),3);
-    vxz(:,:,nss+igroup) = sum(vxz(:,:,groups{igroup}),3);
-    vyy(:,:,nss+igroup) = sum(vyy(:,:,groups{igroup}),3);
-    vyz(:,:,nss+igroup) = sum(vyz(:,:,groups{igroup}),3);
-    vzz(:,:,nss+igroup) = sum(vzz(:,:,groups{igroup}),3);
+    vxx_group(:,:,igroup) = sum(vxx(:,:,groups{igroup}),3);
+    vxy_group(:,:,igroup) = sum(vxy(:,:,groups{igroup}),3);
+    vxz_group(:,:,igroup) = sum(vxz(:,:,groups{igroup}),3);
+    vyy_group(:,:,igroup) = sum(vyy(:,:,groups{igroup}),3);
+    vyz_group(:,:,igroup) = sum(vyz(:,:,groups{igroup}),3);
+    vzz_group(:,:,igroup) = sum(vzz(:,:,groups{igroup}),3);
     
-    dfac(nss+igroup) = mean(dfac(groups{igroup})); % obs, only works simply like this if the dfacs are the same!
-    mass(nss+igroup) = mean(mass(groups{igroup})); % obs, only works simply like this if the masses are the same!
+    dfac_group(nss+igroup) = mean(dfac(groups{igroup})); % obs, only works simply like this if the dfacs are the same!
+    mass_group(nss+igroup) = mean(mass(groups{igroup})); % obs, only works simply like this if the masses are the same!
   end
     
   nss = nss + ngroups;

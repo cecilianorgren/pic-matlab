@@ -24,15 +24,17 @@ varstrs = {'A','E','B',...
         'pi1','pe1','pi2','pe2',...
         'ti1','te1','ti2','te2'...
         };
+varstrs = {'A'...
+        };
 nvars = numel(varstrs);
 
 %% Loop over times, load data then do whatever
-for ivar = 3%:nvars
+for ivar = 1:nvars
   vardir = [data_dir_resave varstrs{ivar}];
-  disp(sprintf('Loading %s.dat...',vardir))
+  disp(sprintf('Loading %s*.dat...',vardir))
   tic;
   isInitialized = 0;
-  for itime = 10:10%ntimes
+  for itime = 1:ntimes
     %% Load data
     timestep = timesteps(itime);    
     %timestep = 09000;
@@ -58,12 +60,13 @@ for ivar = 3%:nvars
         end
         for ifield = 1:nfields
           %data_field = eval([]);
-          data(itime,:,:,ifields) = eval(['data_tmp.' var_fields{ifield}]);
+          data(itime,:,:,ifield) = eval(['data_tmp.' var_fields{ifield}]);
         end
         %data(itime,:,:,) = data_tmp;
       elseif all(cellfun(@isequal,var_fields,tens_fields))        
       end
     end
   end
+  eval(sprintf('%s = data;',varstrs{ivar}))
   toc
 end
