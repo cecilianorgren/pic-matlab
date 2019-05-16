@@ -2,7 +2,7 @@
 % can for example easily load any variable for all times.
 
 %% Define times
-timesteps = 00200:200:08800;
+timesteps = 10000;%00200:200:08800;
 times = timesteps/50;
 ntimes = numel(timesteps);
 savedir_root = '/Users/cno062/Research/PIC/df_cold_protons_1/';
@@ -10,11 +10,14 @@ data_dir = '/Volumes/Fountain/Data/PIC/df_cold_protons_1/data/';
 data_dir_resave = '/Volumes/Fountain/Data/PIC/df_cold_protons_1/data_separated/';
 
 
+savedir_root = '/Users/cno062/Research/PIC/df_cold_protons_04/';
+data_dir = '/Volumes/pic/in_progress/df_cold_protons_04/data/';
+data_dir_resave = '/Volumes/pic/in_progress/df_cold_protons_04/data_separated/';
 %% Variables to load
 % only saved once
 varstrs_same = {'x','z','dfac','teti','nnx','nnz','wpewce','mass','it','time','dt','xmax','zmax','q'};
 vardir_same = [data_dir_resave 'same_for_all_times'];
-sim_info = load([vardir_same '/sim_info']);
+sim_info = load([vardir_same '/sim_info.mat']);
 
 % saved for each time step
 varstrs = {'A','E','B',...
@@ -24,8 +27,14 @@ varstrs = {'A','E','B',...
         'pi1','pe1','pi2','pe2',...
         'ti1','te1','ti2','te2'...
         };
-varstrs = {'A'...
-        };
+% saved for each time step
+varstrs = {'A','E','B',...
+        'ni1','ne1','ni2','ne2','ni3','ne3',...
+        'vi1','ve1','vi2','ve2','vi3','ve3',...
+        'ji1','je1','ji2','je2','ji3','je3'...
+        };      
+%varstrs = {'A'...
+%        };
 nvars = numel(varstrs);
 
 %% Loop over times, load data then do whatever
@@ -52,7 +61,7 @@ for ivar = 1:nvars
       nfields = numel(var_fields);
       vec_fields = {'x';'y';'z'};
       tens_fields = {'xx';'xy';'xz';'yy';'yz';'zz'};
-      if all(cellfun(@isequal,var_fields,vec_fields))
+      if numel(var_fields)==3 && all(cellfun(@isequal,var_fields,vec_fields))
         datasize = size(data_tmp.x);
         if not(isInitialized)
           data = zeros([ntimes datasize numel(vec_fields)]); 
@@ -63,7 +72,7 @@ for ivar = 1:nvars
           data(itime,:,:,ifield) = eval(['data_tmp.' var_fields{ifield}]);
         end
         %data(itime,:,:,) = data_tmp;
-      elseif all(cellfun(@isequal,var_fields,tens_fields))        
+      elseif numel(var_fields)==6 && all(cellfun(@isequal,var_fields,tens_fields))        
       end
     end
   end

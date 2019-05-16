@@ -1,7 +1,9 @@
 function [vx,vz] = flux_speed(t,x,z,A,varargin)
 % A(t,x,z)
 
-if not(isempty(varargin)) && strcmp(varargin,'plot'); doPlot = 1; else doPlot = 0; end
+if not(isempty(varargin)) && strcmp(varargin{1},'plot'); doPlot = 1; else doPlot = 0; end
+
+B = varargin{2};
 
 % Initialize variables
 matsize = size(A);
