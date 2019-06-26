@@ -2,7 +2,7 @@
 % can for example easily load any variable for all times.
 
 %% Define times
-timesteps = 10000;%00200:200:08800;
+timesteps = 00200:200:05000;%00200:200:08800;
 times = timesteps/50;
 ntimes = numel(timesteps);
 savedir_root = '/Users/cno062/Research/PIC/df_cold_protons_1/';
@@ -33,8 +33,15 @@ varstrs = {'A','E','B',...
         'vi1','ve1','vi2','ve2','vi3','ve3',...
         'ji1','je1','ji2','je2','ji3','je3'...
         };      
+varstrs = {'A','E',...
+        'ni1','ne1','ni2','ne2',...        
+        'ji1','je1','ji2','je2'};
 %varstrs = {'A'...
 %        };
+
+if strcmp(varstrs,'all');
+  
+end
 nvars = numel(varstrs);
 
 %% Loop over times, load data then do whatever

@@ -83,9 +83,15 @@ varstrs = {'ve1.x','ve2.x','ve3.x'}; clim = 0.2*[-1 1];
 varstrs = {'ve1.x','ve2.x','ve3.x','ve1.y','ve2.y','ve3.y','ve1.z','ve2.z','ve3.z'}; clim = 0.2*[-1 1];
 varstrs = {'vi1.x','vi2.x','vi3.x','vi1.y','vi2.y','vi3.y','vi1.z','vi2.z','vi3.z'}; clim = 0.2*[-1 1];
 varstrs = {'vi2.x','vi3.x','vi2.z','vi3.z'}; clim = 0.2*[-1 1];
-varstrs = {'(ti2.xx+ti2.yy+ti2.zz)/3','vi3.x','vi2.z','vi3.z'}; clim = 0.2*[-1 1];
-varstrs = {'B(:,:,:,3)'}; %,'ni2','ni3'
-clim = {2*[-1 1],1*[-1 1],1*[-1 1]};
+varstrs = {'je1.x+je2.x+je3.x'}; clim = 0.2*[-1 1];
+varstrs = {'ve1.x','ve2.x','(je1.x+je2.x)./(ne1+ne2)'}; clim = 1*[1 1];
+
+varstrs = {'E.par','E.perp.z','ve1.x','ve2.x','ne1','ne2'}; clim = 1*[1 1];
+
+varstrs = {'E.par','E.perp.z','je1.x','je2.x','je1.z','je2.z'}; clim = 1*[1 1];
+varstrs = {'E.par'}; clim = 1*[1 1];
+varstrs = {'(je1.x+je2.x)./(ne1+ne2)','E.par'}; clim = 1*[1 1];
+clim = {15*[-1 1],2*[-1 1],2*[-1 1],2*[-1 1],0.5*[-1 1],0.5*[-1 1]};
 c_axis = {1*[-1 1],1*[-1 1],1*[-1 1]};
 nvars = numel(varstrs);
 
@@ -94,23 +100,25 @@ nvars = numel(varstrs);
 
 % Initialize figure
 npanels = nvars;
-nrows = min([npanels,3]);
+maxrows = 3;
+nrows = min([npanels,maxrows]);
 ncols = ceil(npanels/nrows);
 npanels = nrows*ncols;
 h = setup_subplots(nrows,ncols,'vertical');
 linkaxes(h);
 
 % Indices to plot
-xlim = [x(1) x(end)]; xlim = [0 150];%[x(1) x(end)] + 150*[1 -1];
-zlim = [z(1) z(end)]; zlim = 10*[-1 1];
+xlim = [x(1) x(end)]; xlim = [-40 0];%[x(1) x(end)] + 150*[1 -1];
+zlim = [z(1) z(end)]; zlim = 8*[0 1];
 ipx1 = find(x>xlim(1),1,'first');
 ipx2 = find(x<xlim(2),1,'last');
 ipz1 = find(z>zlim(1),1,'first');
 ipz2 = find(z<zlim(2),1,'last');
-ipx = ipx1:3:ipx2;
-ipz = ipz1:3:ipz2;
+ipx = ipx1:1:ipx2;
+ipz = ipz1:1:ipz2;
     
 % Flux function
+doAx = 1; % plot separatrix
 doA = 1;
 cA = 0*[0.8 0.8 0.8];
 nA = 20;
@@ -121,16 +129,26 @@ ipzA = ipz1:20:ipz2;
 %sepA = A(find(B.abs(:)==min(B.abs(:))));
 
 % Quivers
-varstrsQ = {'vi2','vi3'};
+varstrsQ = {'je1','je2','je3'};
+%je23.x = je2.x + je3.x;
+%je23.y = je2.y + je3.y;
+%je23.z = je2.z + je3.z;
+varstrsQ = {'ve1','ve2'};
+Escale = 10;
+Escaled.x = E.x*Escale;
+Escaled.y = E.y*Escale;
+Escaled.z = E.z*Escale;
+
+varstrsQ = {'ve1','ve2'};
 colorQ = pic_colors('matlab');
-colorQ = colorQ([3,2],:);
-maxQs = [0.15,0.15];
-scalesQ_a = [1 1]; % rescaling to inout data
-scalesQ_b = [0 0]; % rescaling option for the quiver function
+colorQ = colorQ([4,5,3],:);
+maxQs = [10,10,25];
+scalesQ_a = 0.02*[1 1 1]; % rescaling to input data
+scalesQ_b = 0*[1 1 1]; % rescaling option for the quiver function
 nVarQ = numel(varstrsQ);
 % for now keep a single grid
-nQx = 100;
-nQz = 24;
+nQx = 400;
+nQz = 200;
 [Z,X] = meshgrid(z,x);
 ipxQ = fix(linspace(ipx1,ipx2,nQx));
 ipzQ = fix(linspace(ipz1,ipz2,nQz));
@@ -153,7 +171,7 @@ for ivar = 1:nvars
   hca = h(isub); isub = isub + 1;
   varstr = varstrs{ivar};
   variable = eval(varstr);  
-  himag = imagesc(hca,x(ipx),z(ipz),squeeze(variable(it,ipx,ipz))');
+  himag = imagesc(hca,x(ipx),z(ipz),squeeze(variable(ipx,ipz))');
   hca.XLabel.String = 'x (d_i)';
   hca.YLabel.String = 'z (d_i)';
   %hca.Title.String = sprintf('%s, sum(%s) = %g',varstr,varstr,sum(variable(:))); 
@@ -170,11 +188,17 @@ for ivar = 1:nvars
     
   if doA
     hold(hca,'on')
-    hcont = contour(hca,x(ipx),z(ipz),squeeze(A(it,ipx,ipz))',nA,'color',cA,'linewidth',0.5,'displayname','A'); 
+    hcont = contour(hca,x(ipx),z(ipz),squeeze(A(ipx,ipz))',nA,'color',cA,'linewidth',0.5,'displayname','A'); 
 %     for ixline = 1:size(saddle_locations,1)
 %       sepA = saddle_values(ixline);
 %       hcont = contour(hca,x(ipx),z(ipz),A(ipx,ipz)',sepA*[1 1],'color',cA.^4,'linewidth',2.0);  
 %     end
+    hold(hca,'off')  
+  end
+  if doAx
+    hold(hca,'on')
+    [saddle_locations,saddle_values] = saddle(A,'sort');
+    hcont = contour(hca,x(ipx),z(ipz),squeeze(A(ipx,ipz))',saddle_values(1)*[1 1],'color',cA,'linewidth',1,'displayname','A_X','linestyle','--'); 
     hold(hca,'off')  
   end
   for iQ = 1:nVarQ
@@ -197,7 +221,11 @@ for ivar = 1:nvars
       dataQ.z(dataQ.abs>maxQ) = NaN;
     end
     displayname = varstrsQ{iQ};
-    hquiv = quiver(hca,X(ipxQ,ipzQ),Z(ipxQ,ipzQ),dataQ.x(ipxQ,ipzQ),dataQ.z(ipxQ,ipzQ),'color',colorQ(iQ,:),'linewidth',1.5,'displayname',displayname);
+    hquiv = quiver(hca,X(ipxQ,ipzQ),Z(ipxQ,ipzQ),dataQ.x(ipxQ,ipzQ)*scalesQ_a(iQ),dataQ.z(ipxQ,ipzQ)*scalesQ_a(iQ),scalesQ_b(iQ),...
+      'color',colorQ(iQ,:),'linewidth',1.0,'displayname',displayname,...
+      'ShowArrowHead','off','Marker','o','MarkerSize',1);
+    %hquiv.ShowArrowHead = 'off';
+    %hquiv.Marker = '.';
     hold(hca,'off')  
   end
 end
@@ -205,10 +233,16 @@ legend(hca);
 
 for ipanel = 1:npanels
   h(ipanel).YDir = 'normal';
-  h(ipanel).XDir = 'reverse';
+  h(ipanel).XDir = 'normal';
   h(ipanel).XLim = xlim;
   h(ipanel).YLim = zlim;
-  if not(isempty(clim{ipanel})), h(ipanel).CLim = clim{ipanel}; end
+  if not(isempty(clim))
+    if iscell(clim)
+      h(ipanel).CLim = clim{ipanel}; 
+    elseif isnumeric(clim) 
+      h(ipanel).CLim = clim; 
+    end
+  end
 end
 toc
 

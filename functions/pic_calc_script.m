@@ -17,6 +17,7 @@ E_smooth.x = smooth2(E.x,1);
 E_smooth.y = smooth2(E.y,1);
 E_smooth.z = smooth2(E.z,1);
 
+
 E_smooth2.x = smooth2(E_smooth.x,1);
 E_smooth2.y = smooth2(E_smooth.y,1);
 E_smooth2.z = smooth2(E_smooth.z,1);
@@ -105,7 +106,12 @@ UB.x = 0.5*B.x.^2;
 UB.y = 0.5*B.y.^2;
 UB.z = 0.5*B.z.^2;
 c_eval('Uke? = mass(2)/mass(1)*0.5*ne?.*(ve?.x.^2 + ve?.y.^2 + ve?.z.^2);',1:2)
+c_eval('Uke?_xz = mass(2)/mass(1)*0.5*ne?.*(ve?.x.^2 + ve?.z.^2);',1:2)
+c_eval('Uke?_y = mass(2)/mass(1)*0.5*ne?.*(ve?.y.^2);',1:2)
 c_eval('Uki? = mass(1)/mass(1)*0.5*ni?.*(vi?.x.^2 + vi?.y.^2 + vi?.z.^2);',1:2)
+c_eval('Uki?_x = mass(1)/mass(1)*0.5*ni?.*(vi?.x.^2);',1:2)
+c_eval('Uki?_y = mass(1)/mass(1)*0.5*ni?.*(vi?.y.^2);',1:2)
+c_eval('Uki?_z = mass(1)/mass(1)*0.5*ni?.*(vi?.z.^2);',1:2)
 c_eval('Ute? = 3/2*pe?.scalar;',1:2)
 c_eval('Uti? = 3/2*pi?.scalar;',1:2)
 Uktot = Uki1 + Uki2 + Uke1 + Uke2;

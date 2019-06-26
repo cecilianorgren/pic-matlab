@@ -1,149 +1,3 @@
-
-savedir_root = '/Users/cno062/Research/PIC/df_cold_protons_1/';
-data_dir = '/Volumes/Fountain/Data/PIC/df_cold_protons_1/data/';
-%data_dir = '/Volumes/pic/in_progress/df_cold_protons_04/data/';
-nss = 4;
-%%
-savedir_root = '/Users/cno062/Research/PIC/df_cold_protons_04/';
-data_dir = '/Volumes/Fountain/Data/PIC/df_cold_protons_04/data/';
-data_dir = '/Volumes/Fountain/Data/PIC/df_cold_protons_04/data/';
-%data_dir = '/Volumes/pic/in_progress/df_cold_protons_04/data/';
-nss = 6;
-%%
-savedir_root = '/Users/cno062/Research/PIC/df_cold_protons_04/';
-data_dir = '/Volumes/pic/finished_runs/proton_baseline/data/';
-nss = 4;
-%%
-savedir_root = '/Users/cno062/Research/PIC/michael_run/';
-data_dir = '/Volumes/Fountain/Data/PIC/michael_run/fields/';
-nss = 4;
-%% Load data
-timestep = 5000;
-timestep = 05978;
-txtfile = sprintf('/Users/cecilia/Data/PIC/data/fields-%05.0f.dat',timestep); % michael's perturbation
-%txtfile = sprintf('/Users/cno062/Data/PIC/df_cold_protons_1/data/fields-%05.0f.dat',timestep); % michael's perturbation
-txtfile = sprintf('/Volumes/Fountain/Data/PIC/df_cold_protons_1/data/fields-%05.0f.dat',timestep); % michael's perturbation
-txtfile = sprintf('%s/fields-%05.0f.dat',data_dir,timestep); % michael's perturbation
-
-%timestep = 055;
-%txtfile = sprintf('/Users/cno062/Data/PIC/df_cold_protons_2/data/fields-%05.0f.dat',timestep); % try-out with larger perturbation
-
-
-%tic; [time,r,e,b,n1,ne,ve,vi,je,ji,pe,pi,dfac,teti,nnx,nnz,wpewce,mass,it,dt,xmax,zmax,q] = read_fields_ieie(txtfile); toc
-%%
-if 1
-  %%
-tic; 
-  [x,z,E,B,...
-  dfac,teti,nnx,nnz,wpewce,mass,it,time,dt,xmax,zmax,q,...
-  ni1,ne1,ni2,ne2,ni3,ne3,ni23,ne23,ni,ne,...
-  vi1,ve1,vi2,ve2,vi3,ve3,vi23,ve23,vi,ve,...
-  ji1,je1,ji2,je2,ji3,je3,ji23,je23,ji,je,...
-  pi1,pe1,pi2,pe2,pi3,pe3,pi23,pe23,pi,pe,...
-  ti1,te1,ti2,te2,ti3,te3,ti23,te23,ti,te...
-    ] = read_fields_and_combine(txtfile,'nss',nss);
-toc
-x0 = mean(x); x = x-x0;
-elseif 1
-  %%
-tic; 
-  [x,z,E,B,...
-  dfac,teti,nnx,nnz,wpewce,mass,it,time,dt,xmax,zmax,q,...
-  ni1,ne1,ni2,ne2,ni3,ne3,ni23,ne23,...
-  vi1,ve1,vi2,ve2,vi3,ve3,vi23,ve23,...
-  ji1,je1,ji2,je2,ji3,je3,ji23,je23,...
-  pi1,pe1,pi2,pe2,pi3,pe3,pi23,pe23,...
-  ti1,te1,ti2,te2,ti3,te3,ti23,te23...
-    ] = read_fields_and_combine(txtfile,'nss',nss);
-toc
-x0 = mean(x); x = x-x0;
-elseif 1
-  %%
-tic; 
-  [x,z,E,B,...
-  dfac,teti,nnx,nnz,wpewce,mass,it,time,dt,xmax,zmax,q,...
-  ni1,ne1,ni2,ne2,ni3,ne3,...
-  vi1,ve1,vi2,ve2,vi3,ve3,...
-  ji1,je1,ji2,je2,ji3,je3,...
-  pi1,pe1,pi2,pe2,pi3,pe3,...
-  ti1,te1,ti2,te2,ti3,te3...
-    ] = read_fields_(txtfile,'nss',nss);
-toc
-x0 = mean(x); x = x-x0;
-else
-  %%
-tic; [x,z,E,B,...
-  ni1,ne1,ni2,ne2,...
-  vi1,ve1,vi2,ve2,...
-  ji1,je1,ji2,je2,...
-  pi1,pe1,pi2,pe2,...
-  ti1,te1,ti2,te2,...
-  dfac,teti,nnx,nnz,wpewce,mass,it,time,dt,xmax,zmax,q] = read_fields(txtfile,'nss',nss); toc
-end
-x0 = mean(x); x = x-x0;
-
-%imagesc(squeeze(ni2(:,:,:))');
-%colorbar
-A = vector_potential(x,z,B.x,B.z); % vector potential
-
-%%
-% Calculate auxillary quantities
-A = vector_potential(x,z,B.x,B.z); % vector potential
-%phi = scalar_potential(x,z,E.x,E.z); % vector potential
-[saddle_locations,saddle_values] = saddle(A);
-%[A_volume,A_map] = fluxtube_volume(A,-30:1:1);
-%[saddle_locations,saddle_values] = fluxtube_volume(A);
-
-pic_calc_script
-
-% r1 = b; % magnetic field unit vector
-% r2 = cross_product(r1.x,r1.y,r1.z,0,1,0);
-% r2.abs = sqrt(r2.x.^2 + r2.y.^2 + r2.z.^2);
-% r2.x = r2.x./r2.abs;
-% r2.y = r2.y./r2.abs;
-% r2.z = r2.z./r2.abs;
-% r2.abs = sqrt(r2.x.^2 + r2.y.^2 + r2.z.^2);
-% r2 = cross_product(r2.x,r2.y,r2.z,r1.x,r1.y,r1.z);
-% r3 = cross_product(r1.x,r1.y,r1.z,r2.x,r2.y,r2.z);
-% r3.abs = sqrt(r3.x.^2 + r3.y.^2 + r3.z.^2);
-
-[r1,r2,r3] = new_csys(B,[0 1 0]);
-
-tic;te1_fac = rotate_tens(te1,r1,r2,r3); toc
-tic;te2_fac = rotate_tens(te2,r1,r2,r3); toc
-tic;ti1_fac = rotate_tens(ti1,r1,r2,r3); toc
-tic;ti2_fac = rotate_tens(ti2,r1,r2,r3); toc
-te1_perp = 0.5*(te1_fac.yy + te1_fac.zz);
-te1_par = te1_fac.xx;
-te2_perp = 0.5*(te2_fac.yy + te2_fac.zz);
-te2_par = te2_fac.xx;
-ti1_perp = 0.5*(ti1_fac.yy + ti1_fac.zz);
-ti1_par = ti1_fac.xx;
-ti2_perp = 0.5*(ti2_fac.yy + ti2_fac.zz);
-ti2_par = ti2_fac.xx;
-
-tic;te2_fac = rotate_tens(te2,r1,r2,r3); toc
-tic;te23_fac = rotate_tens(te23,r1,r2,r3); toc
-tic;ti2_fac = rotate_tens(ti2,r1,r2,r3); toc
-tic;ti23_fac = rotate_tens(ti23,r1,r2,r3); toc
-te2_perp = 0.5*(te2_fac.yy + te2_fac.zz);
-te2_par = te2_fac.xx;
-te23_perp = 0.5*(te23_fac.yy + te23_fac.zz);
-te23_par = te23.xx;
-ti2_perp = 0.5*(ti2_fac.yy + ti2_fac.zz);
-ti2_par = ti2_fac.xx;
-ti23_perp = 0.5*(ti23_fac.yy + ti23_fac.zz);
-ti23_par = ti23_fac.xx;
-
-% Stream functions
-c_eval('Se?.xz = vector_potential(x,z,ve?.x,ve?.z);',1:2) % stream function
-c_eval('Si?.xz = vector_potential(x,z,vi?.x,vi?.z);',1:2) % stream function
-
-jtot.x = ji1.x + ji2.x - je1.x - je2.x;
-jtot.y = ji1.y + ji2.y - je1.y - je2.y;
-jtot.z = ji1.z + ji2.z - je1.z - je2.z;
-
-
 %% Plot, define variable in cell array
 % Define what variables to plot
 varstrs = {'ve1.x','ve2.x','ve1.z','ve2.z','ve1.par','ve2.par','ExB.x','ExB.z','-ve1xB.x','-ve2xB.x','-ve1xB.z','-ve2xB.z','E.x','E.z'};
@@ -229,33 +83,26 @@ varstrs = {'ve1.x','ve2.x','ve3.x'}; clim = 0.2*[-1 1];
 varstrs = {'ve1.x','ve2.x','ve3.x','ve1.y','ve2.y','ve3.y','ve1.z','ve2.z','ve3.z'}; clim = 0.2*[-1 1];
 varstrs = {'vi1.x','vi2.x','vi3.x','vi1.y','vi2.y','vi3.y','vi1.z','vi2.z','vi3.z'}; clim = 0.2*[-1 1];
 varstrs = {'vi2.x','vi3.x','vi2.z','vi3.z'}; clim = 0.2*[-1 1];
-varstrs = {'(ti2.xx+ti2.yy+ti2.zz)/3','vi3.x','vi2.z','vi3.z'}; clim = 0.2*[-1 1];
-varstrs = {'B.y.^2/2','Uke1+Uke2','Uke1_xz+Uke2_xz','Uke1_y+Uke2_y','Ute1+Ute2','Uki1+Uki2','Uki1_x+Uki2_x','Uki1_y+Uki2_y','Uki1_z+Uki2_z'}; clim = 0.1*[-1 1];
-varstrs = {'Uki1_z+Uki2_z','Uke1_xz+Uke2_xz','Ukex1_y+Uke2_y','B.y.^2/2'}; clim = 0.05*[0 1];
-varstrs = {'ji1.z+ji2.z','je1.z+je2.z','je1.x+je2.x','je1.y+je2.y'}; clim = 0.5*[-1 1];
-varstrs = {'ne2','ne1','ve2.x','je1.x','B.x','B.y','B.z'}; clim = [];
+varstrs = {'je1.x+je2.x+je3.x'}; clim = 0.2*[-1 1];
+varstrs = {'ve1.x','ve2.x','E.z','B.y'}; clim = 1*[1 1];
+clim = {10*[-1 1],0.05*[-1 1],0.05*[-1 1]};
+c_axis = {1*[-1 1],1*[-1 1],1*[-1 1]};
 nvars = numel(varstrs);
 
-cmap = cn.cmap('blue_red');
-%cmap = pic_colors('candy');
 %xlim = torow(x([1 end])) + [100 -100];
 %zlim = [-15 15];z([1 end]);
 
 % Initialize figure
 npanels = nvars;
-nrows = 2;
+nrows = min([npanels,2]);
 ncols = ceil(npanels/nrows);
 npanels = nrows*ncols;
-isub = 1; 
-%for ipanel = 1:npanels  
-%  h(isub) = subplot(nrows,ncols,ipanel); isub = isub + 1;  
-%end
-h = setup_subplots(nrows,ncols,'horizontal');
-%h = setup_subplots(nrows,ncols,'vertical');
+h = setup_subplots(nrows,ncols,'vertical');
 linkaxes(h);
 
-xlim = [x(1) x(end)]; %xlim = [0 x(end)]; xlim = [-25 25];%[x(1) x(end)] + 150*[1 -1];
-zlim = [z(1) z(end)]; zlim = 10*[-1 1];
+% Indices to plot
+xlim = [x(1) x(end)];% xlim = [-5 40];%[x(1) x(end)] + 150*[1 -1];
+zlim = [z(1) z(end)];% zlim = 5*[-1 1];
 ipx1 = find(x>xlim(1),1,'first');
 ipx2 = find(x<xlim(2),1,'last');
 ipz1 = find(z>zlim(1),1,'first');
@@ -264,46 +111,55 @@ ipx = ipx1:3:ipx2;
 ipz = ipz1:3:ipz2;
     
 % Flux function
+doAx = 1; % plot separatrix
 doA = 1;
 cA = 0*[0.8 0.8 0.8];
 nA = 20;
-nA = [0:-1:min(A(:))];
+nA = [0:-0.5:min(A(:))];
 ipxA = ipx1:20:ipx2;
 ipzA = ipz1:20:ipz2;
 
 %sepA = A(find(B.abs(:)==min(B.abs(:))));
 
 % Quivers
-doQ = 1;
-nQx = 100;
-nQz = 25;
+varstrsQ = {'je1','je2','je3'};
+%je23.x = je2.x + je3.x;
+%je23.y = je2.y + je3.y;
+%je23.z = je2.z + je3.z;
+varstrsQ = {'vi2','ve2'};
+varstrsQ = {};
+colorQ = pic_colors('matlab');
+colorQ = colorQ([3,5,4],:);
+maxQs = [0.2,0.2,0.2];
+scalesQ_a = 20*[1 1 1]; % rescaling to input data
+scalesQ_b = 0*[1 1 1]; % rescaling option for the quiver function
+nVarQ = numel(varstrsQ);
+% for now keep a single grid
+nQx = 160;
+nQz = 50;
 [Z,X] = meshgrid(z,x);
 ipxQ = fix(linspace(ipx1,ipx2,nQx));
 ipzQ = fix(linspace(ipz1,ipz2,nQz));
 [dataQx,dataQz] = meshgrid(ipxQ,ipzQ);
 ipXQ = dataQx; ipZQ = dataQz;
- dataQ.x = E.x;
- dataQ.y = E.y;
- dataQ.z = E.z;
-%dataQ.x = je1.x+je2.x;
-%dataQ.y = je1.y+je2.y;
-%dataQ.z = je1.z+je2.z;
-%dataQ = je1+je2;
-maxQ = 3;
-dataQ.abs = sqrt(dataQ.x.^2 + dataQ.z.^2);
-dataQ.x(dataQ.abs>maxQ) = NaN;
-dataQ.y(dataQ.abs>maxQ) = NaN;
-dataQ.z(dataQ.abs>maxQ) = NaN;
+
+% dataQ = vi2;
+% maxQ = 0.2;
+% dataQ.abs = sqrt(dataQ.x.^2 + dataQ.z.^2);
+% dataQ.x(dataQ.abs>maxQ) = NaN;
+% dataQ.y(dataQ.abs>maxQ) = NaN;
+% dataQ.z(dataQ.abs>maxQ) = NaN;
 
 
 % Panels
 isub = 1;
 tic;
+it = 1;
 for ivar = 1:nvars  
   hca = h(isub); isub = isub + 1;
   varstr = varstrs{ivar};
   variable = eval(varstr);  
-  himag = imagesc(hca,x(ipx),z(ipz),variable(ipx,ipz)');
+  himag = imagesc(hca,x(ipx),z(ipz),squeeze(variable(ipx,ipz))');
   hca.XLabel.String = 'x (d_i)';
   hca.YLabel.String = 'z (d_i)';
   %hca.Title.String = sprintf('%s, sum(%s) = %g',varstr,varstr,sum(variable(:))); 
@@ -315,31 +171,62 @@ for ivar = 1:nvars
   hcb = colorbar('peer',hca);
   hb(isub-1) = hcb;
   %hcb.YLim = hca.CLim(2)*[-1 1];
-  colormap(hca,cmap);
+  %colormap(hca,cn.cmap('blue_red'));
+  colormap(hca,cn.cmap('blue_red'));
     
   if doA
     hold(hca,'on')
-    hcont = contour(hca,x(ipx),z(ipz),A(ipx,ipz)',nA,'color',cA,'linewidth',0.5); 
+    hcont = contour(hca,x(ipx),z(ipz),squeeze(A(ipx,ipz))',nA,'color',cA,'linewidth',0.5,'displayname','A'); 
 %     for ixline = 1:size(saddle_locations,1)
 %       sepA = saddle_values(ixline);
 %       hcont = contour(hca,x(ipx),z(ipz),A(ipx,ipz)',sepA*[1 1],'color',cA.^4,'linewidth',2.0);  
 %     end
     hold(hca,'off')  
   end
-  if doQ
+  if doAx
     hold(hca,'on')
-    hquiv = quiver(hca,X(ipxQ,ipzQ),Z(ipxQ,ipzQ),dataQ.x(ipxQ,ipzQ),dataQ.z(ipxQ,ipzQ));
+    [saddle_locations,saddle_values] = saddle(A,'sort');
+    hcont = contour(hca,x(ipx),z(ipz),squeeze(A(ipx,ipz))',saddle_values(1)*[1 1],'color',cA,'linewidth',1,'displayname','A_X','linestyle','--'); 
+    hold(hca,'off')  
+  end
+  for iQ = 1:nVarQ
+    hold(hca,'on')
+    dataQ_tmp = eval(varstrsQ{iQ});
+    maxQ = maxQs(iQ);
+    if isstruct(dataQ_tmp)
+      dataQ = dataQ_tmp;
+      dataQ.abs = sqrt(dataQ.x.^2 + dataQ.z.^2);
+      dataQ.x(dataQ.abs>maxQ) = NaN;
+      dataQ.y(dataQ.abs>maxQ) = NaN;
+      dataQ.z(dataQ.abs>maxQ) = NaN;
+    else
+      dataQ.x = squeeze(dataQ_tmp(it,:,:,1));
+      dataQ.y = squeeze(dataQ_tmp(it,:,:,2));
+      dataQ.z = squeeze(dataQ_tmp(it,:,:,3));
+      dataQ.abs = sqrt(dataQ.x.^2 + dataQ.z.^2);
+      dataQ.x(dataQ.abs>maxQ) = NaN;
+      dataQ.y(dataQ.abs>maxQ) = NaN;
+      dataQ.z(dataQ.abs>maxQ) = NaN;
+    end
+    displayname = varstrsQ{iQ};
+    hquiv = quiver(hca,X(ipxQ,ipzQ),Z(ipxQ,ipzQ),dataQ.x(ipxQ,ipzQ)*scalesQ_a(iQ),dataQ.z(ipxQ,ipzQ)*scalesQ_a(iQ),scalesQ_b(iQ),'color',colorQ(iQ,:),'linewidth',1.5,'displayname',displayname);
     hold(hca,'off')  
   end
 end
-
+legend(hca);
 
 for ipanel = 1:npanels
   h(ipanel).YDir = 'normal';
-  h(ipanel).XDir = 'reverse';
+  h(ipanel).XDir = 'normal';
   h(ipanel).XLim = xlim;
   h(ipanel).YLim = zlim;
-  if not(isempty(clim)), h(ipanel).CLim = clim; end
+  if not(isempty(clim))
+    if iscell(clim)
+      h(ipanel).CLim = clim{ipanel}; 
+    elseif isnumeric(clim) 
+      h(ipanel).CLim = clim; 
+    end
+  end
 end
 toc
 
@@ -454,8 +341,6 @@ if 0 % equilibrium
              }; vallim = [];
   colororders = {'1y','bdacm','bdac','1ao','bdac','','',''};
 end
-varstrs = {{'ve1.x'},{'je1.x'},{'B.x'},{'B.y'},{'B.z'}}; clim = [];
-
 doAddSpeciesExplanation = 1;
 speciesIdentification = {'i1','e1','i2','e2'};
 speciesExplanation = {'hot ions','hot electrons','cold ions','cold electrons'};
@@ -468,8 +353,8 @@ npanels = numel(varstrs);
 nvars = cellfun(@numel, varstrs);
 
 plotaxis = 'x'; % 'x' for horizontal cut, 'z' for vertical cut
-zpick = 1.5+[-0.1 0.1];
-%zpick = [5];
+zpick = [-0.1 0.1];
+zpick = [0];
 xpick = 200;
 zind = find_closest_ind(z,zpick);
 xind = find_closest_ind(x,xpick);
@@ -477,7 +362,7 @@ xind = find_closest_ind(x,xpick);
 %xlim = x([1 end/2])'+[100 -100];
 xlim = [150 x(fix(end/2))];
 xlim = [x(fix(end/2)) x(end)-150];
-xlim = [-50 50];%x([1 end])'+[150 -150];
+xlim = [-10 100];%x([1 end])'+[150 -150];
 zlim = [-10 10];
 
 ipx1 = find(x>xlim(1),1,'first');
