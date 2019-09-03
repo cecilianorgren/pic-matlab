@@ -82,17 +82,29 @@ varstrs = {'ve1.x','ve2.x','ve3.x'}; clim = 0.2*[-1 1];
 %varstrs = {'ti2_par','ti2_perp','ti23_par','ti23_perp'}; clim = 0.2*[-1 1];
 varstrs = {'ve1.x','ve2.x','ve3.x','ve1.y','ve2.y','ve3.y','ve1.z','ve2.z','ve3.z'}; clim = 0.2*[-1 1];
 varstrs = {'vi1.x','vi2.x','vi3.x','vi1.y','vi2.y','vi3.y','vi1.z','vi2.z','vi3.z'}; clim = 0.2*[-1 1];
-varstrs = {'vi2.x','vi3.x','vi2.z','vi3.z'}; clim = 0.2*[-1 1];
+varstrs  = {'vi2.x','vi3.x','vi2.z','vi3.z'}; clim = 0.2*[-1 1];
 varstrs = {'je1.x+je2.x+je3.x'}; clim = 0.2*[-1 1];
 varstrs = {'ve1.x','ve2.x','(je1.x+je2.x)./(ne1+ne2)'}; clim = 1*[1 1];
 
 varstrs = {'E.par','E.perp.z','ve1.x','ve2.x','ne1','ne2'}; clim = 1*[1 1];
+ 
+varstrs = {'-ne1-ne2+ni1+ni2','phi','dn'};
+varstrs = {'-ne1-ne2+ni1+ni2-dn'};
+clim = {0.03*[-1 1],0.005*[-1 1],0.03*[-1 1],0.8*[-1 1],0.8*[-1 1]};
+varstrs = {'force_E.z','-force_vxB.z','B.x','ve1.y'};
+clim = {2*[-1 1],0.1*[-1 1],1.2*[-1 1],1*[-1 1]};
+%varstrs = {'grad_phi.x*2^2*100+E.x','grad_phi.z*2^2*100+E.z'};
+%clim = {1*[-1 1],1*[-1 1],0.1*[-1 1],0.8*[-1 1],0.8*[-1 1]};
 
-varstrs = {'E.par','E.perp.z','je1.x','je2.x','je1.z','je2.z'}; clim = 1*[1 1];
-varstrs = {'E.par'}; clim = 1*[1 1];
-varstrs = {'(je1.x+je2.x)./(ne1+ne2)','E.par'}; clim = 1*[1 1];
-clim = {15*[-1 1],2*[-1 1],2*[-1 1],2*[-1 1],0.5*[-1 1],0.5*[-1 1]};
+%varstrs = {'E.par'}; clim = 1*[1 1];
+%varstrs = {'(je1.x+je2.x)./(ne1+ne2)','E.par'}; clim = 1*[1 1];
+%clim = {1*[-1 1],1*[-1 1],0.3*[-1. 1],0.3*[-1 1],0.8*[-1 1],0.8*[-1 1]};
 c_axis = {1*[-1 1],1*[-1 1],1*[-1 1]};
+varstrs = {'iforce_dv_conv.z','iforce_E.z','iforce_vxB.z','iforce_div_p.z','ni1'};
+clim = {4*[-1 1],4*[-1 1],4*[-1 1],4*[-1 1],1*[-1 1]};
+varstrs = {'(je1.x+je2.x)./(ne1+ne2)','ne1+ne2'};
+clim = {10*[-1 1],1*[-1 1]};
+
 nvars = numel(varstrs);
 
 %xlim = torow(x([1 end])) + [100 -100];
@@ -104,18 +116,18 @@ maxrows = 3;
 nrows = min([npanels,maxrows]);
 ncols = ceil(npanels/nrows);
 npanels = nrows*ncols;
-h = setup_subplots(nrows,ncols,'vertical');
+h = setup_subplots(nrows,ncols,'horizontal');
 linkaxes(h);
 
 % Indices to plot
-xlim = [x(1) x(end)]; xlim = [-40 0];%[x(1) x(end)] + 150*[1 -1];
-zlim = [z(1) z(end)]; zlim = 8*[0 1];
+xlim = [x(1) x(end)];% xlim = [-40 40];%[x(1) x(end)] + 150*[1 -1];
+zlim = [z(1) z(end)]; zlim = 10*[-1 1];
 ipx1 = find(x>xlim(1),1,'first');
 ipx2 = find(x<xlim(2),1,'last');
 ipz1 = find(z>zlim(1),1,'first');
 ipz2 = find(z<zlim(2),1,'last');
-ipx = ipx1:1:ipx2;
-ipz = ipz1:1:ipz2;
+ipx = ipx1:3:ipx2;
+ipz = ipz1:3:ipz2;
     
 % Flux function
 doAx = 1; % plot separatrix
@@ -140,6 +152,7 @@ Escaled.y = E.y*Escale;
 Escaled.z = E.z*Escale;
 
 varstrsQ = {'ve1','ve2'};
+varstrsQ = {};
 colorQ = pic_colors('matlab');
 colorQ = colorQ([4,5,3],:);
 maxQs = [10,10,25];
@@ -349,17 +362,80 @@ if 0
              }; vallim = [];
   colororders = {'1y','bdacm','bdac','bdac','bdac','1ao','bdac','','',''};
 end
-if 0 % equilibrium
-  varstrs = {{'B.x'},...
-             {'ne1','ne2','ni1','ni2'},...
-             {'pe1.scalar','pe2.scalar','pi1.scalar','pi2.scalar'},...                          
-             {'0.5*B.abs.^2','pe1.scalar+pe2.scalar+pi1.scalar+pi2.scalar','0.5*B.abs.^2+pe1.scalar+pe2.scalar+pi1.scalar+pi2.scalar'}
+if 1 % equilibrium
+  varstrs = {...%{'B.x','B.y','B.z'},...
+             {'E.x','E.y','E.z'},...
+             ...%{'E.perp.x','E.perp.y','E.perp.z'},...
+             {'ne1','ne2','ni1','ni2','ne1+ne2','ni1+ni2'},...
+             ...%{'ne1','ne2','ne1+ne2'},...
+             ...%{'gradpe1.z','gradpe2.z','gradpi1.z','gradpi2.z'},...
+             {'gradpe1_smooth.z','gradpe2_smooth.z','gradpi1_smooth.z','gradpi2_smooth.z'},...
+             {'gradpene1.z','gradpene2.z','gradpini1.z','gradpini2.z'},...
+             {'pe1.scalar','pe2.scalar','pi1.scalar','pi2.scalar'},...
+             {'div_pe1.z','div_pe2.z','div_pi1.z','div_pi2.z'},...
+             {'ve1xB.z','ve2xB.z','vi1xB.z','vi2xB.z'},...
+             {'ve1.x','ve2.x','vi1.x','vi2.x'},...
+             ...%{'pe1.scalar','pe2.scalar','pi1.scalar','pi2.scalar'},...                          
+             ...{'0.5*B.abs.^2','pe1.scalar+pe2.scalar+pi1.scalar+pi2.scalar','0.5*B.abs.^2+pe1.scalar+pe2.scalar+pi1.scalar+pi2.scalar'}
              }; vallim = [];
-  colororders = {'1y','bdacm','bdac','1ao','bdac','','',''};
+  colororders = {'xyz','bdacg1','bdacm','bdacm','bdacm','bdacm','bdacm','bdacm','1ao','bdac','','',''};
 end
-doAddSpeciesExplanation = 1;
+if 1 % density structure
+  varstrs = {{'E.z'},...
+             {'ne1','ne2','ni1','ni2'},...
+             {'ne1+ne2','ni1+ni2'},...
+             ...%{'ne1','ne2','ne1+ne2'},...
+             ...%{'-ne1-ne2+ni1+ni2'},...             
+             ...%{'ve1.x','ve2.x','(je1.x+je2.x)./(ne1+ne2)'},...
+             ...%{'je1.x','je2.x','je1.x+je2.x'},...
+             {'div_E/(2^2*100)','(-ne1-ne2+ni1+ni2)'}
+             }; 
+  vallim = [];
+  colororders = {'m','bdacg1','g1','m','bdg','m','bdacm','1ao','bdac','','',''};
+end
+if 0 % density structure
+  varstrs = {{'ne1'},...             
+             {'ne1','ne2','ni1','ni2','ne1+ne2','ni1+ni2'},...
+             {'div_pe1.z','gradpe1.z','gradpe1_smooth.z'},...
+             {'div_pe2.z','gradpe2.z','gradpe2_smooth.z'},...
+             }; vallim = [];
+  colororders = {'xyz','bdacg1','bdacm','bdacm','bdacm','bdacm','bdacm','bdacm','1ao','bdac','','',''};
+end
+if 1 % force balance z
+  varstrs = {{'ne1.*E.z','div_pe1.z','ne1.*ve1xB.z'},... 
+             {'ne1.*E.z+ne1.*ve1xB.z','div_pe1.z'},... 
+             {'ne2.*E.z','div_pe2.z','ne2.*ve2xB.z'},... 
+             {'ne2.*E.z+ne1.*ve2xB.z','div_pe2.z'},... 
+             }; vallim = [];
+  varstrs = {{'E.z'},...
+             {'ne1+ne2','ni1+ni2'},...
+             {'force_dv_conv.z','force_dv_temp.z'},...
+             {'force_dv_conv.z','force_E.z','force_vxB.z','force_div_p.z'},... 
+             }; 
+  vallim = [];
+  varstrs = {{'E.z'},...
+             {'ne1+ne2','ni1+ni2'},...
+             {'iforce_dv_conv.z','iforce_dv_temp.z'},...
+             {'iforce_dv_conv.z','iforce_E.z','iforce_vxB.z','iforce_div_p.z'},... 
+             {'iforce_dv_conv.z','iforce_E.z+iforce_vxB.z-iforce_div_p.z'},... 
+             {'force_dv_conv.z','force_E.z','force_vxB.z','force_div_p.z'},... 
+             {'force_dv_conv.z','-force_E.z-force_vxB.z-force_div_p.z'},... 
+             }; 
+  vallim = [];
+  colororders = {'m','g1','xyzm','xyzm','xyzm','xyzm','xyzm','bdacg1','bdacm','bdacm','bdacm','bdacm','bdacm','bdacm','1ao','bdac','','',''};
+%   varstrs = {{'E.z'},...
+%              {'ve1.x','ve1.y','ve1.z'},...
+%              {'B.x','B.y','B.z'},...
+%              {'force_vxB.x','force_vxB.y','force_vxB.z'},... 
+%              {'(je1.x+je2.x)./(ne1+ne2)','(je1.y+je2.y)./(ne1+ne2)','(je1.z+je2.z)./(ne1+ne2)'},...             
+%              }; 
+%   vallim = [];
+%   colororders = {'m','xyz','xyzm','xyzm','xyz','xyz','bdacg1','bdacm','bdacm','bdacm','bdacm','bdacm','bdacm','1ao','bdac','','',''};
+end
+doAddSpeciesExplanation = 0;
 speciesIdentification = {'i1','e1','i2','e2'};
 speciesExplanation = {'hot ions','hot electrons','cold ions','cold electrons'};
+speciesExplanation = {'north','north','south','south'};
 
 doDiff = [];%[5 6 7];
 var_operation = 'diff';
@@ -368,10 +444,13 @@ var_operation = 'diff';
 npanels = numel(varstrs);
 nvars = cellfun(@numel, varstrs);
 
-plotaxis = 'x'; % 'x' for horizontal cut, 'z' for vertical cut
+plotaxis = 'z'; % 'x' for horizontal cut, 'z' for vertical cut
+if strcmp(plotaxis,'z'), meandirection = 1;
+elseif strcmp(plotaxis,'x'), meandirection = 2; end
 zpick = [-0.1 0.1];
-zpick = [0];
-xpick = 200;
+zpick = [-20];
+xpick = -18.5+0.2*[-1 1];
+%xpick = 20-5.6+0.2*[-1 1];
 zind = find_closest_ind(z,zpick);
 xind = find_closest_ind(x,xpick);
 
@@ -379,7 +458,7 @@ xind = find_closest_ind(x,xpick);
 xlim = [150 x(fix(end/2))];
 xlim = [x(fix(end/2)) x(end)-150];
 xlim = [-10 100];%x([1 end])'+[150 -150];
-zlim = [-10 10];
+zlim = [-6 6];
 
 ipx1 = find(x>xlim(1),1,'first');
 ipx2 = find(x<xlim(2),1,'last');
@@ -391,16 +470,16 @@ ipz2 = find(z<zlim(2),1,'last');
 %Zp = Z(ipx,ipz);
 switch plotaxis
   case 'x'
-    ipx = ipx1:2:ipx2;
-    ipz = zind;
+    ipx = ipx1:1:ipx2;
+    ipz = zind(1):zind(end);
     plot_dep = x(ipx);
     plotlim = xlim;
     pickind = zpick;
     pickval = z(ipz);
     pickstr = 'z';
   case 'z'
-    ipz = ipz1:2:ipz2;
-    ipx = xind;
+    ipz = ipz1:1:ipz2;
+    ipx = xind(1):xind(end);
     plot_dep = z(ipz);
     plotlim = zlim;
     pickind = xpick;
@@ -442,11 +521,13 @@ for ipanel = 1:npanels
     variable = eval(varstr);
     
     if intersect(doDiff,ipanel)
-      diff_variable = [0; diff(variable(ipx,ipz))];
-      hplot_tmp = plot(hca,plot_dep,diff_variable,'LineWidth',linewidth);
+      diffdirection = setdiff([1 2],meandirection);
+      if diffdirection == 1, dd = x(2)-x(1); else, dd = z(2)-z(1); end; dd = 1;
+      diff_variable = cat(meandirection,0,tocolumn(mean(diff(variable(ipx,ipz),[],diffdirection),meandirection)));
+      hplot_tmp = plot(hca,plot_dep,diff_variable/dd,'LineWidth',linewidth);
       varstrs{ipanel}{ivar} = sprintf('diff(%s)',varstrs{ipanel}{ivar});      
     else
-      hplot_tmp = plot(hca,plot_dep,mean(variable(ipx,ipz),2),'LineWidth',linewidth);      
+      hplot_tmp = plot(hca,plot_dep,mean(variable(ipx,ipz),meandirection),'LineWidth',linewidth);      
     end
     if doColor, hplot_tmp.Color = colors(ivar,:); end
     hplot{ivar} = hplot_tmp;
@@ -473,7 +554,8 @@ for ipanel = 1:npanels
   hold(hca,'off')
   hca.XGrid = 'on';
   hca.YGrid = 'on';
-  hca.XDir = 'reverse';
+  if strcmp(plotaxis,'x'), hca.XDir = 'reverse'; end
+  
 end
 %hlink = linkprop(h(4:6),'YLim');
 hlink = linkprop(h,'XLim'); 
@@ -482,12 +564,12 @@ elseif strcmp(plotaxis,'z'), h(1).XLim = zlim;
 end
 %hlink = linkprop(hleg,'Position');
 %addprop(hlink,'PlotBoxAspectRatio')
-h(1).Title.String = sprintf('%s = %.0f (d_i), time = %g (1/wci) = %g (1/wpe)',pickstr,pickval,time,timestep);
+h(1).Title.String = sprintf('%s = [%.2f,%.2f] (d_i), time = %g (1/wci) = %g (1/wpe)',pickstr,pickval(1),pickval(end),time,timestep);
 arrayfun(@(x)eval(sprintf('x.Position(3) = 0.6;'),x),h)
 drawnow
 compact_panels(0.012)
 
-hca.YLim = [-0.4 0.4];
+%hca.YLim = [-2 2];
 
 %% (OLD) Plot, 4 species plasma properties, 1 species per column
 % Initialize figure

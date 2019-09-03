@@ -2,12 +2,12 @@
 % can for example easily load any variable for all times.
 
 %% Define times
-timesteps = 00200:200:12000;
-times = timesteps/50;
+timesteps = 05978:1:06000;
+times = timesteps/200;
 ntimes = numel(timesteps);
-savedir_root = '/Users/cno062/Research/PIC/df_cold_protons_1/';
-data_dir = '/Volumes/Fountain/Data/PIC/df_cold_protons_1/data/';
-data_dir_resave = '/Volumes/Fountain/Data/PIC/df_cold_protons_1/data_separated/';
+savedir_root = '/Users/cno062/Research/PIC/michael_run/';
+data_dir = '/Volumes/Fountain/Data/PIC/michael_run/data/';
+data_dir_resave = '/Volumes/Fountain/Data/PIC/michael_run/data_separated/';
 %data_dir = '/Volumes/pic/in_progress/df_cold_protons_04/data/';
 %data_dir_resave = '/Volumes/pic/in_progress/df_cold_protons_04/data_separated/';
 
@@ -28,7 +28,10 @@ varstrs = {'A','E','B',...
         'pi1','pe1','pi2','pe2','pi3','pe3',...
         'ti1','te1','ti2','te2','ti3','te3'...
         };
-      varstrs = {};
+varstrs = {'A','E','B',...
+        'ni1','ne1','ni2','ne2',...
+        'vi1','ve1','vi2','ve2',...
+        };
 nvars = numel(varstrs);
 for ivar = 1:nvars
   vardir = [data_dir_resave varstrs{ivar}];
@@ -39,7 +42,7 @@ end
 
 %% Loop over times, load data then resave
 nss = 4;
-for itime = 1
+for itime = 1:ntimes
   %% Load data
   timestep = timesteps(itime);
   disp(sprintf('timestep = %05.0f/%05.0f',timestep,timesteps(end)))

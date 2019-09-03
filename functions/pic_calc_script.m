@@ -10,8 +10,8 @@
 %   dfac,teti,nnx,nnz,wpewce,mass,it,time,dt,xmax,zmax,q] = read_fields(txtfile);
 
 % Stream functions, not correct
-c_eval('Se?.xz = vector_potential(x,z,ve?.x,ve?.z);',1:2) % stream function
-c_eval('Si?.xz = vector_potential(x,z,vi?.x,vi?.z);',1:2) % stream function
+%c_eval('Se?.xz = vector_potential(x,z,ve?.x,ve?.z);',1:2) % stream function
+%c_eval('Si?.xz = vector_potential(x,z,vi?.x,vi?.z);',1:2) % stream function
 
 E_smooth.x = smooth2(E.x,1);
 E_smooth.y = smooth2(E.y,1);
@@ -65,10 +65,10 @@ c_eval('ji?E = ji?.x.*E.x + ji?.y.*E.y + ji?.z.*E.z;',1:2)
 ExB = cross_product(E.x,E.y,E.z,B.x,B.y,B.z); 
 
 % Pressure gradients
-c_eval('gradpe? = grad_scalar(x,z,pe?.scalar);',1:2) %
-c_eval('gradpi? = grad_scalar(x,z,pi?.scalar);',1:2) %
-c_eval('gradpe?_smooth = grad_scalar(x,z,smooth2(pe?.scalar,1));',1:2)
-c_eval('gradpi?_smooth = grad_scalar(x,z,smooth2(pi?.scalar,1));',1:2)
+c_eval('gradpe? = grad_scalar(x,z,(pe?.xx+pe?.yy+pe?.zz)/3);',1:2) %
+c_eval('gradpi? = grad_scalar(x,z,(pi?.xx+pi?.yy+pi?.zz)/3);',1:2) %
+c_eval('gradpe?_smooth = grad_scalar(x,z,smooth2((pe?.xx+pe?.yy+pe?.zz)/3,1));',1:2)
+c_eval('gradpi?_smooth = grad_scalar(x,z,smooth2((pi?.xx+pi?.yy+pi?.zz)/3,1));',1:2)
 
 % Inertia gradients
 c_eval('gradx_nmvve?xx = grad_scalar(x,z,nmvve?.xx);',1:2) %

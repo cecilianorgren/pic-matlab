@@ -1,8 +1,14 @@
-function phi = scalar_potential(x,z,ex,ez,ni,ne)
+function phi = scalar_potential(x,z,ex,ez,ni,ne,varagin)
 % Calculates the xz-plane magnetic vector potential.
-%   phi = scalar_potential(x,z,ex,ez)
-%   phi = -div(E)
+%   phi = scalar_potential(x,z,ex,ez,ni,ne)
+%   grad(phi) = E
 
+if nargin == 1 && strcmp(varargin{1},'plot')
+  doPlot = 1;
+else
+  doPlot = 0;
+end
+  
 % Grid
 dx = x(2)-x(1);
 dz = z(2)-z(1);
@@ -111,6 +117,11 @@ for jj=1:100
     
     
     end
+    if doPlot
+      imagesc(x,z,phi)
+      hca = gca;
+      hca.YDir = 'normal';
+    end
      fprintf('iteration %g %g \n', jj, hh);
         
 end
@@ -164,7 +175,7 @@ end
 % for jj=1:60
 %     for ii=1:50 %shift each row: circshift(m,1,2) , circshift(m,1,1) = column
 %         
-%         phi_c = fac*(odx2*(circshift(phi_c,[1 0])+ circshift(phi_c,[-1 0])) + ...
+%   0      phi_c = fac*(odx2*(circshift(phi_c,[1 0])+ circshift(phi_c,[-1 0])) + ...
 %                     odz2*(circshift(phi_c,[0 1])+ circshift(phi_c,[0 -1])) - rhs);
 %                 
 % phi_c(:,1) = phi_c(:,2);
@@ -191,3 +202,4 @@ end
 % phi(nnx,:)=phi(1,:);
 % out=phi(1:nnx-1,1:nnz-1);
 % 
+end

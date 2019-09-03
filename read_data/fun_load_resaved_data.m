@@ -1,26 +1,19 @@
-% Loads data and saves the different variables individually, this way one
-% can for example easily load any variable for all times.
-
-%% Define times
-timesteps = 00200:200:05000;%00200:200:08800;
-times = timesteps/50;
-
-timesteps = 05978:1:06000;%00200:200:08800;
-times = timesteps/200;
-
-ntimes = numel(timesteps);
-savedir_root = '/Users/cno062/Research/PIC/df_cold_protons_1/';
-data_dir = '/Volumes/Fountain/Data/PIC/df_cold_protons_1/data/';
-data_dir_resave = '/Volumes/Fountain/Data/PIC/df_cold_protons_1/data_separated/';
-
-
-savedir_root = '/Users/cno062/Research/PIC/df_cold_protons_04/';
-data_dir = '/Volumes/pic/in_progress/df_cold_protons_04/data/';
-data_dir_resave = '/Volumes/pic/in_progress/df_cold_protons_04/data_separated/';
-
-savedir_root = '/Users/cno062/Research/PIC/michael_run/';
-data_dir = '/Volumes/Fountain/Data/PIC/michael_run/data/';
-data_dir_resave = '/Volumes/Fountain/Data/PIC/michael_run/data_separated/';
+function out = fun_load_resaved_data(data_dir_resave,varstrs,timesteps)
+% FUN_LOAD_RESAVED_DATA Loads single variable.
+%   out = FUN_LOAD_RESAVED_DATA(data_dir_resave,varstr,timesteps)
+%
+%   Examples:
+%   timesteps = 00200:200:05000;
+%   data_dir_resave = '/Volumes/Fountain/Data/PIC/df_cold_protons_1/data_separated/';
+%   ve1_ts = FUN_LOAD_RESAVED_DATA(data_dir_resave,'ve1',timesteps)
+% 
+%   timesteps = 00200:200:05000;
+%   data_dir_resave = '/Volumes/pic/in_progress/df_cold_protons_04/data_separated/';
+%   ve1_ts = FUN_LOAD_RESAVED_DATA(data_dir_resave,'ve1',timesteps)
+% 
+%   data_dir_resave = '/Volumes/Fountain/Data/PIC/michael_run/data_separated/';
+%   timesteps = 05978:1:06000;
+%   ve1_ts = FUN_LOAD_RESAVED_DATA(data_dir_resave,'ve1',timesteps)
 
 %% Variables to load
 % only saved once
@@ -29,29 +22,6 @@ vardir_same = [data_dir_resave 'same_for_all_times'];
 sim_info = load([vardir_same '/sim_info.mat']);
 
 % saved for each time step
-varstrs = {'A','E','B',...
-        'ni1','ne1','ni2','ne2',...
-        'vi1','ve1','vi2','ve2',...
-        'ji1','je1','ji2','je2',...
-        'pi1','pe1','pi2','pe2',...
-        'ti1','te1','ti2','te2'...
-        };
-% saved for each time step
-varstrs = {'A','E','B',...
-        'ni1','ne1','ni2','ne2','ni3','ne3',...
-        'vi1','ve1','vi2','ve2','vi3','ve3',...
-        'ji1','je1','ji2','je2','ji3','je3'...
-        };      
-varstrs = {'E','B'...
-        'ni1','ne1','ni2','ne2',...        
-        'vi1','ve1','vi2','ve2'};
-varstrs = {'vi1','ve1','vi2','ve2'};
-%varstrs = {'A'...
-%        };
-
-if strcmp(varstrs,'all');
-  
-end
 nvars = numel(varstrs);
 
 %% Loop over times, load data then do whatever
@@ -62,8 +32,7 @@ for ivar = 1:nvars
   isInitialized = 0;
   for itime = 1:ntimes
     %% Load data
-    timestep = timesteps(itime);    
-    %timestep = 09000;
+    timestep = timesteps(itime);       
     varstr_reload = sprintf('%s/%s-%05.0f.mat',vardir,varstrs{ivar},timestep);
     data_tmp  = load(varstr_reload,varstrs{ivar}); 
     data_tmp = eval(sprintf('data_tmp.%s',varstrs{ivar}));    
@@ -94,5 +63,6 @@ for ivar = 1:nvars
     end
   end
   eval(sprintf('%s = data;',varstrs{ivar}))
+  out = data;  
   toc
 end

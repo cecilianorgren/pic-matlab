@@ -1,4 +1,4 @@
-function varargout = read_fields_(txtfile,varargin)  
+function varargout = read_fields_adaptive(txtfile,varargin)  
 %[xe,ze,e,b,ni1,ne1,ni2,ne2,vi1,ve1,vi2,ve2,ji1,je1,ji2,je2,...
     %pi1,pe1,pi2,pe2,ti1,te1,ti2,te2,dfac,teti,nnx,nnz,wpewce,mass,it,time,dt,xmax,zmax,q] ...
 
@@ -112,19 +112,14 @@ function varargout = read_fields_(txtfile,varargin)
 %   end
   
   %% Normalize 
-  % 
-  % readu,1,it,dt,teti,xmax,zmax,nx0,nz0,vxs,vys,vzs,    $
-  %                bx,by,bz,ex,ey,ez,dns,x,z,mass,q,c,wpewce,dfac,$
-  %               pxx,pyy,pzz,pxy,pxz,pyz
-
-  xe=xe/sqrt(mass(1));
-  ze=ze/sqrt(mass(1));
-  bx=bx*wpewce(1);
-  by=by*wpewce(1);
-  bz=bz*wpewce(1);
-  ex=ex*sqrt(mass(1))*wpewce(1)^2;
-  ey=ey*sqrt(mass(1))*wpewce(1)^2;
-  ez=ez*sqrt(mass(1))*wpewce(1)^2;
+  xe = xe/sqrt(mass(1));
+  ze = ze/sqrt(mass(1));
+  bx = bx*wpewce(1);
+  by = by*wpewce(1);
+  bz = bz*wpewce(1);
+  ex = ex*sqrt(mass(1))*wpewce(1)^2;
+  ey = ey*sqrt(mass(1))*wpewce(1)^2;
+  ez = ez*sqrt(mass(1))*wpewce(1)^2;
   
   time = time/wpewce/mass(1);
   
@@ -154,9 +149,9 @@ function varargout = read_fields_(txtfile,varargin)
     % density, n
     n(:,:,iSpecies) = dns(:,:,iSpecies)*dfac(iSpecies);
     % flux, j = nv
-    jx(:,:,iSpecies) = vxs(:,:,iSpecies)*dfac(iSpecies);
-    jy(:,:,iSpecies) = vys(:,:,iSpecies)*dfac(iSpecies);
-    jz(:,:,iSpecies) = vzs(:,:,iSpecies)*dfac(iSpecies);
+    jx(:,:,iSpecies) = vxs(:,:,iSpecies)*dfac(iSpecies)*wpewce(1)*sqrt(mass(1)); % c/vA0
+    jy(:,:,iSpecies) = vys(:,:,iSpecies)*dfac(iSpecies)*wpewce(1)*sqrt(mass(1));
+    jz(:,:,iSpecies) = vzs(:,:,iSpecies)*dfac(iSpecies)*wpewce(1)*sqrt(mass(1));
     % velocity, v
     vx(:,:,iSpecies) = jx(:,:,iSpecies)./n(:,:,iSpecies);
     vy(:,:,iSpecies) = jy(:,:,iSpecies)./n(:,:,iSpecies);
@@ -166,12 +161,12 @@ function varargout = read_fields_(txtfile,varargin)
     vy(n==0) = 0;
     vz(n==0) = 0;
     % pressure
-    pxx(:,:,iSpecies) = mass(iSpecies)*wpewce^2*( vxx(:,:,iSpecies)*dfac(iSpecies) - vx(:,:,iSpecies).*jx(:,:,iSpecies) );
-    pyy(:,:,iSpecies) = mass(iSpecies)*wpewce^2*( vyy(:,:,iSpecies)*dfac(iSpecies) - vy(:,:,iSpecies).*jy(:,:,iSpecies) );
-    pzz(:,:,iSpecies) = mass(iSpecies)*wpewce^2*( vzz(:,:,iSpecies)*dfac(iSpecies) - vz(:,:,iSpecies).*jz(:,:,iSpecies) );
-    pxy(:,:,iSpecies) = mass(iSpecies)*wpewce^2*( vxy(:,:,iSpecies)*dfac(iSpecies) - vx(:,:,iSpecies).*jy(:,:,iSpecies) );
-    pxz(:,:,iSpecies) = mass(iSpecies)*wpewce^2*( vxz(:,:,iSpecies)*dfac(iSpecies) - vx(:,:,iSpecies).*jz(:,:,iSpecies) );
-    pyz(:,:,iSpecies) = mass(iSpecies)*wpewce^2*( vyz(:,:,iSpecies)*dfac(iSpecies) - vy(:,:,iSpecies).*jz(:,:,iSpecies) );
+    pxx(:,:,iSpecies) = mass(iSpecies)*wpewce^2*( vxx(:,:,iSpecies)*dfac(iSpecies) - vxs(:,:,iSpecies).*vxs(:,:,iSpecies)./n(:,:,iSpecies)*dfac(iSpecies)^2 );
+    pyy(:,:,iSpecies) = mass(iSpecies)*wpewce^2*( vyy(:,:,iSpecies)*dfac(iSpecies) - vys(:,:,iSpecies).*vys(:,:,iSpecies)./n(:,:,iSpecies)*dfac(iSpecies)^2 );
+    pzz(:,:,iSpecies) = mass(iSpecies)*wpewce^2*( vzz(:,:,iSpecies)*dfac(iSpecies) - vzs(:,:,iSpecies).*vzs(:,:,iSpecies)./n(:,:,iSpecies)*dfac(iSpecies)^2 );
+    pxy(:,:,iSpecies) = mass(iSpecies)*wpewce^2*( vxy(:,:,iSpecies)*dfac(iSpecies) - vxs(:,:,iSpecies).*vys(:,:,iSpecies)./n(:,:,iSpecies)*dfac(iSpecies)^2 );
+    pxz(:,:,iSpecies) = mass(iSpecies)*wpewce^2*( vxz(:,:,iSpecies)*dfac(iSpecies) - vxs(:,:,iSpecies).*vzs(:,:,iSpecies)./n(:,:,iSpecies)*dfac(iSpecies)^2 );
+    pyz(:,:,iSpecies) = mass(iSpecies)*wpewce^2*( vyz(:,:,iSpecies)*dfac(iSpecies) - vys(:,:,iSpecies).*vzs(:,:,iSpecies)./n(:,:,iSpecies)*dfac(iSpecies)^2 );
     % temperature
     txx(:,:,iSpecies) = pxx(:,:,iSpecies)./n(:,:,iSpecies);
     tyy(:,:,iSpecies) = pyy(:,:,iSpecies)./n(:,:,iSpecies);
@@ -180,7 +175,7 @@ function varargout = read_fields_(txtfile,varargin)
     txz(:,:,iSpecies) = pxz(:,:,iSpecies)./n(:,:,iSpecies);
     tyz(:,:,iSpecies) = pyz(:,:,iSpecies)./n(:,:,iSpecies);
   end
-  for iSpecies = 1:nss
+  for iSpecies = nss:-1:1
     mass(iSpecies) = mass(iSpecies)/mass(1);
   end
 %% Fix data
@@ -207,30 +202,41 @@ for iPop = 1:nss/2
 end
 comp_tens = {'xx','xy','xz','yy','yz','zz'};
 comp_vec = {'x','y','z'};
+varstrs_species = {};
 for iSpecies = 1:nss
+  % scalar
   eval(sprintf('n%s = squeeze(n(:,:,%g));',species_str{iSpecies},iSpecies))
+  % vectors
   for iComp = 1:numel(comp_vec)
     eval(sprintf('v%s.%s = squeeze(v%s(:,:,%g));',species_str{iSpecies},comp_vec{iComp},comp_vec{iComp},iSpecies))
     eval(sprintf('j%s.%s = squeeze(j%s(:,:,%g));',species_str{iSpecies},comp_vec{iComp},comp_vec{iComp},iSpecies))
   end
+  % tensors
   for iComp = 1:numel(comp_tens)
     eval(sprintf('p%s.%s = squeeze(p%s(:,:,%g));',species_str{iSpecies},comp_tens{iComp},comp_tens{iComp},iSpecies))
     eval(sprintf('t%s.%s = squeeze(t%s(:,:,%g));',species_str{iSpecies},comp_tens{iComp},comp_tens{iComp},iSpecies))
   end
+  % collect strings for varargout
+  varstrs_species{end+1,1} = sprintf('n%s',species_str{iSpecies});
+  varstrs_species{end+1,1} = sprintf('v%s',species_str{iSpecies});
+  varstrs_species{end+1,1} = sprintf('j%s',species_str{iSpecies});
+  varstrs_species{end+1,1} = sprintf('p%s',species_str{iSpecies});
+  varstrs_species{end+1,1} = sprintf('t%s',species_str{iSpecies});
 end
 
-varargout{1} = x; 
-varargout{2} = z; 
-varargout{3} = E;
-varargout{4} = B; 
-varstrs = {'x','z','E','B','dfac','teti','nnx','nnz','wpewce','mass','it','time','dt','xmax','zmax','q'};
-for iSpecies = 1:nss, varstrs{end+1} = sprintf('n%s',species_str{iSpecies}); end
-for iSpecies = 1:nss, varstrs{end+1} = sprintf('v%s',species_str{iSpecies}); end
-for iSpecies = 1:nss, varstrs{end+1} = sprintf('j%s',species_str{iSpecies}); end
-for iSpecies = 1:nss, varstrs{end+1} = sprintf('p%s',species_str{iSpecies}); end
-for iSpecies = 1:nss, varstrs{end+1} = sprintf('t%s',species_str{iSpecies}); end
+% Collect data in single varargout
 
-for iout = 1:numel(varstrs)
-  varargout{iout} = eval(varstrs{iout});
+varstrs_common = {'x','z','E','B','dfac','teti','nnx','nnz','wpewce','mass','it','time','dt','xmax','zmax','q'};
+
+irow = 0;
+for iout = 1:numel(varstrs_common)
+  irow = irow + 1;
+  varargout_{irow,1} = varstrs_common{iout};
+  varargout_{irow,2} = eval(varstrs_common{iout});
 end
-
+for iout = 1:numel(varstrs_species)
+  irow = irow + 1;
+  varargout_{irow,1} = varstrs_species{iout};
+  varargout_{irow,2} = eval(varstrs_species{iout});
+end
+varargout = {varargout_};
