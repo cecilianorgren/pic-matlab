@@ -1,8 +1,7 @@
 % Pick simulation
 % make function that searches for possible data locations automatically
 simulation = 'michael'; 
-simulation = 'cold_protons_new_boundary';
-%simulation = 'df_cold_protons_0.4';
+simulation = 'df_cold_protons_0.4';
 switch simulation
   case 'df_cold_protons_0.8'
     savedir_root = '/Users/cno062/Research/PIC/df_cold_protons_1/';
@@ -23,10 +22,10 @@ switch simulation
     savedir_root = '/Users/cno062/Research/PIC/michael_run/';
     data_dir = '/Volumes/Fountain/Data/PIC/michael_run/data/';
     nss = 4;
-  case 'cold_protons_new_boundary'
-    savedir_root = '/Users/cno062/Research/PIC/cold_protons_new_boundary/';
-    data_dir = '/Volumes/Fountain/Data/PIC/df_cold_protons_04_new_boundary/data/';
-    data_dir = '/Volumes/Fountain/Data/PIC/df_cold_protons_04_new_boundary/data/';
+  case 'simulation = 'michael';'
+    savedir_root = '/Users/cno062/Research/PIC/df_cold_protons_04/';
+    data_dir = '/Volumes/Fountain/Data/PIC/df_cold_protons_04/data/';
+    data_dir = '/Volumes/Fountain/Data/PIC/df_cold_protons_04/data/';
     %data_dir = '/Volumes/pic/in_progress/df_cold_protons_04/data/';
     nss = 6;
 end
@@ -34,7 +33,6 @@ end
 %% Load data
 timestep = 05000;
 timestep = 05978;
-timestep = 00000;
 txtfile = sprintf('%s/fields-%05.0f.dat',data_dir,timestep); % michael's perturbation
 
 all_data = read_fields_adaptive(txtfile,'nss',nss);
