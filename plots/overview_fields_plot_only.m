@@ -105,6 +105,27 @@ clim = {4*[-1 1],4*[-1 1],4*[-1 1],4*[-1 1],1*[-1 1]};
 varstrs = {'(je1.x+je2.x)./(ne1+ne2)','ne1+ne2'};
 clim = {10*[-1 1],1*[-1 1]};
 
+varstrs = {'(ne1+ne2)','E.z','vi1.z','mass(1)*vi1.z.^2/2','mass(2)*ve1.x.^2/2','ti1.zz'};
+clim = {0.5*[-1 1],1*[-1 1],2*[-1 1],0.5*[0 1],0.5*[0 1],2*[0 1]};
+
+varstrs = {'log10(ne1+ne2)','ne1+ne2','E.z','ve1.x','mass(1)*vi1.z.^2/2','mass(2)*ve1.x.^2/2','phi*400'};
+clim = {[-2 -0.3],[0 0.5],1*[-1 1],10*[-1 1],0.5*[0 1],0.5*[0 1],400*3e-3*[-1 1]};
+
+
+varstrs = {'E.z','smooth2(fi1_div_p.z,2)','smooth2(fi1_dv_conv.z,2)','pi1.zz','E.z','smooth2(fi2_div_p.z,2)','smooth2(fi2_dv_conv.z,2)','pi2.zz'};
+clim = {[-2.5 2.5],[-4 4],[-4 4],[0 0.3],[-2.5 2.5],[-4 4],[-4 4],[0 0.3]};
+
+varstrs = {'E.z','E.par','log10(ne12)','ne1+ne2-ne12'};
+clim = {[-2.5 2.5],0.1*[-2.5 2.5],[0 0.01]};
+
+
+varstrs = {'ve2.x','ne2','te2.xx','E.y','B.z'};
+%clim = {[-2 2],[-15 15],[-2 0.5],[],[],[]};
+
+%varstrs = {'log10(ne12)'};
+%clim = {[-2 0.5],[],[]};
+
+
 nvars = numel(varstrs);
 
 %xlim = torow(x([1 end])) + [100 -100];
@@ -112,22 +133,22 @@ nvars = numel(varstrs);
 
 % Initialize figure
 npanels = nvars;
-maxrows = 3;
+maxrows = 5;
 nrows = min([npanels,maxrows]);
 ncols = ceil(npanels/nrows);
 npanels = nrows*ncols;
-h = setup_subplots(nrows,ncols,'horizontal');
+h = setup_subplots(nrows,ncols,'vertical');
 linkaxes(h);
 
 % Indices to plot
-xlim = [x(1) x(end)];% xlim = [-40 40];%[x(1) x(end)] + 150*[1 -1];
-zlim = [z(1) z(end)]; zlim = 10*[-1 1];
+xlim = [x(1) x(end)]; %xlim = [-5 40];%[x(1) x(end)] + 150*[1 -1];
+zlim = [z(1) z(end)]; %zlim = [-10 10];
 ipx1 = find(x>xlim(1),1,'first');
 ipx2 = find(x<xlim(2),1,'last');
 ipz1 = find(z>zlim(1),1,'first');
 ipz2 = find(z<zlim(2),1,'last');
-ipx = ipx1:3:ipx2;
-ipz = ipz1:3:ipz2;
+ipx = ipx1:5:ipx2;
+ipz = ipz1:5:ipz2;
     
 % Flux function
 doAx = 1; % plot separatrix
@@ -141,27 +162,23 @@ ipzA = ipz1:20:ipz2;
 %sepA = A(find(B.abs(:)==min(B.abs(:))));
 
 % Quivers
-varstrsQ = {'je1','je2','je3'};
-%je23.x = je2.x + je3.x;
-%je23.y = je2.y + je3.y;
-%je23.z = je2.z + je3.z;
-varstrsQ = {'ve1','ve2'};
+varstrsQ = {'ve12'};
 Escale = 10;
 Escaled.x = E.x*Escale;
 Escaled.y = E.y*Escale;
 Escaled.z = E.z*Escale;
 
 varstrsQ = {'ve1','ve2'};
-varstrsQ = {};
+%varstrsQ = {};
 colorQ = pic_colors('matlab');
 colorQ = colorQ([4,5,3],:);
 maxQs = [10,10,25];
-scalesQ_a = 0.02*[1 1 1]; % rescaling to input data
+scalesQ_a = 0.1*[1 1 1]; % rescaling to input data
 scalesQ_b = 0*[1 1 1]; % rescaling option for the quiver function
 nVarQ = numel(varstrsQ);
 % for now keep a single grid
-nQx = 400;
-nQz = 200;
+nQx = 100;
+nQz = 50;
 [Z,X] = meshgrid(z,x);
 ipxQ = fix(linspace(ipx1,ipx2,nQx));
 ipzQ = fix(linspace(ipz1,ipz2,nQz));
@@ -211,7 +228,7 @@ for ivar = 1:nvars
   if doAx
     hold(hca,'on')
     [saddle_locations,saddle_values] = saddle(A,'sort');
-    hcont = contour(hca,x(ipx),z(ipz),squeeze(A(ipx,ipz))',saddle_values(1)*[1 1],'color',cA,'linewidth',1,'displayname','A_X','linestyle','--'); 
+    hcont = contour(hca,x(ipx),z(ipz),squeeze(A(ipx,ipz))',saddle_values(1)*[1 1],'color',cA,'linewidth',2,'displayname','A_X','linestyle','-'); 
     hold(hca,'off')  
   end
   for iQ = 1:nVarQ
@@ -244,12 +261,13 @@ for ivar = 1:nvars
 end
 legend(hca);
 
-for ipanel = 1:npanels
+for ipanel = 1:npanels  
+  h(ipanel).FontSize = 14;
   h(ipanel).YDir = 'normal';
-  h(ipanel).XDir = 'normal';
+  h(ipanel).XDir = 'reverse';'normal';
   h(ipanel).XLim = xlim;
   h(ipanel).YLim = zlim;
-  if not(isempty(clim))
+  if numel(clim)>=npanels && not(isempty(clim{ipanel}))
     if iscell(clim)
       h(ipanel).CLim = clim{ipanel}; 
     elseif isnumeric(clim) 
@@ -412,14 +430,24 @@ if 1 % force balance z
              {'force_dv_conv.z','force_dv_temp.z'},...
              {'force_dv_conv.z','force_E.z','force_vxB.z','force_div_p.z'},... 
              }; 
+  varstrs = {{'E.z'},...
+             {'ne12','ni12'},...
+             {'fi12_dv_conv.z','fi12_dv_temp.z'},...
+             {'fi12_dv_conv.z','fi12_E.z','fi12_vxB.z','fi12_div_p.z'},... 
+             {'fi12_dv_conv.z','fi12_E.z+fi12_vxB.z-fi12_div_p.z'},... 
+             %{'force_dv_conv.z','force_E.z','force_vxB.z','force_div_p.z'},... 
+             %{'force_dv_conv.z','-force_E.z-force_vxB.z-force_div_p.z'},... 
+             }; 
   vallim = [];
   varstrs = {{'E.z'},...
+             ...%{'(ni1.*vi1.z+ni2.*vi2.z)./(ni1+ni2)','vi12.z*100','vi1.z','vi2.z'},...
+             ...%{'ni1.*vi1.z','ni2.*vi2.z'},...
              {'ne1+ne2','ni1+ni2'},...
-             {'iforce_dv_conv.z','iforce_dv_temp.z'},...
-             {'iforce_dv_conv.z','iforce_E.z','iforce_vxB.z','iforce_div_p.z'},... 
-             {'iforce_dv_conv.z','iforce_E.z+iforce_vxB.z-iforce_div_p.z'},... 
-             {'force_dv_conv.z','force_E.z','force_vxB.z','force_div_p.z'},... 
-             {'force_dv_conv.z','-force_E.z-force_vxB.z-force_div_p.z'},... 
+             {'smooth2(fi1_dv_conv.z,2)','fi1_dv_temp.z'},...
+             {'smooth2(fi1_dv_conv.z,2)','fi1_E.z','-fi1_vxB.z','smooth2(fi1_div_p.z,2)'},... 
+             {'smooth2(fi1_dv_conv.z,2)','fi1_E.z+fi1_vxB.z-smooth2(fi1_div_p.z,2)'},... 
+             %{'force_dv_conv.z','force_E.z','force_vxB.z','force_div_p.z'},... 
+             %{'force_dv_conv.z','-force_E.z-force_vxB.z-force_div_p.z'},... 
              }; 
   vallim = [];
   colororders = {'m','g1','xyzm','xyzm','xyzm','xyzm','xyzm','bdacg1','bdacm','bdacm','bdacm','bdacm','bdacm','bdacm','1ao','bdac','','',''};
@@ -432,6 +460,19 @@ if 1 % force balance z
 %   vallim = [];
 %   colororders = {'m','xyz','xyzm','xyzm','xyz','xyz','bdacg1','bdacm','bdacm','bdacm','bdacm','bdacm','bdacm','1ao','bdac','','',''};
 end
+varstrs = {{'(ne1.*ve1.x+ne2.*ve2.x)./(ne1+ne2)'},...
+           {'ve12.x'},...
+           {'(ne1.*ve1.x+ne2.*ve2.x)./(ne1+ne2)','ve12.x'},...
+           {'(ne1.*ve1.x+ne2.*ve2.x)./(ne1+ne2)-ve12.x'},...
+           }; 
+colororders = {'m','g1','xyzm','xyzm','xyzm','xyzm','xyzm','bdacg1','bdacm','bdacm','bdacm','bdacm','bdacm','bdacm','1ao','bdac','','',''};
+
+varstrs = {{'B.x','B.y','B.z'},...
+           {'vi12.x','vi12.y','vi12.z'},...   
+           {'ve12.x','ve12.y','ve12.z'},...       
+           {'ne12'},...       
+           }; 
+colororders = {'xyz','xyz','xyz','1',''};        
 doAddSpeciesExplanation = 0;
 speciesIdentification = {'i1','e1','i2','e2'};
 speciesExplanation = {'hot ions','hot electrons','cold ions','cold electrons'};
@@ -444,13 +485,15 @@ var_operation = 'diff';
 npanels = numel(varstrs);
 nvars = cellfun(@numel, varstrs);
 
-plotaxis = 'z'; % 'x' for horizontal cut, 'z' for vertical cut
+plotaxis = 'x'; % 'x' for horizontal cut, 'z' for vertical cut
 if strcmp(plotaxis,'z'), meandirection = 1;
 elseif strcmp(plotaxis,'x'), meandirection = 2; end
 zpick = [-0.1 0.1];
-zpick = [-20];
+zpick = [0];
 xpick = -18.5+0.2*[-1 1];
+xpick = 24+0.2*[-1 1];
 %xpick = 20-5.6+0.2*[-1 1];
+%xpick = 32+0.2*[-1 1];
 zind = find_closest_ind(z,zpick);
 xind = find_closest_ind(x,xpick);
 
@@ -458,7 +501,7 @@ xind = find_closest_ind(x,xpick);
 xlim = [150 x(fix(end/2))];
 xlim = [x(fix(end/2)) x(end)-150];
 xlim = [-10 100];%x([1 end])'+[150 -150];
-zlim = [-6 6];
+zlim = [-10 10];
 
 ipx1 = find(x>xlim(1),1,'first');
 ipx2 = find(x<xlim(2),1,'last');
@@ -568,7 +611,7 @@ h(1).Title.String = sprintf('%s = [%.2f,%.2f] (d_i), time = %g (1/wci) = %g (1/w
 arrayfun(@(x)eval(sprintf('x.Position(3) = 0.6;'),x),h)
 drawnow
 compact_panels(0.012)
-
+irf_plot_axis_align
 %hca.YLim = [-2 2];
 
 %% (OLD) Plot, 4 species plasma properties, 1 species per column

@@ -22,10 +22,14 @@ function varargout = read_fields_adaptive(txtfile,varargin)
       case 'numberel' % number of bins for particle distributions
         l = 2;
         numberel = args{2};
-%       case 'groups'
-%         l = 2;
-%         groups = args{2};
-%         doGroupManual = 1;
+      case {'groups','group'}
+        l = 2;
+        groups = args{2};
+        doGroupManual = 1;
+        nGroups = numel(groups);
+        for iGroup = 1:nGroups          
+          nMembers(iGroup) = numel(groups{iGroup});
+        end
 %       case 'groupcharge'
 %         l = 1;
 %         doGroupCharge = 1;
@@ -110,6 +114,9 @@ function varargout = read_fields_adaptive(txtfile,varargin)
 %       groups{icharge} = find(q==uniqueCharge(icharge));
 %     end
 %   end
+
+    
+  nss = nss;
   
   %% Normalize 
   xe = xe/sqrt(mass(1));
@@ -175,9 +182,124 @@ function varargout = read_fields_adaptive(txtfile,varargin)
     txz(:,:,iSpecies) = pxz(:,:,iSpecies)./n(:,:,iSpecies);
     tyz(:,:,iSpecies) = pyz(:,:,iSpecies)./n(:,:,iSpecies);
   end
-  for iSpecies = nss:-1:1
+  
+  
+  %% Group and normalize grouped populations    
+  % not enough memory to make a nx x nz x (nss + ngroups) species  
+  n_group = zeros(numel(xe),numel(ze),nGroups);
+  
+  vxx_group = zeros(nnx,nnz,nGroups); % vxvx
+  vyy_group = zeros(nnx,nnz,nGroups); % vyvy
+  vzz_group = zeros(nnx,nnz,nGroups); % vzvz
+  vxy_group = zeros(nnx,nnz,nGroups); % vxvy
+  vxz_group = zeros(nnx,nnz,nGroups); % vxvz
+  vyz_group = zeros(nnx,nnz,nGroups); % vyvz   
+    
+  % flux in simulation
+  vxs_group = zeros(nnx,nnz,nGroups);
+  vys_group = zeros(nnx,nnz,nGroups);
+  vzs_group = zeros(nnx,nnz,nGroups);
+  
+  for iGroup = 1:nGroups % this is wrong, need to take into account dfac
+    dns_group(:,:,iGroup) = sum(dns(:,:,groups{iGroup}),3); % number of macroparticles, this can be added straight up
+    for iMember = 1:nMembers(iGroup) % Added density
+      iSpecies = groups{iGroup}(iMember);
+      
+      n_group(:,:,iGroup) = n_group(:,:,iGroup) + dns(:,:,iSpecies)*dfac(iSpecies);
+      
+      vxs_group(:,:,iGroup) = vxs_group(:,:,iGroup) + vxs(:,:,iSpecies)*dfac(iSpecies);
+      vys_group(:,:,iGroup) = vys_group(:,:,iGroup) + vys(:,:,iSpecies)*dfac(iSpecies);
+      vzs_group(:,:,iGroup) = vzs_group(:,:,iGroup) + vzs(:,:,iSpecies)*dfac(iSpecies);
+
+      vxx_group(:,:,iGroup) = vxx_group(:,:,iGroup) + vxx(:,:,iSpecies)*dfac(iSpecies);
+      vxy_group(:,:,iGroup) = vxy_group(:,:,iGroup) + vxy(:,:,iSpecies)*dfac(iSpecies);
+      vxz_group(:,:,iGroup) = vxz_group(:,:,iGroup) + vxz(:,:,iSpecies)*dfac(iSpecies);
+      vyy_group(:,:,iGroup) = vyy_group(:,:,iGroup) + vyy(:,:,iSpecies)*dfac(iSpecies);
+      vyz_group(:,:,iGroup) = vyz_group(:,:,iGroup) + vyz(:,:,iSpecies)*dfac(iSpecies);
+      vzz_group(:,:,iGroup) = vzz_group(:,:,iGroup) + vzz(:,:,iSpecies)*dfac(iSpecies);
+    end
+    
+    % new dfac: density per macroparticle
+    dfac_group(iGroup) = sum(sum(n_group(:,:,iGroup)))/sum(sum(dns_group(:,:,iGroup)));
+    
+    vxs_group(:,:,iGroup) = vxs_group(:,:,iGroup)/dfac_group(iGroup);
+    vys_group(:,:,iGroup) = vys_group(:,:,iGroup)/dfac_group(iGroup);
+    vzs_group(:,:,iGroup) = vzs_group(:,:,iGroup)/dfac_group(iGroup);
+
+    vxx_group(:,:,iGroup) = vxx_group(:,:,iGroup)/dfac_group(iGroup);
+    vxy_group(:,:,iGroup) = vxy_group(:,:,iGroup)/dfac_group(iGroup);
+    vxz_group(:,:,iGroup) = vxz_group(:,:,iGroup)/dfac_group(iGroup);
+    vyy_group(:,:,iGroup) = vyy_group(:,:,iGroup)/dfac_group(iGroup);
+    vyz_group(:,:,iGroup) = vyz_group(:,:,iGroup)/dfac_group(iGroup);
+    vzz_group(:,:,iGroup) = vzz_group(:,:,iGroup)/dfac_group(iGroup);      
+           
+    mass_group(iGroup) = mean(mass(groups{iGroup})); % obs, only works simply like this if the masses are the same!    
+  end
+      
+  % moments
+  % initialize matrices
+  % n_group = zeros(numel(xe),numel(ze),nGroups); % already done above
+  jx_group = zeros(numel(xe),numel(ze),nGroups);
+  jy_group = zeros(numel(xe),numel(ze),nGroups);
+  jz_group = zeros(numel(xe),numel(ze),nGroups);
+  vx_group = zeros(numel(xe),numel(ze),nGroups);
+  vy_group = zeros(numel(xe),numel(ze),nGroups);
+  vz_group = zeros(numel(xe),numel(ze),nGroups);
+  pxx_group = zeros(numel(xe),numel(ze),nGroups);
+  pyy_group = zeros(numel(xe),numel(ze),nGroups);
+  pzz_group = zeros(numel(xe),numel(ze),nGroups);
+  pxy_group = zeros(numel(xe),numel(ze),nGroups);
+  pxz_group = zeros(numel(xe),numel(ze),nGroups);
+  pyz_group = zeros(numel(xe),numel(ze),nGroups);
+  txx_group = zeros(numel(xe),numel(ze),nGroups);
+  tyy_group = zeros(numel(xe),numel(ze),nGroups);
+  tzz_group = zeros(numel(xe),numel(ze),nGroups);
+  txy_group = zeros(numel(xe),numel(ze),nGroups);
+  txz_group = zeros(numel(xe),numel(ze),nGroups);
+  tyz_group = zeros(numel(xe),numel(ze),nGroups);
+  
+  for iGroup = 1:nGroups
+    for iMember = 1:numel(groups{iGroup}) 
+      iSpecies = iGroup;
+      % density, n % done above    
+      % flux, j = nv
+      jx_group(:,:,iSpecies) = vxs_group(:,:,iSpecies)*dfac_group(iSpecies)*wpewce(1)*sqrt(mass(1));
+      jy_group(:,:,iSpecies) = vys_group(:,:,iSpecies)*dfac_group(iSpecies)*wpewce(1)*sqrt(mass(1));
+      jz_group(:,:,iSpecies) = vzs_group(:,:,iSpecies)*dfac_group(iSpecies)*wpewce(1)*sqrt(mass(1));
+      % velocity, v
+      vx_group(:,:,iSpecies) = jx_group(:,:,iSpecies)./n_group(:,:,iSpecies);
+      vy_group(:,:,iSpecies) = jy_group(:,:,iSpecies)./n_group(:,:,iSpecies);
+      vz_group(:,:,iSpecies) = jz_group(:,:,iSpecies)./n_group(:,:,iSpecies);    
+      % do this here already to not mess up something with the pressure I think
+      vx_group(n_group==0) = 0;
+      vy_group(n_group==0) = 0;
+      vz_group(n_group==0) = 0;
+      % pressure
+      pxx_group(:,:,iSpecies) = mass_group(iSpecies)*wpewce^2*( vxx_group(:,:,iSpecies)*dfac_group(iSpecies) - vx_group(:,:,iSpecies).*jx_group(:,:,iSpecies) );
+      pyy_group(:,:,iSpecies) = mass_group(iSpecies)*wpewce^2*( vyy_group(:,:,iSpecies)*dfac_group(iSpecies) - vy_group(:,:,iSpecies).*jy_group(:,:,iSpecies) );
+      pzz_group(:,:,iSpecies) = mass_group(iSpecies)*wpewce^2*( vzz_group(:,:,iSpecies)*dfac_group(iSpecies) - vz_group(:,:,iSpecies).*jz_group(:,:,iSpecies) );
+      pxy_group(:,:,iSpecies) = mass_group(iSpecies)*wpewce^2*( vxy_group(:,:,iSpecies)*dfac_group(iSpecies) - vx_group(:,:,iSpecies).*jy_group(:,:,iSpecies) );
+      pxz_group(:,:,iSpecies) = mass_group(iSpecies)*wpewce^2*( vxz_group(:,:,iSpecies)*dfac_group(iSpecies) - vx_group(:,:,iSpecies).*jz_group(:,:,iSpecies) );
+      pyz_group(:,:,iSpecies) = mass_group(iSpecies)*wpewce^2*( vyz_group(:,:,iSpecies)*dfac_group(iSpecies) - vy_group(:,:,iSpecies).*jz_group(:,:,iSpecies) );
+      % temperature
+      txx_group(:,:,iSpecies) = pxx_group(:,:,iSpecies)./n_group(:,:,iSpecies);
+      tyy_group(:,:,iSpecies) = pyy_group(:,:,iSpecies)./n_group(:,:,iSpecies);
+      tzz_group(:,:,iSpecies) = pzz_group(:,:,iSpecies)./n_group(:,:,iSpecies);
+      txy_group(:,:,iSpecies) = pxy_group(:,:,iSpecies)./n_group(:,:,iSpecies);
+      txz_group(:,:,iSpecies) = pxz_group(:,:,iSpecies)./n_group(:,:,iSpecies);
+      tyz_group(:,:,iSpecies) = pyz_group(:,:,iSpecies)./n_group(:,:,iSpecies);
+    end
+  end
+  
+
+dfac = cat(2,torow(dfac),torow(dfac_group));
+mass = cat(2,torow(mass),torow(mass_group));
+
+%% Normalize densities
+  for iSpecies = numel(nss+nGroups):-1:1
     mass(iSpecies) = mass(iSpecies)/mass(1);
   end
+  
 %% Fix data
 if doFixNegDensities
   pxxe()
@@ -222,6 +344,34 @@ for iSpecies = 1:nss
   varstrs_species{end+1,1} = sprintf('j%s',species_str{iSpecies});
   varstrs_species{end+1,1} = sprintf('p%s',species_str{iSpecies});
   varstrs_species{end+1,1} = sprintf('t%s',species_str{iSpecies});
+end
+
+% Combined populations
+species_str_group = {};
+species_str_group{end+1} = 'i12';
+species_str_group{end+1} = 'e12';
+
+comp_tens = {'xx','xy','xz','yy','yz','zz'};
+comp_vec = {'x','y','z'};
+for iSpecies = 1:nGroups
+  % scalar
+  eval(sprintf('n%s = squeeze(n_group(:,:,%g));',species_str_group{iSpecies},iSpecies))
+  % vectors
+  for iComp = 1:numel(comp_vec)
+    eval(sprintf('v%s.%s = squeeze(v%s_group(:,:,%g));',species_str_group{iSpecies},comp_vec{iComp},comp_vec{iComp},iSpecies))
+    eval(sprintf('j%s.%s = squeeze(j%s_group(:,:,%g));',species_str_group{iSpecies},comp_vec{iComp},comp_vec{iComp},iSpecies))
+  end
+  % tensors
+  for iComp = 1:numel(comp_tens)
+    eval(sprintf('p%s.%s = squeeze(p%s_group(:,:,%g));',species_str_group{iSpecies},comp_tens{iComp},comp_tens{iComp},iSpecies))
+    eval(sprintf('t%s.%s = squeeze(t%s_group(:,:,%g));',species_str_group{iSpecies},comp_tens{iComp},comp_tens{iComp},iSpecies))
+  end
+  % collect strings for varargout
+  varstrs_species{end+1,1} = sprintf('n%s',species_str_group{iSpecies});
+  varstrs_species{end+1,1} = sprintf('v%s',species_str_group{iSpecies});
+  varstrs_species{end+1,1} = sprintf('j%s',species_str_group{iSpecies});
+  varstrs_species{end+1,1} = sprintf('p%s',species_str_group{iSpecies});
+  varstrs_species{end+1,1} = sprintf('t%s',species_str_group{iSpecies});
 end
 
 % Collect data in single varargout

@@ -103,41 +103,8 @@ function varargout = read_fields_and_combine(txtfile,varargin)
   remainder = fread(fid);
   st = fclose(fid);
   
-  %% make a new group with the combined species [3 5], [4 6]  
-  % not enough memory to make a nx x nz x (nss + ngroups) species
-  
-  vxx_group = zeros(nnx,nnz,ngroups); % vxvx
-  vyy_group = zeros(nnx,nnz,ngroups); % vyvy
-  vzz_group = zeros(nnx,nnz,ngroups); % vzvz
-  vxy_group = zeros(nnx,nnz,ngroups); % vxvy
-  vxz_group = zeros(nnx,nnz,ngroups); % vxvz
-  vyz_group = zeros(nnx,nnz,ngroups); % vyvz
-  
-  % initialize flux
-  vxs_group = zeros(nnx,nnz,ngroups);
-  vys_group = zeros(nnx,nnz,ngroups);
-  vzs_group = zeros(nnx,nnz,ngroups);
-  
-  for igroup = 1:ngroups
-    dns_group(:,:,igroup) = sum(dns(:,:,groups{igroup}),3);
-    
-    vxs_group(:,:,igroup) = sum(vxs(:,:,groups{igroup}),3);
-    vys_group(:,:,igroup) = sum(vys(:,:,groups{igroup}),3);
-    vzs_group(:,:,igroup) = sum(vzs(:,:,groups{igroup}),3);
-    
-    vxx_group(:,:,igroup) = sum(vxx(:,:,groups{igroup}),3);
-    vxy_group(:,:,igroup) = sum(vxy(:,:,groups{igroup}),3);
-    vxz_group(:,:,igroup) = sum(vxz(:,:,groups{igroup}),3);
-    vyy_group(:,:,igroup) = sum(vyy(:,:,groups{igroup}),3);
-    vyz_group(:,:,igroup) = sum(vyz(:,:,groups{igroup}),3);
-    vzz_group(:,:,igroup) = sum(vzz(:,:,groups{igroup}),3);
-    
-    dfac_group(nss+igroup) = mean(dfac(groups{igroup})); % obs, only works simply like this if the dfacs are the same!
-    mass_group(nss+igroup) = mean(mass(groups{igroup})); % obs, only works simply like this if the masses are the same!
-  end
-    
-  nss = nss + ngroups;
-  % Set groups  
+
+% Set groups  
 %   if doGroupMass
 %     uniqueMass = unique(mass);
 %     for imass = 1:numel(uniqueMass)
@@ -150,12 +117,7 @@ function varargout = read_fields_and_combine(txtfile,varargin)
 %     end
 %   end
   
-  %% Normalize 
-  % 
-  % readu,1,it,dt,teti,xmax,zmax,nx0,nz0,vxs,vys,vzs,    $
-  %                bx,by,bz,ex,ey,ez,dns,x,z,mass,q,c,wpewce,dfac,$
-  %               pxx,pyy,pzz,pxy,pxz,pyz
-
+  %% Normalize original populations
   xe=xe/sqrt(mass(1));
   ze=ze/sqrt(mass(1));
   bx=bx*wpewce(1);
@@ -220,6 +182,93 @@ function varargout = read_fields_and_combine(txtfile,varargin)
     tyz(:,:,iSpecies) = pyz(:,:,iSpecies)./n(:,:,iSpecies);
   end
 
+  %% Group and normalize grouped populations    
+  % not enough memory to make a nx x nz x (nss + ngroups) species  
+  vxx_group = zeros(nnx,nnz,ngroups); % vxvx
+  vyy_group = zeros(nnx,nnz,ngroups); % vyvy
+  vzz_group = zeros(nnx,nnz,ngroups); % vzvz
+  vxy_group = zeros(nnx,nnz,ngroups); % vxvy
+  vxz_group = zeros(nnx,nnz,ngroups); % vxvz
+  vyz_group = zeros(nnx,nnz,ngroups); % vyvz
+  
+  % initialize flux
+  vxs_group = zeros(nnx,nnz,ngroups);
+  vys_group = zeros(nnx,nnz,ngroups);
+  vzs_group = zeros(nnx,nnz,ngroups);
+  
+  for igroup = 1:ngroups
+    dns_group(:,:,igroup) = sum(dns(:,:,groups{igroup}),3);
+    
+    vxs_group(:,:,igroup) = sum(vxs(:,:,groups{igroup}),3);
+    vys_group(:,:,igroup) = sum(vys(:,:,groups{igroup}),3);
+    vzs_group(:,:,igroup) = sum(vzs(:,:,groups{igroup}),3);
+    
+    vxx_group(:,:,igroup) = sum(vxx(:,:,groups{igroup}),3);
+    vxy_group(:,:,igroup) = sum(vxy(:,:,groups{igroup}),3);
+    vxz_group(:,:,igroup) = sum(vxz(:,:,groups{igroup}),3);
+    vyy_group(:,:,igroup) = sum(vyy(:,:,groups{igroup}),3);
+    vyz_group(:,:,igroup) = sum(vyz(:,:,groups{igroup}),3);
+    vzz_group(:,:,igroup) = sum(vzz(:,:,groups{igroup}),3);
+    
+    dfac_group(nss+igroup) = mean(dfac(groups{igroup})); % obs, only works simply like this if the dfacs are the same!
+    mass_group(nss+igroup) = mean(mass(groups{igroup})); % obs, only works simply like this if the masses are the same!
+  end
+    
+ % nss = nss + ngroups;
+  
+  % moments
+  % initialize matrices
+  n_group = zeros(numel(xe),numel(ze),ngroups);
+  jx_group = zeros(numel(xe),numel(ze),ngroups);
+  jy_group = zeros(numel(xe),numel(ze),ngroups);
+  jz_group = zeros(numel(xe),numel(ze),ngroups);
+  vx_group = zeros(numel(xe),numel(ze),ngroups);
+  vy_group = zeros(numel(xe),numel(ze),ngroups);
+  vz_group = zeros(numel(xe),numel(ze),ngroups);
+  pxx_group = zeros(numel(xe),numel(ze),ngroups);
+  pyy_group = zeros(numel(xe),numel(ze),ngroups);
+  pzz_group = zeros(numel(xe),numel(ze),ngroups);
+  pxy_group = zeros(numel(xe),numel(ze),ngroups);
+  pxz_group = zeros(numel(xe),numel(ze),ngroups);
+  pyz_group = zeros(numel(xe),numel(ze),ngroups);
+  txx_group = zeros(numel(xe),numel(ze),ngroups);
+  tyy_group = zeros(numel(xe),numel(ze),ngroups);
+  tzz_group = zeros(numel(xe),numel(ze),ngroups);
+  txy_group = zeros(numel(xe),numel(ze),ngroups);
+  txz_group = zeros(numel(xe),numel(ze),ngroups);
+  tyz_group = zeros(numel(xe),numel(ze),ngroups);
+  
+  for iSpecies = 1:ngroups
+    % density, n
+    n_group(:,:,iSpecies) = dns(:,:,iSpecies)*dfac_group(iSpecies);
+    % flux, j = nv
+    jx_group(:,:,iSpecies) = vxs_group(:,:,iSpecies)*dfac_group(iSpecies);
+    jy_group(:,:,iSpecies) = vys_group(:,:,iSpecies)*dfac_group(iSpecies);
+    jz_group(:,:,iSpecies) = vzs_group(:,:,iSpecies)*dfac_group(iSpecies);
+    % velocity, v
+    vx_group(:,:,iSpecies) = jx_group(:,:,iSpecies)./n_group(:,:,iSpecies);
+    vy_group(:,:,iSpecies) = jy_group(:,:,iSpecies)./n_group(:,:,iSpecies);
+    vz_group(:,:,iSpecies) = jz_group(:,:,iSpecies)./n_group(:,:,iSpecies);    
+    % do this here already to not mess up something with the pressure I think
+    vx_group(n==0) = 0;
+    vy_group(n==0) = 0;
+    vz_group(n==0) = 0;
+    % pressure
+    pxx_group(:,:,iSpecies) = mass_group(iSpecies)*wpewce^2*( vxx_group(:,:,iSpecies)*dfac_group(iSpecies) - vx_group(:,:,iSpecies).*jx_group(:,:,iSpecies) );
+    pyy_group(:,:,iSpecies) = mass_group(iSpecies)*wpewce^2*( vyy_group(:,:,iSpecies)*dfac_group(iSpecies) - vy_group(:,:,iSpecies).*jy_group(:,:,iSpecies) );
+    pzz_group(:,:,iSpecies) = mass_group(iSpecies)*wpewce^2*( vzz_group(:,:,iSpecies)*dfac_group(iSpecies) - vz_group(:,:,iSpecies).*jz_group(:,:,iSpecies) );
+    pxy_group(:,:,iSpecies) = mass_group(iSpecies)*wpewce^2*( vxy_group(:,:,iSpecies)*dfac_group(iSpecies) - vx_group(:,:,iSpecies).*jy_group(:,:,iSpecies) );
+    pxz_group(:,:,iSpecies) = mass_group(iSpecies)*wpewce^2*( vxz_group(:,:,iSpecies)*dfac_group(iSpecies) - vx_group(:,:,iSpecies).*jz_group(:,:,iSpecies) );
+    pyz_group(:,:,iSpecies) = mass_group(iSpecies)*wpewce^2*( vyz_group(:,:,iSpecies)*dfac_group(iSpecies) - vy_group(:,:,iSpecies).*jz_group(:,:,iSpecies) );
+    % temperature
+    txx_group(:,:,iSpecies) = pxx_group(:,:,iSpecies)./n_group(:,:,iSpecies);
+    tyy_group(:,:,iSpecies) = pyy_group(:,:,iSpecies)./n_group(:,:,iSpecies);
+    tzz_group(:,:,iSpecies) = pzz_group(:,:,iSpecies)./n_group(:,:,iSpecies);
+    txy_group(:,:,iSpecies) = pxy_group(:,:,iSpecies)./n_group(:,:,iSpecies);
+    txz_group(:,:,iSpecies) = pxz_group(:,:,iSpecies)./n_group(:,:,iSpecies);
+    tyz_group(:,:,iSpecies) = pyz_group(:,:,iSpecies)./n_group(:,:,iSpecies);
+  end
+  
 %% Fix data
 if doFixNegDensities
   pxxe()

@@ -1,5 +1,5 @@
 %% Define times
-timesteps = 00200:200:05200;
+timesteps = 00200:200:06000;
 times = timesteps/50;
 ntimes = numel(timesteps);
 savedir_root = '/Users/cno062/Research/PIC/df_cold_protons_1/';
@@ -123,7 +123,7 @@ if 0 % Bz
   plot_structure.nrows = nrows_all{iplot};
   plot_structures_all{iplot} = plot_structure;
 end
-if 0 % Ez
+if 1 % Ez
   iplot = iplot + 1;
   doMovie(iplot) = 1; imovie = imovie + 1;
   
