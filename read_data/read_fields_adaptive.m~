@@ -277,11 +277,11 @@ function varargout = read_fields_adaptive(txtfile,varargin)
       % pressure
       %pxx(:,:,iSpecies) = mass(iSpecies)*wpewce^2*( vxx(:,:,iSpecies)*dfac(iSpecies) - vxs(:,:,iSpecies).*vxs(:,:,iSpecies)./n(:,:,iSpecies)*dfac(iSpecies)^2 );
       pxx_group(:,:,iSpecies) = mass_group(iSpecies)*wpewce^2*( vxx_group(:,:,iSpecies)*dfac_group(iSpecies) - vxs_group(:,:,iSpecies).*vxs_group(:,:,iSpecies)./n_group(:,:,iSpecies)*dfac_group(iSpecies)^2 );
-      pyy_group(:,:,iSpecies) = mass_group(iSpecies)*wpewce^2*( vyy_group(:,:,iSpecies)*dfac_group(iSpecies) - vys_group(:,:,iSpecies).*vys_group(:,:,iSpecies)./n_group(:,:,iSpecies)*dfac_group(iSpecies)^2 );
-      pzz_group(:,:,iSpecies) = mass_group(iSpecies)*wpewce^2*( vzz_group(:,:,iSpecies)*dfac_group(iSpecies) - vzs_group(:,:,iSpecies).*vzs_group(:,:,iSpecies)./n_group(:,:,iSpecies)*dfac_group(iSpecies)^2 );
-      pxy_group(:,:,iSpecies) = mass_group(iSpecies)*wpewce^2*( vxy_group(:,:,iSpecies)*dfac_group(iSpecies) - vxs_group(:,:,iSpecies).*vys_group(:,:,iSpecies)./n_group(:,:,iSpecies)*dfac_group(iSpecies)^2 );
-      pxz_group(:,:,iSpecies) = mass_group(iSpecies)*wpewce^2*( vxz_group(:,:,iSpecies)*dfac_group(iSpecies) - vxs_group(:,:,iSpecies).*vzs_group(:,:,iSpecies)./n_group(:,:,iSpecies)*dfac_group(iSpecies)^2 );
-      pyz_group(:,:,iSpecies) = mass_group(iSpecies)*wpewce^2*( vyz_group(:,:,iSpecies)*dfac_group(iSpecies) - vys_group(:,:,iSpecies).*vzs_group(:,:,iSpecies)./n_group(:,:,iSpecies)*dfac_group(iSpecies)^2 );
+      pyy_group(:,:,iSpecies) = mass_group(iSpecies)*wpewce^2*( vyy_group(:,:,iSpecies)*dfac_group(iSpecies) - vxs_group(:,:,iSpecies).*vxs_group(:,:,iSpecies)./n_group(:,:,iSpecies)*dfac_group(iSpecies)^2 );
+      pzz_group(:,:,iSpecies) = mass_group(iSpecies)*wpewce^2*( vzz_group(:,:,iSpecies)*dfac_group(iSpecies) - vxs_group(:,:,iSpecies).*vxs_group(:,:,iSpecies)./n_group(:,:,iSpecies)*dfac_group(iSpecies)^2 );
+      pxy_group(:,:,iSpecies) = mass_group(iSpecies)*wpewce^2*( vxy_group(:,:,iSpecies)*dfac_group(iSpecies) - vxs_group(:,:,iSpecies).*vxs_group(:,:,iSpecies)./n_group(:,:,iSpecies)*dfac_group(iSpecies)^2 );
+      pxz_group(:,:,iSpecies) = mass_group(iSpecies)*wpewce^2*( vxz_group(:,:,iSpecies)*dfac_group(iSpecies) - vxs_group(:,:,iSpecies).*vxs_group(:,:,iSpecies)./n_group(:,:,iSpecies)*dfac_group(iSpecies)^2 );
+      pyz_group(:,:,iSpecies) = mass_group(iSpecies)*wpewce^2*( vyz_group(:,:,iSpecies)*dfac_group(iSpecies) - vy_group(:,:,iSpecies).*jz_group(:,:,iSpecies) );
       % temperature
       txx_group(:,:,iSpecies) = pxx_group(:,:,iSpecies)./n_group(:,:,iSpecies);
       tyy_group(:,:,iSpecies) = pyy_group(:,:,iSpecies)./n_group(:,:,iSpecies);

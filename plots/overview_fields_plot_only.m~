@@ -126,13 +126,10 @@ varstrs = {'smooth2(fe12_dv_conv.x,np_smooth)','smooth2(fe12_dv_conv.y,np_smooth
            'smooth2(fi12_dv_conv.x,np_smooth)','smooth2(fi12_dv_conv.y,np_smooth)','smooth2(fi12_dv_conv.z,np_smooth)',...
            'smooth2(fe12_div_p.x,np_smooth)','smooth2(fe12_div_p.y,np_smooth)','smooth2(fe12_div_p.z,np_smooth)',...
            'smooth2(fi12_div_p.x,np_smooth)','smooth2(fi12_div_p.y,np_smooth)','smooth2(fi12_div_p.z,np_smooth)'};
-varstrs = {'smooth2(-fi12_dv_conv.x,np_smooth)','smooth2(-fi12_dv_conv.y,np_smooth)','smooth2(-fi12_dv_conv.z,np_smooth)',...
-           'smooth2(-fi12_div_p.x,np_smooth)','smooth2(-fi12_div_p.y,np_smooth)','smooth2(-fi12_div_p.z,np_smooth)'};
-
-varstrs = {'E.z','ve12.x','vi12.z-ve12.z','ni12.*vi12.z-ne12.*ve12.z','fi12_E.z+fi12_vxB.z','fe12_E.z+fe12_vxB.z'};         
-clim = {};
-
-doLinkCLim = 0; % overrides manual clim
+varstrs = {'smooth2(fe12_dv_conv.x,np_smooth)','smooth2(fe12_dv_conv.y,np_smooth)','smooth2(fe12_dv_conv.z,np_smooth)',...
+           'smooth2(fi12_dv_conv.x,np_smooth)','smooth2(fi12_dv_conv.y,np_smooth)','smooth2(fi12_dv_conv.z,np_smooth)',...
+           'smooth2(fe12_div_p.x,np_smooth)','smooth2(fe12_div_p.y,np_smooth)','smooth2(fe12_div_p.z,np_smooth)',...
+           'smooth2(fi12_div_p.x,np_smooth)','smooth2(fi12_div_p.y,np_smooth)','smooth2(fi12_div_p.z,np_smooth)'};
 
 %clim = {[-4 4],[-4 4],[-4 4],[-4 4],[-4 4],[-4 4]};
 
@@ -147,7 +144,7 @@ nvars = numel(varstrs);
 
 % Initialize figure
 npanels = nvars;
-maxrows = 2;
+maxrows = 3;
 nrows = min([npanels,maxrows]);
 ncols = ceil(npanels/nrows);
 npanels = nrows*ncols;
@@ -278,7 +275,7 @@ legend(hca);
 for ipanel = 1:npanels  
   h(ipanel).FontSize = 14;
   h(ipanel).YDir = 'normal';
-  h(ipanel).XDir = 'normal'; 'reverse';
+  h(ipanel).XDir = 'reverse';'normal';
   h(ipanel).XLim = xlim;
   h(ipanel).YLim = zlim;
   if numel(clim)>=npanels && not(isempty(clim{ipanel}))
@@ -290,10 +287,9 @@ for ipanel = 1:npanels
   end
 end
 toc
-if doLinkCLim
-  hlinks = linkprop(h,'CLim');
-end
-  %% Line plot at given x or z, define variable in cell array
+
+
+%% Line plot at given x or z, define variable in cell array
 % Define what variables to plot
 varstrs = {'ve1.x','ve2.x','ve1.z','ve2.z','ve1.par','ve2.par','ExB.x','ExB.z','-ve1xB.x','-ve2xB.x','-ve1xB.z','-ve2xB.z','E.x','E.z'};
 varstrs = {'ve1.x','ve2.x','B.z','E.z','-ve1xB.x','A'};
@@ -479,7 +475,6 @@ if 1 % force balance z
   varstrs = {{'E.z'},...
              {'-ne12+ni12'},...
              {'ve12.x','ve12.y','ve12.z'},...
-             {'ve12.z','vi12.z'},...
              ...%{'fi12_dv_conv.z','fi12_dv_temp.z'},...
              {'fi12_dv_conv.z','fi12_E.z','fi12_vxB.z','smooth2(fi12_div_p.z,2)'},... 
              ...%{'fi12_dv_conv.z','fi12_E.z+fi12_vxB.z-smooth2(fi12_div_p.z,2)'},... 
@@ -491,7 +486,7 @@ if 1 % force balance z
              %{'force_dv_conv.z','force_E.z','force_vxB.z','force_div_p.z'},... 
              %{'force_dv_conv.z','-force_E.z-force_vxB.z-force_div_p.z'},... 
              }; 
-           colororders = {'m','g1','xyzm','xyzm','xyzm','xyzm','xyzm','xyzm','xyzm','bdacg1','bdacm','bdacm','bdacm','bdacm','bdacm','bdacm','1ao','bdac','','',''};
+           colororders = {'m','g1','xyzm','xyzm','xyzm','xyzm','xyzm','xyzm','bdacg1','bdacm','bdacm','bdacm','bdacm','bdacm','bdacm','1ao','bdac','','',''};
 end
 if 0
 varstrs = {{'(ne1.*ve1.x+ne2.*ve2.x)./(ne1+ne2)'},...
@@ -528,7 +523,7 @@ zpick = [-0.1 0.1];
 zpick = [0];
 xpick = -18.5+0.2*[-1 1];
 xpick = 24+0.2*[-1 1];
-xpick = 15.5+0.2*[-1 1];
+%xpick = 14+0.2*[-1 1];
 %xpick = 20-5.6+0.2*[-1 1];
 %xpick = 32+0.2*[-1 1];
 zind = find_closest_ind(z,zpick);

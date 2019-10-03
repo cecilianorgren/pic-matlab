@@ -21,6 +21,7 @@ switch simulation
     nss = 4;
   case 'michael'
     savedir_root = '/Users/cno062/Research/PIC/michael_run/';
+    savedir_root = '/Users/cno062/GoogleDrive/Research/PIC/michael_run/';
     data_dir = '/Volumes/Fountain/Data/PIC/michael_run/data/';
     data_dir = '/Volumes/pic/finished_runs/turbulencerun/';
     nss = 4;
@@ -59,11 +60,10 @@ A = vector_potential(x,z,B.x,B.z); % vector potential
 iss = 1;
 [fi1_dv_temp,fi1_dv_conv,fi1_E,fi1_vxB,fi1_div_p] = fun_calc_force_terms([],x,z,mass(iss),q(iss),ni1,vi1,pi1,E,B,'nlim',0.02);
 [fi2_dv_temp,fi2_dv_conv,fi2_E,fi2_vxB,fi2_div_p] = fun_calc_force_terms([],x,z,mass(iss),q(iss),ni2,vi2,pi2,E,B,'nlim',0.02);
-iss = 2;
-[fe1_dv_temp,fe1_dv_conv,fe1_E,de1_vxB,fe1_div_p] = fun_calc_force_terms([],x,z,mass(iss),q(iss),ne1,ve1,pe1,E,B,'nlim',0.02);
-iss = 1;
 [fi12_dv_temp,fi12_dv_conv,fi12_E,fi12_vxB,fi12_div_p] = fun_calc_force_terms([],x,z,mass(iss),q(iss),ni12,vi12,pi12,E,B,'nlim',0.02);
 iss = 2;
+[fe1_dv_temp,fe1_dv_conv,fe1_E,de1_vxB,fe1_div_p] = fun_calc_force_terms([],x,z,mass(iss),q(iss),ne1,ve1,pe1,E,B,'nlim',0.02);
+[fe12_dv_temp,fe12_dv_conv,fe12_E,fe12_vxB,fe12_div_p] = fun_calc_force_terms([],x,z,mass(iss),q(iss),ne12,ve12,pe12,E,B,'nlim',0.02);
 [fe12_dv_temp,fe12_dv_conv,fe12_E,fe12_vxB,fe12_div_p] = fun_calc_force_terms([],x,z,mass(iss),q(iss),ne12,ve12,pe12,E,B,'nlim',0.02);
 
 
