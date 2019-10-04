@@ -22,11 +22,15 @@ savedir_root = '/Users/cno062/Research/PIC/michael_run/';
 data_dir = '/Volumes/Fountain/Data/PIC/michael_run/data/';
 data_dir_resave = '/Volumes/Fountain/Data/PIC/michael_run/data_separated/';
 
+savedir_root = '/Users/cno062/Research/PIC/michael_run/';
+data_dir = '/Volumes/pic/finished_runs/turbulencerun/data/';
+data_dir_resave = '/Volumes/pic/finished_runs/turbulencerun/data_separated/';
+
 %% Variables to load
 % only saved once
 varstrs_same = {'x','z','dfac','teti','nnx','nnz','wpewce','mass','it','time','dt','xmax','zmax','q'};
 vardir_same = [data_dir_resave 'same_for_all_times'];
-sim_info = load([vardir_same '/sim_info.mat']);
+%sim_info = load([vardir_same '/sim_info.mat']);
 
 % saved for each time step
 varstrs = {'A','E','B',...
@@ -48,6 +52,8 @@ varstrs = {'E','B'...
 varstrs = {'vi1','ve1','vi2','ve2'};
 %varstrs = {'A'...
 %        };
+
+varstrs = {'ni12'};
 
 if strcmp(varstrs,'all');
   

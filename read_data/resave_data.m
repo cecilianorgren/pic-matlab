@@ -1,13 +1,25 @@
 % Loads data and saves the different variables individually, this way one
 % can for example easily load any variable for all times.
 
-%% Define times
-timesteps = 05978:1:06000;
-times = timesteps/200;
-ntimes = numel(timesteps);
 savedir_root = '/Users/cno062/Research/PIC/michael_run/';
 data_dir = '/Volumes/Fountain/Data/PIC/michael_run/data/';
 data_dir_resave = '/Volumes/Fountain/Data/PIC/michael_run/data_separated/';
+data_dir = '/Volumes/pic/finished_runs/turbulencerun/data/';
+data_dir_resave = '/Volumes/pic/finished_runs/turbulencerun/data_separated/';
+
+%% Define times
+if 0 % manually
+  timesteps = 05978:1:06000;
+  times = timesteps/200;
+else % all in folder
+  fileList = dir([data_dir '*fields*']);
+  nFiles = numel(fileList);
+  timesteps = zeros(nFiles,1);
+  for iFile = 1:nFiles
+    timesteps(iFile) = str2num(fileList(iFile).name(8:12));
+  end
+end
+ntimes = numel(timesteps);
 %data_dir = '/Volumes/pic/in_progress/df_cold_protons_04/data/';
 %data_dir_resave = '/Volumes/pic/in_progress/df_cold_protons_04/data_separated/';
 
@@ -32,6 +44,10 @@ varstrs = {'A','E','B',...
         'ni1','ne1','ni2','ne2',...
         'vi1','ve1','vi2','ve2',...
         };
+varstrs = {'E','B',...
+        'ni12','ne12',...
+        'vi12','ve12',...
+        };
 nvars = numel(varstrs);
 for ivar = 1:nvars
   vardir = [data_dir_resave varstrs{ivar}];
@@ -42,13 +58,14 @@ end
 
 %% Loop over times, load data then resave
 nss = 4;
-for itime = 1:ntimes
+for itime = 141:ntimes
   %% Load data
   timestep = timesteps(itime);
-  disp(sprintf('timestep = %05.0f/%05.0f',timestep,timesteps(end)))
+  disp(sprintf('timestep = %05.0f/%05.0f (%.0f/%.0f)',timestep,timesteps(end),itime,ntimes))
   txtfile = sprintf('%s/fields-%05.0f.dat',data_dir,timestep); % michael's perturbation
   disp('Loading data...')
   tic;     
+  if 0
     [x,z,E,B,...
     dfac,teti,nnx,nnz,wpewce,mass,it,time,dt,xmax,zmax,q,...
     ni1,ne1,ni2,ne2,...
@@ -57,10 +74,20 @@ for itime = 1:ntimes
     pi1,pe1,pi2,pe2,...
     ti1,te1,ti2,te2...
     ] = read_fields_(txtfile,'nss',nss); 
+  else
+    txtfile = sprintf('%s/fields-%05.0f.dat',data_dir,timestep); % michael's perturbation
+    all_data = read_fields_adaptive(txtfile,'nss',nss,'group',{[1 3],[2 4]});
+    ndata = size(all_data,1);
+    disp('Loaded: ')
+    for idata = 1:ndata
+      eval([all_data{idata,1} '= all_data{idata,2};' ]);
+      fprintf('%s ',all_data{idata,1})
+    end
+    fprintf('\n') 
+  end
   toc
-        %= read_fields_(txtfile); toc
-  A = vector_potential(x,z,B.x,B.z); % vector potential  
   
+  A = vector_potential(x,z,B.x,B.z); % vector potential    
   disp('Resaving data into separate files...')
   % nss = 6, 200s/timestep
   tic
