@@ -5,6 +5,7 @@ function varargout = fun_calc_force_terms(t,x,z,m,q,n,v,p,E,B,varargin)
 doForceDensity = 0; % output is multiplied with density, this reduces large values (incl. inf) in low density regions
 doPlot = 0; % plot results, mostly for debugging
 doTempdv = 0; % assume only single time input is given
+doComponents = 0; % return contributing components of each term, e.g. vxBy
 
 % Collect additional inputs
 args = varargin;
@@ -16,6 +17,9 @@ while not(isempty(args))
       l = 2;
     case 'density'
       doForceDensity = args{2};
+      l = 2;
+    case 'comp'
+      doComponents = args{2};
       l = 2;
     case {'nmin','minn','nlow','nlim'}
       doNmin = 1;
@@ -44,22 +48,17 @@ else
 end
 
 
-dv_conv = convective_derivative(x,z,v); 
-vxB = cross_product(v.x,v.y,v.z,B.x,B.y,B.z);
-div_p = div_tensor(x,z,p); 
+dv_conv = convective_derivative(x,z,v,'comp',doComponents); 
+vxB = cross_product(v.x,v.y,v.z,B.x,B.y,B.z,'comp',doComponents);
+div_p = div_tensor(x,z,p,'comp',doComponents); 
+E = struct('x',E.x,'y',E.y,'z',E.z); % sometimes it can have nested structures: E.perp.x
 
-force_dv_conv.x = m*dv_conv.x;
-force_dv_conv.y = m*dv_conv.y;
-force_dv_conv.z = m*dv_conv.z;
-force_E.x = q*E.x;
-force_E.y = q*E.y;
-force_E.z = q*E.z;
-force_vxB.x = q*vxB.x;
-force_vxB.y = q*vxB.y;
-force_vxB.z = q*vxB.z;
-force_div_p.x = div_p.x./n;
-force_div_p.y = div_p.y./n;
-force_div_p.z = div_p.z./n;
+% Perform operation on all fields of structure
+% syntax: x = {dv_conv,E,vxB,div_p}
+force_dv_conv = structfun(@(x) m*x,  dv_conv ,'UniformOutput',false);
+force_E       = structfun(@(x) q*x,  E       ,'UniformOutput',false);
+force_vxB     = structfun(@(x) q*x,  vxB     ,'UniformOutput',false);
+force_div_p   = structfun(@(x) x./n, div_p   ,'UniformOutput',false);
 
 %% Collect output
 varargout{1} = force_dv_temp;

@@ -19,6 +19,7 @@ else % all in folder
     timesteps(iFile) = str2num(fileList(iFile).name(8:12));
   end
 end
+timesteps = 05200:200:06000;
 ntimes = numel(timesteps);
 %data_dir = '/Volumes/pic/in_progress/df_cold_protons_04/data/';
 %data_dir_resave = '/Volumes/pic/in_progress/df_cold_protons_04/data_separated/';
@@ -58,7 +59,7 @@ end
 
 %% Loop over times, load data then resave
 nss = 4;
-for itime = 141:ntimes
+for itime = 1:ntimes % 141
   %% Load data
   timestep = timesteps(itime);
   disp(sprintf('timestep = %05.0f/%05.0f (%.0f/%.0f)',timestep,timesteps(end),itime,ntimes))

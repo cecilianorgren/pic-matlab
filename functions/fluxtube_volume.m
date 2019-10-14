@@ -13,6 +13,14 @@ function varargout = fluxtube_volume(A,levels,varargin)
 %     'repolate' - downsamples data to original size (buggy: only works for 
 %                  integer values of (1+k))
 %
+%   Examples:
+%     [saddle_locations,saddle_values] = saddle(A,'sort');
+%     dA = 0.5;
+%     A_edg = saddle_values(1):dA:max(A(:));
+%     A_lev = A_edg(1:end-1) + dA;
+%     [A_vol,A_map] = FLUXTUBE_VOLUME(A,A_edg);
+%     plot(A_lev,A_vol)
+%
 % See also: vector_potential, interp2
 
 % Defualt options
@@ -65,13 +73,24 @@ n_points_total = numel(A);
 A_map = nan(size(A));
 A_levels = nan(size(A));
 
-for ilevel = 1:nlevels
-  I1 = find(A>levels(ilevel));
-  I2 = find(A<levels(ilevel+1));
-  [C,IA,IB] = intersect(I1,I2);
-  n_points_within_level(ilevel) = numel(C);
-  A_map(C) = numel(C)/n_points_total;
-  A_levels(C) = mean(levels(ilevel:ilevel+1));
+if 0
+  A_map = A*0;
+  [C,H] = contourf(A,levels);
+  A_levels = H.ZData;
+  for ilevel = 1:nlevels
+    C = find(A_levels == levels(ilevel));
+    n_points_within_level(ilevel) = numel(C);
+    A_map(C) = numel(C)/n_points_total;
+  end
+else
+  for ilevel = 1:nlevels
+    I1 = find(A>levels(ilevel));
+    I2 = find(A<levels(ilevel+1));
+    [C,IA,IB] = intersect(I1,I2);
+    n_points_within_level(ilevel) = numel(C);
+    A_map(C) = numel(C)/n_points_total;
+    A_levels(C) = mean(levels(ilevel:ilevel+1));
+  end
 end
 
 if doRepolate % sample matrices back down to original size

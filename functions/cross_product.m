@@ -56,10 +56,19 @@ out.y = out_y;
 out.z = out_z;
 
 if doComponents
-  out.x_yz = out_x_yz;
-  out.x_zy = out_x_zy;
-  out.y_xz = out_y_xz;
-  out.y_zx = out_y_zx;
-  out.z_xy = out_z_xy;
-  out.z_yx = out_z_yx;
+  if 1
+    out.x_yz = out_x_yz;
+    out.x_zy = out_x_zy;
+    out.y_xz = out_y_xz;
+    out.y_zx = out_y_zx;
+    out.z_xy = out_z_xy;
+    out.z_yx = out_z_yx;
+  else    
+    out.x.yz = out_x_yz;
+    out.x.zy = out_x_zy;
+    out.y.xz = out_y_xz;
+    out.y.zx = out_y_zx;
+    out.z.xy = out_z_xy;
+    out.z.yx = out_z_yx;
+  end
 end

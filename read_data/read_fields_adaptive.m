@@ -5,104 +5,109 @@ function varargout = read_fields_adaptive(txtfile,varargin)
     % READ_FILES
   %   Reads files and return normalized quantities
  
-  %% defaults
-  nss = 6; % number of species
-  doFixNegDensities = 0;
-  %groups = {[1 3],[2 4]}; % electron and ions
-  
-  % read input
-  nargs = numel(varargin);
-  args = varargin;
-  have_options = nargs > 1;
-  while have_options
-    switch(lower(args{1}))
-      case {'nss'} % number of species
-        l = 2;
-        nss = args{2};
-      case 'numberel' % number of bins for particle distributions
-        l = 2;
-        numberel = args{2};
-      case {'groups','group'}
-        l = 2;
-        groups = args{2};
-        doGroupManual = 1;
-        nGroups = numel(groups);
-        for iGroup = 1:nGroups          
-          nMembers(iGroup) = numel(groups{iGroup});
-        end
+%% defaults
+nss = 6; % number of species
+doFixNegDensities = 0;
+doSeparate = 1;
+doGroup = 0;
+%groups = {[1 3],[2 4]}; % electron and ions
+
+% read input
+nargs = numel(varargin);
+args = varargin;
+have_options = nargs > 1;
+while have_options
+  switch(lower(args{1}))
+    case {'nss'} % number of species
+      l = 2;
+      nss = args{2};
+    case 'numberel' % number of bins for particle distributions
+      l = 2;
+      numberel = args{2};
+    case {'groups','group'}
+      l = 2;
+      groups = args{2};
+      doGroupManual = 1;
+      doGroup = 1;
+      nGroups = numel(groups);
+      for iGroup = 1:nGroups          
+        nMembers(iGroup) = numel(groups{iGroup});
+      end
 %       case 'groupcharge'
 %         l = 1;
 %         doGroupCharge = 1;
 %       case 'groupmass'
 %         l = 1;
 %         doGroupMass = 1;
-      case 'rem_neg_n' % number of bins for particle distributions
-        l = 1;
-        doFixNegDensities = 1;
-    end
-    args = args((l+1):end);
-    if isempty(args), break, end
+    case {'nosep','noseparate','grouponly'} % number of species
+      l = 1;
+      doSeparate = 0;
+    case 'rem_neg_n' % number of bins for particle distributions
+      l = 1;
+      doFixNegDensities = 1;
   end
-    
+  args = args((l+1):end);
+  if isempty(args), break, end
+end
+
 %   if doGroupManual == 1, doGroupCharge = 0; doGroupMass = 0;    
 %   elseif doGroupMass == 1, doGroupCharge = 0;      
 %   end
-  
-  %% load data
-  [fid, message] = fopen(txtfile,'r','ieee-le');
-  if fid < 0
-    error('Failed to open file "%s" because "%s"', txtfile, message);
-  end
-  header = fread(fid,1,'integer*8');
 
-  it = fread(fid,1,'integer*4');                                % it
-  dt = fread(fid,1,'real*4');                                   % dt
-  teti = fread(fid,1,'real*4');                                 % teti
-  xmax = fread(fid,1,'real*4');                                 % xmax
-  zmax = fread(fid,1,'real*4');                                 % zmax
-  nnx = fread(fid,1,'integer*4');                               % nnx
-  nnz = fread(fid,1,'integer*4');                               % nnz
+%% Load data
+[fid, message] = fopen(txtfile,'r','ieee-le');
+if fid < 0
+  error('Failed to open file "%s" because "%s"', txtfile, message);
+end
+header = fread(fid,1,'integer*8');
 
-  vxs = zeros(nnx,nnz,nss);
-  vys = zeros(nnx,nnz,nss);
-  vzs = zeros(nnx,nnz,nss);
+it = fread(fid,1,'integer*4');                                % it
+dt = fread(fid,1,'real*4');                                   % dt
+teti = fread(fid,1,'real*4');                                 % teti
+xmax = fread(fid,1,'real*4');                                 % xmax
+zmax = fread(fid,1,'real*4');                                 % zmax
+nnx = fread(fid,1,'integer*4');                               % nnx
+nnz = fread(fid,1,'integer*4');                               % nnz
 
-  for is = 1:nss, vxs(:,:,is) = fread(fid,[nnx nnz],'real*4'); end  % vxs 
-  for is = 1:nss, vys(:,:,is) = fread(fid,[nnx nnz],'real*4'); end  % vys 
-  for is = 1:nss, vzs(:,:,is) = fread(fid,[nnx nnz],'real*4'); end  % vzs
-  bx = fread(fid,[nnx nnz],'real*4');                           % bx 
-  by = fread(fid,[nnx nnz],'real*4');                           % by 
-  bz = fread(fid,[nnx nnz],'real*4');                           % bz 
-  ex = fread(fid,[nnx nnz],'real*4');                           % ex 
-  ey = fread(fid,[nnx nnz],'real*4');                           % ey 
-  ez = fread(fid,[nnx nnz],'real*4');                           % ez 
+vxs = zeros(nnx,nnz,nss);
+vys = zeros(nnx,nnz,nss);
+vzs = zeros(nnx,nnz,nss);
 
-  dns = zeros(nnx,nnz,nss);
-  for is = 1:nss, dns(:,:,is) = fread(fid,[nnx nnz],'real*4'); end  % dns 
-  xe = fread(fid,nnx,'real*4');                                 % xe 
-  ze = fread(fid,nnz,'real*4');                                 % ze 
-  mass = fread(fid,nss,'real*4');                               % mass 
-  q = fread(fid,nss,'real*4');                                  % q 
-  time = fread(fid,1,'real*8');                                 % time 
-  wpewce = fread(fid,1,'real*4');                               % wpewce 
-  dfac = fread(fid,nss,'real*4');                               % dfac
-  vxx = zeros(nnx,nnz,nss); % vxvx
-  vyy = zeros(nnx,nnz,nss); % vyvy
-  vzz = zeros(nnx,nnz,nss); % vzvz
-  vxy = zeros(nnx,nnz,nss); % vxvy
-  vxz = zeros(nnx,nnz,nss); % vxvz
-  vyz = zeros(nnx,nnz,nss); % vyvz
+for is = 1:nss, vxs(:,:,is) = fread(fid,[nnx nnz],'real*4'); end  % vxs 
+for is = 1:nss, vys(:,:,is) = fread(fid,[nnx nnz],'real*4'); end  % vys 
+for is = 1:nss, vzs(:,:,is) = fread(fid,[nnx nnz],'real*4'); end  % vzs
+bx = fread(fid,[nnx nnz],'real*4');                           % bx 
+by = fread(fid,[nnx nnz],'real*4');                           % by 
+bz = fread(fid,[nnx nnz],'real*4');                           % bz 
+ex = fread(fid,[nnx nnz],'real*4');                           % ex 
+ey = fread(fid,[nnx nnz],'real*4');                           % ey 
+ez = fread(fid,[nnx nnz],'real*4');                           % ez 
 
-  for is = 1:nss, vxx(:,:,is) = fread(fid,[nnx nnz],'real*4'); end  % vxx 
-  for is = 1:nss, vyy(:,:,is) = fread(fid,[nnx nnz],'real*4'); end  % vyy 
-  for is = 1:nss, vzz(:,:,is) = fread(fid,[nnx nnz],'real*4'); end  % vzz 
-  for is = 1:nss, vxy(:,:,is) = fread(fid,[nnx nnz],'real*4'); end  % vxy 
-  for is = 1:nss, vxz(:,:,is) = fread(fid,[nnx nnz],'real*4'); end  % vxz 
-  for is = 1:nss, vyz(:,:,is) = fread(fid,[nnx nnz],'real*4'); end  % vyz
-  remainder = fread(fid);
-  st = fclose(fid);
-  
-  % Set groups  
+dns = zeros(nnx,nnz,nss);
+for is = 1:nss, dns(:,:,is) = fread(fid,[nnx nnz],'real*4'); end  % dns 
+xe = fread(fid,nnx,'real*4');                                 % xe 
+ze = fread(fid,nnz,'real*4');                                 % ze 
+mass = fread(fid,nss,'real*4');                               % mass 
+q = fread(fid,nss,'real*4');                                  % q 
+time = fread(fid,1,'real*8');                                 % time 
+wpewce = fread(fid,1,'real*4');                               % wpewce 
+dfac = fread(fid,nss,'real*4');                               % dfac
+vxx = zeros(nnx,nnz,nss); % vxvx
+vyy = zeros(nnx,nnz,nss); % vyvy
+vzz = zeros(nnx,nnz,nss); % vzvz
+vxy = zeros(nnx,nnz,nss); % vxvy
+vxz = zeros(nnx,nnz,nss); % vxvz
+vyz = zeros(nnx,nnz,nss); % vyvz
+
+for is = 1:nss, vxx(:,:,is) = fread(fid,[nnx nnz],'real*4'); end  % vxx 
+for is = 1:nss, vyy(:,:,is) = fread(fid,[nnx nnz],'real*4'); end  % vyy 
+for is = 1:nss, vzz(:,:,is) = fread(fid,[nnx nnz],'real*4'); end  % vzz 
+for is = 1:nss, vxy(:,:,is) = fread(fid,[nnx nnz],'real*4'); end  % vxy 
+for is = 1:nss, vxz(:,:,is) = fread(fid,[nnx nnz],'real*4'); end  % vxz 
+for is = 1:nss, vyz(:,:,is) = fread(fid,[nnx nnz],'real*4'); end  % vyz
+remainder = fread(fid);
+st = fclose(fid);
+% Set groups  
 %   if doGroupMass
 %     uniqueMass = unique(mass);
 %     for imass = 1:numel(uniqueMass)
@@ -115,27 +120,26 @@ function varargout = read_fields_adaptive(txtfile,varargin)
 %     end
 %   end
 
-    
-  nss = nss;
-  
-  %% Normalize 
-  xe = xe/sqrt(mass(1));
-  ze = ze/sqrt(mass(1));
-  bx = bx*wpewce(1);
-  by = by*wpewce(1);
-  bz = bz*wpewce(1);
-  ex = ex*sqrt(mass(1))*wpewce(1)^2;
-  ey = ey*sqrt(mass(1))*wpewce(1)^2;
-  ez = ez*sqrt(mass(1))*wpewce(1)^2;
-  
-  time = time/wpewce/mass(1);
-  
+%% Normalize variables
+xe = xe/sqrt(mass(1));
+ze = ze/sqrt(mass(1));
+bx = bx*wpewce(1);
+by = by*wpewce(1);
+bz = bz*wpewce(1);
+ex = ex*sqrt(mass(1))*wpewce(1)^2;
+ey = ey*sqrt(mass(1))*wpewce(1)^2;
+ez = ez*sqrt(mass(1))*wpewce(1)^2;
+
+time = time/wpewce/mass(1);
+
+%% Moments of seprate species
+if doSeparate
   % moments
   % initialize matrices
   n = zeros(numel(xe),numel(ze),nss);
-  jx = zeros(numel(xe),numel(ze),nss);
-  jy = zeros(numel(xe),numel(ze),nss);
-  jz = zeros(numel(xe),numel(ze),nss);
+  %jx = zeros(numel(xe),numel(ze),nss);
+  %jy = zeros(numel(xe),numel(ze),nss);
+  %jz = zeros(numel(xe),numel(ze),nss);
   vx = zeros(numel(xe),numel(ze),nss);
   vy = zeros(numel(xe),numel(ze),nss);
   vz = zeros(numel(xe),numel(ze),nss);
@@ -151,18 +155,21 @@ function varargout = read_fields_adaptive(txtfile,varargin)
   txy = zeros(numel(xe),numel(ze),nss);
   txz = zeros(numel(xe),numel(ze),nss);
   tyz = zeros(numel(xe),numel(ze),nss);
-  
+
   for iSpecies = 1:nss
     % density, n
     n(:,:,iSpecies) = dns(:,:,iSpecies)*dfac(iSpecies);
     % flux, j = nv
-    jx(:,:,iSpecies) = vxs(:,:,iSpecies)*dfac(iSpecies)*wpewce(1)*sqrt(mass(1)); % c/vA0
-    jy(:,:,iSpecies) = vys(:,:,iSpecies)*dfac(iSpecies)*wpewce(1)*sqrt(mass(1));
-    jz(:,:,iSpecies) = vzs(:,:,iSpecies)*dfac(iSpecies)*wpewce(1)*sqrt(mass(1));
+    %jx(:,:,iSpecies) = vxs(:,:,iSpecies)*dfac(iSpecies)*wpewce(1)*sqrt(mass(1)); % c/vA0
+    %jy(:,:,iSpecies) = vys(:,:,iSpecies)*dfac(iSpecies)*wpewce(1)*sqrt(mass(1));
+    %jz(:,:,iSpecies) = vzs(:,:,iSpecies)*dfac(iSpecies)*wpewce(1)*sqrt(mass(1));
     % velocity, v
-    vx(:,:,iSpecies) = jx(:,:,iSpecies)./n(:,:,iSpecies);
-    vy(:,:,iSpecies) = jy(:,:,iSpecies)./n(:,:,iSpecies);
-    vz(:,:,iSpecies) = jz(:,:,iSpecies)./n(:,:,iSpecies);    
+    %vx(:,:,iSpecies) = jx(:,:,iSpecies)./n(:,:,iSpecies);
+    %vy(:,:,iSpecies) = jy(:,:,iSpecies)./n(:,:,iSpecies);
+    %vz(:,:,iSpecies) = jz(:,:,iSpecies)./n(:,:,iSpecies); 
+    vx(:,:,iSpecies) = vxs(:,:,iSpecies)*dfac(iSpecies)*wpewce(1)*sqrt(mass(1))./n(:,:,iSpecies);
+    vy(:,:,iSpecies) = vys(:,:,iSpecies)*dfac(iSpecies)*wpewce(1)*sqrt(mass(1))./n(:,:,iSpecies);
+    vz(:,:,iSpecies) = vzs(:,:,iSpecies)*dfac(iSpecies)*wpewce(1)*sqrt(mass(1))./n(:,:,iSpecies); 
     % do this here already to not mess up something with the pressure I think
     vx(n==0) = 0;
     vy(n==0) = 0;
@@ -182,31 +189,31 @@ function varargout = read_fields_adaptive(txtfile,varargin)
     txz(:,:,iSpecies) = pxz(:,:,iSpecies)./n(:,:,iSpecies);
     tyz(:,:,iSpecies) = pyz(:,:,iSpecies)./n(:,:,iSpecies);
   end
-  
-  
-  %% Group and normalize grouped populations    
+end
+%% Moments of grouped populations    
+if doGroup 
   % not enough memory to make a nx x nz x (nss + ngroups) species  
   n_group = zeros(numel(xe),numel(ze),nGroups);
-  
+
   vxx_group = zeros(nnx,nnz,nGroups); % vxvx
   vyy_group = zeros(nnx,nnz,nGroups); % vyvy
   vzz_group = zeros(nnx,nnz,nGroups); % vzvz
   vxy_group = zeros(nnx,nnz,nGroups); % vxvy
   vxz_group = zeros(nnx,nnz,nGroups); % vxvz
   vyz_group = zeros(nnx,nnz,nGroups); % vyvz   
-    
+
   % flux in simulation
   vxs_group = zeros(nnx,nnz,nGroups);
   vys_group = zeros(nnx,nnz,nGroups);
   vzs_group = zeros(nnx,nnz,nGroups);
-  
-  for iGroup = 1:nGroups % this is wrong, need to take into account dfac
+
+  for iGroup = 1:nGroups
     dns_group(:,:,iGroup) = sum(dns(:,:,groups{iGroup}),3); % number of macroparticles, this can be added straight up
     for iMember = 1:nMembers(iGroup) % Added density
       iSpecies = groups{iGroup}(iMember);
-      
+
       n_group(:,:,iGroup) = n_group(:,:,iGroup) + dns(:,:,iSpecies)*dfac(iSpecies);
-      
+
       vxs_group(:,:,iGroup) = vxs_group(:,:,iGroup) + vxs(:,:,iSpecies)*dfac(iSpecies);
       vys_group(:,:,iGroup) = vys_group(:,:,iGroup) + vys(:,:,iSpecies)*dfac(iSpecies);
       vzs_group(:,:,iGroup) = vzs_group(:,:,iGroup) + vzs(:,:,iSpecies)*dfac(iSpecies);
@@ -218,10 +225,10 @@ function varargout = read_fields_adaptive(txtfile,varargin)
       vyz_group(:,:,iGroup) = vyz_group(:,:,iGroup) + vyz(:,:,iSpecies)*dfac(iSpecies);
       vzz_group(:,:,iGroup) = vzz_group(:,:,iGroup) + vzz(:,:,iSpecies)*dfac(iSpecies);
     end
-    
+
     % new dfac: density per macroparticle
     dfac_group(iGroup) = sum(sum(n_group(:,:,iGroup)))/sum(sum(dns_group(:,:,iGroup)));
-    
+
     vxs_group(:,:,iGroup) = vxs_group(:,:,iGroup)/dfac_group(iGroup);
     vys_group(:,:,iGroup) = vys_group(:,:,iGroup)/dfac_group(iGroup);
     vzs_group(:,:,iGroup) = vzs_group(:,:,iGroup)/dfac_group(iGroup);
@@ -232,16 +239,16 @@ function varargout = read_fields_adaptive(txtfile,varargin)
     vyy_group(:,:,iGroup) = vyy_group(:,:,iGroup)/dfac_group(iGroup);
     vyz_group(:,:,iGroup) = vyz_group(:,:,iGroup)/dfac_group(iGroup);
     vzz_group(:,:,iGroup) = vzz_group(:,:,iGroup)/dfac_group(iGroup);      
-           
+
     mass_group(iGroup) = mean(mass(groups{iGroup})); % obs, only works simply like this if the masses are the same!    
   end
-      
+
   % moments
   % initialize matrices
   % n_group = zeros(numel(xe),numel(ze),nGroups); % already done above
-  jx_group = zeros(numel(xe),numel(ze),nGroups);
-  jy_group = zeros(numel(xe),numel(ze),nGroups);
-  jz_group = zeros(numel(xe),numel(ze),nGroups);
+  %jx_group = zeros(numel(xe),numel(ze),nGroups);
+  %jy_group = zeros(numel(xe),numel(ze),nGroups);
+  %jz_group = zeros(numel(xe),numel(ze),nGroups);
   vx_group = zeros(numel(xe),numel(ze),nGroups);
   vy_group = zeros(numel(xe),numel(ze),nGroups);
   vz_group = zeros(numel(xe),numel(ze),nGroups);
@@ -257,19 +264,19 @@ function varargout = read_fields_adaptive(txtfile,varargin)
   txy_group = zeros(numel(xe),numel(ze),nGroups);
   txz_group = zeros(numel(xe),numel(ze),nGroups);
   tyz_group = zeros(numel(xe),numel(ze),nGroups);
-  
+
   for iGroup = 1:nGroups
     for iMember = 1:numel(groups{iGroup}) 
       iSpecies = iGroup;
       % density, n % done above    
       % flux, j = nv
-      jx_group(:,:,iSpecies) = vxs_group(:,:,iSpecies)*dfac_group(iSpecies)*wpewce(1)*sqrt(mass(1));
-      jy_group(:,:,iSpecies) = vys_group(:,:,iSpecies)*dfac_group(iSpecies)*wpewce(1)*sqrt(mass(1));
-      jz_group(:,:,iSpecies) = vzs_group(:,:,iSpecies)*dfac_group(iSpecies)*wpewce(1)*sqrt(mass(1));
+      %jx_group(:,:,iSpecies) = vxs_group(:,:,iSpecies)*dfac_group(iSpecies)*wpewce(1)*sqrt(mass(1));
+      %jy_group(:,:,iSpecies) = vys_group(:,:,iSpecies)*dfac_group(iSpecies)*wpewce(1)*sqrt(mass(1));
+      %jz_group(:,:,iSpecies) = vzs_group(:,:,iSpecies)*dfac_group(iSpecies)*wpewce(1)*sqrt(mass(1));
       % velocity, v
-      vx_group(:,:,iSpecies) = jx_group(:,:,iSpecies)./n_group(:,:,iSpecies);
-      vy_group(:,:,iSpecies) = jy_group(:,:,iSpecies)./n_group(:,:,iSpecies);
-      vz_group(:,:,iSpecies) = jz_group(:,:,iSpecies)./n_group(:,:,iSpecies);    
+      vx_group(:,:,iSpecies) = vxs_group(:,:,iSpecies)*dfac_group(iSpecies)*wpewce(1)*sqrt(mass(1))./n_group(:,:,iSpecies);
+      vy_group(:,:,iSpecies) = vys_group(:,:,iSpecies)*dfac_group(iSpecies)*wpewce(1)*sqrt(mass(1))./n_group(:,:,iSpecies);
+      vz_group(:,:,iSpecies) = vzs_group(:,:,iSpecies)*dfac_group(iSpecies)*wpewce(1)*sqrt(mass(1))./n_group(:,:,iSpecies);    
       % do this here already to not mess up something with the pressure I think
       vx_group(n_group==0) = 0;
       vy_group(n_group==0) = 0;
@@ -291,21 +298,13 @@ function varargout = read_fields_adaptive(txtfile,varargin)
       tyz_group(:,:,iSpecies) = pyz_group(:,:,iSpecies)./n_group(:,:,iSpecies);
     end
   end
-  
 
-dfac = cat(2,torow(dfac),torow(dfac_group));
-mass = cat(2,torow(mass),torow(mass_group));
-
-%% Normalize densities
-  for iSpecies = numel(nss+nGroups):-1:1
-    mass(iSpecies) = mass(iSpecies)/mass(1);
-  end
-  
-%% Fix data
-if doFixNegDensities
-  pxxe()
+  dfac = cat(2,torow(dfac),torow(dfac_group));
+  mass = cat(2,torow(mass),torow(mass_group));
 end
 
+%% Normalize densities
+mass = mass/mass(1);
 %% Collect data in structures, x, z, b, e, ni, ne, vi, ve, ji, je, pi, pe
 x = xe;
 z = ze;
@@ -318,65 +317,68 @@ E.x = ex;
 E.y = ey;
 E.z = ez;
 
-species_str = {};
-for iPop = 1:nss/2
-  species_str{end+1} = sprintf('i%g',iPop);
-  species_str{end+1} = sprintf('e%g',iPop);
-end
+
+%% Separate populations
+varstrs_species = {};
 comp_tens = {'xx','xy','xz','yy','yz','zz'};
 comp_vec = {'x','y','z'};
-varstrs_species = {};
-for iSpecies = 1:nss
-  % scalar
-  eval(sprintf('n%s = squeeze(n(:,:,%g));',species_str{iSpecies},iSpecies))
-  % vectors
-  for iComp = 1:numel(comp_vec)
-    eval(sprintf('v%s.%s = squeeze(v%s(:,:,%g));',species_str{iSpecies},comp_vec{iComp},comp_vec{iComp},iSpecies))
-    eval(sprintf('j%s.%s = squeeze(j%s(:,:,%g));',species_str{iSpecies},comp_vec{iComp},comp_vec{iComp},iSpecies))
+
+if doSeparate
+  species_str = {};
+  for iPop = 1:nss/2
+    species_str{end+1} = sprintf('i%g',iPop);
+    species_str{end+1} = sprintf('e%g',iPop);
   end
-  % tensors
-  for iComp = 1:numel(comp_tens)
-    eval(sprintf('p%s.%s = squeeze(p%s(:,:,%g));',species_str{iSpecies},comp_tens{iComp},comp_tens{iComp},iSpecies))
-    eval(sprintf('t%s.%s = squeeze(t%s(:,:,%g));',species_str{iSpecies},comp_tens{iComp},comp_tens{iComp},iSpecies))
+  for iSpecies = 1:nss
+    % scalar
+    eval(sprintf('n%s = squeeze(n(:,:,%g));',species_str{iSpecies},iSpecies))
+    % vectors
+    for iComp = 1:numel(comp_vec)
+      eval(sprintf('v%s.%s = squeeze(v%s(:,:,%g));',species_str{iSpecies},comp_vec{iComp},comp_vec{iComp},iSpecies))
+      %eval(sprintf('j%s.%s = squeeze(j%s(:,:,%g));',species_str{iSpecies},comp_vec{iComp},comp_vec{iComp},iSpecies))
+    end
+    % tensors
+    for iComp = 1:numel(comp_tens)
+      eval(sprintf('p%s.%s = squeeze(p%s(:,:,%g));',species_str{iSpecies},comp_tens{iComp},comp_tens{iComp},iSpecies))
+      eval(sprintf('t%s.%s = squeeze(t%s(:,:,%g));',species_str{iSpecies},comp_tens{iComp},comp_tens{iComp},iSpecies))
+    end
+    % collect strings for varargout
+    varstrs_species{end+1,1} = sprintf('n%s',species_str{iSpecies});
+    varstrs_species{end+1,1} = sprintf('v%s',species_str{iSpecies});
+    %varstrs_species{end+1,1} = sprintf('j%s',species_str{iSpecies});
+    varstrs_species{end+1,1} = sprintf('p%s',species_str{iSpecies});
+    varstrs_species{end+1,1} = sprintf('t%s',species_str{iSpecies});
   end
-  % collect strings for varargout
-  varstrs_species{end+1,1} = sprintf('n%s',species_str{iSpecies});
-  varstrs_species{end+1,1} = sprintf('v%s',species_str{iSpecies});
-  varstrs_species{end+1,1} = sprintf('j%s',species_str{iSpecies});
-  varstrs_species{end+1,1} = sprintf('p%s',species_str{iSpecies});
-  varstrs_species{end+1,1} = sprintf('t%s',species_str{iSpecies});
 end
 
 %% Combined populations
-species_str_group = {};
-species_str_group{end+1} = 'i12';
-species_str_group{end+1} = 'e12';
-
-comp_tens = {'xx','xy','xz','yy','yz','zz'};
-comp_vec = {'x','y','z'};
-for iSpecies = 1:nGroups
-  % scalar
-  eval(sprintf('n%s = squeeze(n_group(:,:,%g));',species_str_group{iSpecies},iSpecies))
-  % vectors
-  for iComp = 1:numel(comp_vec)
-    eval(sprintf('v%s.%s = squeeze(v%s_group(:,:,%g));',species_str_group{iSpecies},comp_vec{iComp},comp_vec{iComp},iSpecies))
-    eval(sprintf('j%s.%s = squeeze(j%s_group(:,:,%g));',species_str_group{iSpecies},comp_vec{iComp},comp_vec{iComp},iSpecies))
+if doGroup
+  species_str_group = {};
+  species_str_group{end+1} = 'i12'; % this is manually hardcoded  right now, need to change
+  species_str_group{end+1} = 'e12'; % this is manually hardcoded  right now, need to change
+  for iSpecies = 1:nGroups
+    % scalar
+    eval(sprintf('n%s = squeeze(n_group(:,:,%g));',species_str_group{iSpecies},iSpecies))
+    % vectors
+    for iComp = 1:numel(comp_vec)
+      eval(sprintf('v%s.%s = squeeze(v%s_group(:,:,%g));',species_str_group{iSpecies},comp_vec{iComp},comp_vec{iComp},iSpecies))
+      %eval(sprintf('j%s.%s = squeeze(j%s_group(:,:,%g));',species_str_group{iSpecies},comp_vec{iComp},comp_vec{iComp},iSpecies))
+    end
+    % tensors
+    for iComp = 1:numel(comp_tens)
+      eval(sprintf('p%s.%s = squeeze(p%s_group(:,:,%g));',species_str_group{iSpecies},comp_tens{iComp},comp_tens{iComp},iSpecies))
+      eval(sprintf('t%s.%s = squeeze(t%s_group(:,:,%g));',species_str_group{iSpecies},comp_tens{iComp},comp_tens{iComp},iSpecies))
+    end
+    % collect strings for varargout
+    varstrs_species{end+1,1} = sprintf('n%s',species_str_group{iSpecies});
+    varstrs_species{end+1,1} = sprintf('v%s',species_str_group{iSpecies});
+    %varstrs_species{end+1,1} = sprintf('j%s',species_str_group{iSpecies});
+    varstrs_species{end+1,1} = sprintf('p%s',species_str_group{iSpecies});
+    varstrs_species{end+1,1} = sprintf('t%s',species_str_group{iSpecies});
   end
-  % tensors
-  for iComp = 1:numel(comp_tens)
-    eval(sprintf('p%s.%s = squeeze(p%s_group(:,:,%g));',species_str_group{iSpecies},comp_tens{iComp},comp_tens{iComp},iSpecies))
-    eval(sprintf('t%s.%s = squeeze(t%s_group(:,:,%g));',species_str_group{iSpecies},comp_tens{iComp},comp_tens{iComp},iSpecies))
-  end
-  % collect strings for varargout
-  varstrs_species{end+1,1} = sprintf('n%s',species_str_group{iSpecies});
-  varstrs_species{end+1,1} = sprintf('v%s',species_str_group{iSpecies});
-  varstrs_species{end+1,1} = sprintf('j%s',species_str_group{iSpecies});
-  varstrs_species{end+1,1} = sprintf('p%s',species_str_group{iSpecies});
-  varstrs_species{end+1,1} = sprintf('t%s',species_str_group{iSpecies});
 end
 
 % Collect data in single varargout
-
 varstrs_common = {'x','z','E','B','dfac','teti','nnx','nnz','wpewce','mass','it','time','dt','xmax','zmax','q'};
 
 irow = 0;

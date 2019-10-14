@@ -2,7 +2,7 @@
 % make function that searches for possible data locations automatically
 simulation = 'michael'; 
 %simulation = 'cold_protons_new_boundary';
-%simulation = 'df_cold_protons_0.4';
+simulation = 'df_cold_protons_0.4';
 switch simulation
   case 'df_cold_protons_0.8'
     savedir_root = '/Users/cno062/Research/PIC/df_cold_protons_1/';
@@ -10,7 +10,7 @@ switch simulation
     %data_dir = '/Volumes/pic/in_progress/df_cold_protons_04/data/';
     nss = 4;
   case 'df_cold_protons_0.4'
-    savedir_root = '/Users/cno062/Research/PIC/df_cold_protons_04/';
+    savedir_root = '/Users/cno062/GoogleDrive/Research/PIC/df_cold_protons_04/';
     data_dir = '/Volumes/Fountain/Data/PIC/df_cold_protons_04/data/';
     data_dir = '/Volumes/Fountain/Data/PIC/df_cold_protons_04/data/';
     %data_dir = '/Volumes/pic/in_progress/df_cold_protons_04/data/';
@@ -23,7 +23,8 @@ switch simulation
     savedir_root = '/Users/cno062/Research/PIC/michael_run/';
     savedir_root = '/Users/cno062/GoogleDrive/Research/PIC/michael_run/';
     data_dir = '/Volumes/Fountain/Data/PIC/michael_run/data/';
-    data_dir = '/Volumes/pic/finished_runs/turbulencerun/';
+    data_dir = '/Volumes/pic/finished_runs/turbulencerun/data';
+    data_dir_resave = '/Volumes/pic/finished_runs/turbulencerun/data_separated/';
     nss = 4;
   case 'cold_protons_new_boundary'
     savedir_root = '/Users/cno062/Research/PIC/cold_protons_new_boundary/';
@@ -38,9 +39,11 @@ timestep = 05000;
 timestep = 05978;
 timestep = 02250;
 timestep = 07000;
-timestep = 05000;
+timestep = 0200;
 txtfile = sprintf('%s/fields-%05.0f.dat',data_dir,timestep); % michael's perturbation
 
+
+tic;
 all_data = read_fields_adaptive(txtfile,'nss',nss,'group',{[1 3],[2 4]});
 ndata = size(all_data,1);
 disp('Loaded: ')
@@ -49,6 +52,7 @@ for idata = 1:ndata
   fprintf('%s ',all_data{idata,1})
 end
 fprintf('\n') 
+toc;
 xshift = mean(x);
 x = x-xshift;
 dx = x(2)-x(1);
@@ -56,15 +60,50 @@ dz = z(2)-z(1);
 A = vector_potential(x,z,B.x,B.z); % vector potential
 [saddle_locations,saddle_values] = saddle(A);
 
+xLineInd = saddle_locations(find(saddle_values==max(saddle_values)),:);
+xLineXY = [x(xLineInd(1)) x(xLineInd(2))];
+
+%% Load separated data, mostly for time derivatives
+varstrs = {'vi12','ve12'};
+loadSeparated = 1;
+timesteps = timestep;
+if loadSeparated    
+  %%
+  fileList = dir([data_dir_resave filesep varstrs{1} filesep '*' varstrs{1} '*']);
+  nFiles = numel(fileList);
+  timesteps_ = zeros(nFiles,1);
+  for iFile = 1:nFiles
+    timesteps_(iFile) = str2num(fileList(iFile).name(numel(varstrs{1})+2+(1:5)));
+  end
+  timesteps_ind = find(timesteps_==timestep)+[-1:1:1];
+  timesteps = timesteps_(timesteps_ind);
+  for ivar = 1:numel(varstrs)
+    data = fun_load_resaved_data(data_dir_resave,{varstrs{ivar}},timesteps);
+    eval(sprintf('%s_ts = data;',varstrs{ivar}))
+  end
+end
+
+dt1 = (timesteps(2)-timesteps(1))*wpewce*mass(2);
+dt2 = (timesteps(3)-timesteps(2))*wpewce*mass(2);
+clear dve12dt dvi12dt
+dve12dt.x = 0.5*(squeeze(ve12_ts(2,:,:,1)-ve12_ts(1,:,:,1))./dt1 + squeeze(ve12_ts(3,:,:,1)-ve12_ts(2,:,:,1))./dt2);
+dve12dt.y = 0.5*(squeeze(ve12_ts(2,:,:,2)-ve12_ts(1,:,:,2))./dt1 + squeeze(ve12_ts(3,:,:,2)-ve12_ts(2,:,:,2))./dt2);
+dve12dt.z = 0.5*(squeeze(ve12_ts(2,:,:,3)-ve12_ts(1,:,:,3))./dt1 + squeeze(ve12_ts(3,:,:,3)-ve12_ts(2,:,:,3))./dt2);
+dvi12dt.x = 0.5*(squeeze(vi12_ts(2,:,:,1)-vi12_ts(1,:,:,1))./dt1 + squeeze(vi12_ts(3,:,:,1)-vi12_ts(2,:,:,1))./dt2);
+dvi12dt.y = 0.5*(squeeze(vi12_ts(2,:,:,2)-vi12_ts(1,:,:,2))./dt1 + squeeze(vi12_ts(3,:,:,2)-vi12_ts(2,:,:,2))./dt2);
+dvi12dt.z = 0.5*(squeeze(vi12_ts(2,:,:,3)-vi12_ts(1,:,:,3))./dt1 + squeeze(vi12_ts(3,:,:,3)-vi12_ts(2,:,:,3))./dt2);
+
 %% Calculate auxillary quantities
 iss = 1;
-[fi1_dv_temp,fi1_dv_conv,fi1_E,fi1_vxB,fi1_div_p] = fun_calc_force_terms([],x,z,mass(iss),q(iss),ni1,vi1,pi1,E,B,'nlim',0.02);
-[fi2_dv_temp,fi2_dv_conv,fi2_E,fi2_vxB,fi2_div_p] = fun_calc_force_terms([],x,z,mass(iss),q(iss),ni2,vi2,pi2,E,B,'nlim',0.02);
-[fi12_dv_temp,fi12_dv_conv,fi12_E,fi12_vxB,fi12_div_p] = fun_calc_force_terms([],x,z,mass(iss),q(iss),ni12,vi12,pi12,E,B,'nlim',0.02);
+%[fi1_dv_temp,fi1_dv_conv,fi1_E,fi1_vxB,fi1_div_p] = fun_calc_force_terms([],x,z,mass(iss),q(iss),ni1,vi1,pi1,E,B,'nlim',0.02);
+%[fi2_dv_temp,fi2_dv_conv,fi2_E,fi2_vxB,fi2_div_p] = fun_calc_force_terms([],x,z,mass(iss),q(iss),ni2,vi2,pi2,E,B,'nlim',0.02);
+%[fi12_dv_temp,fi12_dv_conv,fi12_E,fi12_vxB,fi12_div_p] = fun_calc_force_terms([],x,z,mass(iss),q(iss),ni12,vi12,pi12,E,B,'nlim',0.02);
+[fi12_dv_temp,fi12_dv_conv,fi12_E,fi12_vxB,fi12_div_p] = fun_calc_force_terms([],x,z,mass(iss),q(iss),ni12,vi12,pi12,E,B,'nlim',0.01,'comp',1);
 iss = 2;
-[fe1_dv_temp,fe1_dv_conv,fe1_E,de1_vxB,fe1_div_p] = fun_calc_force_terms([],x,z,mass(iss),q(iss),ne1,ve1,pe1,E,B,'nlim',0.02);
-[fe12_dv_temp,fe12_dv_conv,fe12_E,fe12_vxB,fe12_div_p] = fun_calc_force_terms([],x,z,mass(iss),q(iss),ne12,ve12,pe12,E,B,'nlim',0.02);
-[fe12_dv_temp,fe12_dv_conv,fe12_E,fe12_vxB,fe12_div_p] = fun_calc_force_terms([],x,z,mass(iss),q(iss),ne12,ve12,pe12,E,B,'nlim',0.02);
+%[fe1_dv_temp,fe1_dv_conv,fe1_E,de1_vxB,fe1_div_p] = fun_calc_force_terms([],x,z,mass(iss),q(iss),ne1,ve1,pe1,E,B,'nlim',0.02);
+%[fe2_dv_temp,fe2_dv_conv,fe2_E,fe2_vxB,fe2_div_p] = fun_calc_force_terms([],x,z,mass(iss),q(iss),ne2,ve2,pe2,E,B,'nlim',0.02);
+%[fe12_dv_temp,fe12_dv_conv,fe12_E,fe12_vxB,fe12_div_p] = fun_calc_force_terms([],x,z,mass(iss),q(iss),ne12,ve12,pe12,E,B,'nlim',0.02);
+[fe12_dv_temp,fe12_dv_conv,fe12_E,fe12_vxB,fe12_div_p] = fun_calc_force_terms([],x,z,mass(iss),q(iss),ne12,ve12,pe12,E,B,'nlim',0.01,'comp',1);
 
 
 %%

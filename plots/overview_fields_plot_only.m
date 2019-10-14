@@ -130,8 +130,24 @@ varstrs = {'smooth2(-fi12_dv_conv.x,np_smooth)','smooth2(-fi12_dv_conv.y,np_smoo
            'smooth2(-fi12_div_p.x,np_smooth)','smooth2(-fi12_div_p.y,np_smooth)','smooth2(-fi12_div_p.z,np_smooth)'};
 
 varstrs = {'E.z','ve12.x','vi12.z-ve12.z','ni12.*vi12.z-ne12.*ve12.z','fi12_E.z+fi12_vxB.z','fe12_E.z+fe12_vxB.z'};         
-clim = {};
+varstrs = {'mass(2)*dve12dt.x','mass(2)*dve12dt.y','mass(2)*dve12dt.z',...
+           'smooth2(fe12_dv_conv.x,np_smooth)','smooth2(fe12_dv_conv.y,np_smooth)','smooth2(fe12_dv_conv.z,np_smooth)',...
+           'E.par','ve12.x','E.perp.z'};
+           %'mass(1)*dvi12dt.x','mass(1)*dvi12dt.y','mass(1)*dvi12dt.z',...
+           %'smooth2(fi12_dv_conv.x,np_smooth)','smooth2(fi12_dv_conv.y,np_smooth)','smooth2(fi12_dv_conv.z,np_smooth)'};
 
+%           'angle_Bve12','angle_Bvi12',
+varstrs = {'fi12_E.z','fi12_vxB.z','fi12_E.z+fi12_vxB.z',...
+           'fe12_E.z','fe12_vxB.z','fe12_E.z+fe12_vxB.z',...
+           'ni12.*vi12.z','ne12.*ve12.z','ni12.*vi12.z-ne12.*ve12.z',...
+           'vi12.z','ve12.z','vi12.z-ve12.z',...
+           'vi12.x','ve12.x','vi12.x-ve12.x'};
+clim = {[-1 1],[-1 1],[-1 1],[-1 1],[-1 1],[-1 1],[-0.1 0.1],[-0.1 0.1],[-0.1 0.1],[-0.5 0.5],[-0.5 0.5],[-0.5 0.5],[-0.5 0.5],[-0.5 0.5],[-0.5 0.5]};
+
+varstrs = {'fi12_div_p.x','fi12_div_p.y','fi12_div_p.z',...
+           'fe12_div_p.x','fe12_div_p.y','fe12_div_p.z'};
+         
+clim = {};
 doLinkCLim = 0; % overrides manual clim
 
 %clim = {[-4 4],[-4 4],[-4 4],[-4 4],[-4 4],[-4 4]};
@@ -147,7 +163,7 @@ nvars = numel(varstrs);
 
 % Initialize figure
 npanels = nvars;
-maxrows = 2;
+maxrows = 3;
 nrows = min([npanels,maxrows]);
 ncols = ceil(npanels/nrows);
 npanels = nrows*ncols;
@@ -156,7 +172,7 @@ linkaxes(h);
 
 % Indices to plot
 xlim = [x(1) x(end)]; xlim = [0 x(end)]; %xlim = [-5 40];%[x(1) x(end)] + 150*[1 -1];
-zlim = [z(1) z(end)]; zlim = [-10 10];
+zlim = [z(1) z(end)]; zlim = [-20 20];
 ipx1 = find(x>xlim(1),1,'first');
 ipx2 = find(x<xlim(2),1,'last');
 ipz1 = find(z>zlim(1),1,'first');
@@ -281,7 +297,7 @@ for ipanel = 1:npanels
   h(ipanel).XDir = 'normal'; 'reverse';
   h(ipanel).XLim = xlim;
   h(ipanel).YLim = zlim;
-  if numel(clim)>=npanels && not(isempty(clim{ipanel}))
+  if numel(clim)>=ipanel && not(isempty(clim{ipanel}))
     if iscell(clim)
       h(ipanel).CLim = clim{ipanel}; 
     elseif isnumeric(clim) 
@@ -293,7 +309,8 @@ toc
 if doLinkCLim
   hlinks = linkprop(h,'CLim');
 end
-  %% Line plot at given x or z, define variable in cell array
+
+%% Line plot at given x or z, define variable in cell array
 % Define what variables to plot
 varstrs = {'ve1.x','ve2.x','ve1.z','ve2.z','ve1.par','ve2.par','ExB.x','ExB.z','-ve1xB.x','-ve2xB.x','-ve1xB.z','-ve2xB.z','E.x','E.z'};
 varstrs = {'ve1.x','ve2.x','B.z','E.z','-ve1xB.x','A'};
@@ -507,7 +524,116 @@ varstrs = {{'B.x','B.y','B.z'},...
            {'ne12'},...       
            }; 
 colororders = {'xyz','xyz','xyz','1',''};        
+end 
+if 1 % electron momentum equation
+  varstrs = {{'fe12_dv_conv.x','fe12_dv_conv.y','fe12_dv_conv.z'},...
+             {'fe12_dv_conv.y_xx','fe12_dv_conv.y_zz'},...
+             {'fe12_E.x','fe12_E.y','fe12_E.z'},...
+             {'fe12_vxB.x','fe12_vxB.y','fe12_vxB.z'},...
+             {'fe12_vxB.z_xy','fe12_vxB.z_yx'},...
+             {'fe12_vxB.x+fe12_E.x','fe12_vxB.y+fe12_E.y','fe12_vxB.z+fe12_E.z'},...
+             {'smooth2(fe12_div_p.x,2)','smooth2(fe12_div_p.y,2)','smooth2(fe12_div_p.z,2)'},...
+             {'smooth2(fe12_div_p.x_xx,2)','smooth2(fe12_div_p.x_yy,2)','smooth2(fe12_div_p.x_zz,2)'},...
+             {'smooth2(fe12_div_p.y_xx,2)','smooth2(fe12_div_p.y_yy,2)','smooth2(fe12_div_p.y_zz,2)'},...
+             {'smooth2(fe12_div_p.z_xx,2)','smooth2(fe12_div_p.z_yy,2)','smooth2(fe12_div_p.z_zz,2)'},...
+             {'fe12_vxB.x+fe12_E.x-smooth2(fe12_div_p.x,2)','fe12_vxB.y+fe12_E.y-smooth2(fe12_div_p.y,2)','fe12_vxB.z+fe12_E.z-smooth2(fe12_div_p.z,2)'},...             
+             {'fe12_vxB.y+fe12_E.y-smooth2(fe12_div_p.y,2)','fe12_dv_conv.y'},...
+             {'-smooth2(fe12_div_p.y_zz,2)','fe12_dv_conv.y_zz'},...
+             ...%{'fe12_vxB.z+fe12_E.z-smooth2(fe12_div_p.z,2)','fe12_dv_conv.z'},...
+             {'-smooth2(fe12_div_p.y,2)-fe12_E.y','fe12_dv_conv.y'},...
+             ...%{'fe12_vxB.z+fe12_E.z','smooth2(fe12_div_p.z,2)'},...
+             {'fe12_vxB.z_yx+fe12_E.z','smooth2(fe12_div_p.z_zz,2)'},...
+             %{'fe12_dv_conv.z','fe12_E.z','fe12_vxB.z','smooth2(fe12_div_p.z,2)'},... 
+             %{'fi12_dv_conv.z','fi12_E.z+fi12_vxB.z-smooth2(fi12_div_p.z,2)'},... 
+             %{'fe12_E.z+fe12_vxB.z','fe12_dv_conv.z+smooth2(fe12_div_p.z,2)'},... 
+             %{'smooth2(fe12_dv_conv.z,2)','fe12_E.z','fe12_vxB.z','smooth2(fe12_div_p.z,2)'},... 
+             %{'fe12_E.z+fe12_vxB.z','-smooth2(fe12_dv_conv.z,2)-smooth2(fe12_div_p.z,2)'},... 
+             %{'fi2_dv_conv.z','fi2_E.z','fi2_vxB.z','smooth2(fi2_div_p.z,2)'},... 
+             %{'force_dv_conv.z','force_E.z','force_vxB.z','force_div_p.z'},... 
+             %{'force_dv_conv.z','-force_E.z-force_vxB.z-force_div_p.z'},... 
+             }; 
+            colororders = {'xyz','xyz','xyzm','xyzm','xyzm','xyzm','xyzm','xyzm','xyzm','xyzm','xyzm','xyzm','bdacg1','bdacm','bdacm','bdacm','bdacm','bdacm','bdacm','1ao','bdac','','',''};
 end
+if 1 % electron equation of motion, "causality order"
+  varstrs = {{'fe12_E.z','fe12_vxB.z_yx','fe12_vxB.z_yx+fe12_E.z','smooth2(fe12_div_p.z_zz,2)'},...{'fe12_dv_conv.x','fe12_dv_conv.y','fe12_dv_conv.z'},...
+             {'fe12_dv_conv.y_xx','fe12_dv_conv.y_zz'},...
+             {'fe12_E.y','fe12_vxB.y','fe12_vxB.y_zx','fe12_vxB.y+fe12_E.y'},...
+             {'smooth2(fe12_div_p.y,2)','smooth2(fe12_div_p.y_xx,2)','smooth2(fe12_div_p.y_zz,2)'},...
+             {'pe12.xx','pe12.xy','pe12.xz','pe12.yy','pe12.yz','pe12.zz'},...
+             {'pe12.yz','pe12.zz'},...
+             {'fe12_dv_conv.y_zz','fe12_vxB.y_zx','fe12_E.y','-smooth2(fe12_div_p.y_xx,2)','-smooth2(fe12_div_p.y_zz,2)'},...
+             {'fe12_dv_conv.y_zz','fe12_vxB.y_zx+fe12_E.y-smooth2(fe12_div_p.y_xx,2)-smooth2(fe12_div_p.y_zz,2)'},...
+             {'fe12_vxB.y_zx+fe12_E.y-smooth2(fe12_div_p.y,2)','fe12_dv_conv.y','fe12_dv_conv.y_zz'},...
+             {'-smooth2(fe12_div_p.y_zz,2)','fe12_dv_conv.y_zz','-smooth2(fe12_div_p.z_zz,2)','-fe12_vxB.z_yx'},...
+             {'-smooth2(fe12_div_p.y_zz,2)','fe12_dv_conv.y_zz','-smooth2(fe12_div_p.z_zz,2)','-fe12_vxB.z_yx-fe12_E.z'},...             
+             {'-smooth2(fe12_div_p.y_zz,2)','smooth2(fe12_div_p.y_zz,2).*fe12_dv_conv.y_zz./fe12_vxB.y_zx'},... 
+             {'dve12dt.x','dve12dt.y','dve12dt.z'},... 
+             {'dvi12dt.x','dvi12dt.y','dvi12dt.z'}};
+           colororders = {'','','','',''};  
+end
+if 0 % electron equation of motion, "causality order"
+  varstrs = {{'fe12_E.z','fe12_vxB.z_yx','fe12_vxB.z_yx+fe12_E.z','smooth2(fe12_div_p.z_zz,2)'},...{'fe12_dv_conv.x','fe12_dv_conv.y','fe12_dv_conv.z'},...
+             {'fe12_dv_conv.y_xx','fe12_dv_conv.y_zz'},...             
+             {'smooth2(fe12_div_p.y,2)','smooth2(fe12_div_p.y_xx,2)','smooth2(fe12_div_p.y_zz,2)'},...                          
+             };            
+           colororders = {'','','','',''};  
+end
+if 1 % separatrix force balance in z
+  varstrs = {{'smooth2(fi12_dv_conv.z,np_smooth)','dvi12dt.z','fi12_E.z','fi12_vxB.z','smooth2(fi12_div_p.z,np_smooth)'},...
+             {'fi12_E.z+fi12_vxB.z','smooth2(fi12_div_p.z,2)'},...
+             {'smooth2(fe12_dv_conv.z,np_smooth)','dve12dt.z','fe12_E.z','fe12_vxB.z','smooth2(fe12_div_p.z,np_smooth)'},...
+             {'fe12_E.z+fe12_vxB.z','smooth2(fe12_div_p.z,2)'},...
+             {'ne12','ni12'},...
+             {'ve12.x','ve12.y','ve12.z'},...
+             {'angle_Bve12','angle_Bvi12'},...
+             {'cosd(angle_Bve12)','cosd(angle_Bvi12)'},...
+             {'sind(angle_Bve12)','sind(angle_Bvi12)'},...
+             {'cosd(angle_Bve12)./cosd(angle_Bvi12)'},...
+             }; 
+            colororders = {'xyz','xyz','xyzm','xyzm','xyzm','xyzm','xyzm','xyzm','xyzm','xyzm','xyzm','xyzm','bdacg1','bdacm','bdacm','bdacm','bdacm','bdacm','bdacm','1ao','bdac','','',''};
+end
+
+
+varstrs = {{'E.z','smooth2(fe12_div_p.z,2)','smooth2(fi12_div_p.z,2)'},...
+           {'E.z','smooth2(fe12_vxB.z,2)','-smooth2(fi12_vxB.z,2)'},...
+           {'ne12','ni12'},...
+           {'A'},...
+           {'A_map'},...
+           {'1./abs(B.x)'},...
+           {'abs(B.x)'},...
+           ...%{'A_map.*ne12'},...
+           {'ti12.xx','ti12.yy','ti12.zz'},...
+           {'te12.xx','te12.yy','te12.zz','(te12.xx+te12.yy+te12.zz)/3'},...
+           {'teti*(ti12.xx+ti12.yy+ti12.zz)/3','(te12.xx+te12.yy+te12.zz)/3'},...
+           {'(te12.xx+te12.yy)/2','abs(B.x)'},...
+           {'abs(B.x)./(te12.xx+te12.yy)/2'},...
+           {'abs(B.x)./(ti12.xx+ti12.yy)/2'},...
+           {'ve12.z','vi12.z'}};
+
+         
+varstrs = {{'ne12','ni12'},...
+           {'ve12.z','vi12.z'},...
+           {'ve12.y','vi12.y'},...
+           ...%{'E.z','smooth2(fe12_div_p.z,2)','smooth2(fi12_div_p.z,2)'},...
+           ...%{'E.z','smooth2(fe12_vxB.z,2)','-smooth2(fi12_vxB.z,2)'},...           
+           ...{'dvi12dt.z','smooth2(fi12_dv_conv.z,np_smooth)','fi12_E.z','fi12_vxB.z','-smooth2(fi12_div_p.z,np_smooth)'},...
+           ...{'dve12dt.z','smooth2(fe12_dv_conv.z,np_smooth)','fe12_E.z','fe12_vxB.z','-smooth2(fe12_div_p.z,np_smooth)'},...                      
+           ...{'dvi12dt.z+smooth2(fi12_dv_conv.z,np_smooth)','fi12_E.z+fi12_vxB.z','-smooth2(fi12_div_p.z,np_smooth)','fi12_E.z+fi12_vxB.z-smooth2(fi12_div_p.z,np_smooth)'},...
+           ...{'dve12dt.z+smooth2(fe12_dv_conv.z,np_smooth)','fe12_E.z+fe12_vxB.z','-smooth2(fe12_div_p.z,np_smooth)','fe12_E.z+fe12_vxB.z-smooth2(fe12_div_p.z,np_smooth)'},...
+           ...%{'E.z','smooth2(fe12_div_p.z,2)','smooth2(fi12_div_p.z,2)'},...
+           ...%{'E.z','smooth2(fe12_vxB.z,2)','-smooth2(fi12_vxB.z,2)'},...           
+           {'dvi12dt.y','smooth2(fi12_dv_conv.y,np_smooth)','fi12_E.y','fi12_vxB.y','-smooth2(fi12_div_p.y,np_smooth)'},...
+           {'dve12dt.y','smooth2(fe12_dv_conv.y,np_smooth)','fe12_E.y','fe12_vxB.y','-smooth2(fe12_div_p.y,np_smooth)'},...                      
+           {'dvi12dt.y+smooth2(fi12_dv_conv.y,np_smooth)','fi12_E.y+fi12_vxB.y','-smooth2(fi12_div_p.y,np_smooth)','fi12_E.y+fi12_vxB.y-smooth2(fi12_div_p.y,np_smooth)'},...
+           {'dve12dt.y+smooth2(fe12_dv_conv.y,np_smooth)','fe12_E.y+fe12_vxB.y','-smooth2(fe12_div_p.y,np_smooth)','fe12_E.y+fe12_vxB.y-smooth2(fe12_div_p.y,np_smooth)'},...                      
+           ...%{'ti12.xx','ti12.yy','ti12.zz'},...
+           ...%{'te12.xx','te12.yy','te12.zz','(te12.xx+te12.yy+te12.zz)/3'},...
+           ...%{'teti*(ti12.xx+ti12.yy+ti12.zz)/3','(te12.xx+te12.yy+te12.zz)/3'},...                      
+           ...%{'teti*abs(B.x)./(te12.xx+te12.yy)/2','abs(B.x)./(ti12.xx+ti12.yy)/2'}
+           };
+varstrs = {{'ne1','ne2','ne12'}};
+
+varsdata = cell(size(varstrs));
 
 doAddSpeciesExplanation = 0;
 speciesIdentification = {'i1','e1','i2','e2'};
@@ -528,7 +654,9 @@ zpick = [-0.1 0.1];
 zpick = [0];
 xpick = -18.5+0.2*[-1 1];
 xpick = 24+0.2*[-1 1];
-xpick = 15.5+0.2*[-1 1];
+xpick = 15.5+0.1*[-1 1];
+xpick = xLineXY(1)+0.2*[-1 1];
+%xpick = 0+0.1*[-1 1];
 %xpick = 20-5.6+0.2*[-1 1];
 %xpick = 32+0.2*[-1 1];
 zind = find_closest_ind(z,zpick);
@@ -538,7 +666,9 @@ xind = find_closest_ind(x,xpick);
 xlim = [150 x(fix(end/2))];
 xlim = [x(fix(end/2)) x(end)-150];
 xlim = [-10 100];%x([1 end])'+[150 -150];
-zlim = [00 6];
+zlim = [-5 5];
+zlim = [z(1) z(end)] + [1 -1];
+zlim = [-5 10];
 
 ipx1 = find(x>xlim(1),1,'first');
 ipx2 = find(x<xlim(2),1,'last');
@@ -590,11 +720,16 @@ isub = 1;
 tic;
 doColor = 0;
 for ipanel = 1:npanels
-  hca = h(isub); isub = isub + 1;
-  colors = pic_colors(colororders{ipanel});
-  if size(colors,1)>=(nvars(ipanel)), doColor = 1; else doColor = 0; end
+  hca = h(isub); isub = isub + 1;  
+  if numel(colororders)>= ipanel && not(isempty(colororders{ipanel}))
+    colors = pic_colors(colororders{ipanel});
+    if size(colors,1)>=(nvars(ipanel)), doColor = 1; else doColor = 0; end
+  else
+    doColor = 0;
+  end
   hplot = [];
-  for ivar = 1:nvars(ipanel)  
+  varsdata_tmp = cell(nvars(ipanel),1);
+  for ivar = 1:nvars(ipanel) 
     if ivar == 1, hold(hca,'off');
     elseif ivar == 2,  hold(hca,'on'); end 
     varstr = varstrs{ipanel}{ivar};
@@ -604,10 +739,12 @@ for ipanel = 1:npanels
       diffdirection = setdiff([1 2],meandirection);
       if diffdirection == 1, dd = x(2)-x(1); else, dd = z(2)-z(1); end; dd = 1;
       diff_variable = cat(meandirection,0,tocolumn(mean(diff(variable(ipx,ipz),[],diffdirection),meandirection)));
-      hplot_tmp = plot(hca,plot_dep,diff_variable/dd,'LineWidth',linewidth);
+      plot_var = diff_variable/dd;
+      hplot_tmp = plot(hca,plot_dep,plot_var,'LineWidth',linewidth);
       varstrs{ipanel}{ivar} = sprintf('diff(%s)',varstrs{ipanel}{ivar});      
     else
-      hplot_tmp = plot(hca,plot_dep,mean(variable(ipx,ipz),meandirection),'LineWidth',linewidth);      
+      plot_var = mean(variable(ipx,ipz),meandirection);
+      hplot_tmp = plot(hca,plot_dep,plot_var,'LineWidth',linewidth);      
     end
     if doColor, hplot_tmp.Color = colors(ivar,:); end
     hplot{ivar} = hplot_tmp;
@@ -616,7 +753,10 @@ for ipanel = 1:npanels
     %hca.Title.String = sprintf('%s, sum(%s) = %g',varstr,varstr,sum(variable(:))); 
     %hca.Title.String = sprintf('%s',varstr); 
     %hca.YLabel.Interpreter = 'none';        
-  end
+    varsdata_tmp{ivar} = plot_var;
+  end  
+  varsdata{ipanel} = varsdata_tmp;
+  
   leg_str_tmp = varstrs{ipanel};
   if doAddSpeciesExplanation
     for ivar = 1:nvars(ipanel)  
@@ -647,1317 +787,9 @@ end
 h(1).Title.String = sprintf('%s = [%.2f,%.2f] (d_i), time = %g (1/wci) = %g (1/wpe)',pickstr,pickval(1),pickval(end),time,timestep);
 arrayfun(@(x)eval(sprintf('x.Position(3) = 0.6;'),x),h)
 drawnow
-compact_panels(0.012)
+compact_panels(0.010)
+for iPanel = 1:(npanels-1)
+  h(iPanel).XLabel.String = [];
+end
 irf_plot_axis_align
 %hca.YLim = [-2 2];
-
-%% (OLD) Plot, 4 species plasma properties, 1 species per column
-% Initialize figure
-nrows = 5;
-ncols = 4;
-npanels = nrows*ncols;
-isub = 1; 
-for ipanel = 1:npanels  
-  h(isub) = subplot(nrows,ncols,ipanel); isub = isub + 1;  
-end
-
-% Panels
-doA = 0;
-cA = [0.8 0.8 0.8];
-nA = 20;
-nA = [0:-2:min(A(:))];
-ipx = 1:2:nnx;
-ipz = 1:2:nnz;
-isub = 1;
-if 0 % A
-  hca = h(isub); isub = isub + 1;
-  varstr = 'A';
-  variable = eval(varstr);  
-  himag = imagesc(hca,x,z,variable(ipx,ipz)');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = varstr; 
-  hca.CLim = max(abs(himag.CData(:)))*[-1 1];  
-  hcb = colorbar('peer',hca);
-  hcb.YLim = hca.CLim(2)*[-1 0];
-  colormap(hca,cn.cmap('blue_red'));
-    
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,xe,ze,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 0 % babs
-  hca = h(isub); isub = isub + 1;
-  varstr = 'B.abs';
-  variable = eval(varstr);  
-  himag = imagesc(hca,x,z,variable(ipx,ipz)');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = varstr; 
-  hca.CLim = max(abs(himag.CData(:)))*[-1 1];  
-  hcb = colorbar('peer',hca);
-  hcb.YLim = hca.CLim(2)*[0 1];
-  colormap(hca,cn.cmap('blue_red'));
-    
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,xe,ze,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 0 % bx
-  hca = h(isub); isub = isub + 1;
-  varstr = 'B.x';
-  variable = eval(varstr);  
-  himag = imagesc(hca,x,z,variable(ipx,ipz)');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = varstr;
-  hca.CLim = max(abs(himag.CData(:)))*[-1 1];  
-  hcb = colorbar('peer',hca);
-  colormap(hca,cn.cmap('blue_red'));
-    
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,xe,ze,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 1 % by
-  hca = h(isub); isub = isub + 1;
-  varstr = 'B.y';
-  variable = eval(varstr);  
-  himag = imagesc(hca,x,z,variable(ipx,ipz)');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = varstr;
-  hca.CLim = max(abs(himag.CData(:)))*[-1 1];  
-  hcb = colorbar('peer',hca);
-  colormap(hca,cn.cmap('blue_red'));
-    
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,xe,ze,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 0 % bz
-  hca = h(isub); isub = isub + 1;
-  varstr = 'B.z';
-  variable = eval(varstr);  
-  himag = imagesc(hca,x,z,variable(ipx,ipz)');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = varstr;
-  hca.CLim = max(abs(himag.CData(:)))*[-1 1];  
-  hcb = colorbar('peer',hca);
-  colormap(hca,cn.cmap('blue_red'));
-    
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,xe,ze,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 0 % epar
-  hca = h(isub); isub = isub + 1;
-  varstr = 'E.par';
-  variable = eval(varstr);  
-  himag = imagesc(hca,x,z,variable(ipx,ipz)');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = varstr;
-  hca.CLim = max(abs(himag.CData(:)))*[-1 1];  
-  hcb = colorbar('peer',hca);  
-  colormap(hca,cn.cmap('blue_red'));
-    
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,xe,ze,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 0 % ex
-  hca = h(isub); isub = isub + 1;
-  varstr = 'E.x';
-  variable = eval(varstr);  
-  himag = imagesc(hca,x,z,variable(ipx,ipz)');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = varstr;
-  hca.CLim = max(abs(himag.CData(:)))*[-1 1];  
-  hcb = colorbar('peer',hca);
-  colormap(hca,cn.cmap('blue_red'));
-    
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,xe,ze,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 0 % ey
-  hca = h(isub); isub = isub + 1;
-  varstr = 'E.y';
-  variable = eval(varstr);  
-  himag = imagesc(hca,x,z,variable(ipx,ipz)');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = varstr;
-  hca.CLim = max(abs(himag.CData(:)))*[-1 1];  
-  hcb = colorbar('peer',hca);
-  colormap(hca,cn.cmap('blue_red'));
-    
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,xe,ze,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 0 % ez
-  hca = h(isub); isub = isub + 1;
-  varstr = 'E.z';
-  variable = eval(varstr);  
-  himag = imagesc(hca,x,z,variable(ipx,ipz)');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = varstr;
-  hca.CLim = max(abs(himag.CData(:)))*[-1 1];  
-  hcb = colorbar('peer',hca);
-  colormap(hca,cn.cmap('blue_red'));
-    
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,xe,ze,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 0 % ne1
-  hca = h(isub); isub = isub + 1;
-  varstr = 'ne1';
-  variable = eval(varstr);  
-  himag = imagesc(hca,x,z,variable(ipx,ipz)');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = varstr;
-  hcb = colorbar('peer',hca);
-  colormap(hca,cn.cmap('blue_red'));
-  hcb.YLim(1) = 0;
-  hca.CLim = hca.CLim(2)*[-1 1];
-  
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,x,z,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 0 % ne2
-  hca = h(isub); isub = isub + 1;
-  varstr = 'ne2';
-  variable = eval(varstr);  
-  himag = imagesc(hca,x,z,variable(ipx,ipz)');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = varstr;
-  hcb = colorbar('peer',hca);
-  colormap(hca,cn.cmap('blue_red'));
-  hcb.YLim(1) = 0;
-  hca.CLim = hca.CLim(2)*[-1 1];
-  
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,x,z,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 0 % ni1
-  hca = h(isub); isub = isub + 1;
-  varstr = 'ni1';
-  variable = eval(varstr);  
-  himag = imagesc(hca,x,z,variable(ipx,ipz)');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = varstr;
-  hcb = colorbar('peer',hca);
-  colormap(hca,cn.cmap('blue_red'));
-  hcb.YLim(1) = 0;
-  hca.CLim = hca.CLim(2)*[-1 1];
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,x,z,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 0 % ni2
-  hca = h(isub); isub = isub + 1;
-  varstr = 'ni2';
-  variable = eval(varstr);  
-  himag = imagesc(hca,x,z,variable(ipx,ipz)');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = varstr;
-  hcb = colorbar('peer',hca);
-  colormap(hca,cn.cmap('blue_red'));
-  hcb.YLim(1) = 0;
-  hca.CLim = hca.CLim(2)*[-1 1];
-  
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,x,z,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 1 % vepar1
-  hca = h(isub); isub = isub + 1;  
-  varstr = 've1.par';
-  variable = eval(varstr);  
-  himag = imagesc(hca,x,z,variable(ipx,ipz)');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = varstr;  
-  hca.CLim = max(abs(himag.CData(:)))*[-1 1];  
-  hcb = colorbar('peer',hca);  
-  colormap(hca,cn.cmap('blue_red'));
-    
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,xe,ze,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 1 % vepar2
-  hca = h(isub); isub = isub + 1;
-  varstr = 've2.par';
-  variable = eval(varstr);  
-  himag = imagesc(hca,x,z,variable(ipx,ipz)');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = varstr;
-  hca.CLim = max(abs(himag.CData(:)))*[-1 1];  
-  hcb = colorbar('peer',hca);  
-  colormap(hca,cn.cmap('blue_red'));
-    
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,xe,ze,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 1 % vipar1
-  hca = h(isub); isub = isub + 1;
-  varstr = 'vi1.par';
-  variable = eval(varstr);  
-  himag = imagesc(hca,x,z,variable(ipx,ipz)');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = varstr;
-  hca.CLim = max(abs(himag.CData(:)))*[-1 1];  
-  hcb = colorbar('peer',hca);  
-  colormap(hca,cn.cmap('blue_red'));
-    
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,xe,ze,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 0 % vipar2
-  hca = h(isub); isub = isub + 1;
-  varstr = 'vi2.par';
-  variable = eval(varstr);  
-  himag = imagesc(hca,x,z,variable(ipx,ipz)');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = varstr;
-  hca.CLim = max(abs(himag.CData(:)))*[-1 1];  
-  hcb = colorbar('peer',hca);  
-  colormap(hca,cn.cmap('blue_red'));
-    
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,xe,ze,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 1 % vex1
-  hca = h(isub); isub = isub + 1;
-  varstr = 've1.x';
-  variable = eval(varstr);  
-  himag = imagesc(hca,x,z,variable(ipx,ipz)');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = varstr;
-  hca.CLim = max(abs(himag.CData(:)))*[-1 1];  
-  hcb = colorbar('peer',hca);
-  colormap(hca,cn.cmap('blue_red'));
-    
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,x,z,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 1 % vex2
-  hca = h(isub); isub = isub + 1;
-  varstr = 've2.x';
-  variable = eval(varstr);  
-  himag = imagesc(hca,x,z,variable(ipx,ipz)');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = varstr;
-  hca.CLim = max(abs(himag.CData(:)))*[-1 1];  
-  hcb = colorbar('peer',hca);
-  colormap(hca,cn.cmap('blue_red'));
-    
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,x,z,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 1 % vix1
-  hca = h(isub); isub = isub + 1;
-  varstr = 'vi1.x';
-  variable = eval(varstr);  
-  himag = imagesc(hca,x,z,variable(ipx,ipz)');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = varstr;
-  hca.CLim = max(abs(himag.CData(:)))*[-1 1];  
-  hcb = colorbar('peer',hca);
-  colormap(hca,cn.cmap('blue_red'));
-    
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,x,z,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 1 % vix2
-  hca = h(isub); isub = isub + 1;
-  varstr = 'vi2.x';
-  variable = eval(varstr);  
-  himag = imagesc(hca,x,z,variable(ipx,ipz)');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = varstr;
-  hca.CLim = max(abs(himag.CData(:)))*[-1 1];  
-  hcb = colorbar('peer',hca);
-  colormap(hca,cn.cmap('blue_red'));
-    
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,x,z,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 1 % vey1
-  hca = h(isub); isub = isub + 1;
-  varstr = 've1.y';
-  variable = eval(varstr);  
-  himag = imagesc(hca,x,z,variable(ipx,ipz)');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = varstr;
-  hca.CLim = max(abs(himag.CData(:)))*[-1 1];  
-  hcb = colorbar('peer',hca);
-  colormap(hca,cn.cmap('blue_red'));
-    
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,x,z,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 1 % vey2
-  hca = h(isub); isub = isub + 1;
-  varstr = 've2.y';
-  variable = eval(varstr);  
-  himag = imagesc(hca,x,z,variable(ipx,ipz)');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = varstr;
-  hca.CLim = max(abs(himag.CData(:)))*[-1 1];  
-  hcb = colorbar('peer',hca);
-  colormap(hca,cn.cmap('blue_red'));
-    
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,x,z,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 1 % viy1
-  hca = h(isub); isub = isub + 1;
-  varstr = 'vi1.y';
-  variable = eval(varstr);  
-  himag = imagesc(hca,x,z,variable(ipx,ipz)');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = varstr;
-  hca.CLim = max(abs(himag.CData(:)))*[-1 1];  
-  hcb = colorbar('peer',hca);
-  colormap(hca,cn.cmap('blue_red'));
-    
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,x,z,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 1 % viy2
-  hca = h(isub); isub = isub + 1;
-  varstr = 'vi2.y';
-  variable = eval(varstr);  
-  himag = imagesc(hca,x,z,variable(ipx,ipz)');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = varstr;
-  hca.CLim = max(abs(himag.CData(:)))*[-1 1];  
-  hcb = colorbar('peer',hca);
-  colormap(hca,cn.cmap('blue_red'));
-    
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,x,z,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 1 % vez1
-  hca = h(isub); isub = isub + 1;
-  varstr = 've1.z';
-  variable = eval(varstr);  
-  himag = imagesc(hca,x,z,variable(ipx,ipz)');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = varstr;
-  hca.CLim = max(abs(himag.CData(:)))*[-1 1];  
-  hcb = colorbar('peer',hca);
-  colormap(hca,cn.cmap('blue_red'));
-    
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,xe,ze,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 1 % vez2
-  hca = h(isub); isub = isub + 1;
-  varstr = 've2.z';
-  variable = eval(varstr);  
-  himag = imagesc(hca,x,z,variable(ipx,ipz)');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = varstr;
-  hca.CLim = max(abs(himag.CData(:)))*[-1 1];  
-  hcb = colorbar('peer',hca);
-  colormap(hca,cn.cmap('blue_red'));
-    
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,xe,ze,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 1 % viz1
-  hca = h(isub); isub = isub + 1;
-  varstr = 'vi1.z';
-  variable = eval(varstr);  
-  himag = imagesc(hca,x,z,variable(ipx,ipz)');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = varstr;
-  hca.CLim = max(abs(himag.CData(:)))*[-1 1];  
-  hcb = colorbar('peer',hca);
-  colormap(hca,cn.cmap('blue_red'));
-    
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,xe,ze,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 1 % viz2
-  hca = h(isub); isub = isub + 1;
-  varstr = 'vi2.z';
-  variable = eval(varstr);  
-  himag = imagesc(hca,x,z,variable(ipx,ipz)');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = varstr;
-  hca.CLim = max(abs(himag.CData(:)))*[-1 1];  
-  hcb = colorbar('peer',hca);
-  colormap(hca,cn.cmap('blue_red'));
-    
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,xe,ze,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 0 % pxx e1 
-  hca = h(isub); isub = isub + 1;
-  himag = imagesc(hca,x,z,pe1.xx');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = 'p_{e1xx}';
-  hcb = colorbar('peer',hca);
-  colormap(hca,cn.cmap('blue_red'));
-  hca.CLim = max(abs(himag.CData(:)))*[-1 1];  
-  hcb.YLim = [0 hca.CLim(2)];
-  
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,x,z,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 0 % pxx e2 
-  hca = h(isub); isub = isub + 1;
-  himag = imagesc(hca,x,z,pe2.xx');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = 'p_{e2xx}';
-
-  hcb = colorbar('peer',hca);
-  colormap(hca,cn.cmap('blue_red'));
-  hca.CLim = max(abs(himag.CData(:)))*[-1 1];  
-  hcb.YLim = [0 hca.CLim(2)];
-  
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,x,z,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 0 % pxx i1 
-  hca = h(isub); isub = isub + 1;
-  himag = imagesc(hca,x,z,pi1.xx');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = 'p_{i1xx}';
-
-  hcb = colorbar('peer',hca);
-  colormap(hca,cn.cmap('blue_red'));
-  hca.CLim = max(abs(himag.CData(:)))*[-1 1];  
-  hcb.YLim = [0 hca.CLim(2)];
-  
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,x,z,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 0 % pxx i2 
-  hca = h(isub); isub = isub + 1;
-  himag = imagesc(hca,x,z,pi2.xx');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = 'p_{i2xx}';
-
-  hcb = colorbar('peer',hca);
-  colormap(hca,cn.cmap('blue_red'));
-  hca.CLim = max(abs(himag.CData(:)))*[-1 1];  
-  hcb.YLim = [0 hca.CLim(2)];
-  
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,x,z,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 0 % pyy e1 
-  hca = h(isub); isub = isub + 1;
-  himag = imagesc(hca,x,z,pe1.yy');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = 'p_{e1yy}';
-
-  hcb = colorbar('peer',hca);
-  colormap(hca,cn.cmap('blue_red'));
-  hca.CLim = max(abs(himag.CData(:)))*[-1 1];  
-  hcb.YLim = [0 hca.CLim(2)];
-  
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,x,z,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 0 % pyy e2 
-  hca = h(isub); isub = isub + 1;
-  himag = imagesc(hca,x,z,pe2.yy');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = 'p_{e2yy}';
-
-  hcb = colorbar('peer',hca);
-  colormap(hca,cn.cmap('blue_red'));
-  hca.CLim = max(abs(himag.CData(:)))*[-1 1];  
-  hcb.YLim = [0 hca.CLim(2)];
-  
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,x,z,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 0 % pyy i1 
-  hca = h(isub); isub = isub + 1;
-  himag = imagesc(hca,x,z,pi2.yy');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = 'p_{i1yy}';
-
-  hcb = colorbar('peer',hca);
-  colormap(hca,cn.cmap('blue_red'));
-  hca.CLim = max(abs(himag.CData(:)))*[-1 1];  
-  hcb.YLim = [0 hca.CLim(2)];
-  
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,x,z,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 0 % pyy i2 
-  hca = h(isub); isub = isub + 1;
-  himag = imagesc(hca,x,z,pi1.yy');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = 'p_{i2yy}';
-
-  hcb = colorbar('peer',hca);
-  colormap(hca,cn.cmap('blue_red'));
-  hca.CLim = max(abs(himag.CData(:)))*[-1 1];  
-  hcb.YLim = [0 hca.CLim(2)];
-  
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,x,z,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 0 % pzz e1 
-  hca = h(isub); isub = isub + 1;
-  himag = imagesc(hca,x,z,pe1.zz');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = 'p_{e1zz}';
-
-  hcb = colorbar('peer',hca);
-  colormap(hca,cn.cmap('blue_red'));
-  hca.CLim = max(abs(himag.CData(:)))*[-1 1];  
-  hcb.YLim = [0 hca.CLim(2)];
-  
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,x,z,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 0 % pzz e2 
-  hca = h(isub); isub = isub + 1;
-  himag = imagesc(hca,x,z,pe2.zz');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = 'p_{e2zz}';
-
-  hcb = colorbar('peer',hca);
-  colormap(hca,cn.cmap('blue_red'));
-  hca.CLim = max(abs(himag.CData(:)))*[-1 1];  
-  hcb.YLim = [0 hca.CLim(2)];
-  
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,x,z,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 0 % pzz i1 
-  hca = h(isub); isub = isub + 1;
-  himag = imagesc(hca,x,z,pi1.zz');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = 'p_{i1zz}';
-
-  hcb = colorbar('peer',hca);
-  colormap(hca,cn.cmap('blue_red'));
-  hca.CLim = max(abs(himag.CData(:)))*[-1 1];  
-  hcb.YLim = [0 hca.CLim(2)];
-  
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,x,z,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 0 % pzz i2 
-  hca = h(isub); isub = isub + 1;
-  himag = imagesc(hca,x,z,pi2.zz');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = 'p_{izz2}';
-
-  hcb = colorbar('peer',hca);
-  colormap(hca,cn.cmap('blue_red'));
-  hca.CLim = max(abs(himag.CData(:)))*[-1 1];  
-  hcb.YLim = [0 hca.CLim(2)];
-  
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,x,z,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 0 % pscalar e1 
-  hca = h(isub); isub = isub + 1;
-  himag = imagesc(hca,x,z,pe1.scalar');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = 'p_{e1scalar}';
-
-  hcb = colorbar('peer',hca);
-  colormap(hca,cn.cmap('blue_red'));
-  hca.CLim = max(abs(himag.CData(:)))*[-1 1];  
-  hcb.YLim = [0 hca.CLim(2)];
-  
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,x,z,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 0 % pscalar e2 
-  hca = h(isub); isub = isub + 1;
-  himag = imagesc(hca,x,z,pe2.scalar');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = 'p_{e2scalar}';
-
-  hcb = colorbar('peer',hca);
-  colormap(hca,cn.cmap('blue_red'));
-  hca.CLim = max(abs(himag.CData(:)))*[-1 1];  
-  hcb.YLim = [0 hca.CLim(2)];
-  
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,x,z,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 0 % pscalar i1 
-  hca = h(isub); isub = isub + 1;
-  himag = imagesc(hca,x,z,pi1.scalar');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = 'p_{i1scalar}';
-
-  hcb = colorbar('peer',hca);
-  colormap(hca,cn.cmap('blue_red'));
-  hca.CLim = max(abs(himag.CData(:)))*[-1 1];  
-  hcb.YLim = [0 hca.CLim(2)];
-  
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,x,z,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 0 % pscalar i2 
-  hca = h(isub); isub = isub + 1;
-  himag = imagesc(hca,x,z,pi2.scalar');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = 'p_{i2scalar}';
-
-  hcb = colorbar('peer',hca);
-  colormap(hca,cn.cmap('blue_red'));
-  hca.CLim = max(abs(himag.CData(:)))*[-1 1];  
-  hcb.YLim = [0 hca.CLim(2)];
-  
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,x,z,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 0 % ve1xB_x
-  hca = h(isub); isub = isub + 1;
-  himag = imagesc(hca,x,z,ve1xB.x');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = '(v_{e1}xB)_x';
-  hca.CLim = max(abs(himag.CData(:)))*[-1 1];  
-  hcb = colorbar('peer',hca);
-  colormap(hca,cn.cmap('blue_red'));
-    
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,x,z,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 0 % ve2xB_x
-  hca = h(isub); isub = isub + 1;
-  himag = imagesc(hca,x,z,ve2xB.x');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = '(v_{e2}xB)_x';
-  hca.CLim = max(abs(himag.CData(:)))*[-1 1];  
-  hcb = colorbar('peer',hca);
-  colormap(hca,cn.cmap('blue_red'));
-    
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,x,z,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 0 % vi1xB_x
-  hca = h(isub); isub = isub + 1;
-  himag = imagesc(hca,x,z,vi1xB.x');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = '(v_{i1}xB)_x';
-  hca.CLim = max(abs(himag.CData(:)))*[-1 1];  
-  hcb = colorbar('peer',hca);
-  colormap(hca,cn.cmap('blue_red'));
-    
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,x,z,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 0 % vi2xB_x
-  hca = h(isub); isub = isub + 1;
-  himag = imagesc(hca,x,z,vi2xB.x');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = '(v_{i2}xB)_x';
-  hca.CLim = max(abs(himag.CData(:)))*[-1 1];  
-  hcb = colorbar('peer',hca);
-  colormap(hca,cn.cmap('blue_red'));
-    
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,x,z,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 0 % ve1xB_y
-  hca = h(isub); isub = isub + 1;
-  himag = imagesc(hca,x,z,ve1xB.y');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = '(v_{e1}xB)_y';
-  hca.CLim = max(abs(himag.CData(:)))*[-1 1];  
-  hcb = colorbar('peer',hca);
-  colormap(hca,cn.cmap('blue_red'));
-    
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,x,z,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 0 % ve2xB_y
-  hca = h(isub); isub = isub + 1;
-  himag = imagesc(hca,x,z,ve2xB.y');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = '(v_{e2}xB)_y';
-  hca.CLim = max(abs(himag.CData(:)))*[-1 1];  
-  hcb = colorbar('peer',hca);
-  colormap(hca,cn.cmap('blue_red'));
-    
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,x,z,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 0 % vi1xB_y
-  hca = h(isub); isub = isub + 1;
-  himag = imagesc(hca,x,z,vi1xB.y');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = '(v_{i1}xB)_y';
-  hca.CLim = max(abs(himag.CData(:)))*[-1 1];  
-  hcb = colorbar('peer',hca);
-  colormap(hca,cn.cmap('blue_red'));
-    
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,x,z,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 0 % vi2xB_y
-  hca = h(isub); isub = isub + 1;
-  himag = imagesc(hca,x,z,vi2xB.y');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = '(v_{i2}xB)_y';
-  hca.CLim = max(abs(himag.CData(:)))*[-1 1];  
-  hcb = colorbar('peer',hca);
-  colormap(hca,cn.cmap('blue_red'));
-    
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,x,z,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 0 % ve1xB_z
-  hca = h(isub); isub = isub + 1;
-  himag = imagesc(hca,x,z,ve1xB.z');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = '(v_{e1}xB)_z';
-  hca.CLim = max(abs(himag.CData(:)))*[-1 1];  
-  hcb = colorbar('peer',hca);
-  colormap(hca,cn.cmap('blue_red'));
-    
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,x,z,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 0 % ve2xB_z
-  hca = h(isub); isub = isub + 1;
-  himag = imagesc(hca,x,z,ve2xB.z');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = '(v_{e2}xB)_z';
-  hca.CLim = max(abs(himag.CData(:)))*[-1 1];  
-  hcb = colorbar('peer',hca);
-  colormap(hca,cn.cmap('blue_red'));
-    
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,x,z,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 0 % vi1xB_z
-  hca = h(isub); isub = isub + 1;
-  himag = imagesc(hca,x,z,vi1xB.z');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = '(v_{i1}xB)_z';
-  hca.CLim = max(abs(himag.CData(:)))*[-1 1];  
-  hcb = colorbar('peer',hca);
-  colormap(hca,cn.cmap('blue_red'));
-    
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,x,z,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 0 % vi2xB_z
-  hca = h(isub); isub = isub + 1;
-  himag = imagesc(hca,x,z,vi2xB.z');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = '(v_{i2}xB)_z';
-  hca.CLim = max(abs(himag.CData(:)))*[-1 1];  
-  hcb = colorbar('peer',hca);
-  colormap(hca,cn.cmap('blue_red'));
-    
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,x,z,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 0 % je1E
-  hca = h(isub); isub = isub + 1;
-  himag = imagesc(hca,x,z,je1E');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = 'j_{e1}\cdot E';
-  hca.CLim = max(abs(himag.CData(:)))*[-1 1];  
-  hcb = colorbar('peer',hca);
-  colormap(hca,cn.cmap('blue_red'));
-    
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,x,z,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 0 % je2E
-  hca = h(isub); isub = isub + 1;
-  himag = imagesc(hca,x,z,je2E');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = 'je2E';
-  hca.CLim = max(abs(himag.CData(:)))*[-1 1];  
-  hcb = colorbar('peer',hca);
-  colormap(hca,cn.cmap('blue_red'));
-    
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,x,z,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 0 % ji1E
-  hca = h(isub); isub = isub + 1;
-  himag = imagesc(hca,x,z,ji1E');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = 'ji1E';
-  hca.CLim = max(abs(himag.CData(:)))*[-1 1];  
-  hcb = colorbar('peer',hca);
-  colormap(hca,cn.cmap('blue_red'));
-    
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,x,z,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 0 % ji2E
-  hca = h(isub); isub = isub + 1;
-  himag = imagesc(hca,x,z,ji2E');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = 'ji1E';
-  hca.CLim = max(abs(himag.CData(:)))*[-1 1];  
-  hcb = colorbar('peer',hca);
-  colormap(hca,cn.cmap('blue_red'));
-    
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,x,z,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 1 % Uek1
-  hca = h(isub); isub = isub + 1;
-  himag = imagesc(hca,x,z,Uek1');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = 'U_{ek1}';
-
-  hcb = colorbar('peer',hca);
-  colormap(hca,cn.cmap('blue_red'));
-  hcb.YLim(1) = 0;
-  hca.CLim = hca.CLim(2)*[-1 1];
-  
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,x,z,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 1 % Uek2
-  hca = h(isub); isub = isub + 1;
-  himag = imagesc(hca,x,z,Uek2');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = 'U_{ek2}';
-
-  hcb = colorbar('peer',hca);
-  colormap(hca,cn.cmap('blue_red'));
-  hcb.YLim(1) = 0;
-  hca.CLim = hca.CLim(2)*[-1 1];
-  
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,x,z,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 1 % Uik1
-  hca = h(isub); isub = isub + 1;
-  himag = imagesc(hca,x,z,Uik1');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = 'U_{ik1}';
-
-  hcb = colorbar('peer',hca);
-  colormap(hca,cn.cmap('blue_red'));
-  hcb.YLim(1) = 0;
-  hca.CLim = hca.CLim(2)*[-1 1];
-  
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,x,z,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 1 % Uik2
-  hca = h(isub); isub = isub + 1;
-  himag = imagesc(hca,x,z,Uik2');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = 'U_{ik2}';
-
-  hcb = colorbar('peer',hca);
-  colormap(hca,cn.cmap('blue_red'));
-  hcb.YLim(1) = 0;
-  hca.CLim = hca.CLim(2)*[-1 1];
-  
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,x,z,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 1 % Uet1
-  hca = h(isub); isub = isub + 1;
-  himag = imagesc(hca,x,z,Uet1');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = 'U_{et1}';
-
-  hcb = colorbar('peer',hca);
-  colormap(hca,cn.cmap('blue_red'));
-  hcb.YLim(1) = 0;
-  hca.CLim = hca.CLim(2)*[-1 1];
-  
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,x,z,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 1 % Uet1
-  hca = h(isub); isub = isub + 1;
-  himag = imagesc(hca,x,z,Uet2');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = 'U_{et2}';
-
-  hcb = colorbar('peer',hca);
-  colormap(hca,cn.cmap('blue_red'));
-  hcb.YLim(1) = 0;
-  hca.CLim = hca.CLim(2)*[-1 1];
-  
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,x,z,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 1 % Uit1
-  hca = h(isub); isub = isub + 1;
-  himag = imagesc(hca,x,z,Uit1');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = 'U_{it1}';
-
-  hcb = colorbar('peer',hca);
-  colormap(hca,cn.cmap('blue_red'));
-  hcb.YLim(1) = 0;
-  hca.CLim = hca.CLim(2)*[-1 1];
-  
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,x,z,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 1 % Uit2
-  hca = h(isub); isub = isub + 1;
-  himag = imagesc(hca,x,z,Uit2');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = 'U_{it2}';
-
-  hcb = colorbar('peer',hca);
-  colormap(hca,cn.cmap('blue_red'));
-  hcb.YLim(1) = 0;
-  hca.CLim = hca.CLim(2)*[-1 1];
-  
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,x,z,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 0 % Uktot
-  hca = h(isub); isub = isub + 1;
-  himag = imagesc(hca,x,z,Uktot');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = 'U_{ktot}';
-
-  hcb = colorbar('peer',hca);
-  colormap(hca,cn.cmap('blue_red'));
-  hcb.YLim(1) = 0;
-  hca.CLim = hca.CLim(2)*[-1 1];
-  
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,x,z,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 0 % Uktot
-  hca = h(isub); isub = isub + 1;
-  himag = imagesc(hca,x,z,Uttot');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = 'U_{ttot}';
-
-  hcb = colorbar('peer',hca);
-  colormap(hca,cn.cmap('blue_red'));
-  hcb.YLim(1) = 0;
-  hca.CLim = hca.CLim(2)*[-1 1];
-  
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,x,z,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 0 % UB
-  hca = h(isub); isub = isub + 1;
-  himag = imagesc(hca,x,z,UB');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = 'U_{B}';
-
-  hcb = colorbar('peer',hca);
-  colormap(hca,cn.cmap('blue_red'));
-  hcb.YLim(1) = 0;
-  hca.CLim = hca.CLim(2)*[-1 1];
-  
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,x,z,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-if 0 % UB + Uk + Ut
-  hca = h(isub); isub = isub + 1;
-  himag = imagesc(hca,x,z,UB' + Uttot' + Uktot');
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.Title.String = 'U_{B} + U_{ttot} + U_{ktot}';
-
-  hcb = colorbar('peer',hca);
-  colormap(hca,cn.cmap('blue_red'));
-  hcb.YLim(1) = 0;
-  hca.CLim = hca.CLim(2)*[-1 1];
-  
-  if doA
-    hold(hca,'on')
-    hcont = contour(hca,x,z,A',nA,'color',cA,'linewidth',1.0);  
-    hold(hca,'off')  
-  end
-end
-
-
-for ipanel = 1:npanels
-  h(ipanel).YDir = 'normal';
-  h(ipanel).YLim = [-10 10];
-end

@@ -6,6 +6,7 @@ timesteps = 00200:200:05000;%00200:200:08800;
 times = timesteps/50;
 
 timesteps = 05978:1:06000;%00200:200:08800;
+timesteps = 00200:200:05000;%00200:200:08800;
 times = timesteps/200;
 
 ntimes = numel(timesteps);
@@ -53,7 +54,7 @@ varstrs = {'vi1','ve1','vi2','ve2'};
 %varstrs = {'A'...
 %        };
 
-varstrs = {'ni12'};
+varstrs = {'ve12','vi12','ne12','ni12'};
 
 if strcmp(varstrs,'all');
   

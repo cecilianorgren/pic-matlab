@@ -1,4 +1,13 @@
-function out = convective_derivative(x,z,T)
+function out = convective_derivative(x,z,T,varargin)
+
+doComponents = 0;
+
+nargs = numel(varargin);
+if nargs == 2
+  if strcmp(varargin{1},'comp')
+    doComponents = varargin{2};
+  end
+end
 
 nx = numel(x);
 nz = numel(z);
@@ -40,3 +49,15 @@ der_z = (Tx.*dxTz + Ty.*dyTz + Tz.*dzTz);
 out.x = der_x;
 out.y = der_y;
 out.z = der_z;
+
+if doComponents
+  out.x_xx = Tx.*dxTx;
+  out.x_yy = Ty.*dyTx;
+  out.x_zz = Tz.*dzTx;
+  out.y_xx = Tx.*dxTy;
+  out.y_yy = Ty.*dyTy;
+  out.y_zz = Tz.*dzTy;
+  out.z_xx = Tx.*dxTz;
+  out.z_yy = Ty.*dyTz;
+  out.z_zz = Tz.*dzTz;
+end
