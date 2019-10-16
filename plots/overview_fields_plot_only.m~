@@ -158,8 +158,8 @@ varstrs = {'te12_fac.xx','0.5*(te12_fac.yy+te12_fac.zz)','0.5*te12_fac.xx./(te12
 varstrs = {'E.par','E.perp.z','E.y','ve12.x','vi12.x','ne12','ni12'}; clim = 1*[1 1];
 varstrs = {'E.z','E.y','ve12.x','vi12.x','E.y+ve12xB.y','E.y+vi12xB.y'}; clim = {};
 
-varstrs = {'ne12','ve12.par','ne12.*ve12.par','te12_fac.xx','(te12_fac.xx+te12_fac.yy+te12_fac.zz)/3','(te12.xx+te12.yy+te12.zz)/3','E.par','fe12_dv_temp.par','fe12_dv_conv.par'}; 
-clim = {1.2*[-1 1],5*[-1 1],1*[-1 1],0.5*[-1 1],0.5*[-1 1],0.5*[-1 1],0.4*[-1 1],0.05*[-1 1],0.5*[-1 1]};
+varstrs = {'ne12','ve12.par','ne12.*ve12.par','te12_fac.xx','E.par','fe12_dv_temp.par','fe12_dv_conv.par'}; 
+clim = {1.2*[-1 1],2*[-1 1],1*[-1 1],0.5*[-1 1],0.4*[-1 1],0.05*[-1 1],0.5*[-1 1]};
 
 doLinkCLim = 0; % overrides manual clim
 
@@ -176,7 +176,7 @@ nvars = numel(varstrs);
 
 % Initialize figure
 npanels = nvars;
-maxrows = 9;
+maxrows = 7;
 nrows = min([npanels,maxrows]);
 ncols = ceil(npanels/nrows);
 npanels = nrows*ncols;
@@ -255,8 +255,8 @@ for ivar = 1:nvars
   end
   hcb = colorbar('peer',hca);
   hb(isub-1) = hcb;
-  hcb.YLabel.String = sprintf('%s',varstr); 
-  hcb.YLabel.Interpreter = 'none';  
+  hcb.YLabel.String = sprintf('%s, time = %g (1/wce) = %g (1/wpi)',varstr,timestep,time); 
+  hcb.YLabel.String = 'none';  
   
   %hcb.YLim = hca.CLim(2)*[-1 1];
   %colormap(hca,cn.cmap('blue_red'));
@@ -307,7 +307,7 @@ for ivar = 1:nvars
 end
 legend(hca);
 
-h(1).Title.String = sprintf('time = %g (1/wce) = %g (1/wpi)',timestep,time); 
+h(1).YLabel.String = sprintf('%s, time = %g (1/wce) = %g (1/wpi)',varstr,timestep,time); 
 
 for ipanel = 1:npanels  
   h(ipanel).FontSize = 14;

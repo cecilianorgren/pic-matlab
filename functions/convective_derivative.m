@@ -31,15 +31,17 @@ Tz = T.z;
 % dzTz = zeros(nx,nz);
   
 diff_order = 1;
-dxTx = [1*diff(Tx(1:2,:),1,1); diff(Tx,diff_order,1)]/dx/diff_order;
-dxTy = [1*diff(Ty(1:2,:),1,1); diff(Ty,diff_order,1)]/dx/diff_order;
-dxTz = [1*diff(Tz(1:2,:),1,1); diff(Tz,diff_order,1)]/dx/diff_order;
+diff_ind = 1; % x
+dxTx = [1*diff(Tx(1:2,:),1,diff_ind); diff(Tx,diff_order,diff_ind)]/dx/diff_order;
+dxTy = [1*diff(Ty(1:2,:),1,diff_ind); diff(Ty,diff_order,diff_ind)]/dx/diff_order;
+dxTz = [1*diff(Tz(1:2,:),1,diff_ind); diff(Tz,diff_order,diff_ind)]/dx/diff_order;
 dyTx = Tx*0;
 dyTy = Tx*0;
 dyTz = Tx*0;
-dzTx = [1*diff(Tx(:,1:2),1,2), diff(Tx,diff_order,2)]/dz/diff_order;
-dzTy = [1*diff(Ty(:,1:2),1,2), diff(Ty,diff_order,2)]/dz/diff_order;
-dzTz = [1*diff(Tz(:,1:2),1,2), diff(Tz,diff_order,2)]/dz/diff_order;
+diff_ind = 2; % z
+dzTx = [1*diff(Tx(:,1:2),1,diff_ind), diff(Tx,diff_order,diff_ind)]/dz/diff_order;
+dzTy = [1*diff(Ty(:,1:2),1,diff_ind), diff(Ty,diff_order,diff_ind)]/dz/diff_order;
+dzTz = [1*diff(Tz(:,1:2),1,diff_ind), diff(Tz,diff_order,diff_ind)]/dz/diff_order;
 
 % Wo ing
 der_x = (Tx.*dxTx + Ty.*dyTx + Tz.*dzTx);

@@ -1,9 +1,11 @@
-function [vx,vz] = flux_speed(t,x,z,A,varargin)
-% A(t,x,z)
-
+function out = flux_speed(t,x,z,A,varargin)
+% FLUX_SPEED Calculates (perpendicular) speed of flux.
+%   [vAx,vAz] = FLUX_SPEED(t,x,z,A,options);
+%   A(t,x,z) - (nt x nx x nz) matrix
+%   options - 
 if not(isempty(varargin)) && strcmp(varargin{1},'plot'); doPlot = 1; else doPlot = 0; end
 
-B = varargin{2};
+%B = varargin{2};
 
 % Initialize variables
 matsize = size(A);
@@ -41,4 +43,10 @@ dAdt(end,:,:) = (A(end,:,:)-A(end-1,:,:))/dt;
 % Using total dAdt (laplacian) = 0, and vA.dot(B) = 0;
 vx = -Bz.*dAdt./(Bx.^2+Bz.^2);
 vz = Bx.*dAdt./(Bx.^2+Bz.^2);
- 
+
+if nargout == 1
+  out = cat(vx,vz);  
+elseif nargout == 2
+  out{1} = vx;
+  out{2} = vz;
+end

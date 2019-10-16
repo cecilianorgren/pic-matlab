@@ -1,6 +1,6 @@
 % first use load_resaved_data
 
-nframes = size(E,1);
+nframes = size(E_ts,1);
 cell_movie = cell(2,1);
 
 x = sim_info.x-mean(sim_info.x);
@@ -26,32 +26,55 @@ if doA
 end
 
 h = setup_subplots(2,1);
+clear hb
 npanels = numel(h);
 for iframe = 1:nframes
   % make figure
   isub = 1;
-  hca = h(isub); isub = isub + 1; 
-  variable = E;
-  %pcolor(hca,x(ipx),z(ipz),squeeze(variable(iframe,ipx,ipz,3))'); 
-  imagesc(hca,x(ipx),z(ipz),squeeze(variable(iframe,ipx,ipz,3))'); 
-  %shading(hca,'flat'); 
-  colormap(hca,pic_colors('blue_red')); 
-  hca.CLim = 0.5*[-1 1];
-  hca.XLabel.String = 'x';
-  hca.YLabel.String = 'z';
-  hca.Title.String = 'E.z';
-  
-  hca = h(isub); isub = isub + 1; 
-  variable = nine;
-  %pcolor(hca,x(ipx),z(ipz),squeeze(variable(iframe,ipx,ipz))'); 
-  imagesc(hca,x(ipx),z(ipz),squeeze(variable(iframe,ipx,ipz))'); 
-  %shading(hca,'flat'); 
-  colormap(hca,pic_colors('blue_red')); 
-  hca.CLim = 0.1*[-1 1];
-  hca.XLabel.String = 'x';
-  hca.YLabel.String = 'z';
-  hca.Title.String = 'ni-ne';
-  
+  if 1 % Ey
+    hca = h(isub); isub = isub + 1; 
+    variable = E_ts;
+    %pcolor(hca,x(ipx),z(ipz),squeeze(variable(iframe,ipx,ipz,3))'); 
+    imagesc(hca,x(ipx),z(ipz),squeeze(variable(iframe,ipx,ipz,2))'); 
+    hcb = colorbar('peer',hca);
+    hb(isub) = hcb; 
+    hcb.YLabel.String = 'E.y';
+    %shading(hca,'flat'); 
+    colormap(hca,pic_colors('blue_red')); 
+    hca.CLim = 0.5*[-1 1];
+    hca.XLabel.String = 'x';
+    hca.YLabel.String = 'z';
+    %hca.Title.String = sprintf('t\omega_{ce}=%0.5g',timesteps);
+    hca.Title.String = sprintf('tw_{ce} = %05.0f',timesteps(iframe));
+  end
+  if 1 % vex
+    hca = h(isub); isub = isub + 1; 
+    variable = ve12_ts;
+    %pcolor(hca,x(ipx),z(ipz),squeeze(variable(iframe,ipx,ipz,3))'); 
+    imagesc(hca,x(ipx),z(ipz),squeeze(variable(iframe,ipx,ipz,1))'); 
+    hcb = colorbar('peer',hca);
+    hb(isub) = hcb; 
+    hcb.YLabel.String = 've.x';
+    %shading(hca,'flat'); 
+    colormap(hca,pic_colors('blue_red')); 
+    hca.CLim = 5*[-1 1];
+    hca.XLabel.String = 'x';
+    hca.YLabel.String = 'z';
+    %hca.Title.String = sprintf('t\omega_{ce}=%0.5g',timesteps);
+    hca.Title.String = sprintf('tw_{ce} = %05.0f',timesteps(iframe));
+  end
+  if 0
+    hca = h(isub); isub = isub + 1; 
+    variable = nine;
+    %pcolor(hca,x(ipx),z(ipz),squeeze(variable(iframe,ipx,ipz))'); 
+    imagesc(hca,x(ipx),z(ipz),squeeze(variable(iframe,ipx,ipz))'); 
+    %shading(hca,'flat'); 
+    colormap(hca,pic_colors('blue_red')); 
+    hca.CLim = 0.1*[-1 1];
+    hca.XLabel.String = 'x';
+    hca.YLabel.String = 'z';
+    hca.Title.String = 'ni-ne';
+  end
   if 0
     hca = h(isub); isub = isub + 1;
     variable = je1+je2;
@@ -88,10 +111,10 @@ for iframe = 1:nframes
   
   for ipanel = 1:npanels
     h(ipanel).Box = 'on';
-    colorbar('peer',h(ipanel));
+    %colorbar('peer',h(ipanel));
     if doA
       hold(h(ipanel),'on')
-      hcont = contour(h(ipanel),x(ipxA),z(ipzA),squeeze(A(iframe,ipxA,ipzA))',nA,'color',cA,'linewidth',0.7);  
+      hcont = contour(h(ipanel),x(ipxA),z(ipzA),squeeze(A_ts(iframe,ipxA,ipzA))',nA,'color',cA,'linewidth',0.7);  
       hold(h(ipanel),'off')  
     end
   end
@@ -115,3 +138,4 @@ for iframe = 1:nframes
 end
 
 % make gif
+% imwrite(cell_movie{2},cell_movie{1},[savedir_root 'Ey_vex.gif'],'DelayTime',0.0,'LoopCount',0)

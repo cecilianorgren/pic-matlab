@@ -1,4 +1,9 @@
 function [r1,r2,r3] = new_csys(r1_orig,r2_orig)
+% [r1,r2,r3] = NEW_CSYS(r1,r2_base)
+%
+% r1 = r1;
+% r2 = (r1 x r2_base) x r1;
+% r3 = r1 x r2_base;
 
 if isstruct(r1_orig)
   r1 = r1_orig;
@@ -22,6 +27,7 @@ r1.x = r1.x./r1.abs;
 r1.y = r1.y./r1.abs;
 r1.z = r1.z./r1.abs;
 
+r1.abs = sqrt(r1.x.^2 + r1.y.^2 + r1.z.^2);
 
 r3 = cross_product(r1.x,r1.y,r1.z,r2.x,r2.y,r2.z);
 r2 = cross_product(r3.x,r3.y,r3.z,r1.x,r1.y,r1.z);
@@ -31,8 +37,10 @@ r2.abs = sqrt(r2.x.^2 + r2.y.^2 + r2.z.^2);
 r2.x = r2.x./r2.abs;
 r2.y = r2.y./r2.abs;
 r2.z = r2.z./r2.abs;
+r2.abs = sqrt(r2.x.^2 + r2.y.^2 + r2.z.^2);
 
 r3.abs = sqrt(r3.x.^2 + r3.y.^2 + r3.z.^2);
 r3.x = r3.x./r3.abs;
 r3.y = r3.y./r3.abs;
 r3.z = r3.z./r3.abs;
+r3.abs = sqrt(r3.x.^2 + r3.y.^2 + r3.z.^2);
