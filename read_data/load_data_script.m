@@ -39,7 +39,7 @@ timestep = 05000;
 timestep = 05978;
 timestep = 02250;
 timestep = 07000;
-timestep = 03400;
+timestep = 03804;
 txtfile = sprintf('%s/fields-%05.0f.dat',data_dir,timestep); % michael's perturbation
 
 
@@ -77,6 +77,7 @@ if loadSeparated
   end
   timesteps_ind = find(timesteps_==timestep)+[-1:1:1];
   timesteps = timesteps_(timesteps_ind);
+  disp(sprintf('Calculating time derivative using timesteps %g %g %g',timesteps(1),timesteps(2),timesteps(3)))
   for ivar = 1:numel(varstrs)
     [~,data] = fun_load_resaved_data(data_dir_resave,{varstrs{ivar}},timesteps);
     eval(sprintf('%s_ts_ = data;',varstrs{ivar}))
@@ -111,7 +112,8 @@ iss = 2;
 %[fe12_dv_temp,fe12_dv_conv,fe12_E,fe12_vxB,fe12_div_p] = fun_calc_force_terms([],x,z,mass(iss),q(iss),ne12,ve12,pe12,E,B,'nlim',0.02);
 [fe12_dv_temp,fe12_dv_conv,fe12_E,fe12_vxB,fe12_div_p] = fun_calc_force_terms([],x,z,mass(iss),q(iss),ne12,ve12,pe12,E,B,'nlim',0.01,'comp',1);
 
-fe12_dv_conv = vector_par_perp
+fe12_dv_conv = vector_par_perp(fe12_dv_conv,B,'add');
+fi12_dv_conv = vector_par_perp(fi12_dv_conv,B,'add');
 %%
 %A = vector_potential(x,z,B.x,B.z); % vector potential
 %phi = scalar_potential(x,z,E.x,E.z,ni,ne); % vector potential
@@ -156,6 +158,7 @@ c_eval('wci? = B.abs/(mass(1)/mass(1));',12)
 % Length scales
 c_eval('re? = vte?.perp./wce?;',12)
 c_eval('ri? = vti?.perp./wci?;',12)
+
 %%
 % r1 = b; % magnetic field unit vector
 % r2 = cross_product(r1.x,r1.y,r1.z,0,1,0);
