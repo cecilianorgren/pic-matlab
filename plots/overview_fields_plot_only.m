@@ -161,6 +161,17 @@ varstrs = {'E.z','E.y','ve12.x','vi12.x','E.y+ve12xB.y','E.y+vi12xB.y'}; clim = 
 varstrs = {'ne12','ve12.par','ne12.*ve12.par','te12_fac.xx','(te12_fac.xx+te12_fac.yy+te12_fac.zz)/3','(te12.xx+te12.yy+te12.zz)/3','E.par','fe12_dv_temp.par','fe12_dv_conv.par'}; 
 clim = {1.2*[-1 1],5*[-1 1],1*[-1 1],0.5*[-1 1],0.5*[-1 1],0.5*[-1 1],0.4*[-1 1],0.05*[-1 1],0.5*[-1 1]};
 
+
+varstrs = {'ne12','ve12.par','ne12.*ve12.par','(te12.xx+te12.yy+te12.zz)/3','E.par'}; 
+clim = {1.2*[-1 1],5*[-1 1],1*[-1 1],0.5*[-1 1],0.5*[-1 1],0.5*[-1 1],0.4*[-1 1],0.05*[-1 1],0.5*[-1 1]};
+
+varstrs = {'ve12.x','log10(ne12)'}; 
+clim = {6*[-1 1],[-1.3 0.4]};
+
+varstrs = {'B.z','ni2','ni12','ti2.scalar','ti12.scalar','ti2_fac.xx','0.5*(ti2_fac.yy+ti2_fac.zz)'};
+clim = {0.5*[-1 1],[-1 1],[-1 1],0.2*[-1 1],0.2*[-1 1],0.2*[-1 1],0.2*[-1 1]};
+
+
 doLinkCLim = 0; % overrides manual clim
 
 %clim = {[-4 4],[-4 4],[-4 4],[-4 4],[-4 4],[-4 4]};
@@ -184,14 +195,14 @@ h = setup_subplots(nrows,ncols,'vertical');
 linkaxes(h);
 
 % Indices to plot
-xlim = [x(1) x(end)]; xlim = [0 x(end)]; xlim = [-10 30];%[x(1) x(end)] + 150*[1 -1];
-zlim = [z(1) z(end)]; zlim = [-1 5];
+xlim = [x(1) x(end)]; xlim = [0 x(end)]; xlim = [-20 0];%[x(1) x(end)] + 150*[1 -1];
+zlim = [z(1) z(end)]; zlim = [-5 5];
 ipx1 = find(x>xlim(1),1,'first');
 ipx2 = find(x<xlim(2),1,'last');
 ipz1 = find(z>zlim(1),1,'first');
 ipz2 = find(z<zlim(2),1,'last');
-ipx = ipx1:5:ipx2;
-ipz = ipz1:5:ipz2;
+ipx = ipx1:2:ipx2;
+ipz = ipz1:2:ipz2;
     
 % Flux function
 doAx = 1; % plot separatrix

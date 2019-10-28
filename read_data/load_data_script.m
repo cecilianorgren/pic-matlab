@@ -2,7 +2,7 @@
 % make function that searches for possible data locations automatically
 simulation = 'michael'; 
 %simulation = 'cold_protons_new_boundary';
-%simulation = 'df_cold_protons_0.4';
+simulation = 'df_cold_protons_0.4';
 switch simulation
   case 'df_cold_protons_0.8'
     savedir_root = '/Users/cno062/Research/PIC/df_cold_protons_1/';
@@ -11,8 +11,8 @@ switch simulation
     nss = 4;
   case 'df_cold_protons_0.4'
     savedir_root = '/Users/cno062/GoogleDrive/Research/PIC/df_cold_protons_04/';
-    data_dir = '/Volumes/Fountain/Data/PIC/df_cold_protons_04/data/';
-    data_dir = '/Volumes/Fountain/Data/PIC/df_cold_protons_04/data/';
+    data_dir = '/Volumes/Fountain/Data/PIC/df_cold_protons_n04/data/';
+    data_dir = '/Volumes/Fountain/Data/PIC/df_cold_protons_n04/data/';
     %data_dir = '/Volumes/pic/in_progress/df_cold_protons_04/data/';
     nss = 6;
   case 'proton_baseline'
@@ -23,7 +23,7 @@ switch simulation
     savedir_root = '/Users/cno062/Research/PIC/michael_run/';
     savedir_root = '/Users/cno062/GoogleDrive/Research/PIC/michael_run/';
     data_dir = '/Volumes/Fountain/Data/PIC/michael_run/data/';
-    data_dir = '/Volumes/pic/finished_runs/turbulencerun/data';
+    %data_dir = '/Volumes/pic/finished_runs/turbulencerun/data';
     data_dir_resave = '/Volumes/pic/finished_runs/turbulencerun/data_separated/';
     nss = 4;
   case 'cold_protons_new_boundary'
@@ -39,12 +39,14 @@ timestep = 05000;
 timestep = 05978;
 timestep = 02250;
 timestep = 07000;
-timestep = 03804;
+timestep = 05000;
+%timestep = 06000;
 txtfile = sprintf('%s/fields-%05.0f.dat',data_dir,timestep); % michael's perturbation
 
 
 tic;
-all_data = read_fields_adaptive(txtfile,'nss',nss,'group',{[1 3],[2 4]},'grouponly');
+%all_data = read_fields_adaptive(txtfile,'nss',nss,'group',{[1 3],[2 4]},'grouponly');
+all_data = read_fields_adaptive(txtfile,'nss',nss,'group',{[3 5],[4 6]});
 ndata = size(all_data,1);
 disp('Loaded: ')
 for idata = 1:ndata
@@ -129,6 +131,10 @@ grad_phi = grad_scalar(x,z,phi); % backward check, compare to E
 [r1,r2,r3] = new_csys(B,[0 1 0]);
 tic;te12_fac = rotate_tens(te12,r1,r2,r3); toc
 tic;ti12_fac = rotate_tens(ti12,r1,r2,r3); toc
+
+tic;te12_fac = rotate_tens(te12,r1,r2,r3); toc
+tic;ti12_fac = rotate_tens(ti12,r1,r2,r3); toc
+
 
 B.abs = sqrt(B.x.^2 + B.y.^2 + B.z.^2);
 b.x = B.x./B.abs;
