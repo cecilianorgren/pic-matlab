@@ -1,27 +1,6 @@
-%% load data 
-data_dir_resave = '/Volumes/pic/in_progress/df_cold_protons_04/data_separated/';
-
-timesteps = 00200:200:06000;
-[sim_info,E_ts] = fun_load_resaved_data(data_dir_resave,{'E'},timesteps);
-[sim_info,B_ts] = fun_load_resaved_data(data_dir_resave,{'B'},timesteps);
-
-%[sim_info,ve1_ts] = fun_load_resaved_data(data_dir_resave,{'ve1'},timesteps);
-%[sim_info,ve2_ts] = fun_load_resaved_data(data_dir_resave,{'ve2'},timesteps);
-%[sim_info,ve3_ts] = fun_load_resaved_data(data_dir_resave,{'ve3'},timesteps);
-[sim_info,vi1_ts] = fun_load_resaved_data(data_dir_resave,{'vi1'},timesteps);
-[sim_info,vi2_ts] = fun_load_resaved_data(data_dir_resave,{'vi2'},timesteps);
-[sim_info,vi3_ts] = fun_load_resaved_data(data_dir_resave,{'vi3'},timesteps);
-[sim_info,ni1_ts] = fun_load_resaved_data(data_dir_resave,{'ni1'},timesteps);
-[sim_info,ni2_ts] = fun_load_resaved_data(data_dir_resave,{'ni2'},timesteps);
-[sim_info,ni3_ts] = fun_load_resaved_data(data_dir_resave,{'ni3'},timesteps);
-%[sim_info,ne1_ts] = fun_load_resaved_data(data_dir_resave,{'ne1'},timesteps);
-%[sim_info,ne2_ts] = fun_load_resaved_data(data_dir_resave,{'ne2'},timesteps);
-%[sim_info,ne3_ts] = fun_load_resaved_data(data_dir_resave,{'ne3'},timesteps);
-
-x = sim_info.x-mean(sim_info.x);
-z = sim_info.z;
-
-A_ts = vector_potential(x,z,B_ts(:,:,:,1),B_ts(:,:,:,3)); % vector potential
+% plot_timeseries_adaptive
+% Can plot combinations of single valued time series and stacked time
+% plots.
 
 
 %% generic plot with varstrs
@@ -51,12 +30,16 @@ cmaps = {'blue_red','blue_red','blue_red','blue_red','blue_red','blue_red','blue
 
 
 varstrs = {'vi12_ts(:,:,:,3)',...
-  'vi12_ts(:,:,:,3)',...
+           've12_ts(:,:,:,3)',...     
+           'vi12_ts(:,:,:,1)',...
            've12_ts(:,:,:,1)',...           
            'ni12_ts',...
            'B_ts(:,:,:,1).^2'};
- clim = {[-1 1],[-1 1],[0 1],1+0.3*[-1 1]};
-         
+ clim = {[-1 1],[-1 1],0.1*[-1 1],0.1*[-1 1],0.11+[-0.02 0.02],1+0.3*[-1 1]};
+
+varstrs = {'E_ts(:,:,:,2)',...
+           'E_ts(:,:,:,3)',...
+           };
 %varstrs = {'A_ts'};
 %clim = {[]};
 
@@ -64,8 +47,8 @@ varstrs = {'vi12_ts(:,:,:,3)',...
 npanels = numel(varstrs);
 nvars = cellfun(@numel, varstrs);
 
-timeaxis = 'y'; % which plot axis should have the time, x or y
-plotaxis = 'x'; % 'x' for horizontal cut, 'z' for vertical cut
+timeaxis = 'x'; % which plot axis should have the time, x or y
+plotaxis = 'z'; % 'x' for horizontal cut, 'z' for vertical cut
 if strcmp(plotaxis,'z'), meandirection = 1+1;
 elseif strcmp(plotaxis,'x'), meandirection = 2+1; end
 zpick = 10+[-0.1 0.1];
@@ -74,7 +57,7 @@ xpick = -18.5+0.2*[-1 1];
 xpick = 24+0.2*[-1 1];
 xpick = 15.5+0.1*[-1 1];
 %xpick = xLineXY(1)+0.2*[-1 1];
-xpick = 0+0.1*[-1 1];
+xpick = 6+0.1*[-1 1];
 %xpick = 20-5.6+0.2*[-1 1];
 %xpick = 32+0.2*[-1 1];
 zind = find_closest_ind(z,zpick);

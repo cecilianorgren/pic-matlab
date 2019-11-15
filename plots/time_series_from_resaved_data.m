@@ -1,5 +1,21 @@
+%% load data
+data_dir_resave = '/Volumes/pic/finished_runs/turbulencerun/data_separated/';
+[sim_info,E_ts] = fun_load_resaved_data(data_dir_resave,{'E'},timesteps);
+[sim_info,B_ts] = fun_load_resaved_data(data_dir_resave,{'B'},timesteps);
+[sim_info,vi1_ts] = fun_load_resaved_data(data_dir_resave,{'vi12'},timesteps);
+[sim_info,vi2_ts] = fun_load_resaved_data(data_dir_resave,{'ve12'},timesteps);
+[sim_info,ni1_ts] = fun_load_resaved_data(data_dir_resave,{'ni12'},timesteps);
+[sim_info,ni2_ts] = fun_load_resaved_data(data_dir_resave,{'ne12'},timesteps);
+
+x = sim_info.x-mean(sim_info.x);
+z = sim_info.z;
+
+A_ts = vector_potential(x,z,B_ts(:,:,:,1),B_ts(:,:,:,3)); % vector potential
+
 %% load data 
 data_dir_resave = '/Volumes/pic/in_progress/df_cold_protons_04/data_separated/';
+
+
 
 timesteps = 00200:200:06000;
 [sim_info,E_ts] = fun_load_resaved_data(data_dir_resave,{'E'},timesteps);
@@ -60,6 +76,9 @@ varstrs = {'vi12_ts(:,:,:,3)',...
 
 varstrs = {'E_ts(:,:,:,2)',...
            'E_ts(:,:,:,3)',...
+           };
+varstrs = {'sep_vepar',...
+           'sep_ne',...
            };
 %varstrs = {'A_ts'};
 %clim = {[]};

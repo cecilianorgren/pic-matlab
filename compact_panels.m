@@ -14,8 +14,8 @@ for iax = 1:nax
 end
 % find unique y-positions
 
-unique_xpos = sort(unique(positions(:,1)));
-unique_ypos = sort(unique(positions(:,2)));
+unique_xpos = sort(unique(positions(:,1)),'descend');
+unique_ypos = sort(unique(positions(:,2)),'descend');
 n_rows = numel(unique_ypos);
 n_cols = numel(unique_xpos);
 

@@ -51,11 +51,16 @@ savedir = 'ts_stacked_all';
 varstrs_ts_stacked = {'B.z','E.y',...
               've1.x','ve2.x','vi1.x','vi2.x'...
               };
+            
+
+varstrs_ts_stacked = {'sep_vepar',...
+           'sep_ne',...
+           };            
 nx = 6400;
 nvars_ts_stacked = numel(varstrs_ts_stacked);
 for ivar_ts = 1:nvars_ts_stacked
   ivar_ts
-  disp([varstrs_ts_stacked_adapted{ivar} '_ts_stacked'])
+  disp([varstrs_ts_stacked{ivar} '_ts_stacked'])
   %variable = eval([varstr_ts_stacked '_ts_stacked']);
 end
 %%
@@ -63,9 +68,9 @@ for ivar_ts = 1:nvars_ts_stacked
     %disp([varstrs_ts_stacked_adapted{ivar_ts} '(:,itime) = ' varstrs_ts_stacked{ivar_ts} '(:,ind_z0);']);    
     %eval([varstrs_ts_stacked_adapted{ivar_ts} '(:,itime) = ' varstrs_ts_stacked{ivar_ts} '(:,ind_z0);']);    
   hca = h(isub); isub = isub + 1;subdir = 'Bz_at_x=0';
-  savedir = [savedir_root,subdir];
-  mkdir(savedir)
-  savestr = sprintf('%s_t%05.0f',subdir,timestep);    
+%  savedir = [savedir_root,subdir];
+ % mkdir(savedir)
+ % savestr = sprintf('%s_t%05.0f',subdir,timestep);    
   figure(33)
   hca = subplot(2,1,1);
   plot(hca,x,eval([varstrs_ts_stacked{ivar_ts} '(:,ind_z0);']))      
