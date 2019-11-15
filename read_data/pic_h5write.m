@@ -1,3 +1,4 @@
+if 0
 % write pic fortran data ino h5 format
 data_dir = '/Volumes/Fountain/Data/PIC/df_cold_protons_n04/data/';
 filePath = [data_dir 'fields.h5'];
@@ -65,16 +66,22 @@ for itime = 9%4:numel(timesteps)
 end
 
 %h5write([data_dir 'fields.h5'], ['/data/' str_timestep '/Ey'], E.y);
-
+end
 %% '/Volumes/Fountain/Data/PIC/df_cold_protons_n04/data/';
 % Better to save original data, and only necessary quantities
 data_dir    = '/Volumes/Fountain/Data/PIC/df_cold_protons_n04/data/';
 data_dir_h5 = '/Volumes/Fountain/Data/PIC/df_cold_protons_n04/data_h5/';
 filePath = [data_dir_h5 'fields.h5'];
-
+nSpecies = 6;
+descSpecies = {'hot ion harris sheet plus uniform background',...
+  'hot electron harris sheet plus uniform background',...
+  'cold ions from south',...
+  'cold electrons from south',...
+  'cold ions from north',...
+  'cold electrons from north'};
 timesteps = 000:200:12000;
 % I forgot vxs,vys,vzs, time attribute, dt attribute, up until 48
-for itime = 51:numel(timesteps)
+for itime = 1:numel(timesteps)
   timestep = timesteps(itime);  
   txtfile = sprintf('%s/fields-%05.0f.dat',data_dir,timestep); 
   
@@ -122,8 +129,8 @@ for itime = 51:numel(timesteps)
       h5write( [data_dir_h5 'fields.h5'], dataset_name, data);
     elseif size(data,3) == nss % is (n,vs,vv)
       for iSpecies = 1:nss
-        data_tmp = data(:,:,nss);
-        dataset_name = ['/data/' str_iteration '/' varstrs{ivar} '_' num2str(iSpecies)];
+        data_tmp = data(:,:,iSpecies);
+        dataset_name = ['/data/' str_iteration '/' varstrs{ivar} '/' num2str(iSpecies)];
         disp(dataset_name)
         h5create([data_dir_h5 'fields.h5'], dataset_name, size(data_tmp));
         h5write( [data_dir_h5 'fields.h5'], dataset_name, data_tmp);
@@ -141,6 +148,9 @@ for itime = 51:numel(timesteps)
     h5writeatt([data_dir_h5 'fields.h5'],['/data/' str_iteration '/'], 'time',time)
     h5writeatt([data_dir_h5 'fields.h5'],['/data/' str_iteration '/'], 'dt',dt)
     % info.Groups(1).Groups(ig).Attributes.Name
+    
+    % Calculate derived quantities and save in new group, -->> do after instead
+    
   end
 end
 
@@ -150,12 +160,16 @@ if 0 % Usage examples
   x = h5read(filePath,'/simulation_information/xe');
 end
 
-
-%% '/Volumes/Fountain/Data/PIC/df_cold_protons_n08/data/';
+ %% '/Volumes/Fountain/Data/PIC/df_cold_protons_n08/data/';
 % Better to save original data, and only necessary quantities
 data_dir    = '/Volumes/Fountain/Data/PIC/df_cold_protons_n08/data/';
 data_dir_h5 = '/Volumes/Fountain/Data/PIC/df_cold_protons_n08/data_h5/';
 filePath = [data_dir_h5 'fields.h5'];
+nSpecies = 4;
+descSpecies = {'hot ion harris sheet plus uniform background',...
+  'hot electron harris sheet plus uniform background',...
+  'cold ions',...
+  'cold electrons'};
 
 timesteps = 200:200:11000;
 % I forgot vxs,vys,vzs, time attribute, dt attribute, up until 48
@@ -165,7 +179,7 @@ for itime = 1:numel(timesteps)
   
   
   % read unnormalized data
-  tic; [varstrs,vars] = read_data_no_normalization(txtfile,4); toc
+  tic; [varstrs,vars] = read_data_no_normalization(txtfile,nSpecies); toc
   nss = numel(vars{find(contains(varstrs,'mass'))}); % number of species
   nnx = vars{find(contains(varstrs,'nnx'))}; % number of grid points in x
   nnz = vars{find(contains(varstrs,'nnz'))}; % number of grid points in z
@@ -207,10 +221,10 @@ for itime = 1:numel(timesteps)
       h5write( [data_dir_h5 'fields.h5'], dataset_name, data);
     elseif size(data,3) == nss % is (n,vs,vv)
       for iSpecies = 1:nss
-        data_tmp = data(:,:,nss);
-        dataset_name = ['/data/' str_iteration '/' varstrs{ivar} '_' num2str(iSpecies)];
+        data_tmp = data(:,:,iSpecies);
+        dataset_name = ['/data/' str_iteration '/' varstrs{ivar} '/' num2str(iSpecies)];
         disp(dataset_name)
-        h5create([data_dir_h5 'fields.h5'], dataset_name, size(data_tmp));
+        h5create([data_dir_h5 'fields.h5'], [dataset_name '/' num2str()], size(data_tmp));
         h5write( [data_dir_h5 'fields.h5'], dataset_name, data_tmp);
         % Also write species data as attributes
         h5writeatt([data_dir_h5 'fields.h5'],dataset_name, 'mass',mass(iSpecies)) 
@@ -234,3 +248,13 @@ if 0 % Usage examples
   {info.Groups(2).Datasets.Name} % simulation information
   x = h5read(filePath,'/simulation_information/xe');
 end
+
+%% Add some extra derived quantities to h5 file, such as:
+% reconnection rate, 
+% X line locations, 
+% maybe A
+% total magnetic energy
+
+
+
+

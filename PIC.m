@@ -1,18 +1,17 @@
  classdef PIC
-  %TSeries Load SMILEI simulation data
-  %   Does not contain the data, but loads it in an easily accesible manner
+  %TSeries Load PIC simulation data
+  %   Does not contain all the data, but loads it in an easily accesible manner
   %
   %     namelist - not implemented
   %
-  %   SM = SMILEI(h5FilePath)
-  %   Bx = SM.Bx; % Bx is a (nt x nx x ny) matrix
-  %   B = SM.B; % structure with 3 (nt x nx x ny) matrices  
+  %   pic = PIC(h5FilePath)
+  %   Bx = pic.Bx; % Bx is a (nt x nx x ny) matrix
+  %   B = pic.B; % structure with 3 (nt x nx x ny) matrices  
   
-  properties (Access = protected) % can only be set from within the class (?)
+  properties (Access = protected)
+    % Access = protected – access from class or subclasses
     % Data can be arbitrary size, so the class contains a pointer to the 
-    % data file and each time loads the data with. This is actualy really
-    % bad, because it removes all the advantages of having class-specific
-    % functions that easily acecsses the data and performs operarations. 
+    % data file and each time loads the data with
     file_
     namelist_
     info_
@@ -20,6 +19,8 @@
     iteration_
     twpe_
     twci_
+    x_
+    z_
     gridsize_ % this should not be here, just put the grid instead, and use a function to get the size, but I haven't read the namelist yet
     grid_
     wpewce_ = [];
@@ -35,6 +36,8 @@
     iteration
     twpe
     twci
+    x
+    z
     gridsize
     grid
     wpewce
@@ -73,10 +76,8 @@
       obj.info = h5info(h5filePath);
       obj.file = h5filePath; 
       obj.iteration = get_iterations(obj);
-      %obj.twci = get_iterations(obj);
-      try
-      obj.twpe = get_twpe(obj);
-      end
+      %obj.twci = get_iterations(obj);      
+      obj.twpe = get_twpe(obj);      
       try
       obj.twci = get_twpe(obj)*0;
       end
@@ -241,28 +242,37 @@
     % Get simulation meta data and parameters
     function out = get_twpe(obj)
       fileInfo = obj.info_;
-      nOutput = numel(fileInfo.Groups.Groups);
+      iGroup = find(contains({fileInfo.Groups.Name},'/data'));
+      nOutput = numel(fileInfo.Groups(iGroup).Groups); % number of iterations
 
       for iOutput = 1:nOutput
-        time(iOutput) = fileInfo.Groups.Groups(iOutput).Attributes(1).Value;
+        % /data/00000xxxxx/
+        time(iOutput) = fileInfo.Groups(iGroup).Groups(iOutput).Attributes(1).Value;
       end
       out = time;
     end
     function out = get_iterations(obj)
       fileInfo = obj.info_;
-      nOutput = numel(fileInfo.Groups(1).Groups);
+      iGroup = find(contains({fileInfo.Groups.Name},'/data'));
+      nOutput = numel(fileInfo.Groups(iGroup).Groups);
       for iOutput = 1:nOutput
-        str = fileInfo.Groups(1).Groups(iOutput).Name;
+        str = fileInfo.Groups(iGroup).Groups(iOutput).Name;
         split_str = strsplit(str,'/');
         iterations(iOutput) = str2num(split_str{3});
       end
 
-      out = iterations;  
+      out = iterations;
     end
     function out = get_fields(obj)
+      % needs to be adapted for the species subgroups
       fileInfo = obj.info;
       % fields structure is the same for all times
       out = {fileInfo.Groups(1).Groups(1).Datasets.Name};
+      split_str = cellfun(@(x) strsplit(x,'/'),{fileInfo.Groups(1).Groups(1).Groups.Name},'UniformOutput',false);
+      for iout = 1:numel(split_str)
+        out{end+1} = split_str{iout}{end};
+      end
+      
     end
     function out = get_gridsize(obj)
       fileInfo = obj.info_;
@@ -422,10 +432,10 @@
   
   methods (Access = protected)
     function out = get_field(obj,field)
-      % valiadate field       
-      if not(ismember(field,obj.fields))
-        error(sprintf('Field ''%s'' not recognized.',field))
-      end
+%       % valiadate field,    
+%       if not(ismember(field,obj.fields))
+%         error(sprintf('Field ''%s'' not recognized.',field))
+%       end
       
       % get iterations
       iterations = obj.iteration;
