@@ -39,7 +39,7 @@ timestep = 05000;
 timestep = 05978;
 timestep = 02250;
 timestep = 07000;
-timestep = 05000;
+timestep = 05000; % 26th file
 %timestep = 06000;
 txtfile = sprintf('%s/fields-%05.0f.dat',data_dir,timestep); % michael's perturbation
 
@@ -47,6 +47,7 @@ txtfile = sprintf('%s/fields-%05.0f.dat',data_dir,timestep); % michael's perturb
 tic;
 %all_data = read_fields_adaptive(txtfile,'nss',nss,'group',{[1 3],[2 4]},'grouponly');
 all_data = read_fields_adaptive(txtfile,'nss',nss,'group',{[3 5],[4 6]});
+all_data = read_fields_adaptive(txtfile,'nss',nss);
 ndata = size(all_data,1);
 disp('Loaded: ')
 for idata = 1:ndata

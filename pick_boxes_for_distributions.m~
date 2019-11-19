@@ -395,16 +395,11 @@ hold(hca,'off')
 
 %% Pattern governed by A, PIC object
 pic = df04;
-ind = 46;
-A = squeeze(pic(ind).A);
-Bz = squeeze(pic(ind).Bz);
-ni = squeeze(pic(ind).ni);
+ind = 26;
+A = squeeze*pic(ind).A;
 
-
-[saddle_locations,saddle_values] = saddle(A,'sort');
-
-x_center = 145:1:205;
-z_center = 0:2:5;
+x_center = 150:1:205;
+z_center = 0:1:10;
 dx_box = 0.5;
 dz_box = 0.5;
 % x_center = 150:0.5:205;
@@ -425,8 +420,7 @@ ZC = reshape(ZC,prod(size(ZC)),1);
 nboxes = numel(XC);
 Alim = [-24 -17];
 Alim = [-24 -18];
-%Alim = [-20 -16];
-Alim = [-24 saddle_values(1)*0.98];
+Alim = [-20 -16];
 ind_keep = zeros(nboxes,1);
 for ibox = 1:nboxes
   xind = find(abs(pic.xi-XC(ibox))==min(abs(pic.xi-XC(ibox))));
@@ -445,10 +439,10 @@ n_boxes = size(keep_boxes,1);
 
 figure(401)
 hca = subplot(1,1,1);
-imagesc(hca,pic.xi,pic.zi,ni')
+imagesc(hca,pic.xi,pic.zi,A')
 %imagesc(hca,x,z,pi1.scalar')
-hca.XLim = [130 210];
-hca.YLim = [-10 10];
+%hca.XLim = [100 210];
+%hca.YLim = [-12 12];
 hca.Title.String = sprintf('twci = %g, twpe = %g, n_boxes = %g',pic.twci(ind),pic.twpe(ind),n_boxes);
 hca.Title.Interpreter = 'none';
 hcb = colorbar('peer',hca);

@@ -173,7 +173,7 @@ descSpecies = {'hot ion harris sheet plus uniform background',...
 
 timesteps = 200:200:11000;
 % I forgot vxs,vys,vzs, time attribute, dt attribute, up until 48
-for itime = 1:numel(timesteps)
+for itime = 2:numel(timesteps)
   timestep = timesteps(itime);  
   txtfile = sprintf('%s/fields-%05.0f.dat',data_dir,timestep); 
   
@@ -187,9 +187,9 @@ for itime = 1:numel(timesteps)
   % Load some vars and remove from vars and varstrs
   iter = vars{find(contains(varstrs,'it'))};   vars(find(contains(varstrs,'it'))) = [];   varstrs(find(contains(varstrs,'it'))) = [];
   time = vars{find(contains(varstrs,'time'))}; vars(find(contains(varstrs,'time'))) = []; varstrs(find(contains(varstrs,'time'))) = [];
-  dt = vars{find(contains(varstrs,'dt'))}; vars(find(contains(varstrs,'dt'))) = []; varstrs(find(contains(varstrs,'dt'))) = [];
+  dt   = vars{find(contains(varstrs,'dt'))};   vars(find(contains(varstrs,'dt'))) = [];   varstrs(find(contains(varstrs,'dt'))) = [];
   mass = vars{find(contains(varstrs,'mass'))}; vars(find(contains(varstrs,'mass'))) = []; varstrs(find(contains(varstrs,'mass'))) = [];
-  q = vars{find(contains(varstrs,'q'))}; vars(find(contains(varstrs,'q'))) = []; varstrs(find(contains(varstrs,'q'))) = [];
+  q    = vars{find(contains(varstrs,'q'))};    vars(find(contains(varstrs,'q'))) = [];    varstrs(find(contains(varstrs,'q'))) = [];
   dfac = vars{find(contains(varstrs,'dfac'))}; vars(find(contains(varstrs,'dfac'))) = []; varstrs(find(contains(varstrs,'dfac'))) = [];
   str_iteration = sprintf('%010.0f',iter); % same group format as SMILEI
     
@@ -224,7 +224,7 @@ for itime = 1:numel(timesteps)
         data_tmp = data(:,:,iSpecies);
         dataset_name = ['/data/' str_iteration '/' varstrs{ivar} '/' num2str(iSpecies)];
         disp(dataset_name)
-        h5create([data_dir_h5 'fields.h5'], [dataset_name '/' num2str()], size(data_tmp));
+        h5create([data_dir_h5 'fields.h5'], dataset_name, size(data_tmp));
         h5write( [data_dir_h5 'fields.h5'], dataset_name, data_tmp);
         % Also write species data as attributes
         h5writeatt([data_dir_h5 'fields.h5'],dataset_name, 'mass',mass(iSpecies)) 
@@ -250,10 +250,24 @@ if 0 % Usage examples
 end
 
 %% Add some extra derived quantities to h5 file, such as:
-% reconnection rate, 
+% reconnection rate, done
 % X line locations, 
 % maybe A
-% total magnetic energy
+% total magnetic energy, done
+
+sim = df04;
+for it = 1:sim.length
+  %it
+  %tic
+  Bx = sim(it).Bx; %toc
+  Bz = sim(it).Bz; %toc
+  A = vector_potential(sim.xi,sim.zi,squeeze(Bx),squeeze(Bz)); %toc
+  [saddle_locations,saddle_values] = saddle(A,'sort'); %toc
+  Ax(it) = saddle_values(1);
+  %Eyx(it) = 
+  contour(sim.xi(1:10:end),sim.zi(1:10:end),A(1:10:end,1:10:end)',[-25:0.5:8],'k');  %toc
+  title(sprintf('t=%g',sim.twci(it))); drawnow;  
+end
 
 
 
