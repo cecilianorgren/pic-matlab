@@ -61,11 +61,11 @@ for it = 1:sim.length
 end
 toc
 
-%% Thermal energy n04
+%% Thermal end kinetic energy of separate species n04
 sim = df04;
 tic;
 
-for it = 1%:sim.length  
+for it = 1:sim.length  
   sim_tmp = sim(it); 
   for iSpecies = 1:numel(sim.mass)
     disp(sprintf('it = %g/%g, sp = %g ',it,sim.length,iSpecies))
@@ -89,15 +89,20 @@ clear UT UK
 species_group = {[1 3 5],[3 5],[2 4 6],[4 6]};
 for it = 1:sim.length  
   sim_tmp = sim(it); 
-  for iSpecies = 1:numel(species_group)
-    disp(sprintf('it = %g/%g, sp = %g ',it,sim.length,iSpecies))
+  for iGroup = 1:numel(species_group)
+    disp(sprintf('it = %g/%g, grp = %g ',it,sim.length,iGroup))
     
-    [n,jx,jy,jz,pxx,pxy,pxz,pyy,pyz,pzz] = sim_tmp.njp(species_group{iSpecies});
+    group = species_group{iGroup};
+    mass_group = sim.mass(species_group{iGroup}(1));
+    
+    [n,jx,jy,jz,pxx,pxy,pxz,pyy,pyz,pzz] = sim_tmp.njp(species_group{iGroup});
     %toc;
-    pdyn = sim.mass(iSpecies)/sim.mass(1)*0.5*(jx.^2 + jy.^2 + jz.^2)./n;
+    
+    
+    pdyn = mass_group/sim.mass(1)*0.5*(jx.^2 + jy.^2 + jz.^2)./n;
     p = (pxx+pyy+pzz)/3; % scalar pressure
-    UT(it,iSpecies) = 3/2*nansum(p(:));
-    UK(it,iSpecies) = nansum(pdyn(:));
+    UT(it,iGroup) = 3/2*nansum(p(:));
+    UK(it,iGroup) = nansum(pdyn(:));
     %imagesc(sim.xi,sim.zi,squeeze(p)')
     %drawnow
   end

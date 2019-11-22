@@ -395,18 +395,19 @@ hold(hca,'off')
 
 %% Pattern governed by A, PIC object
 pic = df04;
-ind = 46;
+ind = 26;
 A = squeeze(pic(ind).A);
 Bz = squeeze(pic(ind).Bz);
 ni = squeeze(pic(ind).ni);
+vex = squeeze(pic(ind).vex);
 
 
 [saddle_locations,saddle_values] = saddle(A,'sort');
 
-x_center = 145:1:205;
-z_center = 0:2:5;
-dx_box = 0.5;
-dz_box = 0.5;
+x_center = 182:0.5:205;
+z_center = 0:0.5:5;
+dx_box = 0.25;
+dz_box = 0.25;
 % x_center = 150:0.5:205;
 % z_center = 0:0.5:10;
 % dx_box = 0.25;

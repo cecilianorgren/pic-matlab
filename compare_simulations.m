@@ -3,10 +3,10 @@ df04 = PIC('/Volumes/Fountain/Data/PIC/df_cold_protons_n04/data_h5/fields.h5');
 df08 = PIC('/Volumes/Fountain/Data/PIC/df_cold_protons_n08/data_h5/fields.h5');
 
 %% Scalar timeseries
-h = setup_subplots(4,1);
+h = setup_subplots(1,1);
 isub = 1;
 
-if 0 % Reconnction rate
+if 1 % Reconnction rate
   hca = h(isub); isub = isub + 1;
   plot(hca,df04.twci,df04.RA,df08.twci,df08.RA)
   hca.XLabel.String = 't\omega_{ci}';

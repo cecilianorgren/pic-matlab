@@ -22,6 +22,9 @@
     zi_
     grid_
     indices_
+    it_
+    ix_
+    iz_
 %    wpewce_ = [];
 %    mime_ = [];
     
@@ -43,6 +46,9 @@
     zi
     grid
     indices
+    it
+    ix
+    iz
     %wpewce
     %mime
     
@@ -93,6 +99,8 @@
       obj.xi = obj.xe/sqrt(obj.mime);
       obj.zi = obj.ze/sqrt(obj.mime);
       obj.grid = {1:1:numel(obj.xe),1:1:numel(obj.ze)}; % originally, complete grid
+      obj.ix = 1:1:numel(obj.xe);
+      obj.iz = 1:1:numel(obj.ze);
       
     end
     
@@ -187,6 +195,7 @@
       obj.xe_ = obj.xe_(x1:x2);
       obj.xi_ = obj.xi_(x1:x2);      
       obj.grid_{1} = obj.grid_{1}(x1:x2);
+      obj.ix_ = obj.grid_{1};
     end
     function obj = zlim(obj,value)
       % Get subset of x
@@ -195,6 +204,7 @@
       obj.ze_ = obj.ze_(z1:z2);
       obj.zi_ = obj.zi_(z1:z2);      
       obj.grid_{2} = obj.grid_{2}(z1:z2);
+      obj.iz_ = obj.grid_{2};
     end
     function obj = twpelim(obj,value)
       % Get subset of x
@@ -214,7 +224,7 @@
     end
     
     % Plotting routines, for simple diagnostics etc
-    function out = make_gif(obj,fields,nrows,ncols,varargin)
+    function [all_im, map] = make_gif(obj,fields,nrows,ncols,varargin)
       % [all_im, map] = MAKE_GIF(obj,fields,nrows,ncols)      
       % make gif
       % imwrite(im,map,'delme.gif','DelayTime',0.0,'LoopCount',0)  
@@ -223,12 +233,42 @@
       
       % Default options, values
       doAdjustCLim = 0;
+      cmap = pic_colors('blue_red');
+      doA = 0;
       
       nfields = numel(fields);
       ntimes = obj.length;
-            
+      
+      nargs = numel(varargin);      
+      if nargs > 0, have_options = 1; args = varargin(:); end
+      
+      while have_options
+        l = 1;
+        switch(lower(args{1}))
+          case 'a'            
+            if numel(args{2}) == 1              
+              doA = args{2};
+              levA = -25:1:0;
+            else
+              doA = 1;
+              levA = args{2};
+            end            
+            args = args(l+1:end);
+          case 'clim'
+            l = 2;
+            doAdjustCLim = 1;  
+            clims = args{2};
+            args = args(l+1:end);
+          otherwise
+            warning(sprintf('Input ''%s'' not recognized.',args{1}))
+            args = args(l+1:end);
+        end        
+        if isempty(args), break, end    
+      end
+      
       % First load all data once and check what color limits we should use.
-      if nfields == 1
+      %
+      if 0% nfields == 1
         all_data = get_field(obj,fields{1});
         cmax = max(all_data(:));
         clim = cmax*[-1 1];
@@ -247,14 +287,28 @@
           hca = h(ifield);
           S(1).type='()'; S(1).subs = {itime};
           data = get_field(obj.subsref(S),fields{ifield});
-          imagesc(hca,squeeze(data)')
+          imagesc(hca,obj.xi,obj.zi,squeeze(data)')
           hb = colorbar('peer',hca);
           hb.YLabel.String = fields{ifield};
           if doAdjustCLim
-            hca.CLim = clim;
-            colormap(cmap)
+            hca.CLim = clims{ifield};            
+            %colormap(cmap)
           end
+          if doA
+            hold(hca,'on')
+            iAx = 1:4:obj.nx;
+            iAz = 1:4:obj.nz;
+            A = squeeze(get_field(obj.subsref(S),'A'));
+            contour(hca,obj.xi(iAx),obj.zi(iAz),A(iAx,iAz)',levA,'k');
+            hold(hca,'off')
+          end
+          hca.YDir = 'normal';
+          hca.XLabel.String = 'x/d_i';
+          hca.YLabel.String = 'z/d_i';
           %toc
+        end
+        if itime == 1
+          colormap(cmap)
         end
         pause(0.1)
         if 1 % collect frames, for making gif
@@ -275,7 +329,7 @@
           end       
         end
       end
-      out = {all_im,map};
+      %out = {all_im,map};
       
       % collect frames
       
@@ -414,6 +468,13 @@
       end
       out = var;
     end
+    function out = n(obj,value)
+      % Get total density of select species
+      %   out = n(obj,value)
+      dfac = obj.get_dfac;         
+      dataset = sprintf('dns/%.0f',value);
+      out = get_field(obj,dataset)*dfac(value);      
+    end
     function out = jex(obj)
       % Get electron flux, x
       iSpecies = find(obj.get_charge == -1); % negatively charge particles are electrons
@@ -515,6 +576,44 @@
       end
       out = var;
       out = [];
+    end
+    function out = vxx(obj,value)
+      % Get total density of select species
+      %   out = n(obj,value)
+      dfac = obj.get_dfac;         
+      dataset = sprintf('vxx/%.0f',value);
+      out = obj.mass(value)*obj.wpewce^2*get_field(obj,dataset)*dfac(value);      
+    end
+    function out = vyy(obj,value)
+      % Get total density of select species
+      %   out = n(obj,value)
+      dfac = obj.get_dfac;         
+      dataset = sprintf('vyy/%.0f',value);
+      out = obj.mass(value)*obj.wpewce^2*get_field(obj,dataset)*dfac(value);      
+    end
+    function out = vzz(obj,value)
+      % Get total density of select species
+      %   out = n(obj,value)
+      dfac = obj.get_dfac;         
+      dataset = sprintf('vzz/%.0f',value);
+      out = obj.mass(value)*obj.wpewce^2*get_field(obj,dataset)*dfac(value);      
+    end
+    function out = vv_diag(obj,value)
+      % Get 
+      %   out = vv_diag(obj,value)
+      dfac = obj.get_dfac;         
+      vxx = get_field(obj,sprintf('vxx/%.0f',value))*dfac(value);
+      vyy = get_field(obj,sprintf('vyy/%.0f',value))*dfac(value);
+      vzz = get_field(obj,sprintf('vzz/%.0f',value))*dfac(value);
+      out = obj.mass(value)*obj.wpewce^2*(vxx + vyy + vzz)/3;
+    end
+    function out = PB(obj)
+      % Get total density of select species
+      %   out = n(obj,value)      
+      Bx = obj.Bx;
+      By = obj.By;
+      Bz = obj.Bz;
+      out = 0.5*sqrt(Bx.^2 + By.^2 + Bz.^2);      
     end
     
     function [vxx,vxy,vxz,vyy,vyz,vzz] = vv(obj,iSpecies_orig)
@@ -737,6 +836,15 @@
     function obj = set.indices(obj,value)
       obj.indices_ = value;
     end
+    function obj = set.it(obj,value)
+      obj.it_ = value;
+    end
+    function obj = set.ix(obj,value)
+      obj.ix_ = value;
+    end
+    function obj = set.iz(obj,value)
+      obj.iz_ = value;
+    end
     
     function value = get.info(obj)
       value = obj.info_;
@@ -774,7 +882,15 @@
     function value = get.indices(obj)
       value = obj.indices_;
     end
-    
+    function value = get.it(obj)
+      value = obj.it_;
+    end
+    function value = get.ix(obj)
+      value = obj.ix_;
+    end
+    function value = get.iz(obj)
+      value = obj.iz_;
+    end
   end
   
   methods (Access = protected)

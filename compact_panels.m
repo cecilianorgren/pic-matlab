@@ -1,10 +1,17 @@
 function compact_panels(varargin)
 
-if nargin == 1
-  space = varargin{1};
-else
+doY = 1;
+doX = 0;
+if nargin == 0
   space = 0.01;
+elseif nargin == 1
+  space = varargin{1};
+elseif nargin == 2
+  space = varargin{1};
+  space_x = varargin{2};
+  doX = 1;
 end
+
 
 fig = gcf;
 ax = findobj(fig.Children,'Type','Axes');
@@ -31,22 +38,16 @@ end
 
 yminus = positions(:,2);
 yplus =  positions(:,2) + positions(:,4);
-%old_space = yminus(2:end)-yplus(1:(end-1));
 
 ylowbound = min(yminus);
 yhighbound = max(yplus);
-%miny = min(positions(:,2));
 
-%new_yheight = (yhighbound-ylowbound-(nax-1)*space)/nax;
 new_yheight = (yhighbound-ylowbound-(n_rows-1)*space)/n_rows;
-
 ybottom = min(unique_ypos);
-%new_y_positions = ybottom + (new_yheight + space)*(0:(n_rows-1));
 
 
-for iax = 1:nax
-  
-  ax(iax).Position(4) = new_yheight;
+for iax = 1:nax  
+  ax(iax).Position(4) = new_yheight;  
   ax(iax).Position(2) = ybottom + (new_yheight + space)*(n_rows-row(iax));
   if iax == 1 % keep as is
     
@@ -56,7 +57,36 @@ for iax = 1:nax
    
   end
 end
-for iax = 2:nax
-  ax(iax).XTickLabels = [];
+
+if doX
+  xminus = positions(:,1);
+  xplus =  positions(:,1) + positions(:,3);
+  xlowbound = min(xminus);
+  xhighbound = max(xplus);
+  new_xheight = (xhighbound-xlowbound-(n_cols-1)*space)/n_cols;
+  xbottom = min(unique_xpos);
+
+  for iax = 1:nax  
+    ax(iax).Position(3) = new_xheight;  
+    ax(iax).Position(1) = xbottom + (new_xheight + space_x)*(n_cols-col(iax));
+    if iax == 1 % keep as is
+
+    else
+      %ax(iax).Position(2) = ax(iax-1).Position(2) + ax(iax-1).Position(4) + space;
+     % ax(iax).Position(4) = new_yheight;
+
+    end
+  end
+  xshift = 0.05;
+  for iax = 1:nax  
+    ax(iax).Position(1) = ax(iax).Position(1)-xshift;    
+  end
+end
+
+for iax = 1:nax
+  if not(ybottom == ax(iax).Position(2)) % not bottom row
+    ax(iax).XTickLabels = [];
+    ax(iax).XLabel.String = '';
+  end
 end
 1;
