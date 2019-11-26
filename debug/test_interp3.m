@@ -36,11 +36,11 @@ xP = x1 + (x2-x1).*rand(nPoints,1);
 zP = z1 + (z2-z1).*rand(nPoints,1);
 tP = t1 + (t2-t1).*rand(nPoints,1);
 %%
-for iPoint = 3%nPoints  
+for iPoint = 2%nPoints  
   tic; [Ex1,Ey1,Ez1,Bx1,By1,Bz1] = df04.interp_EB(xP(iPoint),zP(iPoint),tP(iPoint),2); toc;
   tic; [Ex2,Ey2,Ez2,Bx2,By2,Bz2] = df04.interp_EB(xP(iPoint),zP(iPoint),tP(iPoint),3); toc;
   Ex(iPoint,1) = Ex1;
-  Ey(iPoint,2) = Ex2;  
+  Ex(iPoint,2) = Ex2;  
   Ey(iPoint,1) = Ey1;
   Ey(iPoint,2) = Ey2;  
   Ez(iPoint,1) = Ez1;

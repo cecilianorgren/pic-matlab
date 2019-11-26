@@ -1272,6 +1272,7 @@
            ['/data/' str_iter '/' field],...
            [obj.grid{1}(1) obj.grid{2}(1)],... % start indices
            [numel(obj.grid{1}) numel(obj.grid{2})]); % number of counts
+         disp(sprintf('Reading %s: [%g %g] datapoints starting at [%g %g]',field,numel(obj.grid{1}),numel(obj.grid{2}),obj.grid{1}(1),obj.grid{2}(1)))
         data(iIter,:,:) = data_tmp;
       end
       out = data;
