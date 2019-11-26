@@ -2,7 +2,7 @@
 % make function that searches for possible data locations automatically
 simulation = 'michael'; 
 %simulation = 'cold_protons_new_boundary';
-simulation = 'df_cold_protons_0.4';
+%simulation = 'df_cold_protons_0.4';
 switch simulation
   case 'df_cold_protons_0.8'
     savedir_root = '/Users/cno062/Research/PIC/df_cold_protons_1/';
@@ -14,7 +14,7 @@ switch simulation
     data_dir = '/Volumes/Fountain/Data/PIC/df_cold_protons_n04/data/';
     data_dir = '/Volumes/Fountain/Data/PIC/df_cold_protons_n04/data/';
     %data_dir = '/Volumes/pic/in_progress/df_cold_protons_04/data/';
-    nss = 6;
+    nss = 6; 
   case 'proton_baseline'
     savedir_root = '/Users/cno062/Research/PIC/df_cold_protons_04/';
     data_dir = '/Volumes/pic/finished_runs/proton_baseline/data/';
@@ -40,13 +40,13 @@ timestep = 05978;
 timestep = 02250;
 timestep = 07000;
 timestep = 05000; % 26th file
-%timestep = 06000;
+timestep = 06000;
 txtfile = sprintf('%s/fields-%05.0f.dat',data_dir,timestep); % michael's perturbation
 
 
 tic;
 %all_data = read_fields_adaptive(txtfile,'nss',nss,'group',{[1 3],[2 4]},'grouponly');
-all_data = read_fields_adaptive(txtfile,'nss',nss,'group',{[3 5],[4 6]});
+%all_data = read_fields_adaptive(txtfile,'nss',nss,'group',{[3 5],[4 6]});
 all_data = read_fields_adaptive(txtfile,'nss',nss);
 ndata = size(all_data,1);
 disp('Loaded: ')

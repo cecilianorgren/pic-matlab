@@ -50,13 +50,12 @@ b.y = B.y./B.abs;
 b.z = B.z./B.abs;
 
 % flux
+c_eval('je?.x = ne1.*ve1.x;',1) 
+c_eval('je?.y = ne1.*ve1.y;',1:2) 
+c_eval('je?.z = ne1.*ve1.z;',1:2) 
 c_eval('je?.x = ne1.*ve1.x;',1:2) 
-c_eval('je?.y = ne1.*ve1.y;',1:2)
-c_eval('je?.z = ne1.*ve1.z;',1:2)
-c_eval('ji?.x = ni1.*vi1.x;',1:2) 
-c_eval('ji?.y = ni1.*vi1.y;',1:2) 
-c_eval('ji?.z = ni1.*vi1.z;',1:2) 
-
+c_eval('je?.y = ne1.*ve1.y;',1:2) 
+c_eval('je?.z = ne1.*ve1.z;',1:2) 
 % Motional electric field
 c_eval('ve?xB = cross_product(ve?.x,ve?.y,ve?.z,B.x,B.y,B.z);',1:2) % electron motional electric field
 c_eval('vi?xB = cross_product(vi?.x,vi?.y,vi?.z,B.x,B.y,B.z);',1:2) % ion motional electric field

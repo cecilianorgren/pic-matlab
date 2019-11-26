@@ -8,7 +8,7 @@
 %   pi1,pe1,pi2,pe2,...
 %   ti1,te1,ti2,te2,...
 %   dfac,teti,nnx,nnz,wpewce,mass,it,time,dt,xmax,zmax,q] = read_fields(txtfile);
-iss = 1:3;
+iss = 1:2;
 
 % Magnetic field unit vector
 B.abs = sqrt(B.x.^2 + B.y.^2 + B.z.^2);
@@ -103,8 +103,8 @@ c_eval('div_nmvve? = div_tensor(x,z,nmvve?);',iss) %
 
 
 % Diamagnetic drifts
-%c_eval('vDe? = cross_product(gradpe?_smooth.x,gradpe?_smooth.y,gradpe?_smooth.z,B.x./B.abs./B.abs./ne?,B.y./B.abs./B.abs./ne?,B.z./B.abs./B.abs./ne?);',iss)
-%c_eval('vDi? = cross_product(-gradpi?_smooth.x,-gradpi?_smooth.y,-gradpi?_smooth.z,B.x./B.abs./B.abs./ni?,B.y./B.abs./B.abs./ni?,B.z./B.abs./B.abs./ni?);',iss)
+c_eval('vDe? = cross_product(gradpe?_smooth.x,gradpe?_smooth.y,gradpe?_smooth.z,B.x./B.abs./B.abs./ne?,B.y./B.abs./B.abs./ne?,B.z./B.abs./B.abs./ne?);',iss)
+c_eval('vDi? = cross_product(-gradpi?_smooth.x,-gradpi?_smooth.y,-gradpi?_smooth.z,B.x./B.abs./B.abs./ni?,B.y./B.abs./B.abs./ni?,B.z./B.abs./B.abs./ni?);',iss)
 
 % ExB drift
 vExB = cross_product(E.x,E.y,E.z,B.x./B.abs./B.abs,B.y./B.abs./B.abs,B.z./B.abs./B.abs); % Poynting flux

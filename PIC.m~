@@ -231,7 +231,6 @@
       inds = obj.ind_from_lim(obj.twpe_,value,varargin{:});
       obj.twpe_ = obj.twpe_(inds);
       obj.twci_ = obj.twci_(inds);
-      obj.it_ = obj.it_(inds);
       obj.iteration_ = obj.iteration_(inds);
     end
     function obj = twcilim(obj,value,varargin)
@@ -239,7 +238,6 @@
       inds = obj.ind_from_lim(obj.twci,value,varargin{:});
       obj.twpe_ = obj.twpe_(inds);
       obj.twci_ = obj.twci_(inds);
-      obj.it_ = obj.it_(inds);
       obj.iteration_ = obj.iteration_(inds);
     end
     
@@ -362,9 +360,7 @@
       nPoints = numel(t);      
       %nClosest = 3;
       
-      tmppic = obj.xlim(x,'closest',nClosest).zlim(z,'closest',nClosest).twcilim(t,'closest',nClosest);  
-      tmppic.grid_{1};
-      tmppic.grid_{2};
+      tmppic = obj.xlim(x,'closest',nClosest).zlim(z,'closest',nClosest).twcilim(t,'closest',nClosest);      
       tmpt =  tmppic.twci;
       tmpx =  tmppic.xi;
       tmpz =  tmppic.zi;
@@ -394,23 +390,14 @@
       doPlot = 1;
       if doPlot
         figure(31)
-        if mod(nClosest,2) == 0 % even number          
-          hca = subplot(1,2,2);
-        else
-          hca = subplot(1,2,1);
-        end
-        scale = 2000;
-        scatter3(hca,X(:),Z(:),T(:),abs(tmpEx(:))*scale,abs(tmpEx(:)))
-        hb = colorbar('peer',hca);
+        hca = subplot(1,1,1);
+        scatter3(hca,X(:),Z(:),T(:),abs(tmpEx(:))*1000,abs(tmpEx(:)))
         %plot3(hca,X(:),Z(:),T(:),'k.',x,z,t,'ro')
         hold(hca,'on')
         plot3(hca,x,z,t,'k+')
-        scatter3(hca,x,z,t,abs(Ex)*scale,abs(Ex))
+        scatter3(hca,x,z,t,abs(Ex)*1000,abs(Ex))
         hold(hca,'off')
-        hca.XLabel.String = 'x';
-        hca.YLabel.String = 'z';
-        hca.ZLabel.String = 't';
-        %pause
+        pause
       end
     end
     
@@ -1192,7 +1179,7 @@
     end
   end
   
-  methods (Static) % does not require object as input, but still needs to be called as obj.func (?)
+  methods (Static) % does not require object as input, but still needs to be called as obj.func
     function out = ind_from_lim(var,value,varargin)
       % method is the same for xlim, zlim ilim, i, twpelim, twcilim
       
@@ -1268,11 +1255,16 @@
       for iIter = 1:nIter
         iter = iterations(iIter);
         str_iter = sprintf('%010.0f',iter);
-        data_tmp = h5read(obj.file,...
-           ['/data/' str_iter '/' field],...
-           [obj.grid{1}(1) obj.grid{2}(1)],... % start indices
-           [numel(obj.grid{1}) numel(obj.grid{2})]); % number of counts
-        data(iIter,:,:) = data_tmp;
+        if 1 % read part of data, seems to be slightly faster
+          data_tmp = h5read(obj.file,...
+             ['/data/' str_iter '/' field],...
+             [obj.grid{1}(1) obj.grid{2}(1)],... % start indices
+             [numel(obj.grid{1}) numel(obj.grid{2})]); % number of counts
+          data(iIter,:,:) = data_tmp;%(obj.grid{1},obj.grid{2});
+        else % read all data then pick indices
+          data_tmp = h5read(obj.file,['/data/' str_iter '/' field]); % de;
+          data(iIter,:,:) = data_tmp(obj.grid{1},obj.grid{2});        
+        end
       end
       out = data;
     end
