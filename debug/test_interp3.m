@@ -36,7 +36,7 @@ xP = x1 + (x2-x1).*rand(nPoints,1);
 zP = z1 + (z2-z1).*rand(nPoints,1);
 tP = t1 + (t2-t1).*rand(nPoints,1);
 %%
-for iPoint = 2%nPoints  
+for iPoint = 1:nPoints  
   tic; [Ex1,Ey1,Ez1,Bx1,By1,Bz1] = df04.interp_EB(xP(iPoint),zP(iPoint),tP(iPoint),2); toc;
   tic; [Ex2,Ey2,Ez2,Bx2,By2,Bz2] = df04.interp_EB(xP(iPoint),zP(iPoint),tP(iPoint),3); toc;
   Ex(iPoint,1) = Ex1;
@@ -51,3 +51,16 @@ ax = findobj(gcf,'Type','Axes');
 axlarge = find(max([diff(ax(1).XLim) diff(ax(2).XLim)]))
 linkprop(ax,{'CLim'})
 %linkprop(ax,{'CLim','XLim','YLim','ZLim'})
+
+%%
+% Ey = df04.Ey;
+x = 20.00;
+z = 0.02;
+t = 19;
+nC = 2;
+ix = df04.ind_from_lim(df04.xi,x,'closest',nC)
+iz = df04.ind_from_lim(df04.zi,z,'closest',nC)
+it = df04.ind_from_lim(df04.twci,t,'closest',nC)
+tEy = df04.ilim(it).Ey;
+tEy(1,ix,iz)
+df04.xlim(x,'closest',nC).zlim(z,'closest',nC).twcilim(t,'closest',nC).Ey

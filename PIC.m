@@ -356,15 +356,16 @@
     end
               
     % Data analysis routines, time derivatives, interpolation, etc.
-    function [Ex,Ey,Ez,Bx,By,Bz] = interp_EB(obj,x,z,t,nClosest)
+    function [Ex,Ey,Ez,Bx,By,Bz] = interp_EB(obj,x,z,t)
       % Interpolate field to a given point (x,z,t)
-      method = 'nearest';
-      nPoints = numel(t);      
-      %nClosest = 3;
+      method = 'linear';
+      nPoints = numel(t);
+      if strcmp(method,'linear')
+        nClosest = 2;
+      end
       
       tmppic = obj.xlim(x,'closest',nClosest).zlim(z,'closest',nClosest).twcilim(t,'closest',nClosest);  
-      tmppic.grid_{1};
-      tmppic.grid_{2};
+      
       tmpt =  tmppic.twci;
       tmpx =  tmppic.xi;
       tmpz =  tmppic.zi;
@@ -374,44 +375,47 @@
       tmpBx = tmppic.Bx;
       tmpBy = tmppic.By;
       tmpBz = tmppic.Bz;
-      disp(['x/di =' sprintf(' %g',x) ', x_grid/di = ' sprintf('%g ',tmpx)])
-      disp(['z/di =' sprintf(' %g',z) ', z_grid/di = ' sprintf('%g ',tmpz)])
-      disp(['twci =' sprintf(' %g',t) ', twci_grid = ' sprintf('%g ',tmpt)])
-      %toc
-      %tic
+      %disp(['x/di =' sprintf(' %g',x) ', x_grid/di = ' sprintf('%g ',tmpx)])
+      %disp(['z/di =' sprintf(' %g',z) ', z_grid/di = ' sprintf('%g ',tmpz)])
+      %disp(['twci =' sprintf(' %g',t) ', twci_grid = ' sprintf('%g ',tmpt)])
+
       % Interpolate to particle position
       % Vq = interp3(V,Xq,Yq,Zq) assumes X=1:N, Y=1:M, Z=1:P where [M,N,P]=SIZE(V).      
-      %[X,Z,T] = ndgrid(tmpx,tmpz,tmpt);
+
       [X,Z,T] = meshgrid(tmpx,tmpz,tmpt);
-      Ex = interp3(X,Z,T,tmpEx,x,z,t,method);
-      Ey = interp3(X,Z,T,tmpEy,x,z,t,method);
-      Ez = interp3(X,Z,T,tmpEz,x,z,t,method);
-      Bx = interp3(X,Z,T,tmpBx,x,z,t,method);
-      By = interp3(X,Z,T,tmpBy,x,z,t,method);
-      Bz = interp3(X,Z,T,tmpBz,x,z,t,method);
+      Ex = interp3(X,Z,T,permute(tmpEx,[2 1 3]),x,z,t,method);
+      Ey = interp3(X,Z,T,permute(tmpEy,[2 1 3]),x,z,t,method);
+      Ez = interp3(X,Z,T,permute(tmpEz,[2 1 3]),x,z,t,method);
+      Bx = interp3(X,Z,T,permute(tmpBx,[2 1 3]),x,z,t,method);
+      By = interp3(X,Z,T,permute(tmpBy,[2 1 3]),x,z,t,method);
+      Bz = interp3(X,Z,T,permute(tmpBz,[2 1 3]),x,z,t,method);
       
-      disp(sprintf('intEx = %g, meanEx = %g',Ex,mean(tmpEx(:))))
-      doPlot = 1;
-      if doPlot
-        figure(31)
-        if mod(nClosest,2) == 0 % even number          
-          hca = subplot(1,2,2);
-        else
-          hca = subplot(1,2,1);
-        end
-        scale = 2000;
-        scatter3(hca,X(:),Z(:),T(:),abs(tmpEx(:))*scale,abs(tmpEx(:)))
-        hb = colorbar('peer',hca);
-        %plot3(hca,X(:),Z(:),T(:),'k.',x,z,t,'ro')
-        hold(hca,'on')
-        plot3(hca,x,z,t,'k+')
-        scatter3(hca,x,z,t,abs(Ex)*scale,abs(Ex))
-        hold(hca,'off')
-        hca.XLabel.String = 'x';
-        hca.YLabel.String = 'z';
-        hca.ZLabel.String = 't';
-        %pause
-      end
+      %disp(sprintf('intEx = %g, meanEx = %g',Ex,mean(tmpEx(:))))
+      % For debugging purposes
+%       doPlot = 1;
+%       if doPlot
+%         figure(31)
+%         if mod(nClosest,2) == 0 % even number          
+%           hca = subplot(1,2,2);
+%         else
+%           hca = subplot(1,2,1);
+%         end
+%         scale = 2000;
+%         scatter3(hca,X(:),Z(:),T(:),abs(tmpEx(:))*scale,abs(tmpEx(:)))
+%         for ip = 1:numel(X)
+%           text(hca,X(ip),Z(ip),T(ip),sprintf('%.3f',tmpEx(ip)))
+%         end
+%         hb = colorbar('peer',hca);
+%         %plot3(hca,X(:),Z(:),T(:),'k.',x,z,t,'ro')
+%         hold(hca,'on')
+%         plot3(hca,x,z,t,'k+')
+%         scatter3(hca,x,z,t,abs(Ex)*scale,abs(Ex))
+%         hold(hca,'off')
+%         hca.XLabel.String = 'x';
+%         hca.YLabel.String = 'z';
+%         hca.ZLabel.String = 't';
+%         %pause
+%       end
     end
     
     % Get simulation meta data and parameters
@@ -1264,7 +1268,7 @@
       iterations = obj.iteration;
       nIter = obj.length;
       % initialize matrix
-      data = nan([nIter,obj.get_gridsize]);      
+      data = nan([obj.get_gridsize,nIter]);
       for iIter = 1:nIter
         iter = iterations(iIter);
         str_iter = sprintf('%010.0f',iter);
@@ -1272,8 +1276,8 @@
            ['/data/' str_iter '/' field],...
            [obj.grid{1}(1) obj.grid{2}(1)],... % start indices
            [numel(obj.grid{1}) numel(obj.grid{2})]); % number of counts
-         disp(sprintf('Reading %s: [%g %g] datapoints starting at [%g %g]',field,numel(obj.grid{1}),numel(obj.grid{2}),obj.grid{1}(1),obj.grid{2}(1)))
-        data(iIter,:,:) = data_tmp;
+        %disp(sprintf('Reading %s: [%g %g] datapoints starting at [%g %g]',field,numel(obj.grid{1}),numel(obj.grid{2}),obj.grid{1}(1),obj.grid{2}(1)))
+        data(:,:,iIter) = data_tmp;
       end
       out = data;
     end
