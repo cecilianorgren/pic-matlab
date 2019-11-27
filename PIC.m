@@ -358,11 +358,20 @@
     % Data analysis routines, time derivatives, interpolation, etc.
     function [Ex,Ey,Ez,Bx,By,Bz] = interp_EB(obj,x,z,t)
       % Interpolate field to a given point (x,z,t)
+      %
+      % To be implemented:
+      %  - interpolation for several timesteps
+      %  - shape preserving interpolation
+      %  - different interpolation types for temporal and spatial
+      %    dimensions, particularly important for temporal dimension where
+      %    the time steps are quite large
+      
       method = 'linear';
-      nPoints = numel(t);
       if strcmp(method,'linear')
         nClosest = 2;
       end
+      
+      nPoints = numel(t); 
       
       tmppic = obj.xlim(x,'closest',nClosest).zlim(z,'closest',nClosest).twcilim(t,'closest',nClosest);  
       
@@ -1260,6 +1269,8 @@
       
       out = inds;
     end
+    function out = eom()
+    end      
   end
   
   methods (Access = protected)

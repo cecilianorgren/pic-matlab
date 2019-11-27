@@ -1,0 +1,15 @@
+function [value,isterminal,direction] = box2d(t,x,z,xlim,zlim)
+% Locate the time when the particle exits the box by top or bottom and stop
+% integration.
+
+isterminal = 1;   % Stop the integration
+direction = 0;   % Both directions
+
+if x > xlim(
+value = L - abs(y)*0.999; % detect z>L/2 and z<L/2 (value = 0)
+valuex1 = X(1) - abs(x)*0.999;
+valuex2 = X(2) - abs(x)*0.999;
+valuez1 = Z(1) - abs(z)*0.999;
+valuez2 = Z(2) - abs(z)*0.999;
+
+value = min([valuex1 valuex2 valuez1 valuez2]);
