@@ -1,28 +1,66 @@
 % integrate_particle_trajectory
 doPlot = 1;
 pic = df04;
-xlim = pic.xi([0 pic.length]); % di, should be used as conditions for when to stop itnegration
-zlim = pic.zi; % di
+xlim = pic.xi([1 pic.nx]); % di, should be used as conditions for when to stop itnegration
+zlim = pic.zi([1 pic.nz]); % di
 
 % Initial particle velocities and time when to start trajectory
-r0 = [100 0 0]; % di
-v0 = [1 1 1]; % vA
-t0 = [50]; % wci-1
-T = [200]; % wci-1
-nP = size(r0,1); % number of particles
-m = [25];
-q = [1];
+disp('Preparing particles initial conditions.')
+particleset = 1;
+switch particleset
+  case 1
+    r0 = [100 0 0; 300 0 0]; % di
+    t0 = [50, 50]; % wci-1
+    nP = size(r0,1); % number of particles
+    iSpecies = 1;
+    for iP = 1:nP      
+      v0(iP,1) = pic.xlim(r0(iP,1)).zlim(r0(iP,3)).twcilim(t0(iP)).vx(iSpecies);
+      v0(iP,2) = pic.xlim(r0(iP,1)).zlim(r0(iP,3)).twcilim(t0(iP)).vy(iSpecies);
+      v0(iP,3) = pic.xlim(r0(iP,1)).zlim(r0(iP,3)).twcilim(t0(iP)).vz(iSpecies);
+    end
+    v0 = [1 1 1; 1 1 1]; % vA
+    t0 = [50, 50]; % wci-1
+    T = [240, 240]; % wci-1
+    
+    m = [25, 1];
+    q = [1, -1];
+  case 2 % cold ions in inflow
+    x_center = mean(pic.xi);
+    x0 = x_center + (0:10);
+    z0 = 3:5;
+    [X0,Z0] = ndgrid(x0,z0);
+    x0 = X0(:);
+    z0 = z0(:);
+    nP = size(r0,1); % number of particles
+    iSpecies = 3; % cold ions from the north
+    for iP = 1:nP      
+      v0(iP,1) = pic.xlim(r0(iP,1)).zlim(r0(iP,3)).twcilim(t0(iP)).vx(iSpecies);
+      v0(iP,2) = pic.xlim(r0(iP,1)).zlim(r0(iP,3)).twcilim(t0(iP)).vy(iSpecies);
+      v0(iP,3) = pic.xlim(r0(iP,1)).zlim(r0(iP,3)).twcilim(t0(iP)).vz(iSpecies);
+    end
+    t0 = 0[50, 50]; % wci-1
+    T = [240, 240]; % wci-1
+    
+    m = [25, 1];
+    q = [1, -1];
+end
 
 x_sol_all = cell(nP,1);
 
 if doPlot
   hca = subplot(1,1,1);  
   hca.XLim = xlim;
+  hca.ZLim = zlim;
+  hca.XLabel.String = 'x/d_i';
+  hca.YLabel.String = 'y/d_i';
+  hca.ZLabel.String = 'z/d_i';
   hold(hca,'on')
 end
+disp('Integrating trajectories.')
 for iP = 1:nP  % one particle: 27s on office desktop
-  tic
+  tic  
   x_init = [r0(iP,:)'; v0(iP,:)']; % di, vA
+  disp(sprintf('t0 = %5.f, x0 = %g, y0 = %g, z0 = %g, vx0 = %g, vy0 = %g, vz0 = %g',t0(iP),x_init(1),x_init(2),x_init(3),x_init(4),x_init(5),x_init(6)))
   
   % Integrate trajectory
   stopfunction = @(t,x,z) eom.box2d(t,x,z,xlim,zlim); % the stopfunction seems to require a lot of time, or not
@@ -30,8 +68,8 @@ for iP = 1:nP  % one particle: 27s on office desktop
 
   EoM = @(ttt,xxx) eom_pic(ttt,xxx,pic,m(iP),q(iP));
   %EoM = @(ttt,xxx) eom.interp_data(ttt,xxx,0,0,zObs,obsB.x.data,obsB.y.data,obsB.z.data,obsE.x.data,obsE.y.data,obsE.z.data);
-  [t,x_sol] = ode45(EoM,[0 T],x_init); % ,options
-  x_sol(:,7) = t;
+  [t,x_sol] = ode45(EoM,[t0(iP) T(iP)],x_init); % ,options
+  x_sol(:,7) = t; % x_sol = (x,y,z,vx,vy,vz,t)
   
   %x = x_sol(:,1);
   %y = x_sol(:,2);
@@ -46,10 +84,13 @@ for iP = 1:nP  % one particle: 27s on office desktop
   toc
   if doPlot
     plot3(hca,x_sol(:,1),x_sol(:,2),x_sol(:,3))
+    drawnow
   end
 end
 if doPlot
   hold(hca,'off')
+  hca.XLim = xlim;
+  hca.ZLim = zlim;
 end
 xmax = 1;
 %% Plot particles on top of fields

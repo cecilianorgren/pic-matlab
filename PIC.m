@@ -240,6 +240,7 @@
       obj.twpe_ = obj.twpe_(inds);
       obj.twci_ = obj.twci_(inds);
       obj.it_ = obj.it_(inds);
+      obj.indices_ = obj.indices_(inds);
       obj.iteration_ = obj.iteration_(inds);
     end
     
@@ -426,6 +427,42 @@
 %         %pause
 %       end
     end
+    function [vx,vy,vz] = interp_v(obj,x,z,t,iSpecies)
+      % Interpolate field to a given point (x,z,t)
+      %   [vx,vy,vz] = interp_v(obj,x,z,t,iSpecies)
+      %
+      % To be implemented:
+      %  - interpolation for several timesteps
+      %  - shape preserving interpolation
+      %  - different interpolation types for temporal and spatial
+      %    dimensions, particularly important for temporal dimension where
+      %    the time steps are quite large
+      
+      method = 'linear';
+      if strcmp(method,'linear')
+        nClosest = 2;
+      end
+      
+      nPoints = numel(t); 
+      
+      tmppic = obj.xlim(x,'closest',nClosest).zlim(z,'closest',nClosest).twcilim(t,'closest',nClosest);  
+      
+      tmpt =  tmppic.twci;
+      tmpx =  tmppic.xi;
+      tmpz =  tmppic.zi;
+      tmpVx = tmppic.vx(iSpecies);
+      tmpVy = tmppic.vy(iSpecies);
+      tmpVz = tmppic.vz(iSpecies);
+
+      % Interpolate to particle position
+      % Vq = interp3(V,Xq,Yq,Zq) assumes X=1:N, Y=1:M, Z=1:P where [M,N,P]=SIZE(V).      
+
+      [X,Z,T] = meshgrid(tmpx,tmpz,tmpt);
+      vx = interp3(X,Z,T,permute(tmpVx,[2 1 3]),x,z,t,method);
+      yy = interp3(X,Z,T,permute(tmpVy,[2 1 3]),x,z,t,method);
+      zz = interp3(X,Z,T,permute(tmpVz,[2 1 3]),x,z,t,method);
+      
+    end    
     
     % Get simulation meta data and parameters
     function out = get_twpe(obj)
