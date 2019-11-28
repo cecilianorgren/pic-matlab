@@ -1,11 +1,11 @@
 %% Read distribution function binary files
  
 function [axes,xlo,xhi,zlo,zhi,ic,fxyz,fxy,fxz,fyz,vxa,vya,vza] ...
-    = read_distributions(txtfile)
+    = read_distributions(txtfile,nss)
 
 fid = fopen(txtfile,'r','ieee-le');
 
-nss = 4; % Oxygen run has 4 species
+%nss = 4; % Oxygen run has 4 species
 
 numberel = 101; %hardcoded? 
 
