@@ -1,4 +1,4 @@
-% integrate_particle_trajectory
+%% Initialize particles
 doPlot = 1;
 pic = df04;
 xlim = pic.xi([1 pic.nx]); % di, should be used as conditions for when to stop itnegration
@@ -6,7 +6,7 @@ zlim = pic.zi([1 pic.nz]); % di
 
 % Initial particle velocities and time when to start trajectory
 disp('Preparing particles initial conditions.')
-particleset = 4;
+particleset = 5;
 switch particleset
   case 1
     r0 = [100 0 0; 300 0 0]; % di
@@ -103,8 +103,20 @@ switch particleset
     
     m = 1 + zeros(nP,1); % all ions
     q = -1 + zeros(nP,1);
+  case 5
+    r0 = [200 0 0]; % di
+    t0 = [50]; % wci-1
+    nP = size(r0,1); % number of particles
+    iSpecies = 1;
+    
+    v0 = [0.1 0.1 0.1]; % vA
+    t0 = [4]; % wci-1
+    T = [240]; % wci-1
+    
+    m = [25];
+    q = [1];
 end
-%%
+
 x_sol_all = cell(nP,1);
 
 if doPlot
@@ -126,10 +138,12 @@ for iP = 1:nP  % one particle: 27s on office desktop
   % Integrate trajectory
   stopfunction = @(t,x,z) eom.box2d(t,x,z,xlim,zlim); % the stopfunction seems to require a lot of time, or not
   options = odeset('Events',stopfunction,'RelTol',1e-10);%,'InitialStep',2.5e-5,'OutputSel',1,'Refine',refine);
+  options = odeset('InitialStep',0.05);%,'InitialStep',2.5e-5,'OutputSel',1,'Refine',refine);
+  options = odeset('MaxStep',0.1);%,'InitialStep',2.5e-5,'OutputSel',1,'Refine',refine);
 
   EoM = @(ttt,xxx) eom_pic(ttt,xxx,pic,m(iP),q(iP));
   %EoM = @(ttt,xxx) eom.interp_data(ttt,xxx,0,0,zObs,obsB.x.data,obsB.y.data,obsB.z.data,obsE.x.data,obsE.y.data,obsE.z.data);
-  [t,x_sol] = ode45(EoM,[t0(iP) T(iP)],x_init); % ,options
+  [t,x_sol] = ode45(EoM,[t0(iP) T(iP)],x_init);%,options); % 
   x_sol(:,7) = t; % x_sol = (x,y,z,vx,vy,vz,t)
   
   %x = x_sol(:,1);
@@ -154,6 +168,62 @@ if doPlot
   hca.ZLim = zlim;
 end
 xmax = 1;
+
+%% Plot particles properties and forces as function of time
+
+iP = 1;
+nPanels = 6;
+h = setup_subplots(nPanels,1);
+isub = 1;
+if 1 % xyz(t)  
+  hca = h(isub); isub = isub + 1;
+  plot(hca,x_sol(:,7),[x_sol(:,1)-x_sol(1,1) x_sol(:,2) x_sol(:,3)])
+  hca.XLabel.String = 'twci';
+  hca.YLabel.String = 'Position (d_i)';
+  legend(hca,{'x-x(1)','y','z'})
+end
+if 1 % xyz(t)  
+  hca = h(isub); isub = isub + 1;
+  plot(hca,x_sol(:,7),[x_sol(:,3)])
+  hca.XLabel.String = 'twci';
+  hca.YLabel.String = 'Position (d_i)';
+  legend(hca,{'z'})
+end
+if 1 % vxyz(t)  
+  hca = h(isub); isub = isub + 1;
+  plot(hca,x_sol(:,7),[x_sol(:,4) x_sol(:,5) x_sol(:,6)])
+  hca.XLabel.String = 'twci';
+  hca.YLabel.String = 'Velocity (v_A)';
+  legend(hca,{'v_x','v_y','v_z'})
+end
+if 1 % Bxyz(t)  
+  hca = h(isub); isub = isub + 1;
+  plot(hca,x_sol(:,7),[Bx,By,Bz])
+  hca.XLabel.String = 'twci';
+  hca.YLabel.String = 'B (B_0)';
+  legend(hca,{'B_x','B_y','B_z'})
+end
+if 1 % Exyz(t)  
+  hca = h(isub); isub = isub + 1;
+  plot(hca,x_sol(:,7),[Ex,Ey,Ez])
+  hca.XLabel.String = 'twci';
+  hca.YLabel.String = 'E (B_0v_A)';
+  legend(hca,{'E_x','E_y','E_z'})
+end
+if 1 % ExB(t)  
+  hca = h(isub); isub = isub + 1;
+  plot(hca,x_sol(:,7),[Ey.*Bz-Ez.*By,Ez.*Bx-Ex.*Bz,Ex.*By-Ey.*Bz])
+  hca.XLabel.String = 'twci';
+  hca.YLabel.String = 'ExB (B_0^2v_A)';
+  legend(hca,{'ExB_x','ExB_y','ExB_z'})
+end
+
+compact_panels(0.01)
+c_eval('h(?).XGrid = ''on''; h(?).YGrid = ''on'';',1:nPanels)
+%plot(x_sol(:,7),Ex,x_sol(:,7),Ey,x_sol(:,7),Ez,x_sol(:,7),Bx,x_sol(:,7),By,x_sol(:,7),Bz)
+
+hlinks = linkprop(h,{'XLim'});
+
 %% Plot particles on top of fields
 
 h = setup_subplots(1,1,1);

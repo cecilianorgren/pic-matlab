@@ -385,10 +385,7 @@
       tmpBx = tmppic.Bx;
       tmpBy = tmppic.By;
       tmpBz = tmppic.Bz;
-      %disp(['x/di =' sprintf(' %g',x) ', x_grid/di = ' sprintf('%g ',tmpx)])
-      %disp(['z/di =' sprintf(' %g',z) ', z_grid/di = ' sprintf('%g ',tmpz)])
-      %disp(['twci =' sprintf(' %g',t) ', twci_grid = ' sprintf('%g ',tmpt)])
-
+      
       % Interpolate to particle position
       % Vq = interp3(V,Xq,Yq,Zq) assumes X=1:N, Y=1:M, Z=1:P where [M,N,P]=SIZE(V).      
 
@@ -426,6 +423,101 @@
 %         hca.ZLabel.String = 't';
 %         %pause
 %       end
+    end
+    function [Ex,Ey,Ez,Bx,By,Bz] = interp_EB3(obj,x,z,t)
+      % Interpolate field to a any number of point (x,z,t)
+      %
+      % To be implemented:
+      %  - interpolation for several timesteps
+      %  - shape preserving interpolation
+      %  - different interpolation types for temporal and spatial
+      %    dimensions, particularly important for temporal dimension where
+      %    the time steps are quite large
+      
+      method = 'linear';
+      if strcmp(method,'linear')
+        nClosest = 2;
+      end
+      
+      nPoints = numel(t);
+      
+      Ex = nan(nPoints,1);
+      Ey = nan(nPoints,1);
+      Ez = nan(nPoints,1);
+      Bx = nan(nPoints,1);
+      By = nan(nPoints,1);
+      Bz = nan(nPoints,1);
+      
+      for iP = 1:nPoints
+      
+        tmppic = obj.xlim(x(iP),'closest',nClosest).zlim(z(iP),'closest',nClosest).twcilim(t(iP),'closest',nClosest);  
+
+        tmpt =  tmppic.twci;
+        tmpx =  tmppic.xi;
+        tmpz =  tmppic.zi;
+        tmpEx = tmppic.Ex;
+        tmpEy = tmppic.Ey;
+        tmpEz = tmppic.Ez;
+        tmpBx = tmppic.Bx;
+        tmpBy = tmppic.By;
+        tmpBz = tmppic.Bz;
+      
+        % Interpolate to particle position
+        % Vq = interp3(V,Xq,Yq,Zq) assumes X=1:N, Y=1:M, Z=1:P where [M,N,P]=SIZE(V).      
+
+        [X,Z,T] = meshgrid(tmpx,tmpz,tmpt);
+        try
+        Ex(iP) = interp3(X,Z,T,permute(tmpEx,[2 1 3]),x(iP),z(iP),t(iP),method);
+        Ey(iP) = interp3(X,Z,T,permute(tmpEy,[2 1 3]),x(iP),z(iP),t(iP),method);
+        Ez(iP) = interp3(X,Z,T,permute(tmpEz,[2 1 3]),x(iP),z(iP),t(iP),method);
+        Bx(iP) = interp3(X,Z,T,permute(tmpBx,[2 1 3]),x(iP),z(iP),t(iP),method);
+        By(iP) = interp3(X,Z,T,permute(tmpBy,[2 1 3]),x(iP),z(iP),t(iP),method);
+        Bz(iP) = interp3(X,Z,T,permute(tmpBz,[2 1 3]),x(iP),z(iP),t(iP),method);
+        catch
+          1;
+        end
+      
+      end
+    end
+    function [Ex,Ey,Ez,Bx,By,Bz] = interp_EB2(obj,x,z,t)
+      % Interpolate field to a given point (x,z,t)
+      %
+      % To be implemented:
+      %  - interpolation for several timesteps
+      %  - shape preserving interpolation
+      %  - different interpolation types for temporal and spatial
+      %    dimensions, particularly important for temporal dimension where
+      %    the time steps are quite large
+   
+      nClosestXZ = 2;
+      nClosestT = 5;            
+      
+      tmppic = obj.xlim(x,'closest',nClosestXZ).zlim(z,'closest',nClosestXZ).twcilim(t,'closest',nClosestT);
+      
+      tmpt =  tmppic.twci;
+      tmpx =  tmppic.xi;
+      tmpz =  tmppic.zi;
+      tmpEx = tmppic.Ex;
+      tmpEy = tmppic.Ey;
+      tmpEz = tmppic.Ez;
+      tmpBx = tmppic.Bx;
+      tmpBy = tmppic.By;
+      tmpBz = tmppic.Bz;
+      
+      % Interpolate to particle position
+      % Vq = interp3(V,Xq,Yq,Zq) assumes X=1:N, Y=1:M, Z=1:P where [M,N,P]=SIZE(V).      
+
+%      for iT = 1:nClosestT
+        
+      [X,Z,T] = meshgrid(tmpx,tmpz,tmpt);
+      Ex = interp3(X,Z,T,permute(tmpEx,[2 1 3]),x,z,t,method);
+      Ey = interp3(X,Z,T,permute(tmpEy,[2 1 3]),x,z,t,method);
+      Ez = interp3(X,Z,T,permute(tmpEz,[2 1 3]),x,z,t,method);
+      Bx = interp3(X,Z,T,permute(tmpBx,[2 1 3]),x,z,t,method);
+      By = interp3(X,Z,T,permute(tmpBy,[2 1 3]),x,z,t,method);
+      Bz = interp3(X,Z,T,permute(tmpBz,[2 1 3]),x,z,t,method);
+      
+   
     end
     function [vx,vy,vz] = interp_v(obj,x,z,t,iSpecies)
       % Interpolate field to a given point (x,z,t)
