@@ -21,6 +21,30 @@ method = 'linear';
 intA1 = interp3(X1,Y1,Z1,A1,xq,yq,zq,method)
 intA2 = interp3(X2,Y2,Z2,A2,xq,yq,zq,method)
 
+%% Test two time interpolation
+A = rand([2 2 2]);
+
+i1 = 1:2;
+x = i1;
+y = i1;
+z = i1;
+%[X1,Y1,Z1] = meshgrid(x1,y1,z1);
+
+[X1,Y1] = meshgrid(x,y);
+
+xq = 1.2;
+yq = 1.6;
+zq = 1.3;
+
+Axyz = interp3(x,y,z,A,zq,yq,zq);
+
+Axy1 = interp2(x,y,A(:,:,1),xq,yq);
+Axy2 = interp2(x,y,A(:,:,2),xq,yq);
+Axy = [Axy1,Axy2];
+% These give the same.
+Axyz = interp1(z,Axy,zq)
+Axyz = interp3(x,y,z,A,xq,yq,zq)
+
 %%
 
 nPoints = 5;
