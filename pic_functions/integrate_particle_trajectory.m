@@ -132,6 +132,17 @@ for iP = 1:nP  % one particle: 27s on office desktop
   [t,x_sol] = ode45(EoM,[t0(iP) T(iP)],x_init); % ,options
   x_sol(:,7) = t; % x_sol = (x,y,z,vx,vy,vz,t)
   
+  if 1 % try smalelr tolerance
+    stopfunction = @(t,x,z) eom.box2d(t,x,z,xlim,zlim); % the stopfunction seems to require a lot of time, or not
+    options = odeset('RelTol',1e-10);%,'InitialStep',2.5e-5,'OutputSel',1,'Refine',refine);
+
+    EoM = @(ttt,xxx) eom_pic(ttt,xxx,pic,m(iP),q(iP));
+    %EoM = @(ttt,xxx) eom.interp_data(ttt,xxx,0,0,zObs,obsB.x.data,obsB.y.data,obsB.z.data,obsE.x.data,obsE.y.data,obsE.z.data);
+    [t_,x_sol_] = ode45(EoM,[t0(iP) T(iP)],x_init,options); % ,options
+    x_sol_(:,7) = t_; % x_sol = (x,y,z,vx,vy,vz,t)
+  end
+    
+  
   %x = x_sol(:,1);
   %y = x_sol(:,2);
   %z = x_sol(:,3);
