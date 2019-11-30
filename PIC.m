@@ -681,9 +681,9 @@
       end
       nSpecies = numel(species);
       dfac = obj.get_dfac;                  
-      n = zeros(obj.nt,obj.nx,obj.nz);      
+      n = zeros(obj.nt,obj.nx,obj.nz);
       for iSpecies = species                
-        n = n + obj.get_field(sprintf('dns/%.0f',iSpecies))*dfac(iSpecies);        
+        n = n + obj.get_field(sprintf('dns/%.0f',iSpecies))*dfac(iSpecies);
       end
       out = n;
     end
@@ -691,7 +691,7 @@
       % Get total electron density
       iSpecies = find(obj.get_charge == -1); % negatively charge particles are electrons
       dfac = obj.get_dfac;      
-      var = zeros([1,obj.get_gridsize]);
+      var = zeros([obj.get_gridsize,1]);
       for iComp = 1:numel(iSpecies)
         dataset = sprintf('dns/%.0f',iSpecies(iComp));
         n_tmp = get_field(obj,dataset);
@@ -703,7 +703,7 @@
       % Get total ion density
       iSpecies = find(obj.get_charge == 1); % negatively charge particles are electrons
       dfac = obj.get_dfac;      
-      var = zeros([1,obj.get_gridsize]);
+      var = zeros([obj.get_gridsize,1]);
       for iComp = 1:numel(iSpecies)
         dataset = sprintf('dns/%.0f',iSpecies(iComp));
         n_tmp = get_field(obj,dataset);
@@ -736,7 +736,7 @@
       end
       nSpecies = numel(species);
       dfac = obj.get_dfac;                  
-      var = zeros(obj.nt,obj.nx,obj.nz);      
+      var = zeros(obj.nt,obj.nx,obj.nz);
       for iSpecies = species                        
         var = var + obj.get_field(sprintf('vys/%.0f',iSpecies))*dfac(iSpecies)*obj.wpewce*sqrt(obj.mime);                
       end
@@ -751,7 +751,7 @@
       end
       nSpecies = numel(species);
       dfac = obj.get_dfac;                  
-      var = zeros(obj.nt,obj.nx,obj.nz);      
+      var = zeros(obj.nt,obj.nx,obj.nz);
       for iSpecies = species                        
         var = var + obj.get_field(sprintf('vzs/%.0f',iSpecies))*dfac(iSpecies)*obj.wpewce*sqrt(obj.mime);                
       end
@@ -761,7 +761,7 @@
       % Get electron flux, x
       iSpecies = find(obj.get_charge == -1); % negatively charge particles are electrons
       dfac = obj.get_dfac;      
-      var = zeros([1,obj.get_gridsize]);
+      var = zeros([obj.get_gridsize,1]);
       for iComp = 1:numel(iSpecies)
         dataset = sprintf('vxs/%.0f',iSpecies(iComp));
         n_tmp = get_field(obj,dataset);
@@ -773,7 +773,7 @@
       % Get electron flux, y
       iSpecies = find(obj.get_charge == -1); % negatively charge particles are electrons
       dfac = obj.get_dfac;      
-      var = zeros([1,obj.get_gridsize]);
+      var = zeros([obj.get_gridsize,1]);
       for iComp = 1:numel(iSpecies)
         dataset = sprintf('vys/%.0f',iSpecies(iComp));
         n_tmp = get_field(obj,dataset);
@@ -785,7 +785,7 @@
       % Get electron flux, z
       iSpecies = find(obj.get_charge == -1); % negatively charge particles are electrons
       dfac = obj.get_dfac;      
-      var = zeros([1,obj.get_gridsize]);
+      var = zeros([obj.get_gridsize,1]);
       for iComp = 1:numel(iSpecies)
         dataset = sprintf('vzs/%.0f',iSpecies(iComp));
         n_tmp = get_field(obj,dataset);
@@ -796,7 +796,7 @@
     function out = jix(obj)
       iSpecies = find(obj.get_charge == 1); % negatively charge particles are electrons
       dfac = obj.get_dfac;      
-      var = zeros([1,obj.get_gridsize]);
+      var = zeros([obj.get_gridsize,1]);
       for iComp = 1:numel(iSpecies)
         dataset = sprintf('vxs/%.0f',iSpecies(iComp));
         n_tmp = get_field(obj,dataset);
@@ -807,7 +807,7 @@
     function out = jiy(obj)
       iSpecies = find(obj.get_charge == 1); % negatively charge particles are electrons
       dfac = obj.get_dfac;      
-      var = zeros([1,obj.get_gridsize]);
+      var = zeros([obj.get_gridsize,1]);
       for iComp = 1:numel(iSpecies)
         dataset = sprintf('vys/%.0f',iSpecies(iComp));
         n_tmp = get_field(obj,dataset);
@@ -818,7 +818,7 @@
     function out = jiz(obj)
       iSpecies = find(obj.get_charge == 1); % negatively charge particles are electrons
       dfac = obj.get_dfac;      
-      var = zeros([1,obj.get_gridsize]);
+      var = zeros([obj.get_gridsize,1]);
       for iComp = 1:numel(iSpecies)
         dataset = sprintf('vzs/%.0f',iSpecies(iComp));
         n_tmp = get_field(obj,dataset);
@@ -871,7 +871,7 @@
     function out = vexx(obj)
       iSpecies = find(obj.get_charge == -1); % negatively charge particles are electrons
       dfac = obj.get_dfac;      
-      var = zeros([1,obj.get_gridsize]);
+      var = zeros([obj.get_gridsize,1]);
       for iComp = 1:numel(iSpecies)
         dataset = sprintf('vxx/%.0f',iSpecies(iComp));
         var_tmp = get_field(obj,dataset);

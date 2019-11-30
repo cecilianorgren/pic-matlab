@@ -119,10 +119,10 @@ x = df04.xi;
 %Bx = df04.twpelim(5000).Bx; By = df04.twpelim(5000).By; Bz = df04.twpelim(5000).Bz;
 %B.x = Bx; B.y = By; B.z = Bz;
 
-clear f_dist_all
+%clear f_dist_all
 idist = 0;
 tic
-for distnumber = 1:100%281%:281%:281%30:40%39%180:200%:250%:100%:100%:10%40%:40%:4%:40
+for distnumber = 13:259%281%:281%:281%30:40%39%180:200%:250%:100%:100%:10%40%:40%:4%:40
   read_sub_dir = '/1/';
   txtfile = sprintf('/Volumes/Fountain/Data/PIC/df_cold_protons_1/distributions/%05.0f/%s/%.0f.dat',timestep,read_sub_dir,distnumber); % michael's perturbation
   txtfile = sprintf('/Users/cno062/tesla/cno062/df_cold_protons_n04/distributions/%05.0f/%.0f.dat',timestep,distnumber); % df04

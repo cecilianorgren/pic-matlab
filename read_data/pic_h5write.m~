@@ -282,13 +282,13 @@ descSpecies = {'hot ion harris sheet plus uniform background',...
   'cold electrons from south',...
   'cold ions from north',...
   'cold electrons from north'};
-timesteps = 8000; 
+timesteps = 5000; 
 iter = timestep*2; % timestep is 0.5
-dists = 1:254;%300;
+dists = 1:10;%300;
 nDists = numel(dists);
 nss = 6;
 
-for idist = 1:254%:210%1:nDists  
+for idist = 1;%210%1:nDists  
   %idist = 10;
   distnumber = dists(idist);
   txtfile = sprintf('/Users/cno062/tesla/cno062/df_cold_protons_n04/distributions/%05.0f/%.0f.dat',timestep,distnumber); % df04
@@ -299,27 +299,16 @@ for idist = 1:254%:210%1:nDists
   [axes,xlo,xhi,zlo,zhi,ic,fxyz,fxy,fxz,fyz,vxa,vya,vza] = read_distributions(txtfile,nss);
       
   % Write data to file
-  %for isp = 1:nss
+  for isp = 1:nss
     %dataset_name = ['/data/' str_iteration '/' num2str(distnumber),'/'];
     %h5create(filePath, dataset_name, size(fxyz));
     %h5write(filePath, dataset_name, fxyz);
 
-    dataset_name = ['/data/' str_iteration '/' num2str(distnumber,'%05.0f'),'/fxyz'];
-    try
-      h5create(filePath, dataset_name, size(fxyz));
-    catch
-      warning('h5 structure %s already exists',dataset_name)      
-    end
-    h5write(filePath, dataset_name, fxyz);
-    h5writeatt(filePath, dataset_name,'x', [xlo xhi]);
-    h5writeatt(filePath, dataset_name,'z', [zlo zhi]);
-    h5writeatt(filePath, dataset_name,'ic', ic);
-    h5writeatt(filePath, dataset_name,'vxa', vxa);
-    h5writeatt(filePath, dataset_name,'vya', vya);
-    h5writeatt(filePath, dataset_name,'vza', vza);
-    h5writeatt(filePath, dataset_name,'axes', axes);
-    
-    h5disp(filePath,dataset_name(1:(end-4)))
+    dataset_name = ['/data/' str_iteration '/' num2str(distnumber),'/fxyz'];
+    h5create(filePath, dataset_name, size(fxyz));
+    h5write(filePath, [dataset_name, fxyz);
+    h5writeatt(filePath, dataset_name, fxyz);
+
     %dataset_name = ['/data/' str_iteration '/' num2str(distnumber),'/fxy'];
     %h5create(filePath, dataset_name, size(fxy));
     %h5write(filePath, dataset_name, fxy);
@@ -331,8 +320,14 @@ for idist = 1:254%:210%1:nDists
     %dataset_name = ['/data/' str_iteration '/' num2str(distnumber),'/fyz'];
     %h5create(filePath, dataset_name, size(fyz));
     %h5write(filePath, dataset_name, fyz);
-  %end
+  end
   
+  % Also write species data as attributes
+  h5writeatt(filePath,dataset_name, 'mass',mass(iSpecies)) 
+  h5writeatt(filePath,dataset_name, 'charge',q(iSpecies)) 
+  h5writeatt(filePath,dataset_name, 'dfac',dfac(iSpecies)) 
+  % info.Groups(1).Groups(ig).Datasets(id).Attributes.Name
+        
       
   doPlot = 0;
   if doPlot

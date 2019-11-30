@@ -6,7 +6,7 @@ txttime = sprintf('timestep = %05.0f',timestep);
     
 idist = 0;
 tic
-for distnumber = 139%1:139%30:40%39%180:200%:250%:100%:100%:10%40%:40%:4%:40
+for distnumber = 200%1:139%30:40%39%180:200%:250%:100%:100%:10%40%:40%:4%:40
   read_sub_dir = '/1/';
   txtfile = sprintf('/Volumes/Fountain/Data/PIC/df_cold_protons_n08/distributions/%05.0f/%s/%.0f.dat',timestep,read_sub_dir,distnumber); % michael's perturbation
   if not(exist(txtfile,'file'))

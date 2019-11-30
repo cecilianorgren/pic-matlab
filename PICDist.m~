@@ -403,16 +403,15 @@
       iterations = obj.iteration;
       % fields structure is the same for all times
       for iIter = 1:numel(iterations)
-        dists_iter = cell(numel(fileInfo.Groups(1).Groups(1).Groups),1);
-        %dists{iIter} = numel(fileInfo.Groups(1).Groups(1).Groups);
-        %dists_iter = {fileInfo.Groups(1).Groups(1).Groups.Name};
+        dists{iIter} = numel(fileInfo.Groups(1).Groups(1).Groups);
+        dists_iter = {fileInfo.Groups(1).Groups(1).Groups.Name};
         split_str = cellfun(@(x) strsplit(x,'/'),{fileInfo.Groups(1).Groups(1).Groups.Name},'UniformOutput',false);
         for iout = 1:numel(split_str)
-          dists_iter{iout} = split_str{iout}{end};
+          dists_iter{end+1} = split_str{iout}{end};
         end
         dists{iIter} = dists_iter;        
       end
-      out = dists;
+      out = dists;      
     end
     function out = get_gridsize(obj)
       out = [numel(obj.xe) numel(obj.ze)];
