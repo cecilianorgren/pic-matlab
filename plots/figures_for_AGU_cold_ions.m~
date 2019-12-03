@@ -97,7 +97,7 @@ end
 c_eval('hca.FontSize = 13;',1:npanels)
 c_eval('h(?).Position(2) = 0.20; h(?).Position(4) = 0.65;',1)
 
-%% Movie of density evolution df04, gif
+%% Movie of density evolution df04
 % [all_im, map] = MAKE_GIF(obj,fields,nrows,ncols)      
 % make gif
 % imwrite(im,map,'delme.gif','DelayTime',0.0,'LoopCount',0)  
@@ -114,8 +114,6 @@ pic = df04;
 
 % setup figure
 fig = figure;
-fig.Position = [100 100 920 360];
-set(fig,'color','white');
 nrows = 1;
 ncols = 1;
 h = setup_subplots(nrows,ncols); % external function, must include in SMILEI.m
@@ -132,7 +130,7 @@ for itime = times
   data = pic.ni;  
   imagesc(hca,pic.xi,pic.zi,data')
   hb = colorbar('peer',hca);
-  hb.YLabel.String = 'n_i/n_0';
+  hb.YLabel.String = 'n_i';
   hca.Title.String = sprintf('twci = %3.0f',pic.twci);
   if doAdjustCLim
     hca.CLim = clim;
@@ -360,26 +358,22 @@ close(vidObj);
 
 %% Map of distributions
 zlim = [0 6];
-xlim = [160 180];
+xlim = [170 200];
 sumdim = 3;
-iSpecies = [3 5];
-hmap = ds04(2).xlim(xlim).zlim(zlim).plot_map(iSpecies,sumdim);
+iSpecies = [6];
+ds04(2).xlim(xlim).zlim(zlim).plot_map(iSpecies,sumdim);
 
 all_axes = findobj(gcf,'type','axes');
 compact_panels(0.00,0.00)
 drawnow
-%%
-cn.print(sprintf('fxy_35_t08000_z%.0f-%.0f_x%.0f-%.0f',xlim(1),xlim(2),zlim(1),zlim(2)),'path',savedir)
+cn.print(sprintf('fxy_6_t08000_z%.0f-%.0f_x%.0f-%.0f',xlim(1),xlim(2),zlim(1),zlim(2)),'path',savedir)
 
 doSquare = 1;
 for ipanel = 1:numel(all_axes)
   if doSquare, axis(all_axes(ipanel),'square'); end
 end
-cn.print(sprintf('fxy_35_t08000_z%.0f-%.0f_x%.0f-%.0f_square',xlim(1),xlim(2),zlim(1),zlim(2)),'path',savedir)
+cn.print(sprintf('fxy_6_t08000_z%.0f-%.0f_x%.0f-%.0f_square',xlim(1),xlim(2),zlim(1),zlim(2)),'path',savedir)
 
-set(gcf,'Position',pp)
-drawnow
-cn.print(sprintf('fxy_35_t08000_z%.0f-%.0f_x%.0f-%.0f_square_tight',xlim(1),xlim(2),zlim(1),zlim(2)),'path',savedir)
 %% Movie looping through distributions at z = 0, and x, seeing the subsequently entering "trees"
 
 %% Plot smaller subset of distributions, for smaller figures embedded in text, one z row
@@ -457,10 +451,10 @@ if doVideo, close(vidObj); end
 doVideo = 1;
 zlim1 = 0+[-0.1 0.1];
 zlim2 = 1+[-0.1 0.1];
-xlim = [166 200];
-xs = 205:-1:166;
+xlim = [160 200];
+xs = 165:1:204
 sumdim = 3;
-iSpecies = [5];
+iSpecies = [3];
 %ds1 = ds04(2).xlim(xlim).zlim(zlim1);
 %ds2 = ds04(2).xlim(xlim).zlim(zlim2);
 cmap = pic_colors('candy');
@@ -471,39 +465,35 @@ it = 1;
 
 
 if doVideo
-  vidObj = VideoWriter([savedir 'fvyz_xy_xz_z=0-1_x=160-200_clim_5.mp4'],'MPEG-4');
+  vidObj = VideoWriter([savedir 'fvyz_xy_xz_z=0-1_x=160-200_clim.mp4'],'MPEG-4');
   open(vidObj);
 end
 % Set up figure
 h = setup_subplots(2,3);
 
 for ix = 1:numel(xs)
-  %ix
-  id = 1;
   ds1 = ds04(2).xlim(xs(ix)+[-0.1 0.1]).zlim(zlim1);
   ds2 = ds04(2).xlim(xs(ix)+[-0.1 0.1]).zlim(zlim2);
-  if isempty(ds1.xi{:}) && isempty(ds2.xi{:})
+  if isempty(ds1.xi) && isempty(ds2.xi)
     continue
-  elseif isempty(ds1.xi{:})
+  elseif isempty(ds1.xi)
     f2 = ds2.f(1,id,iSpecies);
     f1 = f2;
     f1.f = f1.f*0;
-    f1.fxy = f1.fxy*0;
-    f1.fyz = f1.fyz*0;
-    f1.fxz = f1.fxz*0;
-  elseif isempty(ds2.xi{:})
-    f1 = ds1.f(1,id,iSpecies);
-    f2 = f1;
-    f2.f = f2.f*0;
-    f2.fxy = f2.fxy*0;
-    f2.fyz = f2.fyz*0;
-    f2.fxz = f2.fxz*0;
-  else
-    f1 = ds1.f(1,id,iSpecies);
-    f2 = ds2.f(1,id,iSpecies);
+    f1.fxy = f1.f*0;
+    f1.fyz = f1.f*0;
+    f1.fxz = f1.f*0;
+  elseif isempty(ds2.xi)
+    f1 = ds2.f(1,id,iSpecies);
+    f1 = f2;
+    f1.f = f1.f*0;
+    f1.fxy = f1.f*0;
+    f1.fyz = f1.f*0;
+    f1.fxz = f1.f*0;
   end
    
-      
+    
+  
   isub = 1;
   f = f2;
   if 1 % fzy

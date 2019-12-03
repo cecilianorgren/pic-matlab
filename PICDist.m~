@@ -198,15 +198,11 @@
       % Get subset of x
       nt = obj.nt;
       nd = obj.nd;
-      method = 'center';
       
       for it = 1:nt
         xtmp = obj.xi{it};
         xtmp = [xtmp{:}];
         xtmp = reshape(xtmp,[2,nd{it}])'; % nx x nd matrix
-        if strcmp(method,'center')
-          xtmp = (xtmp(:,1)+xtmp(:,2))/2*[1 1];
-        end
         i1 = find(xtmp(:,1) >= value(1)); 
         i2 = find(xtmp(:,2) <= value(2)); 
         inds{it} = intersect(i1,i2);
@@ -383,7 +379,7 @@
       % collect frames
       
     end
-    function varargout = plot_map(obj,iSpecies,sumdim)
+    function out = plot_map(obj,iSpecies,sumdim)
             
       fontsize = 7;
       %doBDir = 1;
@@ -397,8 +393,7 @@
 
       idist = 0;
       %tic
-      h = gobjects(0);
-      hleg = gobjects(0);
+      h = [];
       for id = obj.indices{1}
         idist = idist + 1;      
 
@@ -481,8 +476,8 @@
               hca.Box = 'on';
               colormap(hca,pic_colors('candy'))
               %irf_legend(hca,{sprintf('x=%.1f, z=%.1f',xloc,zloc);sprintf('B=[%.2f,%.2f,%.2f]',Bloc.x,Bloc.y,Bloc.z)},[0.01 0.99],'color',[0 0 0],'fontsize',9)
-              hleg_ = irf_legend(hca,{sprintf('x=%.1f, z=%.1f',xloc,zloc)},[0.01 0.99],'color',[0 0 0],'fontsize',fontsize);
-              hleg(end+1) = hleg_;
+              irf_legend(hca,{sprintf('x=%.1f, z=%.1f',xloc,zloc)},[0.01 0.99],'color',[0 0 0],'fontsize',9)
+
               if 0%doBDir           
                 line_slope = (Bloc.z/Bloc.x);
                 xx = min(hca.XLim(2)*[1 1/abs(line_slope)])*[-1 1];
@@ -507,8 +502,7 @@
       end
         %toc      
       
-      varargout{1}.h = h;
-      varargout{1}.hleg = hleg;
+      out = h;
       
     end
               
@@ -709,7 +703,7 @@
         varargout{1} = dist;
       end
     end
-    function varargout = f(obj,it,id,iss)
+    function varargout = fxyz(obj,it,id,iss)
             
       iSpecies = iss;        
       dataset = obj.dataset_str(it,id);
@@ -736,24 +730,26 @@
       end
             
       % Reduce distribution
-      fstr = {'yz','xz','xy'};
-      for sumdim = 1:3        
+      if exist('sumdim','var') && any(sumdim == [1 2 3])
         for isum = numel(sumdim):-1:1
-          dist_sum{sumdim} = squeeze(sum(dist,sumdim(isum)));
-        end        
+          dist = squeeze(sum(dist,sumdim(isum)));
+        end
       end
       
       x = h5readatt(obj.file,dataset,'x');
       z = h5readatt(obj.file,dataset,'z');
       
-      out.f = dist;
-      out.fyz = dist_sum{1};
-      out.fxz = dist_sum{2};
-      out.fxy = dist_sum{3};
-      out.v = comAxes;
-      out.x = x;
-      out.z = z;
-      varargout{1} = out;
+      if nargout == 1
+        out.f = dist;
+        out.v = comAxes;
+        out.x = x;
+        out.z = z;
+        varargout{1} = out;
+      elseif nargout == 3
+        varargout{1} = comAxes;
+        varargout{2} = comAxes;
+        varargout{1} = dist;
+      end
     end
     
     % dEF - differential energy flux

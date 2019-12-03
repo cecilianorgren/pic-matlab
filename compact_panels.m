@@ -77,7 +77,7 @@ if doX
 
     end
   end
-  xshift = 0.05;
+  xshift = 0.0;
   for iax = 1:nax  
     ax(iax).Position(1) = ax(iax).Position(1)-xshift;    
   end
