@@ -282,7 +282,7 @@ descSpecies = {'hot ion harris sheet plus uniform background',...
   'cold electrons from south',...
   'cold ions from north',...
   'cold electrons from north'};
-timesteps = 8000; 
+timestep = 8000; 
 iter = timestep*2; % timestep is 0.5
 dists = 1:254;%300;
 nDists = numel(dists);
@@ -383,6 +383,63 @@ for idist = 1:254%:210%1:nDists
     hlinks = linkprop(h,{'Clim'});
   end
     
+end
+
+%% Particle distributions, df04, from old h5 to new h5
+
+% Better to save original data, and only necessary quantities
+data_dir    = '/Volumes/Fountain/Data/PIC/df_cold_protons_n04/data/';
+data_dir_h5 = '/Volumes/Fountain/Data/PIC/df_cold_protons_n04/data_h5/';
+filePath = [data_dir_h5 'dists.h5'];
+filePathOld = [data_dir_h5 'dists_old.h5'];
+nSpecies = 6;
+
+timestep = 8000; % 254
+%timestep = 5000; % 259
+iter = timestep*2; % timestep is 0.5
+dists = 1:300;%300;
+nDists = numel(dists);
+nss = 6;
+%old_format = '%05.0f'; new_format = '%05.0f'; old_iter = 10000; new_iter = 16000;
+old_format = '%5.0f'; new_format = '%05.0f'; old_iter = 10000; new_iter = 10000;
+
+for idist = 1:259%:210%1:nDists  
+  %idist = 10;
+  distnumber = dists(idist);
+  %txtfile = sprintf('/Users/cno062/tesla/cno062/df_cold_protons_n04/distributions/%05.0f/%.0f.dat',timestep,distnumber); % df04
+  
+  str_iteration_new = sprintf('%010.0f',new_iter);
+  str_iteration_old = sprintf('%010.0f',old_iter);
+  
+  % Read distributions  
+  %[axes,xlo,xhi,zlo,zhi,ic,fxyz,fxy,fxz,fyz,vxa,vya,vza] = read_distributions(txtfile,nss);
+      
+  % Write data to file
+  %for isp = 1:nss 
+    %dataset_name = ['/data/' str_iteration '/' num2str(distnumber),'/'];
+    %h5create(filePath, dataset_name, size(fxyz));
+    %h5write(filePath, dataset_name, fxyz);
+
+    dataset_name_old = ['/data/' str_iteration_old '/' num2str(distnumber,old_format),'/fxyz'];
+    dataset_name = ['/data/' str_iteration_new '/' num2str(distnumber,new_format),'/fxyz'];
+    %dataset_name = ['/data/' str_iteration '/' num2str(distnumber,'%.0f'),'/fxyz'];
+    fxyz = h5read(filePathOld,dataset_name_old);
+    try
+      h5create(filePath, dataset_name, size(fxyz));
+    catch
+      warning('h5 structure %s already exists',dataset_name)      
+    end    
+    h5write(filePath, dataset_name, fxyz);
+    
+    h5writeatt(filePath, dataset_name,'x', h5readatt(filePathOld, dataset_name_old,'x'));
+    h5writeatt(filePath, dataset_name,'z', h5readatt(filePathOld, dataset_name_old,'z'));
+    h5writeatt(filePath, dataset_name,'ic', h5readatt(filePathOld, dataset_name_old,'ic'));
+    h5writeatt(filePath, dataset_name,'vxa', h5readatt(filePathOld, dataset_name_old,'vxa'));
+    h5writeatt(filePath, dataset_name,'vya', h5readatt(filePathOld, dataset_name_old,'vya'));
+    h5writeatt(filePath, dataset_name,'vza', h5readatt(filePathOld, dataset_name_old,'vza'));
+    h5writeatt(filePath, dataset_name,'axes', h5readatt(filePathOld, dataset_name_old,'axes'));
+    
+    h5disp(filePath,dataset_name(1:(end-4)))          
 end
 
 

@@ -288,33 +288,7 @@ for ivar = 1:nvars
     hcont = contour(hca,x(ipx),z(ipz),squeeze(A(ipx,ipz))',saddle_values(1)*[1 1],'color',cA,'linewidth',2,'displayname','A_X','linestyle','-'); 
     hold(hca,'off')  
   end
-  for iQ = 1:nVarQ
-    hold(hca,'on')
-    dataQ_tmp = eval(varstrsQ{iQ});
-    maxQ = maxQs(iQ);
-    if isstruct(dataQ_tmp)
-      dataQ = dataQ_tmp;
-      dataQ.abs = sqrt(dataQ.x.^2 + dataQ.z.^2);
-      dataQ.x(dataQ.abs>maxQ) = NaN;
-      dataQ.y(dataQ.abs>maxQ) = NaN;
-      dataQ.z(dataQ.abs>maxQ) = NaN;
-    else
-      dataQ.x = squeeze(dataQ_tmp(it,:,:,1));
-      dataQ.y = squeeze(dataQ_tmp(it,:,:,2));
-      dataQ.z = squeeze(dataQ_tmp(it,:,:,3));
-      dataQ.abs = sqrt(dataQ.x.^2 + dataQ.z.^2);
-      dataQ.x(dataQ.abs>maxQ) = NaN;
-      dataQ.y(dataQ.abs>maxQ) = NaN;
-      dataQ.z(dataQ.abs>maxQ) = NaN;
-    end
-    displayname = varstrsQ{iQ};
-    hquiv = quiver(hca,X(ipxQ,ipzQ),Z(ipxQ,ipzQ),dataQ.x(ipxQ,ipzQ)*scalesQ_a(iQ),dataQ.z(ipxQ,ipzQ)*scalesQ_a(iQ),scalesQ_b(iQ),...
-      'color',colorQ(iQ,:),'linewidth',1.0,'displayname',displayname,...
-      'ShowArrowHead','off','Marker','o','MarkerSize',1);
-    %hquiv.ShowArrowHead = 'off';
-    %hquiv.Marker = '.';
-    hold(hca,'off')  
-  end
+
 end
 legend(hca);
 

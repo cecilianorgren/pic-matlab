@@ -681,7 +681,7 @@
       end
       nSpecies = numel(species);
       dfac = obj.get_dfac;                  
-      n = zeros(obj.nt,obj.nx,obj.nz);
+      n = zeros(obj.nx,obj.nz,obj.nt);
       for iSpecies = species                
         n = n + obj.get_field(sprintf('dns/%.0f',iSpecies))*dfac(iSpecies);
       end
@@ -721,9 +721,9 @@
       end
       nSpecies = numel(species);
       dfac = obj.get_dfac;                  
-      var = zeros(obj.nt,obj.nx,obj.nz);      
-      for iSpecies = species                        
-        var = var + obj.get_field(sprintf('vxs/%.0f',iSpecies))*dfac(iSpecies)*obj.wpewce*sqrt(obj.mime);                
+      var = zeros(obj.nx,obj.nz,obj.nt);
+      for iSpecies = species
+        var = var + obj.get_field(sprintf('vxs/%.0f',iSpecies))*dfac(iSpecies)*obj.wpewce*sqrt(obj.mime);
       end
       out = var;      
     end
@@ -736,8 +736,8 @@
       end
       nSpecies = numel(species);
       dfac = obj.get_dfac;                  
-      var = zeros(obj.nt,obj.nx,obj.nz);
-      for iSpecies = species                        
+      var = zeros(obj.nx,obj.nz,obj.nt);
+      for iSpecies = species
         var = var + obj.get_field(sprintf('vys/%.0f',iSpecies))*dfac(iSpecies)*obj.wpewce*sqrt(obj.mime);                
       end
       out = var;      
@@ -751,8 +751,8 @@
       end
       nSpecies = numel(species);
       dfac = obj.get_dfac;                  
-      var = zeros(obj.nt,obj.nx,obj.nz);
-      for iSpecies = species                        
+      var = zeros(obj.nx,obj.nz,obj.nt);
+      for iSpecies = species
         var = var + obj.get_field(sprintf('vzs/%.0f',iSpecies))*dfac(iSpecies)*obj.wpewce*sqrt(obj.mime);                
       end
       out = var;      

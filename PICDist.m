@@ -23,11 +23,8 @@
     grid_
     indices_
     it_
-    ix_
-    iz_
+    id_
     dists_
-%    wpewce_ = [];
-%    mime_ = [];
     
   end
   
@@ -48,8 +45,7 @@
     grid
     indices
     it
-    ix
-    iz
+    id    
     dists
     %wpewce
     %mime
@@ -106,7 +102,13 @@
       %obj.teti = h5read(h5filePath,'/simulation_information/teti');
       %obj.wpewce = h5read(h5filePath,'/simulation_information/wpewce');
       
-      obj.iteration = get_iterations(obj);      
+      obj.iteration = get_iterations(obj);    
+      obj.it = 1:numel(obj.iteration);
+      obj.dists_ = obj.get_distlist;
+      [xi,zi] = obj.get_locs;
+      obj.xi = xi;
+      obj.zi = zi;
+      obj.indices = cellfun(@(x) 1:numel(x),obj.dists,'UniformOutput',false);
       %obj.twpe = get_twpe(obj);      
       %obj.twci = obj.twpe/(obj.wpewce*obj.mime);
       %obj.indices_ = 1:numel(obj.iteration);
@@ -134,32 +136,15 @@
           %nargout
           % first index is time
           s = substruct(idx(1).type,idx(1).subs(1));
-          obj.iteration_ = builtin('subsref',obj.iteration,s);
-          obj.twpe_ = builtin('subsref',obj.twpe,s);
-          obj.twci_ = builtin('subsref',obj.twci,s);
-          obj.indices_ = builtin('subsref',obj.indices,s);
-          obj.it_ = builtin('subsref',obj.it,s);
-          if numel(idx(1).subs) == 3 % time and two spatial indices
-            s = substruct(idx(1).type,idx(1).subs(2));
-            newgrid{1} = builtin('subsref',obj.grid{1},s); 
-            obj.xe_ = builtin('subsref',obj.xe,s); 
-            obj.xi_ = builtin('subsref',obj.xi,s); 
-            obj.ix_ = builtin('subsref',obj.ix,s); 
-            s = substruct(idx(1).type,idx(1).subs(3));
-            newgrid{2} = builtin('subsref',obj.grid{2},s);
-            obj.ze_ = builtin('subsref',obj.ze,s); 
-            obj.zi_ = builtin('subsref',obj.zi,s); 
-            obj.iz_ = builtin('subsref',obj.iz,s); 
-            obj.grid_ = newgrid;
-            %obj.gridsize_ = [numel(obj.grid{1}),numel(obj.grid{2})];      
-          end
-          
-%           obj.iteration_ = builtin('subsref',obj.iteration,idx(1));
-%           obj.twpe_ = builtin('subsref',obj.twpe,idx(1));
-%           obj.twci_ = builtin('subsref',obj.twci,idx(1)); 
-%           if numel(idx(1).subs)  1 % only time index
-%             
-%           end
+          obj.iteration_ = builtin('subsref',obj.iteration_,s);
+          %obj.twpe_ = builtin('subsref',obj.twpe,s);
+          %obj.twci_ = builtin('subsref',obj.twci,s);
+          obj.indices_ = builtin('subsref',obj.indices_,s);
+          obj.dists_ = builtin('subsref',obj.dists_,s);
+          obj.xi_ = builtin('subsref',obj.xi_,s);
+          obj.zi_ = builtin('subsref',obj.zi_,s);
+          obj.it_ = builtin('subsref',obj.it_,s);
+         
           if numel(idx) > 1
             obj = builtin('subsref',obj,idx(2:end));
           end
@@ -182,10 +167,10 @@
     % now
     function obj = ilim(obj,value)
       % Get subset of output
-      obj.twpe_ = obj.twpe_(value);
-      obj.twci_ = obj.twci_(value);
+      %obj.twpe_ = obj.twpe_(value);
+      %obj.twci_ = obj.twci_(value);
       obj.iteration_ = obj.iteration_(value);      
-      obj.indices_ = obj.indices_(value);      
+      %obj.indices_ = obj.indices_(value);      
     end
     function obj = i(obj,varargin)
       % Get subset of output
@@ -210,23 +195,60 @@
       end          
     end
     function obj = xlim(obj,value,varargin)
-      % Get subset of x          
-      inds = obj.ind_from_lim(obj.xi_,value,varargin{:});
+      % Get subset of x
+      nt = obj.nt;
+      nd = obj.nd;
+      
+      for it = 1:nt
+        xtmp = obj.xi{it};
+        xtmp = [xtmp{:}];
+        xtmp = reshape(xtmp,[2,nd{it}])'; % nx x nd matrix
+        i1 = find(xtmp(:,1) >= value(1)); 
+        i2 = find(xtmp(:,2) <= value(2)); 
+        inds{it} = intersect(i1,i2);
+      end
+            
+      %nx = cellfun(@(x) numel(x),obj.dists,'UniformOutput',false);      
+      %inds = obj.ind_from_lim(obj.xi_,value,varargin{:});
       
       % Update grid and indices
-      obj.xe_ = obj.xe_(inds);
-      obj.xi_ = obj.xi_(inds);      
-      obj.grid_{1} = obj.grid_{1}(inds);
-      obj.ix_ = obj.grid_{1};        
+      obj = obj.update_inds(inds);      
     end
     function obj = zlim(obj,value,varargin)
       % Get subset of z
-      inds = obj.ind_from_lim(obj.zi_,value,varargin{:});
-
-      obj.ze_ = obj.ze_(inds);
-      obj.zi_ = obj.zi_(inds);      
-      obj.grid_{2} = obj.grid_{2}(inds);
-      obj.iz_ = obj.grid_{2};  
+      nt = obj.nt;
+      nd = obj.nd;
+      method = 'center';
+      %method = 'edges';
+      
+      for it = 1:nt
+        xtmp = obj.zi{it};
+        xtmp = [xtmp{:}];
+        xtmp = reshape(xtmp,[2,nd{it}])'; % nx x nd matrix
+        if strcmp(method,'center')
+          xtmp = (xtmp(:,1)+xtmp(:,2))/2*[1 1];
+        end
+        i1 = find(xtmp(:,1) >= value(1)); 
+        i2 = find(xtmp(:,2) <= value(2)); 
+        inds{it} = intersect(i1,i2);
+      end
+      
+      % Update grid and indices
+      obj = obj.update_inds(inds);   
+    end
+    function obj = update_inds(obj,inds)
+      % xi
+      % zi
+      % dists
+      % indices
+      for it = 1:obj.nt        
+        obj.xi_{it} = obj.xi_{it}(inds{it});
+        obj.zi_{it} = obj.zi_{it}(inds{it});
+        obj.dists_{it} = obj.dists_{it}(inds{it});
+        obj.indices_{it} = obj.indices_{it}(inds{it});
+      end
+      
+      
     end
     function obj = twpelim(obj,value,varargin)
       % Get subset of twpe
@@ -357,6 +379,132 @@
       % collect frames
       
     end
+    function out = plot_map(obj,iSpecies,sumdim)
+            
+      fontsize = 7;
+      %doBDir = 1;
+      ticks = -15:1:15;
+      
+      xlim = [min([obj.xi_{1}{:}]) max([obj.xi_{1}{:}])];
+      zlim = [min([obj.zi_{1}{:}]) max([obj.zi_{1}{:}])];      
+      fig_position = get(0,'screensize'); %[1 330 2555 1015];  
+
+      idist = 0;
+      %tic
+      h = [];
+      for id = obj.indices{1}
+        idist = idist + 1;      
+
+        % Load data          
+        f = obj.fxyz(1,idist,iSpecies,sumdim); % sum over 3rd dim
+        %if not(all(xlo>xlim(1) && xhi<xlim(2) && zlo>zlim(1) && zhi<zlim(2)))
+        %  disp([sprintf('%.2f %.2f %.2f %.2f outside of box',xlo,xhi,zlo,zhi)])
+        %  continue
+        %end
+        xloc = (f.x(1)+f.x(2))/2;
+        zloc = (f.z(1)+f.z(2))/2;
+        disp(sprintf('%.2f ',f.x(1),f.x(2),f.z(1),f.z(2)))
+        axes_position = [(f.x(1)-xlim(1))/diff(xlim) ...
+                         (f.z(1)-zlim(1))/diff(zlim) ...
+                         (f.x(2)-f.x(1))/diff(xlim) ...
+                         (f.z(2)-f.z(1))/diff(zlim)];
+
+        pause(0.1)  
+
+        if 1 % xz plane
+          nrows = 1;
+          ncols = 3;
+          npanels = nrows*ncols;
+
+          fig = figure(100);
+          fig.Position = fig_position;
+          hca = subplot('Position',axes_position);
+          h(end+1) = hca;
+          hca = gca;
+
+            if 0 % fxy
+              hca = h(isub); isub = isub + 1;
+              imagesc(hca,vx(:,ispecies),vy(:,ispecies),squeeze(fxy(:,:,ispecies))')
+              hca.XLabel.String = 'vx';
+              hca.YLabel.String = 'vy';
+              hcb = colorbar('peer',hca);
+              hcb.YLabel.String = 'f';
+              hca.Title.String = strtitle;
+            end
+            if 0 % fxy
+              imagesc(hca,vx(:,ispecies),vy(:,ispecies),squeeze(fxy(:,:,ispecies))')  
+              hca.XLabel.String = '';
+              hca.YLabel.String = '';
+              %hcb = colorbar('peer',hca);
+              %hcb.YLabel.String = 'f';
+              %hca.Title.String = strtitle;
+              hca.YDir = 'normal';        
+              hca.XLim = vlim(ispecies)*[-1 1];
+              hca.YLim = vlim(ispecies)*[-1 1];
+              hca.XGrid = 'on';
+              hca.YGrid = 'on';
+              hca.XTick = ticks;
+              hca.YTick = ticks;
+              %if 
+              hca.XTickLabel = [];
+              hca.YTickLabel = [];
+              hca.Box = 'on';
+              colormap(hca,pic_colors('candy'))
+              irf_legend(hca,{sprintf('x=%.1f, z=%.1f',xloc,zloc);sprintf('B=[%.2f,%.2f,%.2f]',Bloc.x,Bloc.y,Bloc.z)},[0.01 0.99],'color',[0 0 0],'fontsize',fontsize)
+
+              if doBDir           
+                line_slope = (Bloc.y/Bloc.x);
+                xx = min(hca.XLim(2)*[1 1/abs(line_slope)])*[-1 1];
+                hold(hca,'on')                
+                hBline = plot(hca,xx,xx*line_slope,'linewidth',0.5,'color',[0.5 0.5 0.5]);
+                hold(hca,'off')
+              end
+            end
+            if 1 % fxz
+              imagesc(hca,f.v,f.v,f.f')
+              hca.XLabel.String = '';
+              hca.YLabel.String = '';
+              hca.YDir = 'normal';        
+              %hca.XLim = vlim(ispecies)*[-1 1];
+              %hca.YLim = vlim(ispecies)*[-1 1];
+              hca.XGrid = 'on';
+              hca.YGrid = 'on';
+              hca.XTick = ticks;
+              hca.YTick = ticks;              
+              hca.XTickLabel = [];
+              hca.YTickLabel = [];
+              hca.Box = 'on';
+              colormap(hca,pic_colors('candy'))
+              %irf_legend(hca,{sprintf('x=%.1f, z=%.1f',xloc,zloc);sprintf('B=[%.2f,%.2f,%.2f]',Bloc.x,Bloc.y,Bloc.z)},[0.01 0.99],'color',[0 0 0],'fontsize',9)
+              irf_legend(hca,{sprintf('x=%.1f, z=%.1f',xloc,zloc)},[0.01 0.99],'color',[0 0 0],'fontsize',9)
+
+              if 0%doBDir           
+                line_slope = (Bloc.z/Bloc.x);
+                xx = min(hca.XLim(2)*[1 1/abs(line_slope)])*[-1 1];
+                hold(hca,'on')                
+                hBline = plot(hca,xx,xx*line_slope,'linewidth',0.5,'color',[0.5 0.5 0.5]);
+                hold(hca,'off')
+              end
+            end
+            if 0 % fzy
+              hca = h(isub); isub = isub + 1;
+              imagesc(hca,vy(:,ispecies),vz(:,ispecies),squeeze(fyz(:,:,ispecies))')  
+              hca.XLabel.String = 'vz';
+              hca.YLabel.String = 'vy';
+              hcb = colorbar('peer',hca);
+              hcb.YLabel.String = 'f';
+              hca.Title.String = strtitle;
+            end
+            %print('-dpng','-r200',[savedir_root sub_dir '/' strprint '.png']);
+            drawnow
+            %pause(1)
+        end
+      end
+        %toc      
+      
+      out = h;
+      
+    end
               
     % Data analysis routines, time derivatives, interpolation, etc.
     
@@ -397,16 +545,16 @@
       end
       
     end
-    function out = get_dists(obj)
+    function out = get_distlist(obj)
       % needs to be adapted for the species subgroups
       fileInfo = obj.info;
       iterations = obj.iteration;
       % fields structure is the same for all times
       for iIter = 1:numel(iterations)
-        dists_iter = cell(numel(fileInfo.Groups(1).Groups(1).Groups),1);
+        dists_iter = cell(numel(fileInfo.Groups(1).Groups(iIter).Groups),1);
         %dists{iIter} = numel(fileInfo.Groups(1).Groups(1).Groups);
         %dists_iter = {fileInfo.Groups(1).Groups(1).Groups.Name};
-        split_str = cellfun(@(x) strsplit(x,'/'),{fileInfo.Groups(1).Groups(1).Groups.Name},'UniformOutput',false);
+        split_str = cellfun(@(x) strsplit(x,'/'),{fileInfo.Groups(1).Groups(iIter).Groups.Name},'UniformOutput',false);
         for iout = 1:numel(split_str)
           dists_iter{iout} = split_str{iout}{end};
         end
@@ -414,6 +562,23 @@
       end
       out = dists;
     end
+    
+    function [x,z] = get_locs(obj)
+      
+      iterations = obj.iteration;
+      x = cell(obj.nt,1);
+      z = cell(obj.nt,1);
+      for iIter = 1:obj.nt
+        iter = iterations(iIter);
+        str_iter = sprintf('%010.0f',iter);        
+        for iDist = 1:numel(obj.dists{iIter})
+          dataset_name = ['/data/' str_iter '/' num2str(iDist,'%05.0f') '/fxyz'];
+          %locs{iIter}{iDist} = [h5readatt(obj.file,dataset_name,'x') h5readatt(obj.file,dataset_name,'z')];
+          x{iIter}{iDist} = h5readatt(obj.file,dataset_name,'x')';
+          z{iIter}{iDist} = h5readatt(obj.file,dataset_name,'z')';
+        end
+      end      
+    end  
     function out = get_gridsize(obj)
       out = [numel(obj.xe) numel(obj.ze)];
     end
@@ -447,541 +612,156 @@
       end
       out = dfac;
     end
+    function out = nd(obj)
+      nd = cellfun(@(x) numel(x),obj.dists,'UniformOutput',false);
+      out = nd;
+    end
     function out = nx(obj)
-      out = numel(obj.xi);
+      nx = cellfun(@(x) numel(x),obj.dists,'UniformOutput',false);
+      out = nx;
     end
     function out = nz(obj)
-      out = numel(obj.zi);
+      nx = cellfun(@(x) numel(x),obj.dists,'UniformOutput',false);
+      out = nx;
     end
     function out = nt(obj)
-      out = obj.length;
+      out = numel(obj.iteration);
     end
     
+    % Phase space distribution
+    function out = dataset_str(obj,it,id)
+      % PICDist.DATASET_STR
+      %   Returns dataset corresponding to obj (object), it (iteration 
+      %   index), and id (distribution number)
+      %   
+      %   dst.dataset_str(1,10)
+      %
+      %   >> HDF5 dists.h5 
+      %   Dataset 'fxyz' 
+      %      Size:  101x101x101x6
+      %       MaxSize:  101x101x101x6
+      %       Datatype:   H5T_IEEE_F64LE (double)
+      %       ChunkSize:  []
+      %       Filters:  none
+      %       FillValue:  0.000000
+      %       Attributes:
+      %           'x':  182.250000 182.750000 
+      %           'z':  2.750000 3.250000 
+      %           'ic':  1152065536.000000 1153564672.000000 1150148608.000000 1145405440.000000 0.000000 1125449728.000000 
+      %           'vxa':  0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 
+      %           'vya':  0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 
+      %           'vza':  0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 
+      %           'axes':  101x6 H5T_FLOAT
+      
+      out = ['/data/' num2str(obj.iteration(it),'%010.0f') '/' num2str(obj.indices{it}(id),'%05.0f') '/fxyz'];
+    end
+    function varargout = fxyz(obj,it,id,iss,sumdim)
+            
+      iSpecies = iss;        
+      dataset = obj.dataset_str(it,id);
+      info = h5info(obj.file,dataset);      
+      nSpecies = info.Dataspace.Size(4);
+      datasize = info.Dataspace.Size(1:3);
+            
+      allAxes = h5readatt(obj.file,dataset,'axes');
+      selAxes = allAxes(:,iSpecies);
+      nUniqueAxes = size(unique(selAxes','rows'),1);
+      comAxes = min(selAxes(:)):min(min(diff(selAxes,1))):max(selAxes(:)); % keep max resolution and max axes value
+      newDataSize = [numel(comAxes) numel(comAxes) numel(comAxes)];
+      
+      dist = zeros(newDataSize);
+      for iSpeciesTmp = iSpecies
+        data_tmp = h5read(obj.file,dataset,[1 1 1,iSpeciesTmp],[datasize,1]);
+        if nUniqueAxes > 1
+          [Vx,Vy,Vz] = meshgrid(allAxes(:,iSpeciesTmp),allAxes(:,iSpeciesTmp),allAxes(:,iSpeciesTmp));
+          [Vxq,Vyq,Vzq] = meshgrid(comAxes,comAxes,comAxes);
+          data_tmp = interp3(Vx,Vy,Vz,data_tmp,Vxq,Vyq,Vzq);
+          data_tmp(isnan(data_tmp)) = 0;
+        end                    
+        dist = dist + data_tmp;
+      end
+            
+      % Reduce distribution
+      if exist('sumdim','var') && any(sumdim == [1 2 3])
+        for isum = numel(sumdim):-1:1
+          dist = squeeze(sum(dist,sumdim(isum)));
+        end
+      end
+      
+      x = h5readatt(obj.file,dataset,'x');
+      z = h5readatt(obj.file,dataset,'z');
+      
+      if nargout == 1
+        out.f = dist;
+        out.v = comAxes;
+        out.x = x;
+        out.z = z;
+        varargout{1} = out;
+      elseif nargout == 3
+        varargout{1} = comAxes;
+        varargout{2} = comAxes;
+        varargout{1} = dist;
+      end
+    end
+    % dEF - differential energy flux
+    function varargout = dEF(obj,it,id,iss)
+      % out = dEF(obj,it,id,iss)
+      f = obj.fxyz(it,id,iss);
+      nEnergy = 50;
+      %energy = logspace(-3,log10(max(f.v.^2)),nEnergy);
+      [VX,VY,VZ] = ndgrid(f.v,f.v,f.v);
+      VV2 = VX.^2 + VY.^2 + VZ.^2;
+      fvv = f.f.*VV2;
+      ENERGY = VV2/2;
+      energy_edges = logspace(-3,log10(1.0*max(f.v.^2/2)),30);
+      energy_edges = logspace(-2,log10(0.2*max(f.v.^2/2)),50);
+      %ienergy = hist(energy(:,ispecies))
+      [N,EDGES,BIN] = histcounts(ENERGY(:),energy_edges);
+      f_energy_edges = tocolumn(EDGES);
+      f_energy_centers = tocolumn((EDGES(2:end)+EDGES(1:end-1))*0.5);
+      nbins = (numel(energy_edges)-1);
+      for ibin = 1:nbins
+        ind_bin = find(BIN==ibin);      
+        f_dist_tmp = f.f(ind_bin);
+        f_dist_mean(ibin,1) = mean(f_dist_tmp);
+        f_dist_sum(ibin,1) = sum(f_dist_tmp);
+      end
+      if nargout == 1
+        varargout{1}.energy = f_energy_centers;
+        varargout{1}.energy_edges = f_energy_edges;
+        varargout{1}.dEF = f_dist_sum;
+        varargout{1}.x = f.x;
+        varargout{1}.z = f.z;
+      elseif nargout == 2        
+        varargout{2}.energy_edges = f_energy_edges;
+        varargout{3}.dEF = f_dist_sum;
+      elseif nargout == 3
+        varargout{1}.energy = f_energy_centers;
+        varargout{2}.energy_edges = f_energy_edges;
+        varargout{3}.dEF = f_dist_sum;
+      end
+        
+%       f_dist_all.distnumber(idist,1) = distnumber;
+%       f_dist_all.x(idist,1) = xc;
+%       f_dist_all.z(idist,1) = zc;
+%       f_dist_all.f_energy_centers(idist,ispecies,:) = f_energy_centers{ispecies};
+%       f_dist_all.f_energy_edges(idist,ispecies,:) = f_energy_edges{ispecies};
+%       f_dist_all.f_dist_sum(idist,ispecies,:) = f_dist_sum{ispecies};
+%       f_dist_all.f_dist_mean(idist,ispecies,:) = f_dist_mean{ispecies};
     
+      
+    end
     % Density
-    function out = n(obj,species)
-      % Get density n of selected species
-      
-      % Check that only a single species is given
-      if not(numel(unique(obj.mass(species))) == 1) && not(numel(unique(obj.q(species))) == 1)
-        error('Selected species have different mass and/or charge. This is not supported.')
-      end
-      nSpecies = numel(species);
-      dfac = obj.get_dfac;                  
-      n = zeros(obj.nt,obj.nx,obj.nz);      
-      for iSpecies = species                
-        n = n + obj.get_field(sprintf('dns/%.0f',iSpecies))*dfac(iSpecies);        
-      end
-      out = n;
-    end
-    function out = ne(obj)
-      % Get total electron density
-      iSpecies = find(obj.get_charge == -1); % negatively charge particles are electrons
-      dfac = obj.get_dfac;      
-      var = zeros([1,obj.get_gridsize]);
-      for iComp = 1:numel(iSpecies)
-        dataset = sprintf('dns/%.0f',iSpecies(iComp));
-        n_tmp = get_field(obj,dataset);
-        var = var + n_tmp*dfac(iSpecies(iComp));
-      end
-      out = var;
-    end
-    function out = ni(obj)
-      % Get total ion density
-      iSpecies = find(obj.get_charge == 1); % negatively charge particles are electrons
-      dfac = obj.get_dfac;      
-      var = zeros([1,obj.get_gridsize]);
-      for iComp = 1:numel(iSpecies)
-        dataset = sprintf('dns/%.0f',iSpecies(iComp));
-        n_tmp = get_field(obj,dataset);
-        var = var + n_tmp*dfac(iSpecies(iComp));
-      end
-      out = var;
-    end
     % Flux
-    function out = jx(obj,species)
-      % Get jx
-      
-      % Check that only a single species is given
-      if not(numel(unique(obj.mass(species))) == 1) && not(numel(unique(obj.q(species))) == 1)
-        error('Selected species have different mass and/or charge. This is not supported.')
-      end
-      nSpecies = numel(species);
-      dfac = obj.get_dfac;                  
-      var = zeros(obj.nt,obj.nx,obj.nz);      
-      for iSpecies = species                        
-        var = var + obj.get_field(sprintf('vxs/%.0f',iSpecies))*dfac(iSpecies)*obj.wpewce*sqrt(obj.mime);                
-      end
-      out = var;      
-    end
-    function out = jy(obj,species)
-      % Get jy
-      
-      % Check that only a single species is given
-      if not(numel(unique(obj.mass(species))) == 1) && not(numel(unique(obj.q(species))) == 1)
-        error('Selected species have different mass and/or charge. This is not supported.')
-      end
-      nSpecies = numel(species);
-      dfac = obj.get_dfac;                  
-      var = zeros(obj.nt,obj.nx,obj.nz);      
-      for iSpecies = species                        
-        var = var + obj.get_field(sprintf('vys/%.0f',iSpecies))*dfac(iSpecies)*obj.wpewce*sqrt(obj.mime);                
-      end
-      out = var;      
-    end
-    function out = jz(obj,species)
-      % Get jz
-      
-      % Check that only a single species is given
-      if not(numel(unique(obj.mass(species))) == 1) && not(numel(unique(obj.q(species))) == 1)
-        error('Selected species have different mass and/or charge. This is not supported.')
-      end
-      nSpecies = numel(species);
-      dfac = obj.get_dfac;                  
-      var = zeros(obj.nt,obj.nx,obj.nz);      
-      for iSpecies = species                        
-        var = var + obj.get_field(sprintf('vzs/%.0f',iSpecies))*dfac(iSpecies)*obj.wpewce*sqrt(obj.mime);                
-      end
-      out = var;      
-    end
-    function out = jex(obj)
-      % Get electron flux, x
-      iSpecies = find(obj.get_charge == -1); % negatively charge particles are electrons
-      dfac = obj.get_dfac;      
-      var = zeros([1,obj.get_gridsize]);
-      for iComp = 1:numel(iSpecies)
-        dataset = sprintf('vxs/%.0f',iSpecies(iComp));
-        n_tmp = get_field(obj,dataset);
-        var = var + n_tmp*dfac(iComp)*obj.wpewce*sqrt(obj.mime);
-      end
-      out = var;
-    end
-    function out = jey(obj)
-      % Get electron flux, y
-      iSpecies = find(obj.get_charge == -1); % negatively charge particles are electrons
-      dfac = obj.get_dfac;      
-      var = zeros([1,obj.get_gridsize]);
-      for iComp = 1:numel(iSpecies)
-        dataset = sprintf('vys/%.0f',iSpecies(iComp));
-        n_tmp = get_field(obj,dataset);
-        var = var + n_tmp*dfac(iComp)*obj.wpewce*sqrt(obj.mime);
-      end
-      out = var;
-    end
-    function out = jez(obj)
-      % Get electron flux, z
-      iSpecies = find(obj.get_charge == -1); % negatively charge particles are electrons
-      dfac = obj.get_dfac;      
-      var = zeros([1,obj.get_gridsize]);
-      for iComp = 1:numel(iSpecies)
-        dataset = sprintf('vzs/%.0f',iSpecies(iComp));
-        n_tmp = get_field(obj,dataset);
-        var = var + n_tmp*dfac(iComp)*obj.wpewce*sqrt(obj.mime);
-      end
-      out = var;
-    end
-    function out = jix(obj)
-      iSpecies = find(obj.get_charge == 1); % negatively charge particles are electrons
-      dfac = obj.get_dfac;      
-      var = zeros([1,obj.get_gridsize]);
-      for iComp = 1:numel(iSpecies)
-        dataset = sprintf('vxs/%.0f',iSpecies(iComp));
-        n_tmp = get_field(obj,dataset);
-        var = var + n_tmp*dfac(iComp)*obj.wpewce*sqrt(obj.mime);
-      end
-      out = var;
-    end
-    function out = jiy(obj)
-      iSpecies = find(obj.get_charge == 1); % negatively charge particles are electrons
-      dfac = obj.get_dfac;      
-      var = zeros([1,obj.get_gridsize]);
-      for iComp = 1:numel(iSpecies)
-        dataset = sprintf('vys/%.0f',iSpecies(iComp));
-        n_tmp = get_field(obj,dataset);
-        var = var + n_tmp*dfac(iComp)*obj.wpewce*sqrt(obj.mime);
-      end
-      out = var;
-    end
-    function out = jiz(obj)
-      iSpecies = find(obj.get_charge == 1); % negatively charge particles are electrons
-      dfac = obj.get_dfac;      
-      var = zeros([1,obj.get_gridsize]);
-      for iComp = 1:numel(iSpecies)
-        dataset = sprintf('vzs/%.0f',iSpecies(iComp));
-        n_tmp = get_field(obj,dataset);
-        var = var + n_tmp*dfac(iComp)*obj.wpewce*sqrt(obj.mime);
-      end
-      out = var;
-    end
     % Velocity
-    function out = vx(obj,species)
-      % Get velocity vx            
-      n = obj.n(species);
-      jx = obj.jx(species);      
-      out = jx./n;      
-    end
-    function out = vy(obj,species)
-      % Get velocity vx            
-      n = obj.n(species);
-      jy = obj.jy(species);      
-      out = jy./n;      
-    end
-    function out = vz(obj,species)
-      % Get velocity vx            
-      n = obj.n(species);
-      jz = obj.jz(species);      
-      out = jz./n;      
-    end
-    function out = vex(obj)
-      % Get electron velocity, x
-      out = obj.jex./obj.ne;
-    end
-    function out = vey(obj)
-      % Get electron velocity, y
-      out = obj.jey./obj.ne;
-    end
-    function out = vez(obj)
-      % Get electron velocity, z
-      out = obj.jez./obj.ne;
-    end
     % Current
-    function out = Jx(obj)
-      out = obj.jix - obj.jex;
-    end
-    function out = Jy(obj)
-      out = obj.jiy - obj.jey;
-    end
-    function out = Jz(obj)
-      out = obj.jiz - obj.jez;
-    end
     % Stress tensor
-    function out = vexx(obj)
-      iSpecies = find(obj.get_charge == -1); % negatively charge particles are electrons
-      dfac = obj.get_dfac;      
-      var = zeros([1,obj.get_gridsize]);
-      for iComp = 1:numel(iSpecies)
-        dataset = sprintf('vxx/%.0f',iSpecies(iComp));
-        var_tmp = get_field(obj,dataset);
-        var = var + var_tmp*dfac(iComp)*mass(iSpecies)*wpewce^2;
-      end
-      out = var;
-      out = [];
-    end
-    function out = vxx(obj,value)
-      % Get total density of select species
-      %   out = n(obj,value)
-      dfac = obj.get_dfac;         
-      dataset = sprintf('vxx/%.0f',value);
-      out = obj.mass(value)*obj.wpewce^2*get_field(obj,dataset)*dfac(value);      
-    end
-    function out = vyy(obj,value)
-      % Get total density of select species
-      %   out = n(obj,value)
-      dfac = obj.get_dfac;         
-      dataset = sprintf('vyy/%.0f',value);
-      out = obj.mass(value)*obj.wpewce^2*get_field(obj,dataset)*dfac(value);      
-    end
-    function out = vzz(obj,value)
-      % Get total density of select species
-      %   out = n(obj,value)
-      dfac = obj.get_dfac;         
-      dataset = sprintf('vzz/%.0f',value);
-      out = obj.mass(value)*obj.wpewce^2*get_field(obj,dataset)*dfac(value);      
-    end
-    function out = vv_diag(obj,value)
-      %   out = vv_diag(obj,value)
-      dfac = obj.get_dfac;         
-      vxx = get_field(obj,sprintf('vxx/%.0f',value))*dfac(value);
-      vyy = get_field(obj,sprintf('vyy/%.0f',value))*dfac(value);
-      vzz = get_field(obj,sprintf('vzz/%.0f',value))*dfac(value);
-      out = obj.mass(value)*obj.wpewce^2*(vxx + vyy + vzz)/3;
-    end
-    function out = pD(obj,species)
-      % Get dynamical pressure mn(vx^2 + vy^2 + vz^2)/3
-      % Kinetic energy is (3/2)*p_dyn (=mv^2/2)
-      
-      mass_sp = obj.mass; 
-      if numel(unique(mass_sp(species))) > 1
-        error('All species do not have the same mass.'); 
-      else
-        mass_sp = mass_sp(species(1));
-      end
-      charge = obj.get_charge; charge(species);
-      if numel(unique(charge(species))) > 1
-        error('All species do not have the same charge.');         
-      end
-      
-      dfac = obj.get_dfac;
-      % Initialize variables
-      n = zeros(obj.length,numel(obj.xi),numel(obj.zi));
-      vxs = zeros(obj.length,numel(obj.xi),numel(obj.zi));
-      vys = zeros(obj.length,numel(obj.xi),numel(obj.zi));
-      vzs = zeros(obj.length,numel(obj.xi),numel(obj.zi));
-      
-      % Sum over species
-      for iSpecies = species                
-        n = n + obj.get_field(sprintf('dns/%.0f',iSpecies))*dfac(iSpecies);  % density      
-        vxs = vxs + obj.get_field(sprintf('vxs/%.0f',iSpecies))*dfac(iSpecies); % flux
-        vys = vys + obj.get_field(sprintf('vys/%.0f',iSpecies))*dfac(iSpecies); % flux
-        vzs = vzs + obj.get_field(sprintf('vzs/%.0f',iSpecies))*dfac(iSpecies); % flux
-      end        
-      % p_dyn =  mnvv
-      out = mass_sp*obj.wpewce^2*(vxs.*vxs + vys.*vys + vzs.*vzs)./n/3;
-    end
-    % Pressure
-    function out = pxx(obj,species)
-      % pxx = pxx(obj,species)
-      
-      nSpecies = numel(species);
-      dfac = obj.get_dfac;
-      
-      % check so that all species have the same mass and charge
-      mass_sp = obj.mass; 
-      if numel(unique(mass_sp(species))) > 1
-        error('All species do not have the same mass.'); 
-      else
-        mass_sp = mass_sp(species(1));
-      end
-      charge = obj.get_charge; charge(species);
-      if numel(unique(charge(species))) > 1
-        error('All species do not have the same charge.');         
-      end
-      
-      % Initialize variables
-      n = zeros(obj.length,numel(obj.xi),numel(obj.zi));      
-      vxs = zeros(obj.length,numel(obj.xi),numel(obj.zi));
-      vxx = zeros(obj.length,numel(obj.xi),numel(obj.zi));      
-        
-      % Sum over species
-      for iSpecies = species                
-        n = n + obj.get_field(sprintf('dns/%.0f',iSpecies))*dfac(iSpecies);  % density      
-        vxs = vxs + obj.get_field(sprintf('vxs/%.0f',iSpecies))*dfac(iSpecies); % flux     
-        vxx = vxx + obj.get_field(sprintf('vxx/%.0f',iSpecies))*dfac(iSpecies); % nvv
-      end        
-      % p = P - mnvv
-      out = mass_sp*obj.wpewce^2*(vxx - vxs.*vxs./n); % pxx
-    end
-    function out = pyy(obj,species)
-      % pxx = pxx(obj,species)
-      
-      nSpecies = numel(species);
-      dfac = obj.get_dfac;
-      
-      % check so that all species have the same mass and charge
-      mass_sp = obj.mass; 
-      if numel(unique(mass_sp(species))) > 1
-        error('All species do not have the same mass.'); 
-      else
-        mass_sp = mass_sp(species(1));
-      end
-      charge = obj.get_charge; charge(species);
-      if numel(unique(charge(species))) > 1
-        error('All species do not have the same charge.');         
-      end
-      
-      % Initialize variables
-      n = zeros(obj.length,numel(obj.xi),numel(obj.zi));      
-      vxs = zeros(obj.length,numel(obj.xi),numel(obj.zi));
-      vxx = zeros(obj.length,numel(obj.xi),numel(obj.zi));      
-        
-      % Sum over species
-      for iSpecies = species                
-        n = n + obj.get_field(sprintf('dns/%.0f',iSpecies))*dfac(iSpecies);  % density      
-        vxs = vxs + obj.get_field(sprintf('vys/%.0f',iSpecies))*dfac(iSpecies); % flux     
-        vxx = vxx + obj.get_field(sprintf('vyy/%.0f',iSpecies))*dfac(iSpecies); % nvv
-      end        
-      % p = P - mnvv
-      out = mass_sp*obj.wpewce^2*(vxx - vxs.*vxs./n); % pxx
-    end
-    function out = pzz(obj,species)
-      % pxx = pxx(obj,species)
-      
-      nSpecies = numel(species);
-      dfac = obj.get_dfac;
-      
-      % check so that all species have the same mass and charge
-      mass_sp = obj.mass; 
-      if numel(unique(mass_sp(species))) > 1
-        error('All species do not have the same mass.'); 
-      else
-        mass_sp = mass_sp(species(1));
-      end
-      charge = obj.get_charge; charge(species);
-      if numel(unique(charge(species))) > 1
-        error('All species do not have the same charge.');         
-      end
-      
-      % Initialize variables
-      n = zeros(obj.length,numel(obj.xi),numel(obj.zi));      
-      vxs = zeros(obj.length,numel(obj.xi),numel(obj.zi));
-      vxx = zeros(obj.length,numel(obj.xi),numel(obj.zi));      
-        
-      % Sum over species
-      for iSpecies = species                
-        n = n + obj.get_field(sprintf('dns/%.0f',iSpecies))*dfac(iSpecies);  % density      
-        vxs = vxs + obj.get_field(sprintf('vys/%.0f',iSpecies))*dfac(iSpecies); % flux     
-        vxx = vxx + obj.get_field(sprintf('vyy/%.0f',iSpecies))*dfac(iSpecies); % nvv
-      end        
-      % p = P - mnvv
-      out = mass_sp*obj.wpewce^2*(vxx - vxs.*vxs./n); % pxx
-    end
-    function out = p(obj,species)
-      % p = (pxx+pyy+pzz)/3
-      out = (obj.pxx(species) + obj.pyy(species) + obj.pzz(species))/3;
-    end
-    
+    % Pressure    
     % Sets of moments
-    function [vxx,vxy,vxz,vyy,vyz,vzz] = vv(obj,iSpecies_orig)
-      % [vxx,vxy,vxz,vyy,vyz,vzz] = vv(obj,iSpecies_orig)
-      %nargout      
-      mass_sp = obj.mass; 
-      if numel(unique(mass_sp(iSpecies_orig))) > 1
-        error('All species do not have the same mass.'); 
-      else
-        mass_sp = mass_sp(iSpecies_orig(1));
-      end        
-      dfac = obj.get_dfac;
-      nSpecies = numel(iSpecies_orig);
-      
-      vxx = zeros(obj.length,obj.nx,obj.nz);
-      vyy = zeros(obj.length,obj.nx,obj.nz);
-      vzz = zeros(obj.length,obj.nx,obj.nz);
-      vxy = zeros(obj.length,obj.nx,obj.nz);
-      vxz = zeros(obj.length,obj.nx,obj.nz);
-      vyz = zeros(obj.length,obj.nx,obj.nz);
-        
-      for iSpecies = iSpecies_orig
-        dset_vxx = sprintf('vxx/%.0f',iSpecies);
-        dset_vxy = sprintf('vxy/%.0f',iSpecies);
-        dset_vxz = sprintf('vxz/%.0f',iSpecies);
-        dset_vyy = sprintf('vyy/%.0f',iSpecies);
-        dset_vyz = sprintf('vyz/%.0f',iSpecies);
-        dset_vzz = sprintf('vzz/%.0f',iSpecies);
-        vxx = vxx + obj.get_field(dset_vxx)*dfac(iSpecies)*mass_sp*obj.wpewce^2;
-        vxy = vxy + obj.get_field(dset_vxy)*dfac(iSpecies)*mass_sp*obj.wpewce^2;
-        vxz = vxz + obj.get_field(dset_vxz)*dfac(iSpecies)*mass_sp*obj.wpewce^2;
-        vyy = vyy + obj.get_field(dset_vyy)*dfac(iSpecies)*mass_sp*obj.wpewce^2;
-        vyz = vyz + obj.get_field(dset_vyz)*dfac(iSpecies)*mass_sp*obj.wpewce^2;
-        vzz = vzz + obj.get_field(dset_vzz)*dfac(iSpecies)*mass_sp*obj.wpewce^2;         
-      end
-      
-      
-    end
-    function [n,jx,jy,jz,pxx,pxy,pxz,pyy,pyz,pzz] = njp(obj,iSpecies)
-      % [n,jx,jy,jz,pxx,pxy,pxz,pyy,pyz,pzz] = njp(obj,iSpecies)
-      iSpecies_orig = iSpecies;
-      nSpecies = numel(iSpecies);
-      dfac = obj.get_dfac;
-      
-      % Get density, flux and pressure of given species
-      if nSpecies == 1 % only one species
-        % n
-        dset_n = sprintf('dns/%.0f',iSpecies);
-        n = obj.get_field(dset_n)*dfac(iSpecies);
-        % j
-        dset_jx = sprintf('vxs/%.0f',iSpecies);
-        dset_jy = sprintf('vys/%.0f',iSpecies);
-        dset_jz = sprintf('vzs/%.0f',iSpecies);
-        vxs = obj.get_field(dset_jx)*dfac(iSpecies);
-        vys = obj.get_field(dset_jy)*dfac(iSpecies);
-        vzs = obj.get_field(dset_jz)*dfac(iSpecies);      
-        jx = vxs*obj.wpewce*sqrt(obj.mime);
-        jy = vys*obj.wpewce*sqrt(obj.mime);
-        jz = vzs*obj.wpewce*sqrt(obj.mime);
-        % p
-        dset_vxx = sprintf('vxx/%.0f',iSpecies);
-        dset_vxy = sprintf('vxy/%.0f',iSpecies);
-        dset_vxz = sprintf('vxz/%.0f',iSpecies);
-        dset_vyy = sprintf('vyy/%.0f',iSpecies);
-        dset_vyz = sprintf('vyz/%.0f',iSpecies);
-        dset_vzz = sprintf('vzz/%.0f',iSpecies);
-        vxx = obj.get_field(dset_vxx)*dfac(iSpecies);
-        vxy = obj.get_field(dset_vxy)*dfac(iSpecies);
-        vxz = obj.get_field(dset_vxz)*dfac(iSpecies);
-        vyy = obj.get_field(dset_vyy)*dfac(iSpecies);
-        vyz = obj.get_field(dset_vyz)*dfac(iSpecies);
-        vzz = obj.get_field(dset_vzz)*dfac(iSpecies);       
-          
-        pxx = obj.mass(iSpecies)*obj.wpewce^2*( vxx - vxs.*vxs./n );
-        pxy = obj.mass(iSpecies)*obj.wpewce^2*( vxy - vxs.*vys./n );
-        pxz = obj.mass(iSpecies)*obj.wpewce^2*( vxz - vxs.*vzs./n );
-        pyy = obj.mass(iSpecies)*obj.wpewce^2*( vyy - vys.*vys./n );
-        pyz = obj.mass(iSpecies)*obj.wpewce^2*( vyz - vys.*vzs./n );
-        pzz = obj.mass(iSpecies)*obj.wpewce^2*( vzz - vzs.*vzs./n );
-      else % group multiple species
-        % check so that all species have the same mass and charge
-        mass_sp = obj.mass; 
-        if numel(unique(mass_sp(iSpecies_orig))) > 1
-          error('All species do not have the same mass.'); 
-        else
-          mass_sp = mass_sp(iSpecies_orig(1));
-        end
-        charge = obj.get_charge; charge(iSpecies_orig);
-        if numel(unique(charge(iSpecies_orig))) > 1
-          error('All species do not have the same charge.');         
-        end
-        
-        n = zeros(obj.length,numel(obj.xi),numel(obj.zi));
-        jx = zeros(obj.length,numel(obj.xi),numel(obj.zi));
-        jy = zeros(obj.length,numel(obj.xi),numel(obj.zi));
-        jz = zeros(obj.length,numel(obj.xi),numel(obj.zi));
-        vxs = zeros(obj.length,numel(obj.xi),numel(obj.zi));
-        vys = zeros(obj.length,numel(obj.xi),numel(obj.zi));
-        vzs = zeros(obj.length,numel(obj.xi),numel(obj.zi));
-        pxx = zeros(obj.length,numel(obj.xi),numel(obj.zi));
-        pyy = zeros(obj.length,numel(obj.xi),numel(obj.zi));
-        pzz = zeros(obj.length,numel(obj.xi),numel(obj.zi));
-        pxy = zeros(obj.length,numel(obj.xi),numel(obj.zi));
-        pxz = zeros(obj.length,numel(obj.xi),numel(obj.zi));
-        pyz = zeros(obj.length,numel(obj.xi),numel(obj.zi));
-        vxx = zeros(obj.length,numel(obj.xi),numel(obj.zi));
-        vyy = zeros(obj.length,numel(obj.xi),numel(obj.zi));
-        vzz = zeros(obj.length,numel(obj.xi),numel(obj.zi));
-        vxy = zeros(obj.length,numel(obj.xi),numel(obj.zi));
-        vxz = zeros(obj.length,numel(obj.xi),numel(obj.zi));
-        vyz = zeros(obj.length,numel(obj.xi),numel(obj.zi));
-        
-        for iSpecies = iSpecies_orig
-          % n 
-          % number of macroparticles, this can be added straight up
-          dset_n = sprintf('dns/%.0f',iSpecies);
-          n = n + obj.get_field(dset_n)*dfac(iSpecies);
-          % v (j)
-          dset_jx = sprintf('vxs/%.0f',iSpecies);
-          dset_jy = sprintf('vys/%.0f',iSpecies);
-          dset_jz = sprintf('vzs/%.0f',iSpecies);
-          vxs = vxs + obj.get_field(dset_jx)*dfac(iSpecies);
-          vys = vys + obj.get_field(dset_jy)*dfac(iSpecies);
-          vzs = vzs + obj.get_field(dset_jz)*dfac(iSpecies);          
-          % vv
-          dset_vxx = sprintf('vxx/%.0f',iSpecies);
-          dset_vxy = sprintf('vxy/%.0f',iSpecies);
-          dset_vxz = sprintf('vxz/%.0f',iSpecies);
-          dset_vyy = sprintf('vyy/%.0f',iSpecies);
-          dset_vyz = sprintf('vyz/%.0f',iSpecies);
-          dset_vzz = sprintf('vzz/%.0f',iSpecies);
-          vxx = vxx + obj.get_field(dset_vxx)*dfac(iSpecies);
-          vxy = vxy + obj.get_field(dset_vxy)*dfac(iSpecies);
-          vxz = vxz + obj.get_field(dset_vxz)*dfac(iSpecies);
-          vyy = vyy + obj.get_field(dset_vyy)*dfac(iSpecies);
-          vyz = vyz + obj.get_field(dset_vyz)*dfac(iSpecies);
-          vzz = vzz + obj.get_field(dset_vzz)*dfac(iSpecies);
-        end
-        % j = nv
-        jx = vxs*obj.wpewce*sqrt(obj.mime);
-        jy = vys*obj.wpewce*sqrt(obj.mime);
-        jz = vzs*obj.wpewce*sqrt(obj.mime);
-        % p = P - mnvv
-        pxx = mass_sp*obj.wpewce^2*(vxx - vxs.*vxs./n); 
-        pxy = mass_sp*obj.wpewce^2*(vxy - vxs.*vys./n);
-        pxz = mass_sp*obj.wpewce^2*(vxz - vxs.*vzs./n);
-        pyy = mass_sp*obj.wpewce^2*(vyy - vys.*vys./n);
-        pyz = mass_sp*obj.wpewce^2*(vyz - vys.*vzs./n);
-        pzz = mass_sp*obj.wpewce^2*(vzz - vzs.*vzs./n);
-      end
-    end
     
-    % Interpolate fields
+    % Plotting functions
+    
+    % Interpolate distribution
     function out = interp(obj,varstr,x,z,t,varargin)
       % Interpolates fields to given x,z,t
       
@@ -998,38 +778,7 @@
       end
     end
     
-    % Ge derived quantities
-    function out = UB(obj)
-      % Magnetic energy density 0.5*(Bx^2 + By^2 + Bz^2) summed up 
-      out = h5read(obj.file,'/scalar_timeseries/U/B');
-      out = out(obj.indices_);
-    end
-    function out = dUB(obj)
-      % Magnetic energy density 0.5*(Bx^2 + By^2 + Bz^2) summed up 
-      out = h5read(obj.file,'/scalar_timeseries/U/B');
-      out = abs([0 cumsum(diff(out-out(1)))]);
-      out = out(obj.indices_);
-    end
-    function out = UK(obj,value)
-      % 
-      out = h5read(obj.file,['/scalar_timeseries/U/K/' num2str(value)]);
-      out = out(obj.indices_);
-    end
-    function out = UT(obj,value)
-      % 
-      out = h5read(obj.file,['/scalar_timeseries/U/T/' num2str(value)]);
-      out = out(obj.indices_);
-    end
-    function out = RE(obj)
-      % Reconnection rate from out-of-plane electric field Ey at X line
-      out = h5read(obj.file,'/scalar_timeseries/R/Ey');
-      out = out(obj.indices_);
-    end
-    function out = RA(obj)
-      % Reconnection rate from vector potential dA/dt at X line
-      out = h5read(obj.file,'/scalar_timeseries/R/A');
-      out = out(obj.indices_);
-    end        
+    % Ge derived quantities      
     
     % Get and set properties    
     function obj = set.info(obj,value)
@@ -1070,12 +819,9 @@
     end
     function obj = set.it(obj,value)
       obj.it_ = value;
-    end
-    function obj = set.ix(obj,value)
-      obj.ix_ = value;
-    end
-    function obj = set.iz(obj,value)
-      obj.iz_ = value;
+    end    
+    function obj = set.id(obj,value)
+      obj.id_ = value;
     end
     function obj = set.dists(obj,value)
       obj.dists_ = value;
@@ -1119,12 +865,9 @@
     end
     function value = get.it(obj)
       value = obj.it_;
-    end
-    function value = get.ix(obj)
-      value = obj.ix_;
-    end
-    function value = get.iz(obj)
-      value = obj.iz_;
+    end    
+    function value = get.id(obj)
+      value = obj.id_;
     end
     function value = get.dists(obj)
       value = obj.dists_;
@@ -1170,6 +913,7 @@
         if isempty(args), break, end    
       end
       
+      
       % Find indices
       if doBounding
         i0 = find(abs(var-value(1)) == min(abs(var-value(1))));
@@ -1187,20 +931,18 @@
         ii = abs(var-value(1));
         [is, index] = sort(abs(var-value(1)));
         inds = sort(index(1:nClosest));
-      else        
+      else
         i1 = find(var >= value(1),1,'first'); 
         i2 = find(var <= value(2),1,'last'); 
         inds = i1:i2;
       end
       
       out = inds;
-    end
-    function out = eom()
-    end      
+    end        
   end
   
   methods (Access = protected)
-    function out = get_dist(obj,species)
+    function out = get_dists(obj,species)
       % get iterations
       iterations = obj.iteration;
       nIter = obj.length;

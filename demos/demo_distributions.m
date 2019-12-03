@@ -1196,6 +1196,8 @@ end
  
 %% Read and plot distributions, regional spatial map
 savedir_root = '/Users/cno062/Research/PIC/df_cold_protons_1/distributions/';
+savedir_root = '/Users/cno062/Research/PIC/df_cold_protons_1/distributions/';
+txtfile = sprintf('/Volumes/Fountain/Data/PIC/df_cold_protons_n08/distributions/%05.0f/%s/%.0f.dat',timestep,read_sub_dir,distnumber); % michael's perturbation
 timestep = 05000;
 str_timestep = sprintf('%05.0f',timestep);
 txttime = sprintf('timestep = %05.0f',timestep); 
@@ -1220,8 +1222,10 @@ idist = 0;
 %tic
 h = [];
 for distnumber = 1:150%50%:281%39%30:40%39%180:200%:250%:100%:100%:10%40%:40%:4%:40
-  read_sub_dir = '/1/';
-  txtfile = sprintf('/Volumes/Fountain/Data/PIC/df_cold_protons_1/distributions/%05.0f/%s/%.0f.dat',timestep,read_sub_dir,distnumber); % michael's perturbation
+  %read_sub_dir = '/1/';
+  read_sub_dir = '';
+  %txtfile = sprintf('/Volumes/Fountain/Data/PIC/df_cold_protons_1/distributions/%05.0f/%s/%.0f.dat',timestep,read_sub_dir,distnumber);
+  txtfile = sprintf('/Volumes/Fountain/Data/PIC/df_cold_protons_n08/distributions/%05.0f/%s/%.0f.dat',timestep,read_sub_dir,distnumber);
   if not(exist(txtfile,'file'))
     warning(sprintf('File not found: %s', txtfile))
     continue
@@ -1356,6 +1360,183 @@ for distnumber = 1:150%50%:281%39%30:40%39%180:200%:250%:100%:100%:10%40%:40%:4%
   end
   %toc
 end
+
+%% Read and plot distributions, regional spatial map, h5
+savedir_root = '/Users/cno062/Research/PIC/df_cold_protons_1/distributions/';
+savedir_root = '/Users/cno062/Research/PIC/df_cold_protons_1/distributions/';
+%txtfile = sprintf('/Volumes/Fountain/Data/PIC/df_cold_protons_n08/distributions/%05.0f/%s/%.0f.dat',timestep,read_sub_dir,distnumber); % michael's perturbation
+timestep = 05000;
+str_timestep = sprintf('%05.0f',timestep);
+txttime = sprintf('timestep = %05.0f',timestep); 
+    
+fontsize = 7;
+doBDir = 1;
+ticks = -15:1:15;
+
+xlim = [160 180] + 1*[-1 1]; % 08000
+zlim = [0 6] + 1*[-1 1]; % 08000
+fig_position =  [1 330 2555 1015];
+
+xlim = [184 206] + 0.5*[-1 1]; % 05000
+zlim = [0 3.5] + 0.5*[-1 1]; % 05000
+fig_position = [1 712 2555 633];
+
+vlim = [2 5 2 5]; % ion, electron, ion, electron
+ncols = diff(xlim);
+nrows = diff(zlim);
+
+idist = 0;
+%tic
+iSpecies = 1;
+h = [];
+it = 1;
+for id = dst.indices{it}
+  %id
+  %read_sub_dir = '/1/';
+  read_sub_dir = '';
+  %txtfile = sprintf('/Volumes/Fountain/Data/PIC/df_cold_protons_1/distributions/%05.0f/%s/%.0f.dat',timestep,read_sub_dir,distnumber);
+  txtfile = sprintf('/Volumes/Fountain/Data/PIC/df_cold_protons_n08/distributions/%05.0f/%s/%.0f.dat',timestep,read_sub_dir,id);
+  %if not(exist(txtfile,'file'))
+  %  warning(sprintf('File not found: %s', txtfile))
+  %  continue
+  %end  
+    
+  idist = idist + 1;
+  %idist = distnumber;
+%  [axes,xlo,xhi,zlo,zhi,ic,fxyz,fxy,fxz,fyz,vxa,vya,vza] ...
+%      = read_distributions(txtfile);  
+    
+  % Load data  
+  f = dst.fxyz(it,id,iSpecies);
+  xlo = f.x(1);
+  xhi = f.x(2);
+  zlo = f.z(1);
+  zhi = f.z(2);
+  
+  if not(all(xlo>xlim(1) && xhi<xlim(2) && zlo>zlim(1) && zhi<zlim(2)))
+    disp([sprintf('%.2f %.2f %.2f %.2f outside of box',xlo,xhi,zlo,zhi)])
+    continue
+  end
+  disp(sprintf('%.2f ',xlo,xhi,zlo,zhi))
+  axes_position = [(xlo-xlim(1))/diff(xlim) ...
+                   (zlo-zlim(1))/diff(zlim) ...
+                   (xhi-xlo)/diff(xlim) ...
+                   (zhi-zlo)/diff(zlim)];
+  
+  vx = f.vx;
+  vy = f.vy;
+  vz = f.vz;
+  xloc = 0.5*(xlo+xhi); 
+  zloc = 0.5*(zlo+zhi);
+  %xlocind = find_closest_ind(x,xloc);
+  %zlocind = find_closest_ind(z,zloc);
+  %Bloc.x = B.x(xlocind,zlocind);
+  %Bloc.y = B.y(xlocind,zlocind);
+  %Bloc.z = B.z(xlocind,zlocind);
+  
+  %vpeaks = find_dist_peaks(fxyz(:,:,:,ispecies));
+  pause(0.1)  
+  
+  if 1 % xz plane
+    nrows = 1;
+    ncols = 3;
+    npanels = nrows*ncols;
+    
+    for ispecies = [2 4]
+      nfig = 400 + ispecies;
+      fig = figure(nfig);
+      fig.Position = fig_position;
+      hca = subplot('Position',axes_position);
+      h(end+1) = hca;
+      
+      hca = gca;
+   
+   %   strtitle = sprintf('species %g\n%s\nx = [%g, %g], z = [%g, %g]',ispecies,txttime,xlo,xhi,zlo,zhi);
+   %   strprint = sprintf('dist_%04.0f_species_%g_t_%05.0f_x_%g_%g_z_%g_%g',ispecies,distnumber,timestep,xlo,xhi,zlo,zhi);
+      if 0 % fxy
+        hca = h(isub); isub = isub + 1;
+        imagesc(hca,vx(:,ispecies),vy(:,ispecies),squeeze(fxy(:,:,ispecies))')
+        hca.XLabel.String = 'vx';
+        hca.YLabel.String = 'vy';
+        hcb = colorbar('peer',hca);
+        hcb.YLabel.String = 'f';
+        hca.Title.String = strtitle;
+      end
+      if 1 % fxy
+        imagesc(hca,f.vx,f.vy,squeeze(sum(f.f(:,:,:,ispecies),3))')  
+        hca.XLabel.String = '';
+        hca.YLabel.String = '';
+        %hcb = colorbar('peer',hca);
+        %hcb.YLabel.String = 'f';
+        %hca.Title.String = strtitle;
+        hca.YDir = 'normal';        
+        hca.XLim = vlim(ispecies)*[-1 1];
+        hca.YLim = vlim(ispecies)*[-1 1];
+        hca.XGrid = 'on';
+        hca.YGrid = 'on';
+        hca.XTick = ticks;
+        hca.YTick = ticks;
+        %if 
+        hca.XTickLabel = [];
+        hca.YTickLabel = [];
+        hca.Box = 'on';
+        colormap(hca,pic_colors('candy'))
+        irf_legend(hca,{sprintf('x=%.1f, z=%.1f',xloc,zloc);sprintf('B=[%.2f,%.2f,%.2f]',Bloc.x,Bloc.y,Bloc.z)},[0.01 0.99],'color',[0 0 0],'fontsize',fontsize)
+        
+        if doBDir           
+          line_slope = (Bloc.y/Bloc.x);
+          xx = min(hca.XLim(2)*[1 1/abs(line_slope)])*[-1 1];
+          hold(hca,'on')                
+          hBline = plot(hca,xx,xx*line_slope,'linewidth',0.5,'color',[0.5 0.5 0.5]);
+          hold(hca,'off')
+        end
+      end
+      if 0 % fxz
+        imagesc(hca,vx(:,ispecies),vz(:,ispecies),squeeze(fxz(:,:,ispecies))')  
+        hca.XLabel.String = '';
+        hca.YLabel.String = '';
+        %hcb = colorbar('peer',hca);
+        %hcb.YLabel.String = 'f';
+        %hca.Title.String = strtitle;
+        hca.YDir = 'normal';        
+        hca.XLim = vlim(ispecies)*[-1 1];
+        hca.YLim = vlim(ispecies)*[-1 1];
+        hca.XGrid = 'on';
+        hca.YGrid = 'on';
+        hca.XTick = ticks;
+        hca.YTick = ticks;
+        %if 
+        hca.XTickLabel = [];
+        hca.YTickLabel = [];
+        hca.Box = 'on';
+        colormap(hca,pic_colors('candy'))
+        irf_legend(hca,{sprintf('x=%.1f, z=%.1f',xloc,zloc);sprintf('B=[%.2f,%.2f,%.2f]',Bloc.x,Bloc.y,Bloc.z)},[0.01 0.99],'color',[0 0 0],'fontsize',9)
+        
+        if doBDir           
+          line_slope = (Bloc.z/Bloc.x);
+          xx = min(hca.XLim(2)*[1 1/abs(line_slope)])*[-1 1];
+          hold(hca,'on')                
+          hBline = plot(hca,xx,xx*line_slope,'linewidth',0.5,'color',[0.5 0.5 0.5]);
+          hold(hca,'off')
+        end
+      end
+      if 0 % fzy
+        hca = h(isub); isub = isub + 1;
+        imagesc(hca,vy(:,ispecies),vz(:,ispecies),squeeze(fyz(:,:,ispecies))')  
+        hca.XLabel.String = 'vz';
+        hca.YLabel.String = 'vy';
+        hcb = colorbar('peer',hca);
+        hcb.YLabel.String = 'f';
+        hca.Title.String = strtitle;
+      end
+      %print('-dpng','-r200',[savedir_root sub_dir '/' strprint '.png']);
+      drawnow
+      %pause(1)
+    end
+  end
+  %toc
+end
+
 
 %% Find separate populations
 vlim = [2 5 2 5]; % ion, electron, ion, electron

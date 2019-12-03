@@ -55,7 +55,7 @@ if 0 % Partitioning between drift and thermal energy for cold ions in df04 run n
   hleg.Title.String = 'n_c = 0.4 n_0';  
   hold(hca,'off')  
 end
-if 0 % Partitioning between drift and thermal energy for cold ions in df04 run normalized to UB(1)
+if 1 % Partitioning between drift and thermal energy for cold ions in df04 run normalized to UB(1)
   hca = h(isub); isub = isub + 1;
   colors = pic_colors('matlab');
   hold(hca,'on');
@@ -310,7 +310,7 @@ if 0 % Partitioning between cold and hot ions and electrons in df04 run / per pa
   hleg = legend(hca,{'U^{ih}','U^{eh}','U^{ic}',sprintf('U^{ec} (t_{ref}w_{ci} = %g)',df04.twci(ieref)),'U^{tot}'},'Box','off','location','best');  
 end
 
-if 1 % Partitioning between drift and thermal energy for cold ions in df04 run normalized to UB(1)
+if 0 % Partitioning between drift and thermal energy for cold ions in df04 run normalized to UB(1)
   hca = h(isub); isub = isub + 1;
   colors = pic_colors('matlab');
   hold(hca,'on');
@@ -332,7 +332,7 @@ if 1 % Partitioning between drift and thermal energy for cold ions in df04 run n
   hleg.Title.String = 'n_c = 0.4 n_0';  
   hold(hca,'off')  
 end
-if 1 % Partitioning between drift and thermal energy for cold ions in df04 run normalized to UB(1)
+if 0 % Partitioning between drift and thermal energy for cold ions in df04 run normalized to UB(1)
   hca = h(isub); isub = isub + 1;
   colors = pic_colors('matlab');
   hold(hca,'on');
@@ -435,6 +435,6 @@ it = 30;
 if 1 % 
   pic = df04;  
   hca = h(isub); isub = isub + 1;
-  imagesc(pic.xi,pic.zi,pic.i(it).)
+  %imagesc(pic.xi,pic.zi,pic.i(it).)
   
 end
