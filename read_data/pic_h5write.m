@@ -160,7 +160,7 @@ if 0 % Usage examples
   x = h5read(filePath,'/simulation_information/xe');
 end
 
- %% '/Volumes/Fountain/Data/PIC/df_cold_protons_n08/data/';
+%% '/Volumes/Fountain/Data/PIC/df_cold_protons_n08/data/';
 % Better to save original data, and only necessary quantities
 data_dir    = '/Volumes/Fountain/Data/PIC/df_cold_protons_n08/data/';
 data_dir_h5 = '/Volumes/Fountain/Data/PIC/df_cold_protons_n08/data_h5/';
@@ -249,6 +249,105 @@ if 0 % Usage examples
   x = h5read(filePath,'/simulation_information/xe');
 end
 
+%% '/Volumes/Fountain/Data/PIC/tubrulencerun/data/';
+% Better to save original data, and only necessary quantities
+data_dir    = '/Volumes/Fountain/Data/PIC/turbulencerun/data/';
+data_dir_h5 = '/Volumes/Fountain/Data/PIC/turbulencerun/data_h5/';
+filePath = [data_dir_h5 'fields.h5'];
+nSpecies = 4;
+descSpecies = {'hot ion harris sheet plus uniform background',...
+  'hot electron harris sheet plus uniform background',...
+  'cold ions',...
+  'cold electrons'};
+
+
+%timesteps = 200:200:11000;
+
+fileList = dir([data_dir '*fields*']);
+nFiles = numel(fileList);
+timesteps = zeros(nFiles,1);
+for iFile = 1:nFiles
+  timesteps(iFile) = str2num(fileList(iFile).name(8:12)); % wpe
+end
+
+% turb = PIC('/Volumes/Fountain/Data/PIC/turbulencerun/data_h5/fields.h5');
+% remaining_timesteps = setdiff(timesteps,turb.twpe);
+
+for itime = 1:numel(timesteps)
+  timestep = timesteps(itime);  
+  if find(timestep==turb.twpe)
+    disp(sprintf('twpe = %g already exist, skipping.',timestep))
+    continue
+  end
+  txtfile = sprintf('%s/fields-%05.0f.dat',data_dir,timestep); 
+  
+  
+  % read unnormalized data
+  tic; [varstrs,vars] = read_data_no_normalization(txtfile,nSpecies); toc
+  nss = numel(vars{find(contains(varstrs,'mass'))}); % number of species
+  nnx = vars{find(contains(varstrs,'nnx'))}; % number of grid points in x
+  nnz = vars{find(contains(varstrs,'nnz'))}; % number of grid points in z
+  
+  % Load some vars and remove from vars and varstrs
+  iter = vars{find(contains(varstrs,'it'))};   vars(find(contains(varstrs,'it'))) = [];   varstrs(find(contains(varstrs,'it'))) = [];
+  time = vars{find(contains(varstrs,'time'))}; vars(find(contains(varstrs,'time'))) = []; varstrs(find(contains(varstrs,'time'))) = [];
+  dt   = vars{find(contains(varstrs,'dt'))};   vars(find(contains(varstrs,'dt'))) = [];   varstrs(find(contains(varstrs,'dt'))) = [];
+  mass = vars{find(contains(varstrs,'mass'))}; vars(find(contains(varstrs,'mass'))) = []; varstrs(find(contains(varstrs,'mass'))) = [];
+  q    = vars{find(contains(varstrs,'q'))};    vars(find(contains(varstrs,'q'))) = [];    varstrs(find(contains(varstrs,'q'))) = [];
+  dfac = vars{find(contains(varstrs,'dfac'))}; vars(find(contains(varstrs,'dfac'))) = []; varstrs(find(contains(varstrs,'dfac'))) = [];
+  str_iteration = sprintf('%010.0f',iter); % same group format as SMILEI
+    
+  
+  % Remaining non-datasize matrices are the same for each time, so only
+  % save one time
+    
+  % loop through variables, and save to h5 file in 'filePath'
+  %%
+  nvars = numel(vars);  
+  for ivar = 1:nvars
+    data = vars{ivar};
+    
+    % check data size, and see if it needs splitting up, and where to save
+    if itime == 1 && not(sum(ismember(size(data),[nnx nnz]))>=2)
+      %continue % implement later
+      disp(['/simulation_information/' varstrs{ivar}])
+      h5create([data_dir_h5 'fields.h5'],['/simulation_information/' varstrs{ivar}], size(data));
+      h5write([data_dir_h5 'fields.h5'],['/simulation_information/' varstrs{ivar}], data);
+      continue % jump to next variable
+    end
+    
+    % From here, we only read data field variables
+    % Check if it is a field (E,B) or species data (n,j,vv)
+    if ndims(data) == 2 && all(size(data) == [nnx nnz]) % is (E,B)
+      dataset_name = ['/data/' str_iteration '/' varstrs{ivar}];
+      disp(dataset_name)
+      h5create([data_dir_h5 'fields.h5'], dataset_name, size(data));
+      h5write( [data_dir_h5 'fields.h5'], dataset_name, data);
+    elseif size(data,3) == nss % is (n,vs,vv)
+      for iSpecies = 1:nss
+        data_tmp = data(:,:,iSpecies);
+        dataset_name = ['/data/' str_iteration '/' varstrs{ivar} '/' num2str(iSpecies)];
+        disp(dataset_name)
+        h5create([data_dir_h5 'fields.h5'], dataset_name, size(data_tmp));
+        h5write( [data_dir_h5 'fields.h5'], dataset_name, data_tmp);
+        % Also write species data as attributes
+        h5writeatt([data_dir_h5 'fields.h5'],dataset_name, 'mass',mass(iSpecies)) 
+        h5writeatt([data_dir_h5 'fields.h5'],dataset_name, 'charge',q(iSpecies)) 
+        h5writeatt([data_dir_h5 'fields.h5'],dataset_name, 'dfac',dfac(iSpecies)) 
+        % info.Groups(1).Groups(ig).Datasets(id).Attributes.Name
+      end
+    else
+      warning(sprintf('Variable: %s skipped',varstrs{ivar}))
+      continue      
+    end   
+    % Write attributes for group (iteration)
+    h5writeatt([data_dir_h5 'fields.h5'],['/data/' str_iteration '/'], 'time',time)
+    h5writeatt([data_dir_h5 'fields.h5'],['/data/' str_iteration '/'], 'dt',dt)
+    % info.Groups(1).Groups(ig).Attributes.Name
+  end
+end
+
+disp('Done.')
 %% Add some extra derived quantities to h5 file, such as:
 % reconnection rate, done
 % X line locations, 
@@ -284,11 +383,11 @@ descSpecies = {'hot ion harris sheet plus uniform background',...
   'cold electrons from north'};
 timestep = 8000; 
 iter = timestep*2; % timestep is 0.5
-dists = 1:254;%300;
+dists = 1:367;%300;
 nDists = numel(dists);
 nss = 6;
 
-for idist = 1:254%:210%1:nDists  
+for idist = 255:367%:210%1:nDists  
   %idist = 10;
   distnumber = dists(idist);
   txtfile = sprintf('/Users/cno062/tesla/cno062/df_cold_protons_n04/distributions/%05.0f/%.0f.dat',timestep,distnumber); % df04

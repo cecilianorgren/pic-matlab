@@ -1385,67 +1385,25 @@ h = setup_subplots(1,3,'vertical');
 isub = 1;
 cmap = pic_colors('waterfall');
 t0_msize = 10;
-t_msize = 4;
+t_msize = 2;
 if 1 % (vx,vz), colorcoded by time
   hca = h(isub); isub = isub + 1;
   plot(hca,tr1.vx,tr1.vy,'k')
   hold(hca,'on')
-  plot(hca,tr2.vx,tr2.vy,'k')
-  plot(hca,tr3.vx,tr3.vy,'k')
-  plot(hca,tr1.vx0,tr1.vy0,'ks','markersize',t0_msize,'markerfacecolor',[0 0 0])
-  plot(hca,tr2.vx0,tr2.vy0,'ks','markersize',t0_msize,'markerfacecolor',[0 0 0])
-  plot(hca,tr3.vx0,tr3.vy0,'ks','markersize',t0_msize,'markerfacecolor',[0 0 0])
-  scatter(hca,tr1.vx,tr1.vy,t_msize,tr1.t,'filled')
-  scatter(hca,tr2.vx,tr2.vy,t_msize,tr2.t,'filled')
-  scatter(hca,tr3.vx,tr3.vy,t_msize,tr3.t,'filled')
+  plot(hca,tr2.vx,tr2.vz,'k')
+  plot(hca,tr3.vx,tr3.vz,'k')
+  plot(hca,tr1.vx0,tr1.vz0,'ks','markersize',t0_msize,'markerfacecolor',[0 0 0])
+  plot(hca,tr2.vx0,tr2.vz0,'ks','markersize',t0_msize,'markerfacecolor',[0 0 0])
+  plot(hca,tr3.vx0,tr3.vz0,'ks','markersize',t0_msize,'markerfacecolor',[0 0 0])
+  scatter(hca,tr1.vx,tr1.vz,t_msize,tr1.t,'filled')
+  scatter(hca,tr2.vx,tr2.vz,t_msize,tr2.t,'filled')
+  scatter(hca,tr3.vx,tr3.vz,t_msize,tr3.t,'filled')
   hold(hca,'off')
   hb = colorbar('peer',hca);
   hb.YLabel.String = 'twci';
   colormap(hca,cmap)
   hca.XLabel.String = 'vx';
-  hca.YLabel.String = 'vy';  
-  hca.XGrid = 'on';
-  hca.YGrid = 'on';
-end
-if 1 % (vx,vz), colorcoded by x
-  hca = h(isub); isub = isub + 1;
-  plot(hca,tr1.vx,tr1.vy,'k')
-  hold(hca,'on')
-  plot(hca,tr2.vx,tr2.vy,'k')
-  plot(hca,tr3.vx,tr3.vy,'k')
-  plot(hca,tr1.vx0,tr1.vy0,'ks','markersize',t0_msize,'markerfacecolor',[0 0 0])
-  plot(hca,tr2.vx0,tr2.vy0,'ks','markersize',t0_msize,'markerfacecolor',[0 0 0])
-  plot(hca,tr3.vx0,tr3.vy0,'ks','markersize',t0_msize,'markerfacecolor',[0 0 0])
-  scatter(hca,tr1.vx,tr1.vy,t_msize,tr1.x,'filled')
-  scatter(hca,tr2.vx,tr2.vy,t_msize,tr2.x,'filled')
-  scatter(hca,tr3.vx,tr3.vy,t_msize,tr3.x,'filled')
-  hold(hca,'off')
-  hb = colorbar('peer',hca);
-  hb.YLabel.String = 'x/di';
-  colormap(hca,cmap)
-  hca.XLabel.String = 'vx';
-  hca.YLabel.String = 'vy';  
-  hca.XGrid = 'on';
-  hca.YGrid = 'on';
-end
-if 1 % (vx,vz), colorcoded by z
-  hca = h(isub); isub = isub + 1;
-  plot(hca,tr1.vx,tr1.vy,'k')
-  hold(hca,'on')
-  plot(hca,tr2.vx,tr2.vy,'k')
-  plot(hca,tr3.vx,tr3.vy,'k')
-  plot(hca,tr1.vx0,tr1.vy0,'ks','markersize',t0_msize,'markerfacecolor',[0 0 0])
-  plot(hca,tr2.vx0,tr2.vy0,'ks','markersize',t0_msize,'markerfacecolor',[0 0 0])
-  plot(hca,tr3.vx0,tr3.vy0,'ks','markersize',t0_msize,'markerfacecolor',[0 0 0])
-  scatter(hca,tr1.vx,tr1.vy,t_msize,tr1.z,'filled')
-  scatter(hca,tr2.vx,tr2.vy,t_msize,tr2.z,'filled')
-  scatter(hca,tr3.vx,tr3.vy,t_msize,tr3.z,'filled')
-  hold(hca,'off')
-  hb = colorbar('peer',hca);
-  hb.YLabel.String = 'z/di';
-  colormap(hca,cmap)
-  hca.XLabel.String = 'vx';
-  hca.YLabel.String = 'vy';  
+  hca.YLabel.String = 'vz';  
   hca.XGrid = 'on';
   hca.YGrid = 'on';
 end
