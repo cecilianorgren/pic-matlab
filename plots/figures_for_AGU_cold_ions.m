@@ -97,7 +97,7 @@ end
 c_eval('hca.FontSize = 13;',1:npanels)
 c_eval('h(?).Position(2) = 0.20; h(?).Position(4) = 0.65;',1)
 
-%% Movie of density evolution df04, gif
+%% Movie of ni evolution df04, gif
 % [all_im, map] = MAKE_GIF(obj,fields,nrows,ncols)      
 % make gif
 % imwrite(im,map,'delme.gif','DelayTime',0.0,'LoopCount',0)  
@@ -176,7 +176,7 @@ end
 
 % collect frames
 
-%% Movie of density evolution df04, try with VideoWriter
+%% Movie of ni evolution df04, try with VideoWriter
 % [all_im, map] = MAKE_GIF(obj,fields,nrows,ncols)      
 % make gif
 % imwrite(im,map,'delme.gif','DelayTime',0.0,'LoopCount',0)  
@@ -196,6 +196,7 @@ pic = df04;
 
 % setup figure
 fig = figure;
+fig.Position = [100 100 920 360];
 nrows = 1;
 ncols = 1;
 h = setup_subplots(nrows,ncols); % external function, must include in SMILEI.m
@@ -213,6 +214,152 @@ for itime = times
   imagesc(hca,pic.xi,pic.zi,data')
   hb = colorbar('peer',hca);
   hb.YLabel.String = 'n_i';
+  hca.Title.String = sprintf('twci = %3.0f',pic.twci);
+  hca.FontSize = 14;
+  if doAdjustCLim
+    hca.CLim = clim;
+    %colormap(hca,cmap)
+  end
+  if doA
+    hold(hca,'on')
+    iAx = 1:4:pic.nx;
+    iAz = 1:4:pic.nz;
+    A = pic.A;
+    contour(hca,pic.xi(iAx),pic.zi(iAz),A(iAx,iAz)',levA,'k');
+    hold(hca,'off')
+  end
+    hca.YDir = 'normal';
+    hca.XLabel.String = 'x/d_i';
+    hca.YLabel.String = 'z/d_i';
+    %toc  
+  if iframe == 0
+    colormap(cmap)
+  end
+  pause(0.1)
+  currFrame = getframe(gcf);
+  writeVideo(vidObj,currFrame);
+end
+%out = {all_im,map};
+close(vidObj);
+% collect frames
+
+%% Movie of ni evolution df04, gif
+% [all_im, map] = MAKE_GIF(obj,fields,nrows,ncols)      
+% make gif
+% imwrite(im,map,'delme.gif','DelayTime',0.0,'LoopCount',0)  
+
+% Default options, values
+doAdjustCLim = 1;
+clim = [-0.7 0.7];
+cmap = pic_colors('blue_red');
+doA = 1;
+levA = -25:1:0;
+
+pic = df04;
+
+
+% setup figure
+fig = figure;
+fig.Position = [100 100 920 360];
+set(fig,'color','white');
+nrows = 1;
+ncols = 1;
+h = setup_subplots(nrows,ncols); % external function, must include in SMILEI.m
+isub = 1;
+disp('Adjust figure size, then hit any key to continue.')
+pause
+
+times = 2:pic.nt;
+ntimes = numel(times);
+iframe = 0;
+for itime = times
+  pic = df04(itime).zlim([-15 15]);
+  hca = h(isub); 
+  data = pic.Ey;  
+  imagesc(hca,pic.xi,pic.zi,data')
+  hb = colorbar('peer',hca);
+  hb.YLabel.String = 'E_y';
+  hca.Title.String = sprintf('twci = %3.0f',pic.twci);
+  if doAdjustCLim
+    hca.CLim = clim;
+    %colormap(hca,cmap)
+  end
+  if doA
+    hold(hca,'on')
+    iAx = 1:4:pic.nx;
+    iAz = 1:4:pic.nz;
+    A = pic.A;
+    contour(hca,pic.xi(iAx),pic.zi(iAz),A(iAx,iAz)',levA,'k');
+    hold(hca,'off')
+  end
+    hca.YDir = 'normal';
+    hca.XLabel.String = 'x/d_i';
+    hca.YLabel.String = 'z/d_i';
+    %toc  
+  if iframe == 0
+    colormap(cmap)
+  end
+  pause(0.1)
+  if 1 % collect frames, for making gif
+    iframe = iframe + 1;    
+    nframes = ntimes;
+    currentBackgroundColor = get(gcf,'color');
+    set(gcf,'color',[1 1 1]);
+    drawnow      
+    tmp_frame = getframe(gcf);
+    %cell_movies{imovie}(itime) = tmp_frame;
+    if iframe == 1 % initialize animated gif matrix
+      [im_tmp,map] = rgb2ind(tmp_frame.cdata,256,'nodither');
+      %map(end+1,:) = get(gcf,'color');
+      im_tmp(1,1,1,nframes) = 0;                                                
+      all_im = im_tmp;
+    else
+      all_im(:,:,1,iframe) = rgb2ind(tmp_frame.cdata,map,'nodither');
+    end       
+  end
+end
+%out = {all_im,map};
+
+% collect frames
+
+%% Movie of Ey evolution df04, try with VideoWriter
+% [all_im, map] = MAKE_GIF(obj,fields,nrows,ncols)      
+% make gif
+% imwrite(im,map,'delme.gif','DelayTime',0.0,'LoopCount',0)  
+
+vidObj = VideoWriter([savedir 'Ey_df04.mp4'],'MPEG-4');
+open(vidObj);
+
+% Default options, values
+doAdjustCLim = 1;
+clim = [-0.7 0.7];
+cmap = pic_colors('blue_red');
+doA = 1;
+levA = -25:1:0;
+
+pic = df04;
+
+
+% setup figure
+fig = figure;
+fig.Position = [100 100 920 360];
+nrows = 1;
+ncols = 1;
+h = setup_subplots(nrows,ncols); % external function, must include in SMILEI.m
+isub = 1;
+disp('Adjust figure size, then hit any key to continue.')
+pause
+
+times = 2:pic.nt;
+ntimes = numel(times);
+iframe = 0;
+for itime = times
+  pic = df04(itime).zlim([-15 15]);
+  hca = h(isub); 
+  data = pic.Ey;  
+  imagesc(hca,pic.xi,pic.zi,data')
+  hb = colorbar('peer',hca);
+  hb.YLabel.String = 'E_y';
   hca.Title.String = sprintf('twci = %3.0f',pic.twci);
   hca.FontSize = 14;
   if doAdjustCLim
@@ -358,7 +505,7 @@ end
 close(vidObj);
 % collect frames
 
-%% Map of distributions
+%% Map of distributions, 8000
 zlim = [0 6];
 xlim = [160 180];
 sumdim = 3;
@@ -368,7 +515,7 @@ hmap = ds04(2).xlim(xlim).zlim(zlim).plot_map(iSpecies,sumdim);
 all_axes = findobj(gcf,'type','axes');
 compact_panels(0.00,0.00)
 drawnow
-%%
+
 cn.print(sprintf('fxy_35_t08000_z%.0f-%.0f_x%.0f-%.0f',xlim(1),xlim(2),zlim(1),zlim(2)),'path',savedir)
 
 doSquare = 1;
@@ -380,6 +527,30 @@ cn.print(sprintf('fxy_35_t08000_z%.0f-%.0f_x%.0f-%.0f_square',xlim(1),xlim(2),zl
 set(gcf,'Position',pp)
 drawnow
 cn.print(sprintf('fxy_35_t08000_z%.0f-%.0f_x%.0f-%.0f_square_tight',xlim(1),xlim(2),zlim(1),zlim(2)),'path',savedir)
+
+%% Map of distributions, 5000
+zlim = [0 2];
+xlim = [192 205];
+sumdim = 3;
+iSpecies = [3 5];
+hmap = ds04(1).xlim(xlim).zlim(zlim).plot_map(iSpecies,sumdim);
+
+all_axes = findobj(gcf,'type','axes');
+compact_panels(0.00,0.00)
+drawnow
+
+cn.print(sprintf('fxy_35_t05000_z%.0f-%.0f_x%.0f-%.0f',xlim(1),xlim(2),zlim(1),zlim(2)),'path',savedir)
+
+doSquare = 1;
+for ipanel = 1:numel(all_axes)
+  if doSquare, axis(all_axes(ipanel),'square'); end
+end
+cn.print(sprintf('fxy_35_t05000_z%.0f-%.0f_x%.0f-%.0f_square',xlim(1),xlim(2),zlim(1),zlim(2)),'path',savedir)
+
+set(gcf,'Position',pp)
+drawnow
+cn.print(sprintf('fxy_35_t05000_z%.0f-%.0f_x%.0f-%.0f_square_tight',xlim(1),xlim(2),zlim(1),zlim(2)),'path',savedir)
+
 %% Movie looping through distributions at z = 0, and x, seeing the subsequently entering "trees"
 
 %% Plot smaller subset of distributions, for smaller figures embedded in text, one z row
@@ -574,3 +745,631 @@ for ix = 1:numel(xs)
   end
 end
 if doVideo, close(vidObj); end
+
+%% Plot showing select distributions with appearing fingers, vx vy plane
+x_sel = [183 187 191 197 201 203];
+x_sel = x_sel(end:-1:1);
+z_sel = x_sel*0 + 0;
+t_sel = 2; % id
+iSpecies = [3 5];
+clim = [0 0.5e-2]; doCLim = 1;
+cmap = pic_colors('candy');
+ticks = -15:1:15;
+doBdir = 1;
+
+nrows = 2;
+ncols = 3;
+npanels = nrows*ncols;
+h = setup_subplots(nrows,ncols);
+isub = 1;
+
+
+for idist = 1:numel(x_sel)    
+  xx = x_sel(idist);
+  zz = z_sel(idist);
+  ds = ds04(2).zlim(zz+[-0.1 0.1]).xlim(xx+[-0.1 0.1]);
+  f = ds.f(1,1,iSpecies);
+  
+  Bx_ = df04.twpelim(8000).xlim(xx).zlim(xx).Bx;
+  By_ = df04.twpelim(8000).xlim(xx).zlim(xx).By;
+  Bz_ = df04.twpelim(8000).xlim(xx).zlim(xx).Bz;
+  
+  if 1 % fxy
+    hca = h(isub); isub = isub + 1;
+    imagesc(hca,f.v,f.v,f.fxy')
+    hca.XLabel.String = 'v_x';
+    hca.YLabel.String = 'v_y';
+    %hca.Title.String = sprintf('x = %.1f d_i, z = %.1f d_i',(f.x(1)+f.x(2))/2,(f.z(1)+f.z(2))/2);
+    %irf_legend(hca,sprintf('x = %.1f d_i, z = %.1f d_i',(f.x(1)+f.x(2))/2,(f.z(1)+f.z(2))/2),[0.02 0.98])
+    irf_legend(hca,sprintf('x = %.0f d_i',(f.x(1)+f.x(2))/2),[0.03 0.98],'fontsize',13)
+    if doBdir        
+      line_slope = (By_/Bx_);
+      xx = min(hca.XLim(2)*[1 1/abs(line_slope)])*[-1 1];
+      hold(hca,'on')                
+      hBline = plot(hca,xx,xx*line_slope,'linewidth',0.5,'color',[0.5 0.5 0.5]);
+      hold(hca,'off')        
+    end
+  end
+end
+
+
+colormap(gcf,cmap)
+for ip = 1:npanels
+  h(ip).YDir = 'normal';
+  h(ip).XTick = ticks;
+  h(ip).YTick = ticks;
+  h(ip).XGrid = 'on';
+  h(ip).YGrid = 'on';    
+  h(ip).FontSize = 14;
+  %h(ip).Title.FontSize = 13;
+  h(ip).Position(2) = h(ip).Position(2)+0.015;
+  axis(h(ip),'square')
+  if doCLim, h(ip).CLim = clim; end
+end
+c_eval('h(?).YTickLabel = '''';',[2:3 5:6])
+c_eval('h(?).YLabel.String = '''';',[2:3 5:6])
+compact_panels(0.01,0.01)
+
+h(2).Title.String = 'Cold ions originating from the north, z = [-0.5 0.5] d_i';
+h(2).Title.String = 'Cold ions originating from the south, z = [-0.5 0.5] d_i';
+h(2).Title.String = 'Cold ions originating from the north and south, z = [-0.5 0.5] d_i';
+%h(2).Title.FontSize = 12;
+  
+%% Time-x maps of Bz, Ey and vExBx
+zlim = [-0.5 0.5];
+pic = df04.zlim(zlim).twcilim([2 260]); % just remove first time index
+nc = 0.4;
+Alev = -25:1:0;
+doA = 1;
+doShowMaxVal = 1;
+
+nrows = 1;
+ncols = 3;
+npanels = nrows*ncols;
+h = setup_subplots(nrows,ncols);
+isub = 1;
+
+hb = gobjects(0);
+
+if 1 % Bz
+  hca = h(isub); isub = isub + 1;
+  %variable = mean(pic.Bz,2);
+  Bz_mean = squeeze(mean(pic.Bz,2));
+  imagesc(hca,pic.xi,pic.twci,Bz_mean')
+  hcb = colorbar('peer',hca);
+  hb(isub-1) = hcb;
+  hcb.YLabel.String = 'B_z';
+  colormap(hca,pic_colors('blue_red'))
+  hca.CLim = [-1.2 1.2];
+  hca.YLabel.String = 't\omega_{ci}';
+  hca.XLabel.String = 'x/d_i';
+  if doShowMaxVal
+    irf_legend(hca,sprintf('|B_z|^{max} = %.1f B_0',max(abs(Bz_mean(:)))),[0.98 0.98],'color','k','fontsize',12)
+  end
+end
+if 1 % Ey
+  hca = h(isub); isub = isub + 1;  
+  Ey_mean = squeeze(mean(pic.Ey,2));
+  imagesc(hca,pic.xi,pic.twci,Ey_mean')
+  hcb = colorbar('peer',hca);
+  hb(isub-1) = hcb;
+  hcb.YLabel.String = 'E_y';
+  colormap(hca,pic_colors('blue_red'))
+  hca.CLim = [-0.9 0.9];
+  hca.YLabel.String = 't\omega_{ci}';
+  hca.XLabel.String = 'x/d_i';  
+  if doShowMaxVal
+    irf_legend(hca,sprintf('|E_y|^{max} = %.1f v_AB_0',max(abs(Ey_mean(:)))),[0.98 0.98],'color','k','fontsize',12)
+  end
+end
+if 1 % Bz
+  if 1
+    Ex = pic.Ez;
+    Ey = pic.Ey;
+    Ez = pic.Ez;
+    Bx = pic.Bx;
+    By = pic.By;
+    Bz = pic.Bz;  
+  end
+  ExB = cross_product(Ex,Ey,Ez,Bx,By,Bz);
+  hca = h(isub); isub = isub + 1;
+  imagesc(hca,pic.xi,pic.twci,squeeze(mean(ExB.x,2))')
+  hcb = colorbar('peer',hca);
+  hb(isub-1) = hcb;
+  hcb.YLabel.String = 'ExB_x';
+  colormap(hca,pic_colors('blue_red'))
+  hca.CLim = [-0.55 0.55];
+  hca.YLabel.String = 't\omega_{ci}';
+  hca.XLabel.String = 'x/d_i';   
+  if doShowMaxVal
+    irf_legend(hca,sprintf('|ExB_x|^{max} = %.1f v_A',max(abs(ExB.x(:)))),[0.98 0.98],'color','k','fontsize',12)
+  end 
+end
+
+irf_legend(h(1),sprintf('n_c = %g n_0',nc),[0.02 0.98],'color','k','fontsize',12)
+
+for ip = 1:npanels
+  hb(ip).Location = 'northoutside';
+  h(ip).Position(2) = 0.21;
+  h(ip).Position(4) = 0.5;
+  h(ip).XTick = 0:100:500;
+  h(ip).XGrid = 'on';
+  h(ip).YGrid = 'on';
+  h(ip).FontSize = 14;
+  hb(ip).FontSize = 14;
+  
+end
+h(2).XTick = [100:100:400];
+h(3).XTick = [100:100:400];
+compact_panels(0.01,0.01)
+h(2).YLabel.String = '';
+h(3).YLabel.String = '';
+h(2).YTickLabel = [];
+h(3).YTickLabel = [];
+
+%% Front speed
+zlim = [-0.5 0.5];
+xlim = [50 200]; % just check left side
+tlim = [90 220];
+pic = df04.xlim(xlim).zlim(zlim).twcilim(tlim);
+Bz_mean = squeeze(mean(pic.Bz,2));
+[Bz_peak,ind_Bz_peak] = max(abs(Bz_mean));
+xDF = pic.xi(ind_Bz_peak);
+dt = diff(pic.twci)';
+tcentered = tocolumn(pic.twci(1:pic.nt-1))+tocolumn(dt);
+dxDF = diff(xDF);
+vDF = dxDF./dt;
+tcentered_2 = tocolumn(pic.twci(2:pic.nt-1));
+aDF = diff(vDF)./dt(2:end);
+RA = pic.RA;
+
+
+nrows = 5;
+ncols = 1;
+npanels = nrows*ncols;
+h = setup_subplots(nrows,ncols);
+isub = 1;
+
+if 1 % Bz vz x
+  hca = h(isub); isub = isub + 1;  
+  plot(hca,pic.xi,Bz_mean)
+  hold(hca,'on')
+  plot(hca,pic.xi(ind_Bz_peak),-Bz_peak,'*')
+  hold(hca,'off')
+  hca.XLabel.String = 'x/d_i';
+  hca.YLabel.String = 'B_z/B_0';
+  %hca.Xlim = [];
+end
+if 1 % DF Bz strength
+  hca = h(isub); isub = isub + 1;  
+  plot(hca,pic.twci,Bz_peak)
+  hca.XLabel.String = 't\omega_{ci}';
+  hca.YLabel.String = 'B_z/B_0';
+end
+if 1 % DF location
+  hca = h(isub); isub = isub + 1;  
+  plot(hca,pic.twci,xDF)
+  hca.XLabel.String = 't\omega_{ci}';
+  hca.YLabel.String = 'x/d_i';
+end
+if 1 % DF speed
+  hca = h(isub); isub = isub + 1;  
+  plot(hca,tcentered,vDF)
+  hca.XLabel.String = 't\omega_{ci}';
+  hca.YLabel.String = 'v_x/d_i';
+end
+if 1 % DF acceleration
+  hca = h(isub); isub = isub + 1;  
+  plot(hca,pic.twci(2:pic.nt-1),aDF)
+  hca.XLabel.String = 't\omega_{ci}';
+  hca.YLabel.String = 'a_x/d_i';
+end
+
+for ip = 1:npanels
+  h(ip).XGrid = 'on';
+  h(ip).YGrid = 'on';
+end
+
+%% Mass loading effect on front speed
+tlim = [90 220];
+pic04 = df04.twcilim(tlim);
+pic08 = df08.twcilim(tlim);
+[xDF04,vDF04,aDF04,BDF04] = pic04.xva_df;
+[xDF08,vDF08,aDF08,BDF08] = pic08.xva_df;
+%%
+%rem_ind04 = find(abs(diff(vDF04))>0.2); vDF04(rem_ind04) = NaN;
+rem_ind08 = find(abs(aDF08)>0.05); vDF08(rem_ind08) = NaN;
+
+R0 = @(Rc,nc,nb) Rc*sqrt(1+nc./nb);
+
+Rc = @(R0,nc,nb) R0sqrt(1+nc./nb);
+
+R0(0.1,0.4,0.2);
+
+aDF0 = @(ac,nc,nb) ac*(1+nc./nb)^0.5;
+
+
+
+doPlotFit = 1;
+nrows = 2;
+ncols = 1;
+npanels = nrows*ncols;
+h = setup_subplots(nrows,ncols);
+isub = 1;
+
+if 1 % vDF_x vz t
+  hca = h(isub); isub = isub + 1;  
+  hl = plot(hca,pic04.twci,vDF04(1,:),'.',...
+                pic08.twci,vDF08(1,:),'.','MarkerSize',10);
+  hold(hca,'on')
+  %plot(hca,pic.xi(ind_Bz_peak),-Bz_peak,'*')
+  hold(hca,'off')
+  hca.XLabel.String = 't\omega_{wci}';
+  hca.YLabel.String = 'v_{DF,x}/v_A';
+  %hca.Xlim = [];
+  if doPlotFit
+    p04 = polyfit(pic04.twci(~isnan(vDF04(1,:))),vDF04(1,~isnan(vDF04(1,:))),1);
+    p08 = polyfit(pic08.twci(~isnan(vDF08(1,:))),vDF08(1,~isnan(vDF08(1,:))),1);
+ 
+    % Evaluate the fitted polynomial p and plot:
+    f04 = polyval(p04,pic04.twci);
+    f08 = polyval(p08,pic08.twci);
+    hold(hca,'on')
+    hlines = plot(hca,pic04.twci,f04,'-',...
+                      pic08.twci,f08,'-');
+    hlines(1).Color = hl(1).Color;
+    hlines(2).Color = hl(2).Color;
+    hold(hca,'off')
+    %legend('data','linear fit')
+    fit_str04 = sprintf('n_c= 0.4n_0: v_{DF}/v_A = %.4f tw_{ci}',p04(1));
+    fit_str08 = sprintf('n_c= 0.8n_0: v_{DF}/v_A = %.4f tw_{ci}',p08(1));
+    irf_legend(hca,{fit_str04;fit_str08},[0.02 0.98],'fontsize',12)
+  end
+  hca.XGrid = 'on';
+  hca.YGrid = 'on';
+end
+if 1 % vDF_x vz t, mass loading scaled
+  hca = h(isub); isub = isub + 1;  
+  hl = plot(hca,pic04.twci,vDF04(1,:),'.',...
+                pic08.twci,vDF08(1,:),'.','MarkerSize',10);
+  hold(hca,'on')
+  %plot(hca,pic.xi(ind_Bz_peak),-Bz_peak,'*')
+  hold(hca,'off')
+  hca.XLabel.String = 't\omega_{wci}';
+  hca.YLabel.String = 'v_{DF,x}/v_A';
+  %hca.Xlim = [];
+  if doPlotFit
+    p04 = polyfit(pic04.twci(~isnan(vDF04(1,:))),vDF04(1,~isnan(vDF04(1,:))),1);
+    p08 = polyfit(pic08.twci(~isnan(vDF08(1,:))),vDF08(1,~isnan(vDF08(1,:))),1);
+ 
+    % Evaluate the fitted polynomial p and plot:
+    f04 = polyval(p04,pic04.twci);
+    f08 = polyval(p08,pic08.twci);
+    hold(hca,'on')
+    hlines = plot(hca,pic04.twci,f04,'-',...
+                      pic08.twci,f08,'-');
+    hlines(1).Color = hl(1).Color;
+    hlines(2).Color = hl(2).Color;
+    hold(hca,'off')
+    %legend('data','linear fit')
+    fit_str04 = sprintf('n_c= 0.4n_0: v_{DF}/v_A = %.4f tw_{ci}',p04(1));
+    fit_str08 = sprintf('n_c= 0.8n_0: v_{DF}/v_A = %.4f tw_{ci}',p08(1));
+    irf_legend(hca,{fit_str04;fit_str08},[0.02 0.98],'fontsize',12)
+  end
+  hca.XGrid = 'on';
+  hca.YGrid = 'on';
+end
+if 0 % aDF_x vz t
+  hca = h(isub); isub = isub + 1;  
+  plot(hca,pic.twci,aDF04(1,:),'.-',...
+           pic.twci,aDF08(1,:),'.-')
+  hold(hca,'on')
+  %plot(hca,pic.xi(ind_Bz_peak),-Bz_peak,'*')
+  hold(hca,'off')
+  hca.XLabel.String = 't\omega_{wci}';
+  hca.YLabel.String = 'a_{DF,x}';
+  %hca.Xlim = [];
+end
+
+
+for ip = 1:npanels  
+  h(ip).Position(2) = 0.21;
+  h(ip).Position(4) = 0.7;
+  %h(ip).XTick = 0:100:500;
+  h(ip).XGrid = 'on';
+  h(ip).YGrid = 'on';
+  h(ip).FontSize = 14;
+  %hb(ip).FontSize = 14;
+  
+end
+
+%% Particle trajectoreis corresponding to cold ion fingers, interpolated EB
+
+xvtf = df04.integrate_trajectory([192,0,0],[-1,0.25,0.4],160,200,25,1);
+xvtb = df04.integrate_trajectory([192,0,0],[-1,0.25,0.4],160,120,25,1);
+
+[Ex,Ey,Ez,Bx,By,Bz] = df04.interp_EB3(xvtb.x,xvtb.z,xvtb.t);
+
+%% Particle trajectoreis corresponding to cold ion fingers, constant EB (E smoothed)
+
+xvtf = df04.twcilim(160).integrate_trajectory_constant_EB([192,0,0],[-1,0.25,0.4],160,200,25,1);
+xvtb = df04.twcilim(160).integrate_trajectory_constant_EB([192,0,0],[-1,0.25,0.4],160,120,25,1);
+
+[Ex,Ey,Ez,Bx,By,Bz] = df04.interp_EB3(xvtb.x,xvtb.z,xvtb.t);
+
+%% Calculate and plot lorentz forces
+Alev = -25:1:0;
+zlim = [-10 10];
+xlim = 200 + 100*[-1 1];
+tlim = 8000; % wpe
+pic = df04.twpelim(tlim).xlim(xlim).zlim(zlim);
+
+A = pic.A;
+Ex = pic.Ex;
+Ey = pic.Ey;
+Ez = pic.Ez;
+Bx = pic.Bx;
+By = pic.By;
+Bz = pic.Bz;
+vx3 = pic.vx([3]);
+vy3 = pic.vy([3]);
+vz3 = pic.vz([3]);
+vx5 = pic.vx([5]);
+vy5 = pic.vy([5]);
+vz5 = pic.vz([5]);
+vx35 = pic.vx([3 5]);
+vy35 = pic.vy([3 5]);
+vz35 = pic.vz([3 5]);
+
+v3xB = cross_product(vx3,vy3,vz3,Bx,By,Bz,'components',1);
+v5xB = cross_product(vx5,vy5,vz5,Bx,By,Bz,'components',1);
+v35xB = cross_product(vx35,vy35,vz35,Bx,By,Bz,'components',1);
+
+%%
+nrows = 3;
+ncols = 2;
+npanels = nrows*ncols;
+h = setup_subplots(nrows,ncols,'vertical');
+isub = 1;
+
+if 0 % v3x
+  hca = h(isub); isub = isub + 1;  
+  imagesc(hca,pic.xi,pic.zi,vx3')
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'v_x 3';
+  %hold(hca,'on')
+  hca.XLabel.String = 'x/d_i';  
+  hca.YLabel.String = 'z/d_i';  
+  hca.Box = 'on';  
+end
+if 0 % v3y
+  hca = h(isub); isub = isub + 1;  
+  imagesc(hca,pic.xi,pic.zi,vy3')
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'v_y 3';
+  %hold(hca,'on')
+  hca.XLabel.String = 'x/d_i';  
+  hca.YLabel.String = 'z/d_i';  
+  hca.Box = 'on';  
+end
+if 1 % v3z
+  hca = h(isub); isub = isub + 1;  
+  imagesc(hca,pic.xi,pic.zi,vz3')
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'v_z 3';
+  %hold(hca,'on')
+  hca.XLabel.String = 'x/d_i';  
+  hca.YLabel.String = 'z/d_i';  
+  hca.Box = 'on';  
+end
+if 0 % v5x
+  hca = h(isub); isub = isub + 1;  
+  imagesc(hca,pic.xi,pic.zi,vx5')
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'v_x 5';
+  %hold(hca,'on')
+  hca.XLabel.String = 'x/d_i';  
+  hca.YLabel.String = 'z/d_i';  
+  hca.Box = 'on';  
+end
+if 0 % v5y
+  hca = h(isub); isub = isub + 1;  
+  imagesc(hca,pic.xi,pic.zi,vy5')
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'v_y 5';
+  %hold(hca,'on')
+  hca.XLabel.String = 'x/d_i';  
+  hca.YLabel.String = 'z/d_i';  
+  hca.Box = 'on';  
+end
+if 1 % v5z
+  hca = h(isub); isub = isub + 1;  
+  imagesc(hca,pic.xi,pic.zi,vz5')
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'v_z 5';
+  %hold(hca,'on')
+  hca.XLabel.String = 'x/d_i';  
+  hca.YLabel.String = 'z/d_i';  
+  hca.Box = 'on';  
+end
+if 0 % v35x
+  hca = h(isub); isub = isub + 1;  
+  imagesc(hca,pic.xi,pic.zi,vx35')
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'v_x 35';
+  %hold(hca,'on')
+  hca.XLabel.String = 'x/d_i';  
+  hca.YLabel.String = 'z/d_i';  
+  hca.Box = 'on';  
+end
+if 0 % v35y
+  hca = h(isub); isub = isub + 1;  
+  imagesc(hca,pic.xi,pic.zi,vy35')
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'v_y 35';
+  %hold(hca,'on')
+  hca.XLabel.String = 'x/d_i';  
+  hca.YLabel.String = 'z/d_i';  
+  hca.Box = 'on';  
+end
+if 1 % v35z
+  hca = h(isub); isub = isub + 1;  
+  imagesc(hca,pic.xi,pic.zi,vz35')
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'v_z 35';
+  %hold(hca,'on')
+  hca.XLabel.String = 'x/d_i';  
+  hca.YLabel.String = 'z/d_i';  
+  hca.Box = 'on';  
+end
+
+if 1 % v3xB.x
+  hca = h(isub); isub = isub + 1;  
+  imagesc(hca,pic.xi,pic.zi,v3xB.x')
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'vxB_x 3';
+  %hold(hca,'on')
+  hca.XLabel.String = 'x/d_i';  
+  hca.YLabel.String = 'z/d_i';  
+  hca.Box = 'on';  
+end
+if 0 % v3xB.y
+  hca = h(isub); isub = isub + 1;  
+  imagesc(hca,pic.xi,pic.zi,v3xB.y')
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'vxB_y';
+  %hold(hca,'on')
+  hca.XLabel.String = 'x/d_i';  
+  hca.YLabel.String = 'z/d_i';  
+  hca.Box = 'on';  
+end
+if 0 % v3xB.z
+  hca = h(isub); isub = isub + 1;  
+  imagesc(hca,pic.xi,pic.zi,v3xB.z')
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'vxB_z';
+  %hold(hca,'on')
+  hca.XLabel.String = 'x/d_i';  
+  hca.YLabel.String = 'z/d_i';  
+  hca.Box = 'on';  
+end
+if 0 % v3xB.x_yz
+  hca = h(isub); isub = isub + 1;  
+  imagesc(hca,pic.xi,pic.zi,v3xB.x_yz')
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'v_yxB_z';
+  %hold(hca,'on')
+  hca.XLabel.String = 'x/d_i';  
+  hca.YLabel.String = 'z/d_i';  
+  hca.Box = 'on';  
+end
+if 0 % v3xB.x_zy
+  hca = h(isub); isub = isub + 1;  
+  imagesc(hca,pic.xi,pic.zi,v3xB.x_zy')
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'v_zxB_y';
+  %hold(hca,'on')
+  hca.XLabel.String = 'x/d_i';  
+  hca.YLabel.String = 'z/d_i';  
+  hca.Box = 'on';  
+end
+
+if 1 % v5xB.x
+  hca = h(isub); isub = isub + 1;  
+  imagesc(hca,pic.xi,pic.zi,v5xB.x')
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'vxB_x 5';
+  %hold(hca,'on')
+  hca.XLabel.String = 'x/d_i';  
+  hca.YLabel.String = 'z/d_i';  
+  hca.Box = 'on';  
+end
+if 0 % v5xB.y
+  hca = h(isub); isub = isub + 1;  
+  imagesc(hca,pic.xi,pic.zi,v5xB.y')
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'vxB_y 5';
+  %hold(hca,'on')
+  hca.XLabel.String = 'x/d_i';  
+  hca.YLabel.String = 'z/d_i';  
+  hca.Box = 'on';  
+end
+if 0 % v5xB.z
+  hca = h(isub); isub = isub + 1;  
+  imagesc(hca,pic.xi,pic.zi,v5xB.z')
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'vxB_z 5';
+  %hold(hca,'on')
+  hca.XLabel.String = 'x/d_i';  
+  hca.YLabel.String = 'z/d_i';  
+  hca.Box = 'on';  
+end
+if 1 % v35xB.x
+  hca = h(isub); isub = isub + 1;  
+  imagesc(hca,pic.xi,pic.zi,v35xB.x')
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'vxB_x 35';
+  %hold(hca,'on')
+  hca.XLabel.String = 'x/d_i';  
+  hca.YLabel.String = 'z/d_i';  
+  hca.Box = 'on';  
+end
+if 0 % v35xB.y
+  hca = h(isub); isub = isub + 1;  
+  imagesc(hca,pic.xi,pic.zi,v35xB.y')
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'vxB_y';
+  %hold(hca,'on')
+  hca.XLabel.String = 'x/d_i';  
+  hca.YLabel.String = 'z/d_i';  
+  hca.Box = 'on';  
+end
+if 0 % v35xB.z
+  hca = h(isub); isub = isub + 1;  
+  imagesc(hca,pic.xi,pic.zi,v35xB.z')
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'vxB_z';
+  %hold(hca,'on')
+  hca.XLabel.String = 'x/d_i';  
+  hca.YLabel.String = 'z/d_i';  
+  hca.Box = 'on';  
+end
+
+if 0 % Ex
+  hca = h(isub); isub = isub + 1;  
+  imagesc(hca,pic.xi,pic.zi,Ex')
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'E_x';
+  %hold(hca,'on')
+  hca.XLabel.String = 'x/d_i';  
+  hca.YLabel.String = 'z/d_i';  
+  hca.Box = 'on';  
+end
+if 0 % Ey
+  hca = h(isub); isub = isub + 1;  
+  imagesc(hca,pic.xi,pic.zi,Ey')
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'E_y';
+  %hold(hca,'on')
+  hca.XLabel.String = 'x/d_i';  
+  hca.YLabel.String = 'z/d_i';  
+  hca.Box = 'on';  
+end
+if 0 % Ez
+  hca = h(isub); isub = isub + 1;  
+  imagesc(hca,pic.xi,pic.zi,Ez')
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'E_z';
+  %hold(hca,'on')
+  hca.XLabel.String = 'x/d_i';  
+  hca.YLabel.String = 'z/d_i';  
+  hca.Box = 'on';  
+end
+
+for ip = 1:npanels
+  h(ip).YDir = 'normal';
+  h(ip).CLim = 0.5*[-1 1];  
+end
+colormap(gcf,pic_colors('blue_red'))
+
+hlinks = linkprop(h,{'XLim','YLim'});

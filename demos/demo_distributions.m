@@ -1307,13 +1307,7 @@ for distnumber = 1:150%50%:281%39%30:40%39%180:200%:250%:100%:100%:10%40%:40%:4%
         colormap(hca,pic_colors('candy'))
         irf_legend(hca,{sprintf('x=%.1f, z=%.1f',xloc,zloc);sprintf('B=[%.2f,%.2f,%.2f]',Bloc.x,Bloc.y,Bloc.z)},[0.01 0.99],'color',[0 0 0],'fontsize',fontsize)
         
-        if doBDir           
-          line_slope = (Bloc.y/Bloc.x);
-          xx = min(hca.XLim(2)*[1 1/abs(line_slope)])*[-1 1];
-          hold(hca,'on')                
-          hBline = plot(hca,xx,xx*line_slope,'linewidth',0.5,'color',[0.5 0.5 0.5]);
-          hold(hca,'off')
-        end
+
       end
       if 0 % fxz
         imagesc(hca,vx(:,ispecies),vz(:,ispecies),squeeze(fxz(:,:,ispecies))')  

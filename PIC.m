@@ -369,18 +369,20 @@
       
       method = 'linear';
       if strcmp(method,'linear')
-        nClosest = 2;
+        nClosestT = 2;
+        nClosestXZ = 5;
       end
+      method = 'spline';
       
       nPoints = numel(t); 
       
-      tmppic = obj.xlim(x,'closest',nClosest).zlim(z,'closest',nClosest).twcilim(t,'closest',nClosest);  
+      tmppic = obj.xlim(x,'closest',nClosestXZ).zlim(z,'closest',nClosestXZ).twcilim(t,'closest',nClosestT);  
       
       tmpt =  tmppic.twci;
       tmpx =  tmppic.xi;
       tmpz =  tmppic.zi;
-      tmpEx = tmppic.Ex;
-      tmpEy = tmppic.Ey;
+      tmpEx = tmppic.Ex; %tmpEx(:,:,1) = smooth2(tmpEx(:,:,1),2,2); tmpEx(:,:,2) = smooth2(tmpEx(:,:,2),2,2);
+      tmpEy = tmppic.Ey; 
       tmpEz = tmppic.Ez;
       tmpBx = tmppic.Bx;
       tmpBy = tmppic.By;
@@ -558,7 +560,191 @@
       yy = interp3(X,Z,T,permute(tmpVy,[2 1 3]),x,z,t,method);
       zz = interp3(X,Z,T,permute(tmpVz,[2 1 3]),x,z,t,method);
       
-    end    
+    end
+    function out = integrate_trajectory(obj,r0,v0,tstart,tstop,m,q)
+      % out = integrate_trajectory(r0,v0,tstart,tstop,m,q)
+      % if tstart > tstop, integrating is done backward in time
+      
+      T = tstop-tstart;
+      
+      if T > 0
+        doForward = 1;
+        %integration_string = 'forward';
+        disp(['Integrating trajectory forward in time.'])
+      else
+        doForward = 0;
+        %integration_string = 'backward';
+        disp(['Integrating trajectory backward in time.'])        
+      end
+            
+      
+      ttot = tic;
+      x_init = [r0, v0]; % di, vA
+      disp(sprintf('tstart = %5.2f, tstop = %5.2f, [x0,y0,z0] = [%5.1f, %5.1f, %5.1f], [vx0,vy0,vz0] = [%5.2f, %5.2f, %5.2f]',...
+        tstart,tstop,x_init(1),x_init(2),x_init(3),x_init(4),x_init(5),x_init(6)))
+
+      % Integrate trajectory
+      options = odeset('AbsTol',1e-14);
+      if doForward
+        EoM = @(ttt,xxx) eom_pic(ttt,xxx,obj,m,q);
+      else
+        %EoM = @(ttt,xxx) eom_pic_back(ttt,xxx,obj,m,q);
+        EoM = @(ttt,xxx) eom_pic(ttt,xxx,obj,m,q);
+      end        
+      [t,x_sol] = ode45(EoM,[tstart tstop],x_init,options);%,options); % 
+      x_sol(:,7) = t; % x_sol = (x,y,z,vx,vy,vz,t)
+
+      doPlot = 1;
+      if doPlot
+        %%
+        h = setup_subplots(2,2);
+        
+        hca = h(1);
+        plot3(hca,x_sol(:,1),x_sol(:,2),x_sol(:,3),...
+                  x_sol(1,1),x_sol(1,2),x_sol(1,3),'g*',...
+                  x_sol(end,1),x_sol(end,2),x_sol(end,3),'r*')
+        hca.XLabel.String = 'x';
+        hca.YLabel.String = 'y';        
+        hca.ZLabel.String = 'z';
+        hca.XGrid = 'on';
+        hca.YGrid = 'on';
+        hca.ZGrid = 'on';
+        
+        hca = h(2);
+        plot(hca,x_sol(:,4),x_sol(:,5),...
+                  x_sol(1,4),x_sol(1,5),'g*',...
+                  x_sol(end,4),x_sol(end,5),'r*')
+        hca.XLabel.String = 'vx';
+        hca.YLabel.String = 'vy';
+        hca.XGrid = 'on';
+        hca.YGrid = 'on';
+        
+        hca = h(3);
+        plot(hca,x_sol(:,4),x_sol(:,6),...
+                  x_sol(1,4),x_sol(1,6),'g*',...
+                  x_sol(end,4),x_sol(end,6),'r*')
+        hca.XLabel.String = 'vx';
+        hca.YLabel.String = 'vz';
+        hca.XGrid = 'on';
+        hca.YGrid = 'on';
+        
+        hca = h(4);
+        plot(hca,x_sol(:,5),x_sol(:,6),...
+                  x_sol(1,5),x_sol(1,6),'g*',...
+                  x_sol(end,5),x_sol(end,6),'r*')
+        hca.XLabel.String = 'vy';
+        hca.YLabel.String = 'vz';
+        hca.XGrid = 'on';
+        hca.YGrid = 'on';
+        drawnow
+      end
+      toc(ttot)
+      %out = x_sol;
+      out.t = x_sol(:,7);
+      out.x = x_sol(:,1);
+      out.y = x_sol(:,2);
+      out.z = x_sol(:,3);
+      out.vx = x_sol(:,4);
+      out.vy = x_sol(:,5);
+      out.vz = x_sol(:,6);
+    end
+    function out = integrate_trajectory_constant_EB(obj,r0,v0,tstart,tstop,m,q)
+      % out = integrate_trajectory(r0,v0,tstart,tstop,m,q)
+      % if tstart > tstop, integrating is done backward in time
+      
+      T = tstop-tstart;
+      
+      if T > 0
+        doForward = 1;
+        %integration_string = 'forward';
+        disp(['Integrating trajectory forward in time.'])
+      else
+        doForward = 0;
+        %integration_string = 'backward';
+        disp(['Integrating trajectory backward in time.'])        
+      end
+            
+      
+      ttot = tic;
+      x_init = [r0, v0]; % di, vA
+      disp(sprintf('tstart = %5.2f, tstop = %5.2f, [x0,y0,z0] = [%5.1f, %5.1f, %5.1f], [vx0,vy0,vz0] = [%5.2f, %5.2f, %5.2f]',...
+        tstart,tstop,x_init(1),x_init(2),x_init(3),x_init(4),x_init(5),x_init(6)))
+
+      % Integrate trajectory
+      options = odeset('AbsTol',1e-14);
+      [XI,ZI] = meshgrid(obj.xi,obj.zi);
+      fields.x = XI;
+      fields.z = ZI;
+      fields.Bx = obj.Bx;
+      fields.By = obj.By;
+      fields.Bz = obj.Bz;
+      fields.Ex = smooth_data(obj.Ex,10);
+      fields.Ey = smooth_data(obj.Ey,10);
+      fields.Ez = smooth_data(obj.Ez,10);
+      
+      if doForward
+        EoM = @(ttt,xxx) eom_pic(ttt,xxx,fields,m,q);
+      else
+        %EoM = @(ttt,xxx) eom_pic_back(ttt,xxx,obj,m,q);
+        EoM = @(ttt,xxx) eom_pic(ttt,xxx,fields,m,q);
+      end        
+      [t,x_sol] = ode45(EoM,[tstart tstop],x_init,options);%,options); % 
+      x_sol(:,7) = t; % x_sol = (x,y,z,vx,vy,vz,t)
+
+      doPlot = 1;
+      if doPlot
+        %%
+        h = setup_subplots(2,2);
+        
+        hca = h(1);
+        plot3(hca,x_sol(:,1),x_sol(:,2),x_sol(:,3),...
+                  x_sol(1,1),x_sol(1,2),x_sol(1,3),'g*',...
+                  x_sol(end,1),x_sol(end,2),x_sol(end,3),'r*')
+        hca.XLabel.String = 'x';
+        hca.YLabel.String = 'y';        
+        hca.ZLabel.String = 'z';
+        hca.XGrid = 'on';
+        hca.YGrid = 'on';
+        hca.ZGrid = 'on';
+        
+        hca = h(2);
+        plot(hca,x_sol(:,4),x_sol(:,5),...
+                  x_sol(1,4),x_sol(1,5),'g*',...
+                  x_sol(end,4),x_sol(end,5),'r*')
+        hca.XLabel.String = 'vx';
+        hca.YLabel.String = 'vy';
+        hca.XGrid = 'on';
+        hca.YGrid = 'on';
+        
+        hca = h(3);
+        plot(hca,x_sol(:,4),x_sol(:,6),...
+                  x_sol(1,4),x_sol(1,6),'g*',...
+                  x_sol(end,4),x_sol(end,6),'r*')
+        hca.XLabel.String = 'vx';
+        hca.YLabel.String = 'vz';
+        hca.XGrid = 'on';
+        hca.YGrid = 'on';
+        
+        hca = h(4);
+        plot(hca,x_sol(:,5),x_sol(:,6),...
+                  x_sol(1,5),x_sol(1,6),'g*',...
+                  x_sol(end,5),x_sol(end,6),'r*')
+        hca.XLabel.String = 'vy';
+        hca.YLabel.String = 'vz';
+        hca.XGrid = 'on';
+        hca.YGrid = 'on';
+        drawnow
+      end
+      toc(ttot)
+      %out = x_sol;
+      out.t = x_sol(:,7);
+      out.x = x_sol(:,1);
+      out.y = x_sol(:,2);
+      out.z = x_sol(:,3);
+      out.vx = x_sol(:,4);
+      out.vy = x_sol(:,5);
+      out.vz = x_sol(:,6);
+    end
     
     % Get simulation meta data and parameters
     function out = get_twpe(obj)
@@ -1212,6 +1398,7 @@
     end
     
     % Ge derived quantities
+    % Stored
     function out = UB(obj)
       % Magnetic energy density 0.5*(Bx^2 + By^2 + Bz^2) summed up 
       out = h5read(obj.file,'/scalar_timeseries/U/B');
@@ -1243,6 +1430,62 @@
       out = h5read(obj.file,'/scalar_timeseries/R/A');
       out = out(obj.indices_);
     end        
+    % Calculated each time
+    function out = xline(obj)
+      % Assume xline is close to middle of box in z      
+      %zlim = [-0.2 0.2];
+      % Assume xline has not moved too much left and right
+      %xlim = [-50 50];
+      A = obj.A;
+      
+    end
+    function out = saddle(obj)
+      % Assume xline is close to middle of box in z      
+      %zlim = [-0.2 0.2];
+      % Assume xline has not moved too much left and right
+      %xlim = [-50 50];
+      A = obj.A;
+      
+    end
+    function [x,v,a,B] = xva_df(obj)
+      % [xDF,vDF,aDF,BDF] = df04.xva_df;
+      % Divided into left and right o center of box
+      
+      % Find main X line and divide box into left and right of this
+      % Never mind, jsut pick 0.
+      
+      nt = obj.nt;
+      tlim = obj.twci([1 end]);
+      zlim = [-0.4 0.4];
+      xlims = {[obj.xi(1) obj.xi(fix(obj.nx/2))],[obj.xi(fix(obj.nx/2)) obj.xi(end)]};
+      
+      x = zeros(2,obj.nt);
+      v = zeros(2,obj.nt);
+      a = zeros(2,obj.nt);
+      B = zeros(2,obj.nt);
+      multiplier = [-1 1];
+      for ixlim = 1:2 
+        xlim = xlims{ixlim};        
+        pic = obj.xlim(xlim).zlim(zlim).twcilim(tlim);
+        dt = reshape(diff(pic.twci),[nt-1,1]);
+        t_centered = reshape(pic.twci(1:end-1),[nt-1 1])+dt;
+        
+        Bz_mean = squeeze(mean(pic.Bz,2)); % mean over z range
+        [Bz_peak,ind_Bz_peak] = max(abs(Bz_mean)); % find peak Bz
+        xDF = reshape(pic.xi(ind_Bz_peak),[nt,1]); % get x-locations of peak Bz
+        
+        dxDF = diff(xDF);
+        vDF = dxDF./dt;
+        vDF_interp = reshape(interp1(t_centered,vDF,pic.twci),[nt,1]); % interpolate to original timeseries
+        %tcentered_2 = tocolumn(pic.twci(2:pic.nt-1));
+        aDF = reshape(diff(vDF),[nt-2,1])./dt(2:end);
+        aDF = [aDF(1); aDF; aDF(end)];     
+        x(ixlim,:) = xDF;
+        v(ixlim,:) = vDF_interp*multiplier(ixlim);
+        a(ixlim,:) = aDF*multiplier(ixlim);
+        B(ixlim,:) = Bz_peak;
+      end
+    end
     
     % Get and set properties    
     function obj = set.info(obj,value)
