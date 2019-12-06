@@ -534,6 +534,7 @@
             fpeaks(iPeak,id,it).x = mean(f.x);
             fpeaks(iPeak,id,it).y = 0;
             fpeaks(iPeak,id,it).z = mean(f.z);
+            fpeaks(iPeak,id,it).f = val;
             
           end
         end

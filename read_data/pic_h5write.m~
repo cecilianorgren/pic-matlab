@@ -550,10 +550,10 @@ nPeaks = size(tr_arr,1);
 spacingPeaks = 3;
 iSpecies = 3; % I think, can be double checked and overwritten later
 m = 1;
-q = 1;
+q = -1;
 pic = df04;
 dist = ds04(2);
-for iTr = 24:numel(tr_arr)
+for iTr = 1%:numel(tr_arr)
   % To implement: check if the trajectory is already there
   
   [iPeak,iDist] = ind2sub(size(tr_arr),iTr);
@@ -574,18 +574,18 @@ for iTr = 24:numel(tr_arr)
   fpeaks_info.iPeak = iPeak;
   fpeaks_info.iSpecies = iSpecies;
   
-  %tags = {'outflow','agu'};
+  tags = {'outflow','agu'};
   fpeaks_ind = -1;
   
   iTr_str = sprintf('%06.0f',iTr);
   group_name = ['/traj/' iTr_str '/'];
   
-  %continue
-  %
+  continue
+  %%
   try
   h5create(filePath, [group_name 't'], size(tr.t));
   catch
-  warning('h5 structure %s already exists',[group_name 't'])      
+  warning('h5 structure %s already exists',dataset_name)      
   end
   
   
@@ -616,21 +616,16 @@ for iTr = 24:numel(tr_arr)
   h5write(filePath, [group_name 'By'], By);
   h5write(filePath, [group_name 'Bz'], Bz);
     
-  h5writeatt(filePath, group_name,'x0', tr.x0);
-  h5writeatt(filePath, group_name,'y0', tr.y0);
-  h5writeatt(filePath, group_name,'z0', tr.z0);
-  h5writeatt(filePath, group_name,'vx0', tr.vx0);
-  h5writeatt(filePath, group_name,'vy0', tr.vy0);
-  h5writeatt(filePath, group_name,'vz0', tr.vz0);  
-  h5writeatt(filePath, group_name,'m', m);
-  h5writeatt(filePath, group_name,'q', q);
-  %h5writeatt(filePath, group_name,'tags', tags);
-  h5writeatt(filePath, group_name,'fpeaks_x', fpeaks_info.x);
-  h5writeatt(filePath, group_name,'fpeaks_z', fpeaks_info.z);
-  h5writeatt(filePath, group_name,'fpeaks_spacingPeaks', fpeaks_info.spacingPeaks);
-  h5writeatt(filePath, group_name,'fpeaks_nPeaks', fpeaks_info.nPeaks);
-  h5writeatt(filePath, group_name,'fpeaks_iPeak', fpeaks_info.iPeak);
-  h5writeatt(filePath, group_name,'fpeaks_t', fpeaks_info.t);
+  h5writeatt(filePath, dataset_name,'x0', tr.x0);
+  h5writeatt(filePath, dataset_name,'y0', tr.y0);
+  h5writeatt(filePath, dataset_name,'z0', tr.z0);
+  h5writeatt(filePath, dataset_name,'vx0', tr.vx0);
+  h5writeatt(filePath, dataset_name,'vy0', tr.vy0);
+  h5writeatt(filePath, dataset_name,'vz0', tr.vz0);  
+  h5writeatt(filePath, dataset_name,'m', m);
+  h5writeatt(filePath, dataset_name,'q', q);
+  h5writeatt(filePath, dataset_name,'tags', tags);
+  h5writeatt(filePath, dataset_name,'fpeaks', fpeaks_info);
 
   h5disp(filePath,group_name)
     
