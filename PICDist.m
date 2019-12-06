@@ -513,6 +513,33 @@
     end
               
     % Data analysis routines, time derivatives, interpolation, etc.
+    function out = get_peaks(obj,nPeaks,spacingPeaks,iSpecies)
+      nTimes = obj.nt;
+      nDists = obj.nd;
+      fpeaks = struct;
+      for it = 1:nTimes
+        for id = 1:nDists{it}
+          f = obj.f(it,id,iSpecies);
+          ftmp = f.f;
+          for iPeak = 1:nPeaks
+            [val,ind] = max(ftmp(:));
+            [ix,iy,iz] = ind2sub(size(ftmp),ind);
+            ix_ = ix+[-spacingPeaks:spacingPeaks];
+            iy_ = iy+[-spacingPeaks:spacingPeaks];
+            iz_ = iz+[-spacingPeaks:spacingPeaks];
+            ftmp(ix_,iy_,iz_) = NaN;
+            fpeaks(iPeak,id,it).vx = f.v(ix);
+            fpeaks(iPeak,id,it).vy = f.v(iy);
+            fpeaks(iPeak,id,it).vz = f.v(iz);
+            fpeaks(iPeak,id,it).x = mean(f.x);
+            fpeaks(iPeak,id,it).y = 0;
+            fpeaks(iPeak,id,it).z = mean(f.z);
+            
+          end
+        end
+      end
+      out = fpeaks;
+    end
     
     % Get simulation meta data and parameters
     function out = get_twpe(obj)

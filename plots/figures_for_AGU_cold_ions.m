@@ -1153,18 +1153,230 @@ for ip = 1:npanels
   
 end
 
-%% Particle trajectoreis corresponding to cold ion fingers, interpolated EB
+%% Particle trajectories corresponding to cold ion fingers, interpolated EB
+% find spots with increased phase space density
+it = 2;
+iSpecies = [3];
+ds = ds04(it).xlim(190+[-0.2 0.2]).zlim([-0.1 0.1]);
+nPeaks = 25;
+spacingPeaks = 3; % for ions its 0.2 vA
+fpeaks = ds.get_peaks(nPeaks,spacingPeaks,iSpecies);
+nDists = ds.nd;
+doPlot = 1;
+if doPlot
+  % plot results
+  for id = 1:ds.nd{1}
+  f = ds.f(1,id,iSpecies);
+  figure(27)
+  h = setup_subplots(3,1);
+  hca = h(1);
+  imagesc(hca,f.v,f.v,f.fxy')
+  hca.YDir = 'normal';
+  colormap(pic_colors('candy'))
+  hold(hca,'on')
+  plot(hca,[fpeaks(:,id).vx],[fpeaks(:,id).vy],'k.')
+  hold(hca,'off')
 
-xvtf = df04.integrate_trajectory([192,0,0],[-1,0.25,0.4],160,200,25,1);
-xvtb = df04.integrate_trajectory([192,0,0],[-1,0.25,0.4],160,120,25,1);
+  hca = h(2);
+  imagesc(hca,f.v,f.v,f.fxz')
+  hca.YDir = 'normal';
+  colormap(pic_colors('candy'))
+  hold(hca,'on')
+  plot(hca,[fpeaks(:,id).vx],[fpeaks(:,id).vz],'k.')
+  hold(hca,'off')
 
-[Ex,Ey,Ez,Bx,By,Bz] = df04.interp_EB3(xvtb.x,xvtb.z,xvtb.t);
+  hca = h(3);
+  imagesc(hca,f.v,f.v,f.fyz')
+  hca.YDir = 'normal';
+  colormap(pic_colors('candy'))
+  hold(hca,'on')
+  plot(hca,[fpeaks(:,id).vy],[fpeaks(:,id).vz],'k.')
+  hold(hca,'off')
+  pause(0.5)
+  end
+end
+
 %%
-m = 1; q = 1;
-tr1 = df04.integrate_trajectory([203,0,0],[-0.0,0.4,0.5],[120,160,200],m,q);
-tr2 = df04.integrate_trajectory([203,0,0],[-0.0,0.2,0.5],[120,160,200],m,q);
+% Loop through points, integrate trajectories
+tspan = [100,160,210];
+m = 1; 
+q = 1;
+for id = 1:ds.nd{1}
+  for iPeak = 1:nPeaks
+    fprintf('(id/nd,ipeak/npeaks) = (%g/%g,%g/%g)',id,ds.nd{1},iPeak,nPeaks)
+    r0 = [fpeaks(iPeak,id).x, fpeaks(iPeak,id).y, fpeaks(iPeak,id).z];
+    v0 = [fpeaks(iPeak,id).vx, fpeaks(iPeak,id).vy, fpeaks(iPeak,id).vz];
+    tr(iPeak,id) = df04.integrate_trajectory(r0,v0,tspan,m,q);
+  end
+end
+% subset saved (20,5)
+% save('/Volumes/Fountain/Data/PIC/df_cold_protons_n04/trajectories','tr')
+% (1,25) save('/Volumes/Fountain/Data/PIC/df_cold_protons_n04/trajectories2','tr','fpeaks','ds')
+%% Plot what we have, all trajectories
+hca = subplot(1,1,1);
+hold(hca,'on')
+for id = 1:size(tr,2)
+  for iPeak = 1:nPeaks
+    plot3(tr(iPeak,id).x,tr(iPeak,id).y,tr(iPeak,id).z)
+    %plot(tr(iPeak,id).t,tr(iPeak,id).vz)
+  end
+end
+hold(hca,'off')
 
-tr3 = df04.integrate_trajectory([197,0,0],[-0.3,-0.25,-0.6],[120,160,200],m,q);
+%% Plot what we have, v binning
+vlim = [-2 2];
+xx = 180:203;
+
+for ix = 1:numel(xx)
+nrows = 3;
+ncols = 1;
+npanels = nrows*ncols;
+h = setup_subplots(nrows,ncols);
+isub = 1;
+
+hb = gobjects(0);
+
+
+vx_all = [];
+vy_all = [];
+vz_all = [];
+vx0_all = [];
+vy0_all = [];
+vz0_all = [];
+if 1 % 3 panels
+  
+  
+  xlim = xx(ix) + 1*[-0.25 0.25];
+  zlim = 0 + 2*[-0.25 0.25];
+  for id = 1:size(tr,2)
+    for iPeak = 1:nPeaks
+      % Complete trajectories
+      ix = intersect(find(tr(iPeak,id).x<xlim(2)),find(tr(iPeak,id).x>xlim(1)));
+      iz = intersect(find(tr(iPeak,id).z<zlim(2)),find(tr(iPeak,id).z>zlim(1)));
+      ixz = intersect(ix,iz);
+      vx_all = [vx_all; tr(iPeak,id).vx(ixz)];
+      vy_all = [vy_all; tr(iPeak,id).vy(ixz)];
+      vz_all = [vz_all; tr(iPeak,id).vz(ixz)];
+      % Starting points
+      ix0 = intersect(find(tr(iPeak,id).x0<xlim(2)),find(tr(iPeak,id).x0>xlim(1)));
+      iz0 = intersect(find(tr(iPeak,id).z0<zlim(2)),find(tr(iPeak,id).z0>zlim(1)));
+      ixz0 = intersect(ix0,iz0);
+      if not(isempty(ixz0))
+        vx0_all = [vx0_all; tr(iPeak,id).vx0];
+        vy0_all = [vy0_all; tr(iPeak,id).vy0];
+        vz0_all = [vz0_all; tr(iPeak,id).vz0];
+      end
+    end
+  end
+  
+  hca = h(isub); isub = isub + 1;
+  plot(hca,vx_all,vy_all,'.',vx0_all,vy0_all,'*')
+  hca.XLim = vlim;
+  hca.YLim = vlim;
+  hca.XLabel.String = 'v_x';
+  hca.YLabel.String = 'v_y';
+  hca.Title.String = sprintf('x = [%g,%g], z = [%g,%g]',xlim(1),xlim(2),zlim(1),zlim(2));
+  hca.XGrid = 'on';
+  hca.YGrid = 'on';
+  
+  hca = h(isub); isub = isub + 1;
+  plot(hca,vx_all,vz_all,'.',vx0_all,vz0_all,'*')
+  hca.XLim = vlim;
+  hca.YLim = vlim;
+  hca.XLabel.String = 'v_x';
+  hca.YLabel.String = 'v_z';
+  hca.Title.String = sprintf('x = [%g,%g], z = [%g,%g]',xlim(1),xlim(2),zlim(1),zlim(2));
+  hca.XGrid = 'on';
+  hca.YGrid = 'on';
+  
+  hca = h(isub); isub = isub + 1;
+  plot(hca,vy_all,vz_all,'.',vy0_all,vz0_all,'*')
+  hca.XLim = vlim;
+  hca.YLim = vlim;
+  hca.XLabel.String = 'v_y';
+  hca.YLabel.String = 'v_z';
+  hca.Title.String = sprintf('x = [%g,%g], z = [%g,%g]',xlim(1),xlim(2),zlim(1),zlim(2));
+  hca.XGrid = 'on';
+  hca.YGrid = 'on';
+end
+pause(1)
+end
+
+%% Plot on top of field
+doVideo = 1;
+xlim = [120 240];
+zlim = [-10 10];
+twci = [100 210];
+pic = df04.twcilim(twci).xlim(xlim).zlim(zlim);
+doA = 1; Alev = -25:1:0;
+
+if doVideo
+  vidObj = VideoWriter([savedir 'trajectories_1_z10.mp4'],'MPEG-4');
+  open(vidObj);
+end
+
+nrows = 2;
+ncols = 1;
+npanels = nrows*ncols;
+h = setup_subplots(nrows,ncols);
+
+for it = 1:pic.nt
+  pc = pic(it);
+  isub = 1;
+  if 1 % Ez
+    hca = h(isub); isub = isub + 1;
+    imagesc(hca,pc.xi,pc.zi,pc.Ez')
+    hca.CLim = [-1 1];
+    colormap(hca,pic_colors('blue_red'))
+    hcb = colorbar('peer',hca);
+    hcb.YLabel.String = 'E_z';
+    hca.XLabel.String = 'x/d_i';
+    hca.YLabel.String = 'z/d_i';
+  end
+  if 1 % By
+    hca = h(isub); isub = isub + 1;
+    imagesc(hca,pc.xi,pc.zi,pc.By')
+    hca.CLim = [-1 1];
+    colormap(hca,pic_colors('blue_red'))
+    hcb = colorbar('peer',hca);
+    hcb.YLabel.String = 'B_y';
+    hca.XLabel.String = 'x/d_i';
+    hca.YLabel.String = 'z/d_i';
+  end
+  drawnow
+  compact_panels(0.02)
+  for ip = 1:npanels
+    hca = h(ip);
+    hold(hca,'on')
+    hca.FontSize = 14;
+    if doA
+      iAx = 1:4:pic.nx;
+      iAz = 1:4:pic.nz;
+      A = pc.A;
+      contour(hca,pic.xi(iAx),pic.zi(iAz),A(iAx,iAz)',Alev,'k');        
+    end
+    for itr = 1:numel(tr)      
+      plot(hca,tr(itr).x,tr(itr).z)
+      ii = find(abs(tr(itr).t-pc.twci)==min(abs(tr(itr).t-pc.twci)));
+      plot(hca,tr(itr).x(ii),tr(itr).z(ii),'ko')
+    end
+    hold(hca,'off')
+  end
+  pause(1)
+  if doVideo
+    set(gcf,'color','white');
+    currFrame = getframe(gcf);
+    writeVideo(vidObj,currFrame);
+  end
+end
+if doVideo, close(vidObj); end
+  
+%% Few manually defined orbits
+m = 1; q = 1;
+tr(1) = df04.integrate_trajectory([203,0,0],[-0.0,0.4,0.5],[120,160,200],m,q);
+tr(2) = df04.integrate_trajectory([203,0,0],[-0.0,0.2,0.5],[120,160,200],m,q);
+tr(3) = df04.integrate_trajectory([197,0,0],[-0.3,-0.25,-0.6],[120,160,200],m,q);
+tr(4) = df04.integrate_trajectory([192,0,0],[-1,0.25,0.4],[120,160,200],m,q);
 %[Ex,Ey,Ez,Bx,By,Bz] = df04.interp_EB3(tr.x,tr.z,tr.t);
 % vxB = cross_product(tr.vx,tr.vy,tr.vz,Bx,By,Bz,'components',1);
 %% plot single trajectory

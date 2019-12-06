@@ -566,6 +566,8 @@
       % tspan = [tstart tstop] - only back or forward, if tstart > tstop, integrating is done backward in time
       %     or  [tstop_back tstart tstop_forw] -  integration is done forward and backward      
       
+      doPrintInfo = 0;
+      
       if numel(tspan) == 2 % [tstart tstop]
         tstart = tspan(1);
         tstop_all = tspan(2);
@@ -577,23 +579,20 @@
       x_sol = [];
       for tstop = tstop_all        
         % Print information
-        if tstart < tstop
-          doForward = 1;
-          disp(['Integrating trajectory forward in time.'])
-        else
-          doForward = 0;
-          disp(['Integrating trajectory backward in time.'])        
+        if doPrintInfo
+          if tstart < tstop, disp(['Integrating trajectory forward in time.'])
+          else, disp(['Integrating trajectory backward in time.'])
+          end
         end
-
         ttot = tic;
         x_init = [r0, v0]; % di, vA
         disp(sprintf('tstart = %5.2f, tstop = %5.2f, [x0,y0,z0] = [%5.1f, %5.1f, %5.1f], [vx0,vy0,vz0] = [%5.2f, %5.2f, %5.2f]',...
           tstart,tstop,x_init(1),x_init(2),x_init(3),x_init(4),x_init(5),x_init(6)))
 
         % Integrate trajectory
+        options = odeset();
         options = odeset('AbsTol',1e-14);
         %options = odeset('RelTol',1e-6);
-        %options = odeset();
         EoM = @(ttt,xxx) eom_pic(ttt,xxx,obj,m,q); 
 
         [t,x_sol_tmp] = ode45(EoM,[tstart tstop],x_init,options);%,options); % 
@@ -645,7 +644,7 @@
           hca.YGrid = 'on';
           drawnow
         end
-        toc(ttot)
+        tt = toc(ttot);
         %out = x_sol;
       end
       % sort by time
@@ -663,9 +662,9 @@
       out.vx0 = v0(1);
       out.vy0 = v0(2);
       out.vz0 = v0(3);
+      out.options = options;
       
-    end
-    
+    end    
     function out = integrate_trajectory_constant_EB(obj,r0,v0,tstart,tstop,m,q)
       % out = integrate_trajectory(r0,v0,tstart,tstop,m,q)
       % if tstart > tstop, integrating is done backward in time
