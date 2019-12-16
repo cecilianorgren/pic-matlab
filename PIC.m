@@ -357,6 +357,52 @@
     end
               
     % Data analysis routines, time derivatives, interpolation, etc.
+    % Interpolate fields
+    
+    function out = interp(obj,x,z,t,field,varargin)
+      % Interpolates fields to given x,z,t
+      
+      % Check input
+      
+      % Check if inteprolation is needed
+      
+      % Load bounding data
+      
+      % Interpolate field to a any number of point (x,z,t)
+      %
+      % PIC.INTERP_EB3 - Interpolate for a number of given points.
+      %
+      % To be implemented:
+      %  - interpolation for several timesteps
+      %  - shape preserving interpolation
+      %  - different interpolation types for temporal and spatial
+      %    dimensions, particularly important for temporal dimension where
+      %    the time steps are quite large
+      
+      method = 'linear';
+      if strcmp(method,'linear')
+        nClosest = 2;
+      end
+      
+      nPoints = numel(t);      
+      var = nan(nPoints,1);
+      
+      for iP = 1:nPoints      
+        tmppic = obj.xlim(x(iP),'closest',nClosest).zlim(z(iP),'closest',nClosest).twcilim(t(iP),'closest',nClosest);  
+
+        tmpt =  tmppic.twci;
+        tmpx =  tmppic.xi;
+        tmpz =  tmppic.zi;
+        tmpvar = tmppic.(field);
+      
+        % Interpolate to particle position
+        % Vq = interp3(V,Xq,Yq,Zq) assumes X=1:N, Y=1:M, Z=1:P where [M,N,P]=SIZE(V).      
+
+        [X,Z,T] = meshgrid(tmpx,tmpz,tmpt);        
+        var(iP) = interp3(X,Z,T,permute(tmpvar,[2 1 3]),x(iP),z(iP),t(iP),method);        
+      end
+      out = var;
+    end
     function [Ex,Ey,Ez,Bx,By,Bz] = interp_EB(obj,x,z,t)
       % Interpolate field to a given point (x,z,t)
       %
@@ -591,7 +637,8 @@
 
         % Integrate trajectory
         options = odeset();
-        options = odeset('AbsTol',1e-14);
+        options = odeset('AbsTol',1e-14,'Events',@exitBox);
+        %options = odeset('AbsTol',1e-7,'AbsTol',1e-9,'Events',@exitBox);
         %options = odeset('RelTol',1e-6);
         EoM = @(ttt,xxx) eom_pic(ttt,xxx,obj,m,q); 
 
@@ -662,8 +709,7 @@
       out.vx0 = v0(1);
       out.vy0 = v0(2);
       out.vz0 = v0(3);
-      out.options = options;
-      
+      out.options = options;      
     end    
     function out = integrate_trajectory_constant_EB(obj,r0,v0,tstart,tstop,m,q)
       % out = integrate_trajectory(r0,v0,tstart,tstop,m,q)
@@ -797,8 +843,7 @@
       split_str = cellfun(@(x) strsplit(x,'/'),{fileInfo.Groups(1).Groups(1).Groups.Name},'UniformOutput',false);
       for iout = 1:numel(split_str)
         out{end+1} = split_str{iout}{end};
-      end
-      
+      end      
     end
     function out = get_gridsize(obj)
       out = [numel(obj.xe) numel(obj.ze)];
@@ -1129,10 +1174,10 @@
       
       dfac = obj.get_dfac;
       % Initialize variables
-      n = zeros(obj.length,numel(obj.xi),numel(obj.zi));
-      vxs = zeros(obj.length,numel(obj.xi),numel(obj.zi));
-      vys = zeros(obj.length,numel(obj.xi),numel(obj.zi));
-      vzs = zeros(obj.length,numel(obj.xi),numel(obj.zi));
+      n = zeros(numel(obj.xi),numel(obj.zi),obj.length);
+      vxs = zeros(numel(obj.xi),numel(obj.zi),obj.length);
+      vys = zeros(numel(obj.xi),numel(obj.zi),obj.length);
+      vzs = zeros(numel(obj.xi),numel(obj.zi),obj.length);
       
       % Sum over species
       for iSpecies = species                
@@ -1164,9 +1209,9 @@
       end
       
       % Initialize variables
-      n = zeros(obj.length,numel(obj.xi),numel(obj.zi));      
-      vxs = zeros(obj.length,numel(obj.xi),numel(obj.zi));
-      vxx = zeros(obj.length,numel(obj.xi),numel(obj.zi));      
+      n = zeros(numel(obj.xi),numel(obj.zi),obj.length);      
+      vxs = zeros(numel(obj.xi),numel(obj.zi),obj.length);
+      vxx = zeros(numel(obj.xi),numel(obj.zi),obj.length);      
         
       % Sum over species
       for iSpecies = species                
@@ -1196,9 +1241,9 @@
       end
       
       % Initialize variables
-      n = zeros(obj.length,numel(obj.xi),numel(obj.zi));      
-      vxs = zeros(obj.length,numel(obj.xi),numel(obj.zi));
-      vxx = zeros(obj.length,numel(obj.xi),numel(obj.zi));      
+      n = zeros(numel(obj.xi),numel(obj.zi),obj.length);      
+      vxs = zeros(numel(obj.xi),numel(obj.zi),obj.length);
+      vxx = zeros(numel(obj.xi),numel(obj.zi),obj.length);      
         
       % Sum over species
       for iSpecies = species                
@@ -1228,9 +1273,9 @@
       end
       
       % Initialize variables
-      n = zeros(obj.length,numel(obj.xi),numel(obj.zi));      
-      vxs = zeros(obj.length,numel(obj.xi),numel(obj.zi));
-      vxx = zeros(obj.length,numel(obj.xi),numel(obj.zi));      
+      n = zeros(numel(obj.xi),numel(obj.zi),obj.length);      
+      vxs = zeros(numel(obj.xi),numel(obj.zi),obj.length);
+      vxx = zeros(numel(obj.xi),numel(obj.zi),obj.length);      
         
       % Sum over species
       for iSpecies = species                
@@ -1283,11 +1328,18 @@
       
       
     end
-    function [n,jx,jy,jz,pxx,pxy,pxz,pyy,pyz,pzz] = njp(obj,iSpecies)
+    function [n,jx,jy,jz,pxx,pxy,pxz,pyy,pyz,pzz] = njp(obj,iSpecies,varargin)
       % [n,jx,jy,jz,pxx,pxy,pxz,pyy,pyz,pzz] = njp(obj,iSpecies)
+      doMean = 0;
       iSpecies_orig = iSpecies;
       nSpecies = numel(iSpecies);
       dfac = obj.get_dfac;
+      args = varargin;
+      nargs = numel(args);
+      if nargs > 0
+        doMean = 1;
+        dirMean = args{2};
+      end
       
       % Get density, flux and pressure of given species
       if nSpecies == 1 % only one species
@@ -1337,25 +1389,25 @@
           error('All species do not have the same charge.');         
         end
         
-        n = zeros(obj.length,numel(obj.xi),numel(obj.zi));
-        jx = zeros(obj.length,numel(obj.xi),numel(obj.zi));
-        jy = zeros(obj.length,numel(obj.xi),numel(obj.zi));
-        jz = zeros(obj.length,numel(obj.xi),numel(obj.zi));
-        vxs = zeros(obj.length,numel(obj.xi),numel(obj.zi));
-        vys = zeros(obj.length,numel(obj.xi),numel(obj.zi));
-        vzs = zeros(obj.length,numel(obj.xi),numel(obj.zi));
-        pxx = zeros(obj.length,numel(obj.xi),numel(obj.zi));
-        pyy = zeros(obj.length,numel(obj.xi),numel(obj.zi));
-        pzz = zeros(obj.length,numel(obj.xi),numel(obj.zi));
-        pxy = zeros(obj.length,numel(obj.xi),numel(obj.zi));
-        pxz = zeros(obj.length,numel(obj.xi),numel(obj.zi));
-        pyz = zeros(obj.length,numel(obj.xi),numel(obj.zi));
-        vxx = zeros(obj.length,numel(obj.xi),numel(obj.zi));
-        vyy = zeros(obj.length,numel(obj.xi),numel(obj.zi));
-        vzz = zeros(obj.length,numel(obj.xi),numel(obj.zi));
-        vxy = zeros(obj.length,numel(obj.xi),numel(obj.zi));
-        vxz = zeros(obj.length,numel(obj.xi),numel(obj.zi));
-        vyz = zeros(obj.length,numel(obj.xi),numel(obj.zi));
+        n = zeros(numel(obj.xi),numel(obj.zi),obj.length);
+        jx = zeros(numel(obj.xi),numel(obj.zi),obj.length);
+        jy = zeros(numel(obj.xi),numel(obj.zi),obj.length);
+        jz = zeros(numel(obj.xi),numel(obj.zi),obj.length);
+        vxs = zeros(numel(obj.xi),numel(obj.zi),obj.length);
+        vys = zeros(numel(obj.xi),numel(obj.zi),obj.length);
+        vzs = zeros(numel(obj.xi),numel(obj.zi),obj.length);
+        pxx = zeros(numel(obj.xi),numel(obj.zi),obj.length);
+        pyy = zeros(numel(obj.xi),numel(obj.zi),obj.length);
+        pzz = zeros(numel(obj.xi),numel(obj.zi),obj.length);
+        pxy = zeros(numel(obj.xi),numel(obj.zi),obj.length);
+        pxz = zeros(numel(obj.xi),numel(obj.zi),obj.length);
+        pyz = zeros(numel(obj.xi),numel(obj.zi),obj.length);
+        vxx = zeros(numel(obj.xi),numel(obj.zi),obj.length);
+        vyy = zeros(numel(obj.xi),numel(obj.zi),obj.length);
+        vzz = zeros(numel(obj.xi),numel(obj.zi),obj.length);
+        vxy = zeros(numel(obj.xi),numel(obj.zi),obj.length);
+        vxz = zeros(numel(obj.xi),numel(obj.zi),obj.length);
+        vyz = zeros(numel(obj.xi),numel(obj.zi),obj.length);
         
         for iSpecies = iSpecies_orig
           % n 
@@ -1395,24 +1447,20 @@
         pyz = mass_sp*obj.wpewce^2*(vyz - vys.*vzs./n);
         pzz = mass_sp*obj.wpewce^2*(vzz - vzs.*vzs./n);
       end
-    end
-    
-    % Interpolate fields
-    function out = interp(obj,varstr,x,z,t,varargin)
-      % Interpolates fields to given x,z,t
-      
-      % Check input
-      
-      % Check if inteprolation is needed
-      
-      % Load bounding data
-   %   var = 
-      
-      % Interpolate
-      switch method
-        case 1
+      if doMean
+        n = mean(n,dirMean);
+        jx = mean(jx,dirMean);
+        jy = mean(jy,dirMean);
+        jz = mean(jz,dirMean);
+        pxx = mean(pxx,dirMean);
+        pxy = mean(pxy,dirMean);
+        pxz = mean(pxz,dirMean);
+        pyy = mean(pyy,dirMean);
+        pyz = mean(pyz,dirMean);
+        pzz = mean(pzz,dirMean);
       end
-    end
+      
+    end    
     
     % Ge derived quantities
     % Stored
@@ -1651,9 +1699,13 @@
         end
         inds = i1:i2;
       elseif doClosest
+        try
         ii = abs(var-value(1));
         [is, index] = sort(abs(var-value(1)));
         inds = sort(index(1:nClosest));
+        catch
+          1;
+        end
       else        
         i1 = find(var >= value(1),1,'first'); 
         i2 = find(var <= value(2),1,'last'); 

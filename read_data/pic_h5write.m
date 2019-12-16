@@ -547,13 +547,15 @@ filePath = [data_dir_h5 'trajectories.h5'];
 doAppend = 1; % for future
 tr_arr = traj;
 nPeaks = size(tr_arr,1);
-spacingPeaks = 3;
+spacingPeaks = 4;
 iSpecies = 3; % I think, can be double checked and overwritten later
-m = 1;
-q = 1;
+m = 1/25;
+q = -1;
 pic = df04;
 dist = ds04(2);
-for iTr = 24:numel(tr_arr)
+tr04 = PICTraj('/Volumes/Fountain/Data/PIC/df_cold_protons_n04/data_h5/trajectories.h5');
+iTr0 = tr04.ntr; % add number to append correctly.
+for iTr = 1:numel(tr_arr)
   % To implement: check if the trajectory is already there
   
   [iPeak,iDist] = ind2sub(size(tr_arr),iTr);
@@ -561,7 +563,16 @@ for iTr = 24:numel(tr_arr)
   tr = tr_arr(iTr);
   
   % Get fields at location
-  [Ex,Ey,Ez,Bx,By,Bz] = pic.interp_EB3(tr.x,tr.z,tr.t);  % interpolate
+  if 0
+    [Ex,Ey,Ez,Bx,By,Bz] = pic.interp_EB3(tr.x,tr.z,tr.t);  % interpolate
+  else
+    Ex = tr.Ex;
+    Ey = tr.Ey;
+    Ez = tr.Ez;
+    Bx = tr.Bx;
+    By = tr.By;
+    Bz = tr.Bz;
+  end
   %vxB = cross_product(tr.vx,tr.vy,tr.vz,Bx,By,Bz,'components',1); % calculate force
   
   % Information about how initial r0, v0 were chosen
@@ -577,16 +588,16 @@ for iTr = 24:numel(tr_arr)
   %tags = {'outflow','agu'};
   fpeaks_ind = -1;
   
-  iTr_str = sprintf('%06.0f',iTr);
+  iTr_str = sprintf('%06.0f',iTr+iTr0);
   group_name = ['/traj/' iTr_str '/'];
   
   %continue
   %
-  try
+  
   h5create(filePath, [group_name 't'], size(tr.t));
-  catch
-  warning('h5 structure %s already exists',[group_name 't'])      
-  end
+  %catch
+  %warning('h5 structure %s already exists',[group_name 't'])      
+  %end
   
   
   h5create(filePath, [group_name 'x'], size(tr.t));  
@@ -611,11 +622,12 @@ for iTr = 24:numel(tr_arr)
   h5write(filePath, [group_name 'vz'], tr.vz);
   h5write(filePath, [group_name 'Ex'], Ex);
   h5write(filePath, [group_name 'Ey'], Ey);
-  h5write(filePath, [group_name 'Ez'], Ex);
+  h5write(filePath, [group_name 'Ez'], Ez);
   h5write(filePath, [group_name 'Bx'], Bx);
   h5write(filePath, [group_name 'By'], By);
   h5write(filePath, [group_name 'Bz'], Bz);
     
+  h5writeatt(filePath, group_name,'t0', 160); % tr.t0
   h5writeatt(filePath, group_name,'x0', tr.x0);
   h5writeatt(filePath, group_name,'y0', tr.y0);
   h5writeatt(filePath, group_name,'z0', tr.z0);
@@ -631,7 +643,48 @@ for iTr = 24:numel(tr_arr)
   h5writeatt(filePath, group_name,'fpeaks_nPeaks', fpeaks_info.nPeaks);
   h5writeatt(filePath, group_name,'fpeaks_iPeak', fpeaks_info.iPeak);
   h5writeatt(filePath, group_name,'fpeaks_t', fpeaks_info.t);
+  h5writeatt(filePath, group_name,'RelTol', tr.options.RelTol);
+  h5writeatt(filePath, group_name,'AbsTol', tr.options.AbsTol);
 
   h5disp(filePath,group_name)
     
+end
+
+%% Trajectories, add attribute(s)
+data_dir_h5 = '/Volumes/Fountain/Data/PIC/df_cold_protons_n04/data_h5/';
+filePath = [data_dir_h5 'trajectories.h5'];
+
+for iTr = 1:425%201:numel(tr_arr)
+  % To implement: check if the trajectory is already there
+   
+  iTr_str = sprintf('%06.0f',iTr);
+  group_name = ['/traj/' iTr_str '/'];
+  
+    
+  h5writeatt(filePath, group_name,'AbsTol', 1e-14);      
+  h5writeatt(filePath, group_name,'RelTol', []);
+end
+
+%% Trajectories, add correct electric field 
+data_dir_h5 = '/Volumes/Fountain/Data/PIC/df_cold_protons_n04/data_h5/';
+filePath = [data_dir_h5 'trajectories.h5'];
+tr_arr = tr04;
+pic = df04;
+
+for iTr = [trif.id] %201:numel(tr_arr)
+  % To implement: check if the trajectory is already there
+  tr = tr_arr(iTr);
+  if not(nansum(tr.Ex-tr.Ez)==0)
+    continue
+  end
+  tic
+  Eztmp = pic.interp(tr.x,tr.z,tr.t,'Ez');
+  toc
+  
+  iTr_str = sprintf('%06.0f',iTr);
+  group_name = ['/traj/' iTr_str '/'];
+  
+    
+  h5write(filePath,[group_name 'Ez'],Eztmp);      
+  
 end

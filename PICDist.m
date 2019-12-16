@@ -521,13 +521,24 @@
         for id = 1:nDists{it}
           f = obj.f(it,id,iSpecies);
           ftmp = f.f;
-          for iPeak = 1:nPeaks
+          
+          for iPeak = 1:nPeaks            
             [val,ind] = max(ftmp(:));
+           % iPeak
+           % val 
+           % ind
+            if val == 0
+              continue
+            end
+            try
             [ix,iy,iz] = ind2sub(size(ftmp),ind);
-            ix_ = ix+[-spacingPeaks:spacingPeaks];
-            iy_ = iy+[-spacingPeaks:spacingPeaks];
-            iz_ = iz+[-spacingPeaks:spacingPeaks];
+            ix_ = ix+[-spacingPeaks:spacingPeaks]; ix_(ix_<0) = [];
+            iy_ = iy+[-spacingPeaks:spacingPeaks]; iy_(iy_<0) = [];
+            iz_ = iz+[-spacingPeaks:spacingPeaks]; iz_(iz_<0) = [];
             ftmp(ix_,iy_,iz_) = NaN;
+            catch
+              1;
+            end
             fpeaks(iPeak,id,it).vx = f.v(ix);
             fpeaks(iPeak,id,it).vy = f.v(iy);
             fpeaks(iPeak,id,it).vz = f.v(iz);
@@ -785,52 +796,69 @@
     end
     
     % dEF - differential energy flux
-    function varargout = dEF(obj,it,id,iss)
+    function varargout = dEF(obj,it,ids,iss,nE)
       % out = dEF(obj,it,id,iss)
-      f = obj.fxyz(it,id,iss);
-      nEnergy = 50;
-      %energy = logspace(-3,log10(max(f.v.^2)),nEnergy);
-      [VX,VY,VZ] = ndgrid(f.v,f.v,f.v);
-      VV2 = VX.^2 + VY.^2 + VZ.^2;
-      fvv = f.f.*VV2;
-      ENERGY = VV2/2;
-      energy_edges = logspace(-3,log10(1.0*max(f.v.^2/2)),30);
-      energy_edges = logspace(-2,log10(0.2*max(f.v.^2/2)),50);
-      %ienergy = hist(energy(:,ispecies))
-      [N,EDGES,BIN] = histcounts(ENERGY(:),energy_edges);
-      f_energy_edges = tocolumn(EDGES);
-      f_energy_centers = tocolumn((EDGES(2:end)+EDGES(1:end-1))*0.5);
-      nbins = (numel(energy_edges)-1);
-      for ibin = 1:nbins
-        ind_bin = find(BIN==ibin);      
-        f_dist_tmp = f.f(ind_bin);
-        f_dist_mean(ibin,1) = mean(f_dist_tmp);
-        f_dist_sum(ibin,1) = sum(f_dist_tmp);
+      
+      % set up 
+      %energy_edges = logspace(-3,log10(1.0*max(f.v.^2/2)),30);
+      nEnergy = nE;
+      %energy_edges = logspace(-3,log10(1*max(f.v.^2/2)),nEnergy);
+      energy_edges = logspace(-3,1,nEnergy);
+      %energy_edges = linspace(1e-4,1e1,nEnergy);
+      
+      % initialize variable(s)
+      dEF_all = zeros(numel(ids),nEnergy-1);
+      
+      %  loop through ids
+      id_count = 0;
+      for id = 1:numel(ids) 
+        id_count = id_count + 1;
+      
+        f = obj.fxyz(it,id,iss);
+        
+        
+        %energy = logspace(-3,log10(max(f.v.^2)),nEnergy);
+        [VX,VY,VZ] = ndgrid(f.v,f.v,f.v);
+        VV2 = VX.^2 + VY.^2 + VZ.^2;
+        fvv = f.f.*VV2;
+        ENERGY = VV2/2;        
+        [N,EDGES,BIN] = histcounts(ENERGY(:),energy_edges);
+        f_energy_edges = tocolumn(EDGES);
+        f_denergy = diff(f_energy_edges);
+        f_energy_centers = tocolumn((EDGES(2:end)+EDGES(1:end-1))*0.5);
+        nbins = (numel(energy_edges)-1);
+        for ibin = 1:nbins
+          ind_bin = find(BIN==ibin);      
+          f_dist_tmp = f.f(ind_bin);
+          f_dist_mean(ibin,1) = mean(f_dist_tmp);
+          f_dist_sum(ibin,1) = sum(f_dist_tmp)/f_denergy(ibin);
+        end
+
+  %       f_dist_all.distnumber(idist,1) = distnumber;
+  %       f_dist_all.x(idist,1) = xc;
+  %       f_dist_all.z(idist,1) = zc;
+  %       f_dist_all.f_energy_centers(idist,ispecies,:) = f_energy_centers{ispecies};
+  %       f_dist_all.f_energy_edges(idist,ispecies,:) = f_energy_edges{ispecies};
+  %       f_dist_all.f_dist_sum(idist,ispecies,:) = f_dist_sum{ispecies};
+  %       f_dist_all.f_dist_mean(idist,ispecies,:) = f_dist_mean{ispecies};
+        dEF_all(id,:) = f_dist_mean;
+        x_all(id) = mean(f.x);
+        z_all(id) = mean(f.z);
       end
       if nargout == 1
         varargout{1}.energy = f_energy_centers;
         varargout{1}.energy_edges = f_energy_edges;
-        varargout{1}.dEF = f_dist_sum;
-        varargout{1}.x = f.x;
-        varargout{1}.z = f.z;
+        varargout{1}.dEF = dEF_all;
+        varargout{1}.x = x_all;
+        varargout{1}.z = z_all;
       elseif nargout == 2        
         varargout{2}.energy_edges = f_energy_edges;
-        varargout{3}.dEF = f_dist_sum;
+        varargout{3}.dEF = dEF_all;
       elseif nargout == 3
         varargout{1}.energy = f_energy_centers;
         varargout{2}.energy_edges = f_energy_edges;
-        varargout{3}.dEF = f_dist_sum;
+        varargout{3}.dEF = dEF_all;
       end
-        
-%       f_dist_all.distnumber(idist,1) = distnumber;
-%       f_dist_all.x(idist,1) = xc;
-%       f_dist_all.z(idist,1) = zc;
-%       f_dist_all.f_energy_centers(idist,ispecies,:) = f_energy_centers{ispecies};
-%       f_dist_all.f_energy_edges(idist,ispecies,:) = f_energy_edges{ispecies};
-%       f_dist_all.f_dist_sum(idist,ispecies,:) = f_dist_sum{ispecies};
-%       f_dist_all.f_dist_mean(idist,ispecies,:) = f_dist_mean{ispecies};
-    
-      
     end
     % Density
     % Flux

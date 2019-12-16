@@ -1,5 +1,5 @@
 function bcurv = magnetic_field_curvature(x,z,bx,by,bz)
-% bcurv = magnetic_field_curvature(x,z,bx,bz);
+% bcurv = magnetic_field_curvature(x,z,bx,by,bz);
 % bcurv = dot(B,nabla) B
 % bcurv_x = (Bxdx + Bydy + Bzdz) Bx
 % bcurv_y = (Bxdx + Bydy + Bzdz) By

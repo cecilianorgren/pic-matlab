@@ -1,6 +1,7 @@
 df04 = PIC('/Volumes/Fountain/Data/PIC/df_cold_protons_n04/data_h5/fields.h5');
 df08 = PIC('/Volumes/Fountain/Data/PIC/df_cold_protons_n08/data_h5/fields.h5');
 ds04 = PICDist('/Volumes/Fountain/Data/PIC/df_cold_protons_n04/data_h5/dists.h5');
+tr04 = PICTraj('/Volumes/Fountain/Data/PIC/df_cold_protons_n04/data_h5/trajectories.h5');
 savedir  = ['/Users/' localuser '/GoogleDrive/DF_Cold_ions_figures_for_AGU/'];
 
 %% Reconnection rate, two panels, absolute and massloading compensated
@@ -555,6 +556,8 @@ cn.print(sprintf('fxy_35_t05000_z%.0f-%.0f_x%.0f-%.0f_square_tight',xlim(1),xlim
 
 %% Plot smaller subset of distributions, for smaller figures embedded in text, one z row
 doVideo = 1;
+doGif = 1;
+movieName = 'f_vyz_xy_xz_z=0_x=160-200';
 zlim = 0+[-0.1 0.1];
 xlim = [160 205];
 sumdim = 3;
@@ -568,8 +571,11 @@ it = 1;
 
 
 if doVideo
-  vidObj = VideoWriter([savedir 'fvyz_xy_xz_z=0_x=160-200_clim.mp4'],'MPEG-4');
+  vidObj = VideoWriter([savedir movieName '.mp4'],'MPEG-4');
   open(vidObj);
+end
+if doGif
+  iframe = 0;
 end
 % Set up figure
 h = setup_subplots(1,3);
@@ -621,29 +627,57 @@ for id = ds.nd{it}:-1:1
     currFrame = getframe(gcf);
     writeVideo(vidObj,currFrame);
   end
+  
+  if doGif
+    if 1 % collect frames, for making gif
+      iframe = iframe + 1;    
+      nframes = pic0.nt;
+      currentBackgroundColor = get(gcf,'color');
+      set(gcf,'color',[1 1 1]);
+      drawnow      
+      tmp_frame = getframe(gcf);
+      %cell_movies{imovie}(itime) = tmp_frame;
+      if iframe == 1 % initialize animated gif matrix
+        [im_tmp,map] = rgb2ind(tmp_frame.cdata,256,'nodither');
+        %map(end+1,:) = get(gcf,'color');
+        im_tmp(1,1,1,nframes) = 0;                                                
+        all_im = im_tmp;
+      else
+        all_im(:,:,1,iframe) = rgb2ind(tmp_frame.cdata,map,'nodither');
+      end       
+    end    
+  end
 end
 if doVideo, close(vidObj); end
+if doGif, imwrite(all_im,map,[savedir movieName '.gif'],'DelayTime',0.0,'LoopCount',inf); end
 
 %% Plot smaller subset of distributions, for smaller figures embedded in text, two z rows
 doVideo = 1;
+doGif = 1;
+movieName = 'f_vyz_xy_xz_z=0-1_x=160-200_is5_vlim2';
 zlim1 = 0+[-0.1 0.1];
 zlim2 = 1+[-0.1 0.1];
 xlim = [166 200];
 xs = 205:-1:166;
+vlim = [-2 2];
 sumdim = 3;
-iSpecies = [5];
+iSpecies = [1];
 %ds1 = ds04(2).xlim(xlim).zlim(zlim1);
 %ds2 = ds04(2).xlim(xlim).zlim(zlim2);
 cmap = pic_colors('candy');
 ticks = -15:1:15;
 doColorbar = 0;
-clim = [0 0.5e-2]; doCLim = 1;
+clim = [0 0.5e-2]; doCLim = 1; % cold ions
+clim = [0 0.1e-2]; doCLim = 1; % hot ions, saturates at tend
 it = 1;
 
 
 if doVideo
-  vidObj = VideoWriter([savedir 'fvyz_xy_xz_z=0-1_x=160-200_clim_5.mp4'],'MPEG-4');
+  vidObj = VideoWriter([savedir movieName '.mp4'],'MPEG-4');
   open(vidObj);
+end
+if doGif
+  iframe = 0;
 end
 % Set up figure
 h = setup_subplots(2,3);
@@ -719,6 +753,8 @@ for ix = 1:numel(xs)
   colormap(gcf,cmap)
   for ip = 1:6
     h(ip).YDir = 'normal';
+    h(ip).XLim = vlim;
+    h(ip).YLim = vlim;
     h(ip).XTick = ticks;
     h(ip).YTick = ticks;
     h(ip).XGrid = 'on';
@@ -743,8 +779,28 @@ for ix = 1:numel(xs)
     currFrame = getframe(gcf);
     writeVideo(vidObj,currFrame);
   end
+  if doGif
+    if 1 % collect frames, for making gif
+      iframe = iframe + 1;    
+      nframes = pic0.nt;
+      currentBackgroundColor = get(gcf,'color');
+      set(gcf,'color',[1 1 1]);
+      drawnow      
+      tmp_frame = getframe(gcf);
+      %cell_movies{imovie}(itime) = tmp_frame;
+      if iframe == 1 % initialize animated gif matrix
+        [im_tmp,map] = rgb2ind(tmp_frame.cdata,256,'nodither');
+        %map(end+1,:) = get(gcf,'color');
+        im_tmp(1,1,1,nframes) = 0;                                                
+        all_im = im_tmp;
+      else
+        all_im(:,:,1,iframe) = rgb2ind(tmp_frame.cdata,map,'nodither');
+      end       
+    end    
+  end
 end
 if doVideo, close(vidObj); end
+if doGif, imwrite(all_im,map,[savedir movieName '.gif'],'DelayTime',0.0,'LoopCount',inf); end
 
 %% Plot showing select distributions with appearing fingers, vx vy plane
 x_sel = [183 187 191 197 201 203];
@@ -886,9 +942,10 @@ h(2).Title.String = 'Cold ions originating from the north and south, z = [-0.5 0
 %h(2).Title.FontSize = 12;
 
 %% Time-x maps of Bz, Ey and vExBx
-zlim = [-0.5 0.5];
+zlim = [-0.2 0.2];
 pic = df04.zlim(zlim).twcilim([2 260]); % just remove first time index
-nc = 0.4;
+nc = 0.8;
+firstfract = fix(0.4*6400);
 Alev = -25:1:0;
 doA = 1;
 doShowMaxVal = 1;
@@ -914,7 +971,10 @@ if 1 % Bz
   hca.YLabel.String = 't\omega_{ci}';
   hca.XLabel.String = 'x/d_i';
   if doShowMaxVal
-    irf_legend(hca,sprintf('|B_z|^{max} = %.1f B_0',max(abs(Bz_mean(:)))),[0.98 0.98],'color','k','fontsize',12)
+    Bz_mean = squeeze(mean(Bz,2));
+    Bz_mean_left = Bz_mean(1:firstfract,:); % right side has has island
+    Bz_meanmax = max(abs(Bz_mean_left(:)));    
+    irf_legend(hca,sprintf('|B_z|^{max} = %.1f B_0',Bz_meanmax),[0.98 0.98],'color','k','fontsize',12)
   end
 end
 if 1 % Ey
@@ -929,10 +989,13 @@ if 1 % Ey
   hca.YLabel.String = 't\omega_{ci}';
   hca.XLabel.String = 'x/d_i';  
   if doShowMaxVal
-    irf_legend(hca,sprintf('|E_y|^{max} = %.1f v_AB_0',max(abs(Ey_mean(:)))),[0.98 0.98],'color','k','fontsize',12)
+    Ey_mean = squeeze(mean(Ey,2));
+    Ey_mean_left = Ey_mean(1:firstfract,:); % right side has has island
+    Ey_meanmax = max(abs(Ey_mean_left(:)));   
+    irf_legend(hca,sprintf('|E_y|^{max} = %.1f v_AB_0',Ey_meanmax),[0.98 0.98],'color','k','fontsize',12)
   end
 end
-if 1 % Bz
+if 1 % ExB
   if 1
     Ex = pic.Ez;
     Ey = pic.Ey;
@@ -940,19 +1003,24 @@ if 1 % Bz
     Bx = pic.Bx;
     By = pic.By;
     Bz = pic.Bz;  
+    Babs = sqrt(Bx.^2+By.^2+Bz.^2);
   end
-  ExB = cross_product(Ex,Ey,Ez,Bx,By,Bz);
+  
+  ExB = cross_product(Ex,Ey,Ez,Bx./(Babs.^2),By./(Babs.^2),Bz./(Babs.^2));
   hca = h(isub); isub = isub + 1;
-  imagesc(hca,pic.xi,pic.twci,squeeze(mean(ExB.x,2))')
+  imagesc(hca,pic.xi,pic.twci,smooth2(squeeze(mean(ExB.x,2)),2,2)')
   hcb = colorbar('peer',hca);
   hb(isub-1) = hcb;
-  hcb.YLabel.String = 'ExB_x';
+  hcb.YLabel.String = '(ExB/B^2)_x';
   colormap(hca,pic_colors('blue_red'))
-  hca.CLim = [-0.55 0.55];
+  hca.CLim = [-1 1];
   hca.YLabel.String = 't\omega_{ci}';
   hca.XLabel.String = 'x/d_i';   
   if doShowMaxVal
-    irf_legend(hca,sprintf('|ExB_x|^{max} = %.1f v_A',max(abs(ExB.x(:)))),[0.98 0.98],'color','k','fontsize',12)
+    ExBxmean = smooth2(squeeze(mean(ExB.x,2)),2,2);
+    ExBxmean_left = ExBxmean(1:firstfract,:); % right side has has island
+    ExB_meanmax = max(abs(ExBxmean_left(:)));
+    %irf_legend(hca,sprintf('|ExB/B^2|_x^{max} = %.1f v_A',ExB_meanmax),[0.98 0.98],'color','k','fontsize',12)
   end 
 end
 
@@ -1047,6 +1115,29 @@ pic08 = df08.twcilim(tlim);
 [xDF04,vDF04,aDF04,BDF04] = pic04.xva_df;
 [xDF08,vDF08,aDF08,BDF08] = pic08.xva_df;
 %%
+% Get ExB velocity at the same location;
+for iDF = 1:pic04.length
+  %pc04 = pic04.xlim(xDF04(1,iDF)+[-0.1 0.1]).zlim([-0.5 0.5]).twcilim(pic04.twci(iDF));
+  %Ex04_(iDF) = mean(mean(pc04.Ex));
+  %Ey04_(iDF) = mean(mean(pc04.Ey));  
+end
+  Ey04 = pic04.interp(xDF04(1,:),xDF04(1,:)*0,pic04.twci,'Ey');
+  Ez04 = pic04.interp(xDF04(1,:),xDF04(1,:)*0,pic04.twci,'Ez');
+  Bx04 = pic04.interp(xDF04(1,:),xDF04(1,:)*0,pic04.twci,'Bx');
+  By04 = pic04.interp(xDF04(1,:),xDF04(1,:)*0,pic04.twci,'By');
+  Bz04 = pic04.interp(xDF04(1,:),xDF04(1,:)*0,pic04.twci,'Bz');
+  Ex08 = pic08.interp(xDF08(1,:),xDF08(1,:)*0,pic04.twci,'Ex');
+  Ey08 = pic08.interp(xDF08(1,:),xDF08(1,:)*0,pic04.twci,'Ey');
+  Ez08 = pic08.interp(xDF08(1,:),xDF08(1,:)*0,pic04.twci,'Ez');
+  Bx08 = pic08.interp(xDF08(1,:),xDF08(1,:)*0,pic04.twci,'Bx');
+  By08 = pic08.interp(xDF08(1,:),xDF08(1,:)*0,pic04.twci,'By');
+  Bz08 = pic08.interp(xDF08(1,:),xDF08(1,:)*0,pic04.twci,'Bz');
+%%
+Babs04 = sqrt(Bx04.^2+By04.^2+Bz04.^2);
+Babs08 = sqrt(Bx08.^2+By08.^2+Bz08.^2);
+ExB04 = cross_product(Ex04,Ey04,Ez04,Bx04./Babs04,By04./Babs04,Bz04./Babs04);
+ExB08 = cross_product(Ex08,Ey08,Ez08,Bx08./Babs08,By08./Babs08,Bz08./Babs08);
+%%
 %rem_ind04 = find(abs(diff(vDF04))>0.2); vDF04(rem_ind04) = NaN;
 rem_ind08 = find(abs(aDF08)>0.05); vDF08(rem_ind08) = NaN;
 
@@ -1058,16 +1149,16 @@ R0(0.1,0.4,0.2);
 
 aDF0 = @(ac,nc,nb) ac*(1+nc./nb)^0.5;
 
-
-
+doPlotExB = 1;
 doPlotFit = 1;
-nrows = 2;
+
+nrows = 1;
 ncols = 1;
 npanels = nrows*ncols;
 h = setup_subplots(nrows,ncols);
 isub = 1;
 
-if 1 % vDF_x vz t
+if 0 % vDF_x vz t
   hca = h(isub); isub = isub + 1;  
   hl = plot(hca,pic04.twci,vDF04(1,:),'.',...
                 pic08.twci,vDF08(1,:),'.','MarkerSize',10);
@@ -1094,6 +1185,14 @@ if 1 % vDF_x vz t
     fit_str04 = sprintf('n_c= 0.4n_0: v_{DF}/v_A = %.4f tw_{ci}',p04(1));
     fit_str08 = sprintf('n_c= 0.8n_0: v_{DF}/v_A = %.4f tw_{ci}',p08(1));
     irf_legend(hca,{fit_str04;fit_str08},[0.02 0.98],'fontsize',12)
+  end
+  if doPlotExB
+    hold(hca,'on')
+    hlines = plot(hca,pic04.twci,ExB04.x,'-',...
+                      pic08.twci,ExB08.x,'-');
+    hlines(1).Color = hl(1).Color;
+    hlines(2).Color = hl(2).Color;
+    hold(hca,'off')
   end
   hca.XGrid = 'on';
   hca.YGrid = 'on';
@@ -1126,6 +1225,14 @@ if 1 % vDF_x vz t, mass loading scaled
     fit_str08 = sprintf('n_c= 0.8n_0: v_{DF}/v_A = %.4f tw_{ci}',p08(1));
     irf_legend(hca,{fit_str04;fit_str08},[0.02 0.98],'fontsize',12)
   end
+  if doPlotExB
+    hold(hca,'on')
+    hExB = plot(hca,pic04.twci,abs(ExB04.x)+0.2,'--',...
+                      pic08.twci,abs(ExB08.x)+0.2,'--');
+    hExB(1).Color = hl(1).Color;
+    hExB(2).Color = hl(2).Color;
+    hold(hca,'off')
+  end
   hca.XGrid = 'on';
   hca.YGrid = 'on';
 end
@@ -1157,10 +1264,18 @@ end
 % find spots with increased phase space density
 
 it = 2;
+if 1
 iSpecies = [3];
-ds = ds04(it).xlim([188 198]+[-0.1 0.1]).zlim([-0.1 0.6]);
-nPeaks = 15;
-spacingPeaks = 3; % for ions its 0.2 vA
+%ds = ds04(it).xlim([166 169]+[-0.1 0.1]).zlim([-0.1 0.6]);
+ds = ds04(it).xlim([166 169]+[-0.1 0.1]).zlim([0.4 0.6]); % top row.
+else % electrons
+  iSpecies = [4];
+  %ds = ds04(it).xlim([166 169]+[-0.1 0.1]).zlim([-0.1 0.6]);
+  ds = ds04(it).xlim([166 169]+[-0.1 0.1]).zlim([0.4 0.6]); % top row.
+
+end
+nPeaks = 10;
+spacingPeaks = 4; % for ions its 0.2 vA
 fpeaks = ds.get_peaks(nPeaks,spacingPeaks,iSpecies);
 nDists = ds.nd;
 doPlot = 1;
@@ -1198,15 +1313,30 @@ if doPlot
 end
 
 %% Loop through points, integrate trajectories
-tspan = [100,160,210];
+pic = df04;
+tspan = [60,160,210];
 m = 1; 
 q = 1;
+tic
 for id = 1:ds.nd{1}
   for iPeak = 1:nPeaks
-    fprintf('(id/nd,ipeak/npeaks) = (%g/%g,%g/%g)',id,ds.nd{1},iPeak,nPeaks)
+    fprintf('(id/nd,ipeak/npeaks) = (%g/%g,%g/%g)\n',id,ds.nd{1},iPeak,nPeaks)
     r0 = [fpeaks(iPeak,id).x, fpeaks(iPeak,id).y, fpeaks(iPeak,id).z];
     v0 = [fpeaks(iPeak,id).vx, fpeaks(iPeak,id).vy, fpeaks(iPeak,id).vz];
-    tr(iPeak,id) = df04.integrate_trajectory(r0,v0,tspan,m,q);
+    tr_tmp = df04.integrate_trajectory(r0,v0,tspan,m,q);    
+    [Ex,Ey,Ez,Bx,By,Bz] = df04.interp_EB3(tr_tmp.x,tr_tmp.z,tr_tmp.t);  % interpolate
+    
+    tr_tmp.Ex = Ex;
+    tr_tmp.Ey = Ey;
+    tr_tmp.Ez = Ez;
+    tr_tmp.Bx = Bx;
+    tr_tmp.By = By;
+    tr_tmp.Bz = Bz;
+    tr(iPeak,id) = tr_tmp;
+    toc
+    %catch
+    %  continue
+    %end
   end
 end
 % subset saved (20,5)
@@ -1221,6 +1351,15 @@ for id = 1:size(tr,2)
     %plot3(tr_pass(iPeak,id).x,tr_pass(iPeak,id).y,tr_pass(iPeak,id).z)
     %plot(tr(iPeak,id).t,tr(iPeak,id).vz)
   end
+end
+hold(hca,'off')
+
+%% Plot what we have, all trajectories from Traj
+hca = subplot(1,1,1);
+hold(hca,'on')
+for iTr = 1:tr04.ntr  
+  %plot3(tr04(iTr).x,tr04(iTr).y,tr04(iTr).z)
+  plot(tr04(iTr).x,tr04(iTr).z)
 end
 hold(hca,'off')
 
@@ -1692,7 +1831,7 @@ end
 
 
 %% Plot on top of field, option to make movie
-doVideo = 0;
+doVideo = 1;
 xlim = [120 240];
 zlim = [-10 10];
 twci = [100 210];
@@ -1700,7 +1839,7 @@ pic = df04.twcilim(twci).xlim(xlim).zlim(zlim);
 doA = 1; Alev = -25:1:0;
 
 if doVideo
-  vidObj = VideoWriter([savedir 'trajectories_2.mp4'],'MPEG-4');
+  vidObj = VideoWriter([savedir 'trajectories_vy_dfions.mp4'],'MPEG-4');
   open(vidObj);
 end
 
@@ -1732,7 +1871,7 @@ for it = 1:pic.nt
     hca.XLabel.String = 'x/d_i';
     hca.YLabel.String = 'z/d_i';
   end
-  if 1 % Ey
+  if 0 % Ey
     hca = h(isub); isub = isub + 1;
     imagesc(hca,pc.xi,pc.zi,pc.Ey')
     hca.CLim = [-1 1];
@@ -1742,7 +1881,7 @@ for it = 1:pic.nt
     hca.XLabel.String = 'x/d_i';
     hca.YLabel.String = 'z/d_i';
   end
-  if 1 % Bz
+  if 0 % Bz
     hca = h(isub); isub = isub + 1;
     imagesc(hca,pc.xi,pc.zi,pc.Bz')
     hca.CLim = [-1 1];
@@ -1752,6 +1891,45 @@ for it = 1:pic.nt
     hca.XLabel.String = 'x/d_i';
     hca.YLabel.String = 'z/d_i';
   end
+  if 1 % v35y
+    hca = h(isub); isub = isub + 1;
+    imagesc(hca,pc.xi,pc.zi,pc.vy([3 5])')
+    hca.CLim = [-.5 0.5];
+    colormap(hca,pic_colors('blue_red'))
+    hcb = colorbar('peer',hca);
+    hcb.YLabel.String = 'v_{y,i,cold}';
+    hca.XLabel.String = 'x/d_i';
+    hca.YLabel.String = 'z/d_i';
+  end
+  if 0 % vxB_y
+    hca = h(isub); isub = isub + 1;
+    vx = pc.vx([3 5]);
+    vy = pc.vy([3 5]);
+    vz = pc.vz([3 5]);
+    Bx = pc.Bx;
+    By = pc.By;
+    Bz = pc.Bz;
+    vxB = cross_product(vx,vy,vz,Bx,By,Bz);
+    imagesc(hca,pc.xi,pc.zi,vxB.y')
+    hca.CLim = [-.5 0.5];
+    colormap(hca,pic_colors('blue_red'))
+    hcb = colorbar('peer',hca);
+    hcb.YLabel.String = '(vxB)_y';
+    hca.XLabel.String = 'x/d_i';
+    hca.YLabel.String = 'z/d_i';
+  end
+  if 0 % n vy T
+    [n,jx,jy,jz,pxx,pxy,pxz,pyy,pyz,pzz] = njp(obj,iSpecies);
+    hca = h(isub); isub = isub + 1;    
+    
+    imagesc(hca,pc.xi,pc.zi,vxB.y')
+    hca.CLim = [-.5 0.5];
+    colormap(hca,pic_colors('blue_red'))
+    hcb = colorbar('peer',hca);
+    hcb.YLabel.String = '(vxB)_y';
+    hca.XLabel.String = 'x/d_i';
+    hca.YLabel.String = 'z/d_i';
+  end 
   
   h(1).Title.String = sprintf('twci = %g',pc.twci);
   drawnow
@@ -1767,7 +1945,7 @@ for it = 1:pic.nt
       A = pc.A;
       contour(hca,pic.xi(iAx),pic.zi(iAz),A(iAx,iAz)',Alev,'k');        
     end
-    if 0 % all trajectories
+    if 1 % all trajectories
     for itr = 1:numel(tr)      
       plot(hca,tr(itr).x,tr(itr).z)
       ii = find(abs(tr(itr).t-pc.twci)==min(abs(tr(itr).t-pc.twci)));
@@ -1775,7 +1953,7 @@ for it = 1:pic.nt
     end
     else %subset
       for itr = 1:size(iPeakDist,1)
-        plot(hca,tr(iPeakDist(itr,1),iPeakDist(itr,2)).x,tr(iPeakDist(itr,1),iPeakDist(itr,2)).z)
+        %plot(hca,tr(iPeakDist(itr,1),iPeakDist(itr,2)).x,tr(iPeakDist(itr,1),iPeakDist(itr,2)).z)
         ii = find(abs(tr(iPeakDist(itr,1),iPeakDist(itr,2)).t-pc.twci)==min(abs(tr(iPeakDist(itr,1),iPeakDist(itr,2)).t-pc.twci)));
         plot(hca,tr(iPeakDist(itr,1),iPeakDist(itr,2)).x(ii),tr(iPeakDist(itr,1),iPeakDist(itr,2)).z(ii),'ko')
       end
@@ -2126,8 +2304,8 @@ v5xB = cross_product(vx5,vy5,vz5,Bx,By,Bz,'components',1);
 v35xB = cross_product(vx35,vy35,vz35,Bx,By,Bz,'components',1);
 
 %% v_xyz, vxB_xyz, E_xyz
-nrows = 3;
-ncols = 2;
+nrows = 4; 
+ncols = 3;
 npanels = nrows*ncols;
 h = setup_subplots(nrows,ncols,'vertical');
 isub = 1;
@@ -2233,7 +2411,7 @@ if 1 % v3xB.x
   hca.YLabel.String = 'z/d_i';  
   hca.Box = 'on';  
 end
-if 0 % v3xB.y
+if 1 % v3xB.y
   hca = h(isub); isub = isub + 1;  
   imagesc(hca,pic.xi,pic.zi,v3xB.y')
   hcb = colorbar('peer',hca);
@@ -2284,7 +2462,7 @@ if 1 % v5xB.x
   hca.YLabel.String = 'z/d_i';  
   hca.Box = 'on';  
 end
-if 0 % v5xB.y
+if 1 % v5xB.y
   hca = h(isub); isub = isub + 1;  
   imagesc(hca,pic.xi,pic.zi,v5xB.y')
   hcb = colorbar('peer',hca);
@@ -2314,7 +2492,7 @@ if 1 % v35xB.x
   hca.YLabel.String = 'z/d_i';  
   hca.Box = 'on';  
 end
-if 0 % v35xB.y
+if 1 % v35xB.y
   hca = h(isub); isub = isub + 1;  
   imagesc(hca,pic.xi,pic.zi,v35xB.y')
   hcb = colorbar('peer',hca);
@@ -2345,7 +2523,7 @@ if 0 % Ex
   hca.YLabel.String = 'z/d_i';  
   hca.Box = 'on';  
 end
-if 0 % Ey
+if 1 % Ey
   hca = h(isub); isub = isub + 1;  
   imagesc(hca,pic.xi,pic.zi,Ey')
   hcb = colorbar('peer',hca);
@@ -2373,6 +2551,286 @@ end
 colormap(gcf,pic_colors('blue_red'))
 
 hlinks = linkprop(h,{'XLim','YLim'});
+
+%% Check forces on cold ions
+nrows = 4; 
+ncols = 1;
+npanels = nrows*ncols;
+h = setup_subplots(nrows,ncols,'vertical');
+isub = 1;
+
+if 0 % v3x
+  hca = h(isub); isub = isub + 1;  
+  imagesc(hca,pic.xi,pic.zi,vx3')
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'v_x 3';
+  %hold(hca,'on')
+  hca.XLabel.String = 'x/d_i';  
+  hca.YLabel.String = 'z/d_i';  
+  hca.Box = 'on';  
+end
+if 0 % v3y
+  hca = h(isub); isub = isub + 1;  
+  imagesc(hca,pic.xi,pic.zi,vy3')
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'v_y 3';
+  %hold(hca,'on')
+  hca.XLabel.String = 'x/d_i';  
+  hca.YLabel.String = 'z/d_i';  
+  hca.Box = 'on';  
+end
+if 0 % v3z
+  hca = h(isub); isub = isub + 1;  
+  imagesc(hca,pic.xi,pic.zi,vz3')
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'v_z 3';
+  %hold(hca,'on')
+  hca.XLabel.String = 'x/d_i';  
+  hca.YLabel.String = 'z/d_i';  
+  hca.Box = 'on';  
+end
+if 0 % v5x
+  hca = h(isub); isub = isub + 1;  
+  imagesc(hca,pic.xi,pic.zi,vx5')
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'v_x 5';
+  %hold(hca,'on')
+  hca.XLabel.String = 'x/d_i';  
+  hca.YLabel.String = 'z/d_i';  
+  hca.Box = 'on';  
+end
+if 0 % v5y
+  hca = h(isub); isub = isub + 1;  
+  imagesc(hca,pic.xi,pic.zi,vy5')
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'v_y 5';
+  %hold(hca,'on')
+  hca.XLabel.String = 'x/d_i';  
+  hca.YLabel.String = 'z/d_i';  
+  hca.Box = 'on';  
+end
+if 0 % v5z
+  hca = h(isub); isub = isub + 1;  
+  imagesc(hca,pic.xi,pic.zi,vz5')
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'v_z 5';
+  %hold(hca,'on')
+  hca.XLabel.String = 'x/d_i';  
+  hca.YLabel.String = 'z/d_i';  
+  hca.Box = 'on';  
+end
+if 0 % v35x
+  hca = h(isub); isub = isub + 1;  
+  imagesc(hca,pic.xi,pic.zi,vx35')
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'v_x 35';
+  %hold(hca,'on')
+  hca.XLabel.String = 'x/d_i';  
+  hca.YLabel.String = 'z/d_i';  
+  hca.Box = 'on';  
+end
+if 1 % v35y
+  hca = h(isub); isub = isub + 1;  
+  imagesc(hca,pic.xi,pic.zi,vy35')
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'v_{ic,y}';
+  %hold(hca,'on')
+  hca.XLabel.String = 'x/d_i';  
+  hca.YLabel.String = 'z/d_i';  
+  hca.Box = 'on';  
+end
+if 0 % v35z
+  hca = h(isub); isub = isub + 1;  
+  imagesc(hca,pic.xi,pic.zi,vz35')
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'v_z 35';
+  %hold(hca,'on')
+  hca.XLabel.String = 'x/d_i';  
+  hca.YLabel.String = 'z/d_i';  
+  hca.Box = 'on';  
+end
+
+if 0 % v3xB.x
+  hca = h(isub); isub = isub + 1;  
+  imagesc(hca,pic.xi,pic.zi,v3xB.x')
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'vxB_x 3';
+  %hold(hca,'on')
+  hca.XLabel.String = 'x/d_i';  
+  hca.YLabel.String = 'z/d_i';  
+  hca.Box = 'on';  
+end
+if 0 % v3xB.y
+  hca = h(isub); isub = isub + 1;  
+  imagesc(hca,pic.xi,pic.zi,v3xB.y')
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'vxB_y';
+  %hold(hca,'on')
+  hca.XLabel.String = 'x/d_i';  
+  hca.YLabel.String = 'z/d_i';  
+  hca.Box = 'on';  
+end
+if 0 % v3xB.z
+  hca = h(isub); isub = isub + 1;  
+  imagesc(hca,pic.xi,pic.zi,v3xB.z')
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'vxB_z';
+  %hold(hca,'on')
+  hca.XLabel.String = 'x/d_i';  
+  hca.YLabel.String = 'z/d_i';  
+  hca.Box = 'on';  
+end
+if 0 % v3xB.x_yz
+  hca = h(isub); isub = isub + 1;  
+  imagesc(hca,pic.xi,pic.zi,v3xB.x_yz')
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'v_yxB_z';
+  %hold(hca,'on')
+  hca.XLabel.String = 'x/d_i';  
+  hca.YLabel.String = 'z/d_i';  
+  hca.Box = 'on';  
+end
+if 0 % v3xB.x_zy
+  hca = h(isub); isub = isub + 1;  
+  imagesc(hca,pic.xi,pic.zi,v3xB.x_zy')
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'v_zxB_y';
+  %hold(hca,'on')
+  hca.XLabel.String = 'x/d_i';  
+  hca.YLabel.String = 'z/d_i';  
+  hca.Box = 'on';  
+end
+if 0 % v5xB.x
+  hca = h(isub); isub = isub + 1;  
+  imagesc(hca,pic.xi,pic.zi,v5xB.x')
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'vxB_x 5';
+  %hold(hca,'on')
+  hca.XLabel.String = 'x/d_i';  
+  hca.YLabel.String = 'z/d_i';  
+  hca.Box = 'on';  
+end
+if 0 % v5xB.y
+  hca = h(isub); isub = isub + 1;  
+  imagesc(hca,pic.xi,pic.zi,v5xB.y')
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'vxB_y 5';
+  %hold(hca,'on')
+  hca.XLabel.String = 'x/d_i';  
+  hca.YLabel.String = 'z/d_i';  
+  hca.Box = 'on';  
+end
+if 0 % v5xB.z
+  hca = h(isub); isub = isub + 1;  
+  imagesc(hca,pic.xi,pic.zi,v5xB.z')
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'vxB_z 5';
+  %hold(hca,'on')
+  hca.XLabel.String = 'x/d_i';  
+  hca.YLabel.String = 'z/d_i';  
+  hca.Box = 'on';  
+end
+if 0 % v35xB.x
+  hca = h(isub); isub = isub + 1;  
+  imagesc(hca,pic.xi,pic.zi,v35xB.x')
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'vxB_x 35';
+  %hold(hca,'on')
+  hca.XLabel.String = 'x/d_i';  
+  hca.YLabel.String = 'z/d_i';  
+  hca.Box = 'on';  
+end
+if 1 % v35xB.y
+  hca = h(isub); isub = isub + 1;  
+  imagesc(hca,pic.xi,pic.zi,v35xB.y')
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = '(v_{ic}xB)_y';
+  %hold(hca,'on')
+  hca.XLabel.String = 'x/d_i';  
+  hca.YLabel.String = 'z/d_i';  
+  hca.Box = 'on';  
+end
+if 0 % v35xB.z
+  hca = h(isub); isub = isub + 1;  
+  imagesc(hca,pic.xi,pic.zi,v35xB.z')
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'vxB_z';
+  %hold(hca,'on')
+  hca.XLabel.String = 'x/d_i';  
+  hca.YLabel.String = 'z/d_i';  
+  hca.Box = 'on';  
+end
+
+if 0 % Ex
+  hca = h(isub); isub = isub + 1;  
+  imagesc(hca,pic.xi,pic.zi,Ex')
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'E_x';
+  %hold(hca,'on')
+  hca.XLabel.String = 'x/d_i';  
+  hca.YLabel.String = 'z/d_i';  
+  hca.Box = 'on';  
+end
+if 1 % Ey
+  hca = h(isub); isub = isub + 1;  
+  imagesc(hca,pic.xi,pic.zi,Ey')
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'E_y';
+  %hold(hca,'on')
+  hca.XLabel.String = 'x/d_i';  
+  hca.YLabel.String = 'z/d_i';  
+  hca.Box = 'on';  
+end
+if 0 % Ez
+  hca = h(isub); isub = isub + 1;  
+  imagesc(hca,pic.xi,pic.zi,Ez')
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'E_z';
+  %hold(hca,'on')
+  hca.XLabel.String = 'x/d_i';  
+  hca.YLabel.String = 'z/d_i';  
+  hca.Box = 'on';  
+end
+if 0 % Ex
+  hca = h(isub); isub = isub + 1;  
+  imagesc(hca,pic.xi,pic.zi,Ex')
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'E_x';
+  %hold(hca,'on')
+  hca.XLabel.String = 'x/d_i';  
+  hca.YLabel.String = 'z/d_i';  
+  hca.Box = 'on';  
+end
+if 1 % Ey + v35xb
+  hca = h(isub); isub = isub + 1;  
+  imagesc(hca,pic.xi,pic.zi,Ey'+v35xB.y')
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'E_y+(v_{ic}xB)_y';
+  %hold(hca,'on')
+  hca.XLabel.String = 'x/d_i';  
+  hca.YLabel.String = 'z/d_i';  
+  hca.Box = 'on';  
+end
+if 0 % Ez
+  hca = h(isub); isub = isub + 1;  
+  imagesc(hca,pic.xi,pic.zi,Ez')
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'E_z';
+  %hold(hca,'on')
+  hca.XLabel.String = 'x/d_i';  
+  hca.YLabel.String = 'z/d_i';  
+  hca.Box = 'on';  
+end
+
+
+for ip = 1:npanels
+  h(ip).YDir = 'normal';
+  h(ip).CLim = 0.5*[-1 1];  
+end
+colormap(gcf,pic_colors('blue_red'))
+
+hlinks = linkprop(h,{'XLim','YLim'});
+
 
 
 %% Checking canonical momentum and what it might reveal
@@ -2411,3 +2869,1170 @@ px0 = f_p(vx0,Ax0);
 py0 = f_p(vy0,Ay0);
 
 plotyy(xA_c_,A_c_z0,xA_c_,f_v(py0,A_c_z0))
+
+%% Scatter plot on Traj
+xx = cat(1,tr04.x);
+zz = cat(1,tr04.z);
+vyy = cat(1,tr04.vy);
+vxx = cat(1,tr04.vx);
+angle = atan2d(vyy,vxx);
+%scatter(xx,zz,1,angle)
+
+nrows = 1; 
+ncols = 2;
+npanels = nrows*ncols;
+h = setup_subplots(nrows,ncols,'vertical');
+isub = 1;
+
+
+
+if 1 % 
+  hca = h(isub); isub = isub + 1;  
+  i1 = intersect(find(xx>180),find(xx<200));
+  i2 = intersect(find(zz>-1),find(zz<1));
+  ind = intersect(i1,i2); 
+  scatter(hca,vxx(ind),vyy(ind),2,xx(ind))
+  hcb = colorbar('peer',hca);    
+  hcb.YLabel.String = 'x/d_i';  
+  hca.XLabel.String = 'v_x';  
+  hca.YLabel.String = 'v_y';  
+  hca.XLim = [-2 2];
+  hca.YLim = [-2 2];
+  hca.Box = 'on';  
+  hca.XGrid = 'on';
+  hca.YGrid = 'on';
+end
+if 1 % 
+  hca = h(isub); isub = isub + 1;  
+  tr = tr04.lim('x',[189 190],'z',[-0.5 0.5]);
+  %tr = tr04.lim('x',[180 200],'z',[-1 1]);
+  %tr = tr04.pass('x',[100 190],'z',[-1 1]);
+  % scatter(hca,cat(1,tr.vx),cat(1,tr.vy),2,cat(1,tr.x))
+  holdon = 0;
+  for iTr = 1:tr.ntr
+    %if not(isempty(tr(iTr).t))
+      if not(holdon), hold(hca,'on'); end
+      scatter(hca,tr(iTr).vx,tr(iTr).vy,2,0*tr(iTr).vx+iTr) 
+    %end
+  end
+  hold(hca,'off')
+  hcb = colorbar('peer',hca);    
+  hcb.YLabel.String = 'trajectory';  
+  hca.XLabel.String = 'v_x';  
+  hca.YLabel.String = 'v_y';  
+  hca.XLim = [-2 2];
+  hca.YLim = [-2 2];
+  hca.Box = 'on';  
+  hca.XGrid = 'on';
+  hca.YGrid = 'on';
+end
+
+%% Check if non-smooth changes in A is associated with the fingers
+tic;
+pic = df04.xlim([160 240]).zlim([-5 5]).twcilim([120 200]);
+%A = pic.A;
+tt = pic.twci;
+tt = tt(2:end) - mean(diff(tt))/2;
+toc;
+dA = diff(A,1,3);
+levA = -0.0003:0.00003:0.0003;
+levA = -25:0.5:0;
+doA = 1;
+h = setup_subplots(2,1);
+
+for it = 1:size(dA,3)
+  isub = 1;
+  if 0
+    hca = h(isub); isub = isub + 1;
+    iAx = 1:4:pic.nx;
+    iAz = 1:4:pic.nz;  
+    %contour(hca,pic.xi(iAx),pic.zi(iAz),dA(iAx,iAz,it)',levA,'k'); 
+    imagesc(hca,pic.xi,pic.zi,dA(:,:,it)'); 
+    hca.CLim = 1.5*[-1 1];
+    hcb = colorbar('peer',hca);
+    hcb.YLabel.String = '\Delta A';
+    colormap(hca,pic_colors('blue_red'))
+  end
+  if 1
+    hca = h(isub); isub = isub + 1;
+    imagesc(hca,pic.xi,pic.zi,pic.twcilim(tt(it)).n([3 5])')
+    hca.CLim = [0 1];
+    hcb = colorbar('peer',hca);
+    hcb.YLabel.String = 'n_{cold ions}';
+    colormap(hca,pic_colors('candy'))
+    if doA
+      hold(hca,'on')
+      iAx = 1:4:pic.nx;
+      iAz = 1:4:pic.nz;  
+      contour(hca,pic.xi(iAx),pic.zi(iAz),A(iAx,iAz,it)',levA,'k');     
+      hold(hca,'off')
+    end
+  end
+  if 1
+    hca = h(isub); isub = isub + 1;
+    imagesc(hca,pic.xi,pic.zi,pic.twcilim(tt(it)).vy([3 5])')
+    hca.CLim = [-0.5 0.5];
+    hcb = colorbar('peer',hca);
+    hcb.YLabel.String = 'v_{y,cold ions}';
+    colormap(hca,pic_colors('blue_red'))
+    if doA
+      hold(hca,'on')
+      iAx = 1:4:pic.nx;
+      iAz = 1:4:pic.nz;  
+      contour(hca,pic.xi(iAx),pic.zi(iAz),A(iAx,iAz,it)',levA,'k');     
+      hold(hca,'off')
+    end
+  end
+  
+  h(1).Title.String = sprintf('twci = %g',tt(it));
+  irf_plot_axis_align(h)
+  compact_panels(0.01)
+  pause(0.1)
+end
+
+%% Vide0 of some ion parameters, n vy, t
+
+%% Plot on top of field, option to make movie, frame of the DF.
+doVideo = 0;
+doGif = 0;
+doPlotTrajectoriesParticles = 0; % lines showing the entire trajectory
+doPlotTrajectoriesLines = 0; % lines showing the entire trajectory
+
+particleMarker = '.';
+particlerMarkerSize = 12;
+
+movieName = 'n_cold_hot_diff_df04_frameoffront_clim';
+
+twci = [100 210];
+doA = 1; Alev = -25:1:0;
+pic0 = df04.twcilim(twci);
+isC = [3 5];
+
+%[xDF,vDF,aDF,BDF] = df04.xva_df;
+%xDF = xDF(1,:);
+%tr = trif;
+tr = tr04.pass('charge',[0 2]); % all ions
+tr = tr04.pass('charge',[0 2]).pass('x0',[120 170]); % all ions
+if doVideo
+  vidObj = VideoWriter([savedir movieName '.mp4'],'MPEG-4');
+  open(vidObj);
+end
+if doGif
+  iframe = 0;
+end
+
+nrows = 1;
+ncols = 1;
+npanels = nrows*ncols;
+h = setup_subplots(nrows,ncols);
+
+for it = 5%1:pic0.nt
+  if 1 % frame of df
+    x0 = xDF(pic0.it(it));  
+    xlim = x0 + [-70 70];
+    xlim = x0 + [-50 50];
+  else % simulation frame
+    xlim = [120 240];
+  end
+    
+  zlim = [-10 10];
+  twci = pic0.twci(it);
+  pic = df04.twcilim(twci).xlim(xlim).zlim(zlim);
+
+  
+  pc = pic;
+  
+ 
+    
+  isub = 1;
+  if 0 % Ez
+    hca = h(isub); isub = isub + 1;
+    imagesc(hca,pc.xi,pc.zi,pc.Ez')
+    hca.CLim = [-1 1];
+    colormap(hca,pic_colors('blue_red'))
+    hcb = colorbar('peer',hca);
+    hcb.YLabel.String = 'E_z';
+    hca.XLabel.String = 'x/d_i';
+    hca.YLabel.String = 'z/d_i';
+  end
+  if 0 % By
+    hca = h(isub); isub = isub + 1;
+    imagesc(hca,pc.xi,pc.zi,pc.By')
+    hca.CLim = [-1 1];
+    colormap(hca,pic_colors('blue_red'))
+    hcb = colorbar('peer',hca);
+    hcb.YLabel.String = 'B_y';
+    hca.XLabel.String = 'x/d_i';
+    hca.YLabel.String = 'z/d_i';
+  end
+  if 0 % Ey
+    hca = h(isub); isub = isub + 1;
+    imagesc(hca,pc.xi,pc.zi,pc.Ey')
+    hca.CLim = [-1 1];
+    colormap(hca,pic_colors('blue_red'))
+    hcb = colorbar('peer',hca);
+    hcb.YLabel.String = 'E_y';
+    hca.XLabel.String = 'x/d_i';
+    hca.YLabel.String = 'z/d_i';
+  end
+  if 0 % Bz
+    hca = h(isub); isub = isub + 1;
+    imagesc(hca,pc.xi,pc.zi,pc.Bz')
+    hca.CLim = [-1 1];
+    colormap(hca,pic_colors('blue_red'))
+    hcb = colorbar('peer',hca);
+    hcb.YLabel.String = 'B_z';
+    hca.XLabel.String = 'x/d_i';
+    hca.YLabel.String = 'z/d_i';
+  end
+  if 0 % magnetic field curvature
+    hca = h(isub); isub = isub + 1;
+    
+    Bx = pc.Bx;
+    By = pc.By;
+    Bz = pc.Bz;   
+    bcurv = magnetic_field_curvature(pc.xi,pc.zi,Bx,By,Bz);
+    imagesc(hca,pc.xi,pc.zi,bcurv.abs')
+    hca.CLim = [0 2];
+    colormap(hca,pic_colors('candy'))
+    hcb = colorbar('peer',hca);
+    hcb.YLabel.String = '|B_{curv}|';
+    hca.XLabel.String = 'x/d_i';
+    hca.YLabel.String = 'z/d_i';
+    
+  end
+  if 0 % v35y
+    hca = h(isub); isub = isub + 1;
+    imagesc(hca,pc.xi,pc.zi,pc.vy(isC)')
+    hca.CLim = [-.5 0.5];
+    colormap(hca,pic_colors('blue_red'))
+    hcb = colorbar('peer',hca);
+    hcb.YLabel.String = 'v_{y,i,cold}';
+    hca.XLabel.String = 'x/d_i';
+    hca.YLabel.String = 'z/d_i';
+  end
+  if 0 % v35y
+    hca = h(isub); isub = isub + 1;
+    imagesc(hca,pc.xi,pc.zi,pc.n(isC)')
+    hca.CLim = [0 1.5];
+    colormap(hca,pic_colors('candy'))
+    hcb = colorbar('peer',hca);
+    hcb.YLabel.String = 'n_{i,cold}';
+    hca.XLabel.String = 'x/d_i';
+    hca.YLabel.String = 'z/d_i';
+  end
+  if 0 % vxB_y
+    hca = h(isub); isub = isub + 1;
+    vx = pc.vx(isC);
+    vy = pc.vy(isC);
+    vz = pc.vz(isC);
+    Bx = pc.Bx;
+    By = pc.By;
+    Bz = pc.Bz;
+    vxB = cross_product(vx,vy,vz,Bx,By,Bz);
+    imagesc(hca,pc.xi,pc.zi,vxB.y')
+    hca.CLim = [-.5 0.5];
+    colormap(hca,pic_colors('blue_red'))
+    hcb = colorbar('peer',hca);
+    hcb.YLabel.String = '(vxB)_y';
+    hca.XLabel.String = 'x/d_i';
+    hca.YLabel.String = 'z/d_i';
+  end
+  if 0 % n vy T 35
+    [n,jx,jy,jz,pxx,pxy,pxz,pyy,pyz,pzz] = njp(pic,isC);
+    hca = h(isub); isub = isub + 1;   
+    t = (pxx+pyy+pzz)./n/3;
+    
+    imagesc(hca,pc.xi,pc.zi,t')
+    hca.CLim = [0 0.2];
+    colormap(hca,pic_colors('candy'))
+    hcb = colorbar('peer',hca);
+    hcb.YLabel.String = 'T_{i,cold}';
+    hca.XLabel.String = 'x/d_i';
+    hca.YLabel.String = 'z/d_i';
+  end
+  if 0 % n vy T 1
+    [n,jx,jy,jz,pxx,pxy,pxz,pyy,pyz,pzz] = njp(pic,[1]);
+    hca = h(isub); isub = isub + 1;   
+    t = (pxx+pyy+pzz)./n/3;
+    
+    imagesc(hca,pc.xi,pc.zi,t')
+    hca.CLim = [0 0.2];
+    colormap(hca,pic_colors('candy'))
+    hcb = colorbar('peer',hca);
+    hcb.YLabel.String = 'T_{i,hot}';
+    hca.XLabel.String = 'x/d_i';
+    hca.YLabel.String = 'z/d_i';
+  end
+  if 0 % nP 35
+    [n,jx,jy,jz,pxx,pxy,pxz,pyy,pyz,pzz] = njp(pic,isC);
+    hca = h(isub); isub = isub + 1;   
+    p = (pxx+pyy+pzz)/3;
+    
+    imagesc(hca,pc.xi,pc.zi,p')
+    hca.CLim = [-0.4 0.4];
+    colormap(hca,pic_colors('candy2'))
+    hcb = colorbar('peer',hca);
+    hcb.YLabel.String = 'P_{i,cold}';
+    hca.XLabel.String = 'x/d_i';
+    hca.YLabel.String = 'z/d_i';
+  end
+  if 0 % P 1 - P0
+    [n,jx,jy,jz,pxx,pxy,pxz,pyy,pyz,pzz] = njp(pic,[1]);
+    hca = h(isub); isub = isub + 1;   
+    p = (pxx+pyy+pzz)/3;
+    p0 = 0.5*5/6/5;
+    imagesc(hca,pc.xi,pc.zi,p'-p0)
+    hca.CLim = [-0.4 0.4];
+    colormap(hca,pic_colors('candy2'))
+    hcb = colorbar('peer',hca);
+    hcb.YLabel.String = 'P_{i,hot}-P_{i,hot,lobe}';
+    hca.XLabel.String = 'x/d_i';
+    hca.YLabel.String = 'z/d_i';
+  end 
+  if 0 % n 35
+    n = pic.n(isC);
+    hca = h(isub); isub = isub + 1;       
+    
+    imagesc(hca,pc.xi,pc.zi,n'/0.4)
+    hca.CLim = [0 6];
+    colormap(hca,pic_colors('candy'))
+    hcb = colorbar('peer',hca);
+    hcb.YLabel.String = 'n_{i,cold}/n_{i,cold,lobe}';
+    hca.XLabel.String = 'x/d_i';
+    hca.YLabel.String = 'z/d_i';
+  end
+  if 0 % n
+    n = pic.n(1);
+    hca = h(isub); isub = isub + 1; 
+    imagesc(hca,pc.xi,pc.zi,n'/0.2)
+    hca.CLim = [0 6];
+    colormap(hca,pic_colors('candy'))
+    hcb = colorbar('peer',hca);
+    hcb.YLabel.String = 'n_{i,hot}/n_{i,hot,lobe}';
+    hca.XLabel.String = 'x/d_i';
+    hca.YLabel.String = 'z/d_i';
+  end 
+  if 1 % nhot-ncold
+    nhot = pic.n(1);
+    ncold = pic.n(isC);
+    hca = h(isub); isub = isub + 1; 
+    imagesc(hca,pc.xi,pc.zi,nhot'-ncold')
+    hca.CLim = [-1 1];
+    colormap(hca,pic_colors('blue_red'))
+    hcb = colorbar('peer',hca);
+    hcb.YLabel.String = 'n_{i,hot}-n_{i,cold}';
+    hca.XLabel.String = 'x/d_i';
+    hca.YLabel.String = 'z/d_i';
+  end 
+  
+  
+  h(1).Title.String = sprintf('twci = %g',pc.twci);
+  drawnow
+  compact_panels(0.02)
+  for ip = 1:npanels
+    hca = h(ip);
+    hold(hca,'on')
+    hca.FontSize = 14;
+    hca.YDir ='normal';
+    if doA
+      iAx = 1:4:pic.nx;
+      iAz = 1:4:pic.nz;
+      A = pc.A;
+      contour(hca,pic.xi(iAx),pic.zi(iAz),A(iAx,iAz)',Alev,'k');        
+    end    
+    for itr = 1:numel(tr)
+      if doPlotTrajectoriesLines
+        plot(hca,tr(itr).x,tr(itr).z)
+      end
+      if doPlotTrajectoriesParticles
+      ii = find(abs(tr(itr).t-pc.twci)==min(abs(tr(itr).t-pc.twci)));
+      plot(hca,tr(itr).x(ii),tr(itr).z(ii),'color',[0 0 0],'Marker',particleMarker,'MarkerSize',particlerMarkerSize)
+      end
+    end
+    hold(hca,'off')
+  end
+  pause(1)
+  if doVideo
+    set(gcf,'color','white');
+    currFrame = getframe(gcf);
+    writeVideo(vidObj,currFrame);
+  end
+  if doGif
+    if 1 % collect frames, for making gif
+      iframe = iframe + 1;    
+      nframes = pic0.nt;
+      currentBackgroundColor = get(gcf,'color');
+      set(gcf,'color',[1 1 1]);
+      drawnow      
+      tmp_frame = getframe(gcf);
+      %cell_movies{imovie}(itime) = tmp_frame;
+      if iframe == 1 % initialize animated gif matrix
+        [im_tmp,map] = rgb2ind(tmp_frame.cdata,256,'nodither');
+        %map(end+1,:) = get(gcf,'color');
+        im_tmp(1,1,1,nframes) = 0;                                                
+        all_im = im_tmp;
+      else
+        all_im(:,:,1,iframe) = rgb2ind(tmp_frame.cdata,map,'nodither');
+      end       
+    end    
+  end
+end
+if doVideo, close(vidObj); end
+if doGif
+  imwrite(all_im,map,[savedir movieName '.gif'],'DelayTime',0.0,'LoopCount',inf)
+end
+
+%% Figure with forces of example ion that makes a secondary finger
+% Select ions that corresponds to certain criteria
+% location, speed range, speed angle
+
+%tr1 = tr04.pass('x',[189 190],'z',[-0.25 0.25]);
+%tr = tr04.pass('x',[189 190],'z',[-0.25 0.25],'atan2d(vy,vx)',[90 135]);
+%tr = tr04.pass('x',[189 190],'z',[-0.25 0.25]).pass('atan2d(vy,vx)',[90 135]);
+trif = tr04.pass('x',[189 190],'z',[-0.25 0.25],'atan2d(vy,vx)',[90 135]);
+%%
+for itr = 1:numel(trif)
+  tr = trif(itr);
+  h = setup_subplots(5,1,'vertical');
+  isub = 1;
+  cmap = pic_colors('waterfall');
+  t0_msize = 10;
+  tr = tr(1);
+  legloc = 'eastoutside';
+  %cmap = interp1(linspace(1,64,size(cmap,1)),cmap,1:numel(tr.t)); 
+  if 0 % (vx,vy), colorcoded by time
+    hca = h(isub); isub = isub + 1;
+    plot(hca,tr.vx,tr.vy,'k')
+    hold(hca,'on')
+    plot(hca,tr.vx0,tr.vy0,'ks','markersize',t0_msize,'markerfacecolor',[0 0 0])
+    scatter(hca,tr.vx,tr.vy,20,tr.t,'filled')
+    hold(hca,'off')
+    hb = colorbar('peer',hca);
+    hb.YLabel.String = 'twci';
+    colormap(hca,cmap)
+    hca.XLabel.String = 'vx';
+    hca.YLabel.String = 'vy';  
+    hca.XGrid = 'on';
+    hca.YGrid = 'on';
+  end
+  if 0 % (vx,vz), colorcoded by time
+    hca = h(isub); isub = isub + 1;
+    plot(hca,tr.vx,tr.vz,'k')
+    hold(hca,'on')
+    plot(hca,tr.vx0,tr.vz0,'ks','markersize',t0_msize,'markerfacecolor',[0 0 0])
+    scatter(hca,tr.vx,tr.vz,20,tr.t,'filled')
+    hold(hca,'off')
+    hb = colorbar('peer',hca);
+    hb.YLabel.String = 'twci';
+    colormap(hca,cmap)
+    hca.XLabel.String = 'vx';
+    hca.YLabel.String = 'vz';  
+    hca.XGrid = 'on';
+    hca.YGrid = 'on';
+  end
+  if 0 % (vy,vz), colorcoded by time
+    hca = h(isub); isub = isub + 1;
+    plot(hca,tr.vy,tr.vz,'k')
+    hold(hca,'on')
+    plot(hca,tr.vy0,tr.vz0,'ks','markersize',t0_msize,'markerfacecolor',[0 0 0])
+    hs = scatter(hca,tr.vy,tr.vz,20,tr.t,'filled');
+    hold(hca,'off')
+    hb = colorbar('peer',hca);
+    hb.YLabel.String = 'twci';
+    colormap(hca,cmap)
+    hca.XLabel.String = 'vy';
+    hca.YLabel.String = 'vz';  
+    hca.XGrid = 'on';
+    hca.YGrid = 'on';
+  end
+  if 0 % (vx,vy), colorcoded by x
+    hca = h(isub); isub = isub + 1;
+    plot(hca,tr.vx,tr.vy,'k')
+    hold(hca,'on')
+    plot(hca,tr.vx0,tr.vy0,'ks','markersize',t0_msize,'markerfacecolor',[0 0 0])
+    scatter(hca,tr.vx,tr.vy,20,tr.x,'filled')
+    hold(hca,'off')
+    hb = colorbar('peer',hca);
+    hb.YLabel.String = 'x/di';
+    colormap(hca,cmap)
+    hca.XLabel.String = 'vx';
+    hca.YLabel.String = 'vy';  
+    hca.XGrid = 'on';
+    hca.YGrid = 'on';
+  end
+  if 0 % (vx,vz), colorcoded by x
+    hca = h(isub); isub = isub + 1;
+    plot(hca,tr.vx,tr.vz,'k')
+    hold(hca,'on')
+    plot(hca,tr.vx0,tr.vz0,'ks','markersize',t0_msize,'markerfacecolor',[0 0 0])
+    scatter(hca,tr.vx,tr.vz,20,tr.x,'filled')
+    hold(hca,'off')
+    hb = colorbar('peer',hca);
+    hb.YLabel.String = 'x/di';
+    colormap(hca,cmap)
+    hca.XLabel.String = 'vx';
+    hca.YLabel.String = 'vz';  
+    hca.XGrid = 'on';
+    hca.YGrid = 'on';
+  end
+  if 0 % (vy,vz), colorcoded by x
+    hca = h(isub); isub = isub + 1;
+    plot(hca,tr.vy,tr.vz,'k')
+    hold(hca,'on')
+    plot(hca,tr.vy0,tr.vz0,'ks','markersize',t0_msize,'markerfacecolor',[0 0 0])
+    hs = scatter(hca,tr.vy,tr.vz,20,tr.x,'filled');
+    hold(hca,'off')
+    hb = colorbar('peer',hca);
+    hb.YLabel.String = 'x/di';
+    colormap(hca,cmap)
+    hca.XLabel.String = 'vy';
+    hca.YLabel.String = 'vz';  
+    hca.XGrid = 'on';
+    hca.YGrid = 'on';
+  end
+  if 0 % (vx,vy), colorcoded by z
+    hca = h(isub); isub = isub + 1;
+    plot(hca,tr.vx,tr.vy,'k')
+    hold(hca,'on')
+    plot(hca,tr.vx0,tr.vy0,'ks','markersize',t0_msize,'markerfacecolor',[0 0 0])
+    scatter(hca,tr.vx,tr.vy,20,tr.z,'filled')
+    hold(hca,'off')
+    hb = colorbar('peer',hca);
+    hb.YLabel.String = 'z/di';
+    colormap(hca,cmap)
+    hca.XLabel.String = 'vx';
+    hca.YLabel.String = 'vy';  
+    hca.XGrid = 'on';
+    hca.YGrid = 'on';
+  end
+  if 0 % (vx,vz), colorcoded by z
+    hca = h(isub); isub = isub + 1;
+    plot(hca,tr.vx,tr.vz,'k')
+    hold(hca,'on')
+    plot(hca,tr.vx0,tr.vz0,'ks','markersize',t0_msize,'markerfacecolor',[0 0 0])
+    scatter(hca,tr.vx,tr.vz,20,tr.z,'filled')
+    hold(hca,'off')
+    hb = colorbar('peer',hca);
+    hb.YLabel.String = 'z/di';
+    colormap(hca,cmap)
+    hca.XLabel.String = 'vx';
+    hca.YLabel.String = 'vz';  
+    hca.XGrid = 'on';
+    hca.YGrid = 'on';
+  end
+  if 0 % (vy,vz), colorcoded by z
+    hca = h(isub); isub = isub + 1;
+    plot(hca,tr.vy,tr.vz,'k')
+    hold(hca,'on')
+    plot(hca,tr.vy0,tr.vz0,'ks','markersize',t0_msize,'markerfacecolor',[0 0 0])
+    hs = scatter(hca,tr.vy,tr.vz,20,tr.z,'filled');
+    hold(hca,'off')
+    hb = colorbar('peer',hca);
+    hb.YLabel.String = 'z/di';
+    colormap(hca,cmap)
+    hca.XLabel.String = 'vy';
+    hca.YLabel.String = 'vz';  
+    hca.XGrid = 'on';
+    hca.YGrid = 'on';
+  end
+  if 0 % xyz
+    hca = h(isub); isub = isub + 1;
+    plot3(hca,tr.x,tr.y,tr.z)
+    hold(hca,'on')
+    plot3(hca,tr.x0,tr.y0,tr.z0,'ko','markersize',t0_msize,'markerfacecolor',[0 0 0])
+    scatter3(hca,tr.x,tr.y,tr.z,1,tr.t)
+    hold(hca,'off')
+    hb = colorbar('peer',hca);
+    colormap(hca,cmap)
+    hca.XLabel.String = 'x';
+    hca.YLabel.String = 'y';
+    hca.ZLabel.String = 'z';
+    hca.XGrid = 'on';
+    hca.YGrid = 'on';
+    hca.ZGrid = 'on';
+  end
+  if 1 % xyz(t)
+    hca = h(isub); isub = isub + 1;
+    plot(hca,tr.t,tr.x-200,tr.t,tr.y,tr.t,tr.z)
+    hca.XLabel.String = 't';
+    hca.YLabel.String = 'r';  
+    hca.XGrid = 'on';
+    hca.YGrid = 'on';  
+    legend(hca,{'x-200','y','z'},'location',legloc)
+  end
+  if 1 % v 
+    hca = h(isub); isub = isub + 1;
+    plot(hca,tr.t,tr.vx,tr.t,tr.vy,tr.t,tr.vz)
+    hca.XLabel.String = 't';
+    hca.YLabel.String = 'v';  
+    hca.XGrid = 'on';
+    hca.YGrid = 'on';  
+    legend(hca,{'x','y','z'},'location',legloc)
+  end
+  if 1 % B
+    hca = h(isub); isub = isub + 1;
+    plot(hca,tr.t,tr.Bx,tr.t,tr.By,tr.t,tr.Bz)
+    hca.XLabel.String = 't';
+    hca.YLabel.String = 'B';
+    hca.XGrid = 'on';
+    hca.YGrid = 'on';  
+    legend(hca,{'x','y','z'},'location',legloc)
+  end
+  if 1 % E 
+    hca = h(isub); isub = isub + 1;
+    plot(hca,tr.t,tr.Ex,tr.t,tr.Ey,tr.t,tr.Ez)
+    hca.XLabel.String = 't';
+    hca.YLabel.String = 'E';  
+    hca.XGrid = 'on';
+    hca.YGrid = 'on';  
+    legend(hca,{'x','y','z'},'location',legloc)
+  end
+  if 1 % vxB
+    hca = h(isub); isub = isub + 1;
+    vxB = cross_product(tr.vx,tr.vy,tr.vz,tr.Bx,tr.By,tr.Bz);
+    plot(hca,tr.t,vxB.x,tr.t,vxB.y,tr.t,vxB.z)
+    hca.XLabel.String = 't';
+    hca.YLabel.String = 'vxB';  
+    hca.XGrid = 'on';
+    hca.YGrid = 'on';  
+    legend(hca,{'x','y','z'},'location',legloc)
+  end
+
+  %[Ex,Ey,Ez,Bx,By,Bz] = df04.interp_EB3(xvtb.x,xvtb.z,xvtb.t);
+
+  c_eval('h(?).XLim = [100 210];',1:5)
+  compact_panels(0.01)
+  h(2).YLim = [-1.7 1.7];
+  h(3).YLim = [-1.02 1.02];
+  h(3).YLim = [-0.99 0.99];
+  h(4).YLim = [-0.49 0.49];
+  h(5).YLim = [-0.49 0.49];
+  %h(6).YLim = [-0.49 0.49];
+  for ip = 1:5
+    h(ip).FontSize = 14;
+    h(ip).Position(3) = 0.7;
+  end
+  for ip = []%1:3
+    h(ip).XLim = [-2 2];
+    h(ip).YLim = [-2 2];
+    axis(h(ip),'square')
+    h(ip).XTick = -15:0.5:15;
+    h(ip).YTick = -15:0.5:15;
+  end
+  cn.print(sprintf('ifinger_forces_%g',itr),'path',[savedir '/forces/'])
+end
+
+%% Plot distributions that correponds to 'DF-frame' movie
+ds = ds04(2).zlim([-0.2 0.2]).xlim([166 169]+[-0.2 0.2]);
+
+nrows = 1;
+ncols = 4;
+npanels = nrows*ncols;
+h = setup_subplots(nrows,ncols);
+isub = 1;
+
+for id = 1:ds.nd{1}
+  hca = h(isub); isub = isub + 1;
+  f = ds.f(1,id,[3 5]);
+  imagesc(hca,f.v,f.v,f.fxz')
+  hca.XLim = [-1.5 1.5];
+  hca.YLim = [-1.5 1.5];
+  axis(hca,'square')
+  hca.XLabel.String = 'v_x';
+  hca.YLabel.String = 'v_z';
+  colormap(hca,pic_colors('candy'))
+  hca.XGrid = 'on';
+  hca.YGrid = 'on';
+  hca.XTick = -5:1:5;
+  hca.YTick = -5:1:5;
+  hca.Position(2) = 0.15;
+  irf_legend(hca,sprintf('x = %.0f, z = %.0f',mean(f.x),mean(f.z)),[0.02 0.98]);
+end
+compact_panels(0,0.01)
+c_eval('h(?).YLabel.String = '''';',2:4)
+c_eval('h(?).YTickLabel = '''';',2:4)
+
+%% dEF of ions along a line, foremost between df and xline
+twci = 100; it = 1;
+zlim = 1 + [-0.24 0.24];
+xlim = [155 200];
+
+twci = 160; it = 2;
+zlim = 7 + [-0.24 0.24];
+xlim = [155 200];
+nE = 50;
+
+ds = ds04(it).xlim(xlim).zlim(zlim);
+pic = df04.twcilim(twci).xlim(xlim).zlim(zlim);
+dEF35 = ds.dEF(1,ds.indices{1},[3 5],nE);
+dEF1 = ds.dEF(1,ds.indices{1},[1],nE);
+% get ExB velocity to overplot spectrogram
+Ex = pic.Ex; 
+Ey = pic.Ey;
+Ez = pic.Ez;
+Bx = pic.Bx;
+By = pic.By;
+Bz = pic.Bz;
+Babs = sqrt(Bx.^2+By.^2+Bz.^2);
+
+vExB = cross_product(Ex,Ey,Ez,Bx./Babs,By./Babs,Bz./Babs);
+if 1 % mean first
+  vExB.x = mean(vExB.x,2);
+  vExB.y = mean(vExB.y,2);
+  vExB.z = mean(vExB.z,2);
+else
+  
+end
+eExB = (vExB.x.^2+vExB.y.^2+vExB.z.^2)/2;
+
+
+% plot
+doExB = 1;
+
+nrows = 5;
+ncols = 1;
+npanels = nrows*ncols;
+h = setup_subplots(nrows,ncols);
+isub = 1;
+cmap = pic_colors('candy');
+cmap = colormap('jet');
+%cmap = irf_colormap('waterfall');
+
+
+if 1 % B
+  hca = h(isub); isub = isub + 1;
+  plot(hca,pic.xi,-mean(pic.Bz,2)');
+  shading(hca,'flat')
+  colormap(cmap)
+  hca.XLabel.String = 'x/d_i';
+  hca.YLabel.String = '-B_z/B_0';
+  hca.XGrid = 'on';
+  hca.YGrid = 'on';
+end
+if 1 % n
+  hca = h(isub); isub = isub + 1;
+  plot(hca,pic.xi,mean(pic.n([1]),2)',...
+    pic.xi,mean(pic.n([3 5]),2)',...
+    pic.xi,mean(pic.n([1]),2)'+mean(pic.n([3 5]),2)');
+  shading(hca,'flat')
+  colormap(cmap)
+  hca.XLabel.String = 'x/d_i';
+  hca.YLabel.String = 'n/n_0';
+  irf_legend(hca,{'n_{hot ions}';'n_{cold ions}';'n_{all ions}'},[0.98 0.98])
+  hca.XGrid = 'on';
+  hca.YGrid = 'on';
+end
+if 0 % eExB
+  hca = h(isub); isub = isub + 1;
+  semilogy(hca,pic.xi,mean(eExB,2)');
+  shading(hca,'flat')
+  colormap(cmap)
+  hca.XLabel.String = 'x/d_i';
+  hca.YLabel.String = 'E_{ExB}';
+  irf_legend(hca,{'n_{hot ions}';'n_{cold ions}';'n_{all ions}'},[0.98 0.98])
+  hca.XGrid = 'on';
+  hca.YGrid = 'on';
+end
+if 1
+  hca = h(isub); isub = isub + 1;
+  pcolor(hca,dEF1.x,log10(dEF1.energy),log10(dEF1.dEF)'); 
+  shading(hca,'flat')
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'diff. energy flux';
+  colormap(cmap)
+  hca.XLabel.String = 'x/d_i';
+  hca.YLabel.String = 'log_{10}E_{hot ions}';
+end
+if 1
+  hca = h(isub); isub = isub + 1;
+  pcolor(hca,dEF35.x,log10(dEF35.energy),log10(dEF35.dEF)'); 
+  shading(hca,'flat')
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'diff. energy flux';
+  colormap(cmap)
+  hca.XLabel.String = 'x/d_i';
+  hca.YLabel.String = 'log_{10}E_{cold ions}';
+  if doExB
+    hold(hca,'on')
+    plot(hca,pic.xi,smooth(log10(mean(eExB,2)),7)','k');
+    hold(hca,'on')
+    irf_legend(hca,{'E_{ExB}'},[0.02 0.1],'color',[0 0 0])
+  end
+end
+if 1
+  hca = h(isub); isub = isub + 1;
+  pcolor(hca,dEF1.x,log10(dEF1.energy),log10(dEF1.dEF+dEF35.dEF)'); 
+  shading(hca,'flat')
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'diff. energy flux';
+  colormap(cmap)
+  hca.XLabel.String = 'x/d_i';
+  hca.YLabel.String = 'log_{10}E_{all ions}';
+  if doExB
+    hold(hca,'on')
+    plot(hca,pic.xi,smooth(log10(mean(eExB,2)),7)','k');
+    hold(hca,'on')
+    irf_legend(hca,{'E_{ExB}'},[0.02 0.1],'color',[0 0 0])
+  end
+end
+
+h(1).Title.String =sprintf('twci = %g, z = %g d_i',twci,mean(zlim));
+hlinks = linkprop(h(3:5),{'CLim'});
+hlinks.Targets(1).CLim = [-4 2];
+compact_panels(0.01)
+irf_plot_axis_align(h)
+
+for ip = 1:npanels
+  h(ip).XLim = xlim;
+  
+end
+
+%% Forces across front option to make video and gif
+doVideo = 1;
+doGif = 1;
+doPlotTrajectories = 0; % lines showing the entire trajectory
+particleMarker = '.';
+particlerMarkerSize = 15;
+
+movieName = 'forces_at_front_1';
+twci = [100 210];
+doA = 1; Alev = -25:1:0;
+pic0 = df04.twcilim(twci);
+
+%[xDF,vDF,aDF,BDF] = df04.xva_df;
+%xDF = xDF(1,:);
+%tr = trif;
+%tr = tr04.pass('charge',[0 2]); % all ions
+if doVideo
+  vidObj = VideoWriter([savedir movieName '.mp4'],'MPEG-4');
+  open(vidObj);
+end
+if doGif
+  iframe = 0;
+end
+
+nrows = 6;
+ncols = 1;
+npanels = nrows*ncols;
+h = setup_subplots(nrows,ncols);
+
+for it = 1:pic0.nt
+  if 0
+    x0 = xDF(pic0.it(it));  
+    xlim = x0 + [-70 70];
+  else
+    xlim = [120 210];
+  end
+    
+  zlim = [-1 1]; % mean over this distance
+  twci = pic0.twci(it);
+  pic = df04.twcilim(twci).xlim(xlim).zlim(zlim);
+  
+  pc = pic;
+  % load everything thats needed
+  [n1,jx1,jy1,jz1,pxx1,pxy1,pxz1,pyy1,pyz1,pzz1] = pic.njp([1]);
+  [n35,jx35,jy35,jz35,pxx35,pxy35,pxz35,pyy35,pyz35,pzz35] = pic.njp([3 5]);
+  
+  n1 = mean(n1,2);
+  n35 = mean(n35,2);
+  jx1 = mean(jx1,2);
+  jy1 = mean(jy1,2);
+  jz1 = mean(jz1,2);
+  jx35 = mean(jx35,2);
+  jy35 = mean(jy35,2);
+  jz35 = mean(jz35,2);
+  vx1 = jx1./n1;
+  vy1 = jy1./n1;
+  vz1 = jz1./n1;
+  vx35 = jx35./n35;
+  vy35 = jy35./n35;
+  vz35 = jz35./n35;
+  
+  ns = 3;
+  P1.xx = smooth2(pxx1,ns);
+  P1.xy = smooth2(pxy1,ns);
+  P1.xz = smooth2(pxz1,ns);
+  P1.yy = smooth2(pyy1,ns);
+  P1.yz = smooth2(pyz1,ns);
+  P1.zz = smooth2(pzz1,ns);
+  P35.xx = smooth2(pxx35,ns);
+  P35.xy = smooth2(pxy35,ns);
+  P35.xz = smooth2(pxz35,ns);
+  P35.yy = smooth2(pyy35,ns);
+  P35.yz = smooth2(pyz35,ns);
+  P35.zz = smooth2(pzz35,ns);
+  
+  divP1 = div_tensor(pic.xi, pic.zi, P1,'comp',1);
+  divP35 = div_tensor(pic.xi, pic.zi, P35,'comp',1);
+  divP1xB = cross_product(divP1.x,divP1.y,divP1.z,Bx,By,Bz);
+  Ex = mean(pic.Ex,2);
+  Ey = mean(pic.Ey,2);
+  Ez = mean(pic.Ez,2);
+  Bx = mean(pic.Bx,2);
+  By = mean(pic.By,2);
+  Bz = mean(pic.Bz,2);  
+  Babs = sqrt(Bx.^2+By.^2+Bz.^2);    
+  vxB1 = cross_product(vx1,vy1,vz1,Bx,By,Bz);
+  vxB35 = cross_product(vx35,vy35,vz35,Bx,By,Bz);
+ 
+    
+  isub = 1;
+  if 1 % B_x,E_y
+    hca = h(isub); isub = isub + 1;
+    plot(hca,pc.xi,abs(Bz'),pc.xi,Ey')        
+    hca.YLabel.String = '|B_z|,Ey';
+    hca.XLabel.String = 'x/d_i';
+  end
+  if 1 % divP
+    hca = h(isub); isub = isub + 1;
+    colors = pic_colors('matlab');
+    plot(hca,pc.xi,-mean(divP1.x,2),pc.xi,-mean(divP1.y,2),pc.xi,-mean(divP1.y,2))
+    hold(hca,'on')
+    set(hca,'colororder',colors)
+    plot(hca,pc.xi,-mean(divP35.x,2),'--',pc.xi,-mean(divP35.y,2),'--',pc.xi,-mean(divP35.y,2),'--')
+    hold(hca,'off')
+    
+    hca.YLabel.String = 'divP';
+    hca.XLabel.String = 'x/d_i';      
+  end
+  if 1 % divP1_x_components
+    hca = h(isub); isub = isub + 1;
+    colors = pic_colors('matlab');
+    plot(hca,pc.xi,-mean(divP1.x_xx,2),pc.xi,-mean(divP1.x_yy,2),pc.xi,-mean(divP1.x_zz,2))    
+    hca.YLabel.String = 'divP';
+    hca.XLabel.String = 'x/d_i';    
+    legend(hca,{'dxPxx','dyPxy','dzPxz'},'location','northwest')
+  end
+  if 1 % divP1_y_components
+    hca = h(isub); isub = isub + 1;
+    colors = pic_colors('matlab');
+    plot(hca,pc.xi,-mean(divP1.y_xx,2),pc.xi,-mean(divP1.x_yy,2),pc.xi,-mean(divP1.x_zz,2))    
+    hca.YLabel.String = 'divP';
+    hca.XLabel.String = 'x/d_i';    
+    legend(hca,{'dxPxy','dyPyy','dzPyz'},'location','northwest')
+  end
+  if 1 % E, vxB,divP, y
+    hca = h(isub); isub = isub + 1;
+    colors = pic_colors('matlab');
+    plot(hca,pc.xi,Ey',pc.xi,vxB1.y',pc.xi,-mean(divP1.y,2)',...
+             pc.xi,Ey'+vxB1.y'-mean(divP1.y,2)')
+    hold(hca,'on')
+    set(hca,'colororder',colors)
+    %plot(hca,pc.xi,-mean(divP1.x,2),'--',pc.xi,-mean(divP1.y,2),'--',pc.xi,-mean(divP1.y,2),'--')
+    hold(hca,'off')
+    
+    hca.YLabel.String = '...';
+    hca.XLabel.String = 'x/d_i';  
+    legend(hca,{'E_y','vxB_y','-divP_y','E_y+vxB_y-divP_y'},'location','northwest')
+  end
+  if 1 % E, vxB,divP, x
+    hca = h(isub); isub = isub + 1;
+    colors = pic_colors('matlab');
+    plot(hca,pc.xi,Ex',pc.xi,vxB1.x',pc.xi,-mean(divP1.x,2)',...
+             pc.xi,Ex'+vxB1.x'-mean(divP1.x,2)')
+    hold(hca,'on')
+    set(hca,'colororder',colors)
+    %plot(hca,pc.xi,-mean(divP1.x,2),'--',pc.xi,-mean(divP1.y,2),'--',pc.xi,-mean(divP1.y,2),'--')
+    hold(hca,'off')
+    
+    hca.YLabel.String = '...';
+    hca.XLabel.String = 'x/d_i';  
+    legend(hca,{'E_x','vxB_x','-divP_x','E_y+vxB_y-divP_x'},'location','northwest')
+  end
+  if 0 % n(Ey+vxB)_x
+    hca = h(isub); isub = isub + 1;
+    plot(hca,pc.xi,n1'.*(Ey+vxB1.x)',...
+             pc.xi,n35'.*(Ey+vxB35.x)')    
+    hcb = colorbar('peer',hca);
+    hcb.YLabel.String = 'n(E+vxB)_x';
+    hca.XLabel.String = 'x/d_i';  
+    legend(hca,{'hot ions: n(E+vxB)','cold ions: n(E+vxB)'},'location','northwest')
+  end
+  if 0 % n(Ey+vxB)_y
+    hca = h(isub); isub = isub + 1;
+    plot(hca,pc.xi,n1'.*(Ey+vxB1.y)',...
+             pc.xi,n35'.*(Ey+vxB35.y)')    
+    hcb = colorbar('peer',hca);
+    hcb.YLabel.String = 'n(E+vxB)_y';
+    hca.XLabel.String = 'x/d_i';  
+    legend(hca,{'hot ions: n(E+vxB)','cold ions: n(E+vxB)'},'location','northwest')
+  end
+  if 0 % -divP.y
+    hca = h(isub); isub = isub + 1;
+    plot(hca,pc.xi,-smooth(mean(divP1.y,2),10)',...
+             pc.xi,-smooth(mean(divP35.y,2),10)')        
+    hca.YLabel.String = '-((divP)_y';
+    hca.XLabel.String = 'x/d_i';  
+    legend(hca,{'hot ions: -divP','cold ions: -divP'},'location','northwest')
+  end
+  if 0 % n(Ey+vxB)-divP.y
+    hca = h(isub); isub = isub + 1;
+    plot(hca,pc.xi,n1'.*(Ey+vxB1.y)'-smooth(mean(divP1.y,2),10)',...
+             pc.xi,n35'.*(Ey+vxB35.y)'-smooth(mean(divP35.y,2),10)')    
+    hcb = colorbar('peer',hca);
+    hcb.YLabel.String = 'n(E+vxB)_y-((divP)_y';
+    hca.XLabel.String = 'x/d_i';  
+    legend(hca,{'hot ions: n(E+vxB)-divP','cold ions: n(E+vxB)-divP'},'location','northwest')
+  end
+  if 0 % neEy,divP.y
+    hca = h(isub); isub = isub + 1;
+    plot(hca,pc.xi,n1'.*Ey',...
+             pc.xi,n35'.*Ey',...
+             pc.xi,n1'.*vxB1.y',...
+             pc.xi,n35'.*vxB35.y',...
+             pc.xi,smooth(mean(divP1.y,2),10)',...
+             pc.xi,mean(divP35.y,2)')    
+    hcb = colorbar('peer',hca);
+    hcb.YLabel.String = 'nE_y';
+    hca.XLabel.String = 'x/d_i';    
+  end
+  if 0 % Ey,divP.y
+    hca = h(isub); isub = isub + 1;
+    plot(hca,pc.xi,Ey',...
+      pc.xi,mean(divP35.y,2)',...
+      pc.xi,mean(divP1.y,2)')    
+    hcb = colorbar('peer',hca);
+    hcb.YLabel.String = 'E_y';
+    hca.XLabel.String = 'x/d_i';    
+  end
+  if 0 % By
+    hca = h(isub); isub = isub + 1;
+    imagesc(hca,pc.xi,pc.zi,pc.By')
+    hca.CLim = [-1 1];
+    colormap(hca,pic_colors('blue_red'))
+    hcb = colorbar('peer',hca);
+    hcb.YLabel.String = 'B_y';
+    hca.XLabel.String = 'x/d_i';
+    hca.YLabel.String = 'z/d_i';
+  end
+  if 0 % Ey
+    hca = h(isub); isub = isub + 1;
+    imagesc(hca,pc.xi,pc.zi,pc.Ey')
+    hca.CLim = [-1 1];
+    colormap(hca,pic_colors('blue_red'))
+    hcb = colorbar('peer',hca);
+    hcb.YLabel.String = 'E_y';
+    hca.XLabel.String = 'x/d_i';
+    hca.YLabel.String = 'z/d_i';
+  end
+  if 0 % Bz
+    hca = h(isub); isub = isub + 1;
+    imagesc(hca,pc.xi,pc.zi,pc.Bz')
+    hca.CLim = [-1 1];
+    colormap(hca,pic_colors('blue_red'))
+    hcb = colorbar('peer',hca);
+    hcb.YLabel.String = 'B_z';
+    hca.XLabel.String = 'x/d_i';
+    hca.YLabel.String = 'z/d_i';
+  end
+  if 0 % magnetic field curvature
+    hca = h(isub); isub = isub + 1;
+    
+    Bx = pc.Bx;
+    By = pc.By;
+    Bz = pc.Bz;   
+    bcurv = magnetic_field_curvature(pc.xi,pc.zi,Bx,By,Bz);
+    imagesc(hca,pc.xi,pc.zi,bcurv.abs')
+    hca.CLim = [0 2];
+    colormap(hca,pic_colors('candy'))
+    hcb = colorbar('peer',hca);
+    hcb.YLabel.String = '|B_{curv}|';
+    hca.XLabel.String = 'x/d_i';
+    hca.YLabel.String = 'z/d_i';
+    
+  end
+  if 0 % v35y
+    hca = h(isub); isub = isub + 1;
+    imagesc(hca,pc.xi,pc.zi,pc.vy([3 5])')
+    hca.CLim = [-.5 0.5];
+    colormap(hca,pic_colors('blue_red'))
+    hcb = colorbar('peer',hca);
+    hcb.YLabel.String = 'v_{y,i,cold}';
+    hca.XLabel.String = 'x/d_i';
+    hca.YLabel.String = 'z/d_i';
+  end
+  if 0 % v35y
+    hca = h(isub); isub = isub + 1;
+    imagesc(hca,pc.xi,pc.zi,pc.n([3 5])')
+    hca.CLim = [0 1.5];
+    colormap(hca,pic_colors('candy'))
+    hcb = colorbar('peer',hca);
+    hcb.YLabel.String = 'n_{i,cold}';
+    hca.XLabel.String = 'x/d_i';
+    hca.YLabel.String = 'z/d_i';
+  end
+  if 0 % vxB_y
+    hca = h(isub); isub = isub + 1;
+    vx = pc.vx([3 5]);
+    vy = pc.vy([3 5]);
+    vz = pc.vz([3 5]);
+    Bx = pc.Bx;
+    By = pc.By;
+    Bz = pc.Bz;
+    vxB = cross_product(vx,vy,vz,Bx,By,Bz);
+    imagesc(hca,pc.xi,pc.zi,vxB.y')
+    hca.CLim = [-.5 0.5];
+    colormap(hca,pic_colors('blue_red'))
+    hcb = colorbar('peer',hca);
+    hcb.YLabel.String = '(vxB)_y';
+    hca.XLabel.String = 'x/d_i';
+    hca.YLabel.String = 'z/d_i';
+  end
+  if 0 % n vy T
+    [n,jx,jy,jz,pxx,pxy,pxz,pyy,pyz,pzz] = njp(pic,[3 5]);
+    hca = h(isub); isub = isub + 1;   
+    t = (pxx+pyy+pzz)./n/3;
+    
+    imagesc(hca,pc.xi,pc.zi,t')
+    hca.CLim = [0 0.2];
+    colormap(hca,pic_colors('candy'))
+    hcb = colorbar('peer',hca);
+    hcb.YLabel.String = 'T_{i,cold}';
+    hca.XLabel.String = 'x/d_i';
+    hca.YLabel.String = 'z/d_i';
+  end 
+  
+  h(1).Title.String = sprintf('twci = %g',pc.twci);
+  drawnow
+  compact_panels(0.02)
+  compact_panels(0.01)
+  for ip = 1:npanels
+    hca = h(ip);
+    hca.FontSize = 14;
+    hca.YDir ='normal';
+    hca.XGrid = 'on';
+    hca.YGrid = 'on';
+  end
+  irf_plot_axis_align
+  pause(1)
+  if doVideo
+    set(gcf,'color','white');
+    currFrame = getframe(gcf);
+    writeVideo(vidObj,currFrame);
+  end
+  if doGif
+    if 1 % collect frames, for making gif
+      iframe = iframe + 1;    
+      nframes = pic0.nt;
+      currentBackgroundColor = get(gcf,'color');
+      set(gcf,'color',[1 1 1]);
+      drawnow      
+      tmp_frame = getframe(gcf);
+      %cell_movies{imovie}(itime) = tmp_frame;
+      if iframe == 1 % initialize animated gif matrix
+        [im_tmp,map] = rgb2ind(tmp_frame.cdata,256,'nodither');
+        %map(end+1,:) = get(gcf,'color');
+        im_tmp(1,1,1,nframes) = 0;                                                
+        all_im = im_tmp;
+      else
+        all_im(:,:,1,iframe) = rgb2ind(tmp_frame.cdata,map,'nodither');
+      end       
+    end    
+  end
+  
+end
+if doVideo, close(vidObj); end
+if doGif
+  imwrite(all_im,map,[savedir movieName '.gif'],'DelayTime',0.0,'LoopCount',inf)
+end
