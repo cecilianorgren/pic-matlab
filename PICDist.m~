@@ -868,11 +868,11 @@
       
       ds = obj.xlim(xlim).zlim(zlim);
       
-      for it = its
-        ids = ds.indices{it};
+      for it = 1:numel(its)
+        ids = ds(it).indices{it};
         for id = 1:numel(ids) 
           id_count = id_count + 1;
-          f_tmp = ds.fxyz(it,id_count,iss);
+          f_tmp = obj.fxyz(it,id,iss);
           switch vdim
             case 1
               f_tmp.f = sum(f_tmp.f,3);
@@ -883,23 +883,27 @@
             case 3
               f_tmp.f = sum(f_tmp.f,2);
               f_tmp.f = sum(f_tmp.f,1);
-          end          
+          end
+          end
           f_all(id,:) = f_tmp.f;
           v_all(id,:) = f_tmp.v;
           x_all(id) = mean(f_tmp.x);
           z_all(id) = mean(f_tmp.z);
         end
       end
-      f_all(f_all==0) = nan;
       if nargout == 1
+        varargout{1}.energy = f_energy_centers;
+        varargout{1}.energy_edges = f_energy_edges;
+        varargout{1}.dEF = dEF_all;
         varargout{1}.x = x_all;
         varargout{1}.z = z_all;
-        varargout{1}.v = v_all;
-        varargout{1}.f = f_all;
-        
       elseif nargout == 2        
-       
+        varargout{2}.energy_edges = f_energy_edges;
+        varargout{3}.dEF = dEF_all;
       elseif nargout == 3
+        varargout{1}.energy = f_energy_centers;
+        varargout{2}.energy_edges = f_energy_edges;
+        varargout{3}.dEF = dEF_all;
       end
     end
     % Density
