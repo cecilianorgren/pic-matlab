@@ -6,20 +6,21 @@ tr04 = PICTraj('/Volumes/Fountain/Data/PIC/df_cold_protons_n04/data_h5/trajector
 savedir  = ['/Users/' localuser '/GoogleDrive/DF_Cold_ions_figures_for_AGU/'];
 
 %%
-zlim = 0.0+[-0.2 0.2];
+zlim = 0+[-0.2 0.2];
 xlim = [0 400];
 its = 2;
 twci = 160;
 iss = [2];
+icold = [3 5];
 
 rdim = 1; % x
 vdim = 2; % y
 f1_x_vx = make_space_time_1d(ds04,its,xlim,zlim,rdim,1,1);
 f1_x_vy = make_space_time_1d(ds04,its,xlim,zlim,rdim,2,1);
 f1_x_vz = make_space_time_1d(ds04,its,xlim,zlim,rdim,3,1);
-f35_x_vx = make_space_time_1d(ds04,its,xlim,zlim,rdim,1,[5]);
-f35_x_vy = make_space_time_1d(ds04,its,xlim,zlim,rdim,2,[5]);
-f35_x_vz = make_space_time_1d(ds04,its,xlim,zlim,rdim,3,[5]);
+f35_x_vx = make_space_time_1d(ds04,its,xlim,zlim,rdim,1,icold);
+f35_x_vy = make_space_time_1d(ds04,its,xlim,zlim,rdim,2,icold);
+f35_x_vz = make_space_time_1d(ds04,its,xlim,zlim,rdim,3,icold);
 
 % Get X line location
 A = df04.twcilim(twci).A;
@@ -78,6 +79,7 @@ end
 maxc = 0;
 for ip = 1:npanels
   hca = h(ip);
+  hb(ip) = colorbar('peer',h(ip));
   hca.XGrid = 'on';
   hca.YGrid = 'on';
   hca.Layer = 'top';
@@ -90,6 +92,8 @@ for ip = 1:npanels
   hold(hca,'off')
 end
 
+h(1).Title.String = sprintf('z = [%.1f %.1f] d_i\nhot ions',zlim(1),zlim(2));
+h(4).Title.String = sprintf('z = [%.1f %.1f] d_i\ncold ions',zlim(1),zlim(2));
 colormap(pic_colors('candy'))
 compact_panels(0.01)
 %%

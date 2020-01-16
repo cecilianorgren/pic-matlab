@@ -1025,19 +1025,10 @@
         elseif strcmp(obj.software,'Smilei')
           Bx =  obj.Bx;
           By =  obj.By;
-          A = calc_A(obj.xi,obj.zi,Bx,By);
+          
         end
       end
-      out = A;
-      % nested function
       function out = calc_A(x,z,bx,bz)
-        % Grid
-        dx = x(2)-x(1);
-        dz = z(2)-z(1);
-        nz = numel(z);
-        nx = numel(x);
-
-
         ntimes = size(bx,3);
         A = bx*0;
         for itime = 1:ntimes
@@ -1054,7 +1045,6 @@
           A_tmp((ixm-1):-1:1,:) = repmat(A_tmp(ixm,:),ixm-1,1) + cumsum(-bz_tmp((ixm-1):-1:1,:),1)*dx;
           A(:,:,itime) = A_tmp;
         end
-        out = A;
       end
     end
     function out = Bx(obj)

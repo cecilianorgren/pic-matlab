@@ -1,3 +1,4 @@
+
 % plot for presentation
 [saddle_locations,saddle_values] = saddle(A,'sort');
 AX = saddle_values(1);

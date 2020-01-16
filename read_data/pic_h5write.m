@@ -348,6 +348,7 @@ for itime = 1:numel(timesteps)
 end
 
 disp('Done.')
+
 %% Add some extra derived quantities to h5 file, such as:
 % reconnection rate, done
 % X line locations, 
