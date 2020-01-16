@@ -385,8 +385,7 @@
     end
               
     % Data analysis routines, time derivatives, interpolation, etc.
-    % Interpolate fields
-    
+    % Interpolate fields    
     function out = interp(obj,x,z,t,field,varargin)
       % Interpolates fields to given x,z,t
       
@@ -635,23 +634,27 @@
       zz = interp3(X,Z,T,permute(tmpVz,[2 1 3]),x,z,t,method);
       
     end
-    function out = integrate_trajectory(obj,r0,v0,tspan,m,q)
-      % out = integrate_trajectory(r0,v0,tspan,m,q)
-      % tspan = [tstart tstop] - only back or forward, if tstart > tstop, integrating is done backward in time
+    function out = integrate_trajectory(obj,r0,v0,tspan,m,q,varargin)
+      % out = integrate_trajectory(r0,v0,tspan,m,q,varargin)
+      % tspan = [tstart tstop] - back or forward, if tstart > tstop, integrating is done backward in time
       %     or  [tstop_back tstart tstop_forw] -  integration is done forward and backward      
+      % Additional input arguments varargin are passed on to as options in 
+      % odeset. See 'help odeset', but commonly used are:
+      %   'RelTol'
+      %   'AbsTol'
       
       doPrintInfo = 0;
       
       if numel(tspan) == 2 % [tstart tstop]
         tstart = tspan(1);
-        tstop_all = tspan(2);
+        tstop_all = tspan(2);        
       elseif numel(tspan) == 3 % [tstop_back tstart tstop_forw]
         tstart = tspan(2);
         tstop_all = tspan([1 3]);
       end
       
       x_sol = [];
-      for tstop = tstop_all        
+      for tstop = tstop_all
         % Print information
         if doPrintInfo
           if tstart < tstop, disp(['Integrating trajectory forward in time.'])
@@ -664,8 +667,9 @@
           tstart,tstop,x_init(1),x_init(2),x_init(3),x_init(4),x_init(5),x_init(6)))
 
         % Integrate trajectory
-        options = odeset();
-        options = odeset('AbsTol',1e-14,'Events',@exitBox);
+        %options = odeset();
+        %options = odeset('AbsTol',1e-14,'Events',@exitBox);
+        options = odeset('Events',@exitBox,varargin{:});
         %options = odeset('AbsTol',1e-7,'AbsTol',1e-9,'Events',@exitBox);
         %options = odeset('RelTol',1e-6);
         EoM = @(ttt,xxx) eom_pic(ttt,xxx,obj,m,q); 
@@ -730,7 +734,8 @@
       out.z = x_sol(I,3);
       out.vx = x_sol(I,4);
       out.vy = x_sol(I,5);
-      out.vz = x_sol(I,6);
+      out.vz = x_sol(I,6);   
+      out.t0 = tstart;
       out.x0 = r0(1);
       out.y0 = r0(2);
       out.z0 = r0(3);
@@ -1014,6 +1019,8 @@
     end
     
     % Get fields
+    % Convention is to build in the coordinate tranformation when loading
+    % the Smilei data: x -> x, -z -> y, y -> z
     function out = A(obj)
       if any(contains(obj.fields,'A')) % stored as field
         out = get_field(obj,'A');
@@ -1023,9 +1030,9 @@
           Bz =  obj.Bz;
           A = calc_A(obj.xi,obj.zi,Bx,Bz);
         elseif strcmp(obj.software,'Smilei')
-          Bx =  obj.Bx;
-          By =  obj.By;
-          A = calc_A(obj.xi,obj.zi,Bx,By);
+          Bx =  obj.Bx; 
+          Bz =  obj.Bz;% coordinate tranformation built-in into .Bz and .By
+          A = calc_A(obj.xi,obj.zi,Bx,Bz);
         end
       end
       out = A;
@@ -1068,14 +1075,14 @@
       if strcmp(obj.software,'micPIC')
         out = get_field(obj,'by')*obj.wpewce;
       elseif strcmp(obj.software,'Smilei')
-        out = get_field(obj,'By')*obj.wpewce;
+        out = -get_field(obj,'Bz')*obj.wpewce;
       end
     end
     function out = Bz(obj)
       if strcmp(obj.software,'micPIC')
         out = get_field(obj,'bz')*obj.wpewce;
       elseif strcmp(obj.software,'Smilei')
-        out = get_field(obj,'Bz')*obj.wpewce;
+        out = get_field(obj,'By')*obj.wpewce;
       end
     end
     function out = Ex(obj)
@@ -1089,14 +1096,14 @@
       if strcmp(obj.software,'micPIC')
         out = get_field(obj,'ey')*sqrt(obj.mime)*obj.wpewce^2;
       elseif strcmp(obj.software,'Smilei')
-        out = get_field(obj,'Ey')*sqrt(obj.mime)*obj.wpewce^2;
+        out = -get_field(obj,'Ez')*sqrt(obj.mime)*obj.wpewce^2;
       end      
     end
     function out = Ez(obj)
       if strcmp(obj.software,'micPIC')
         out = get_field(obj,'ez')*sqrt(obj.mime)*obj.wpewce^2;
       elseif strcmp(obj.software,'Smilei')
-        out = get_field(obj,'Ez')*sqrt(obj.mime)*obj.wpewce^2;
+        out = get_field(obj,'Ey')*sqrt(obj.mime)*obj.wpewce^2;
       end     
     end    
     function out = PB(obj)
@@ -1186,7 +1193,7 @@
         var = zeros(obj.nx,obj.nz,obj.nt);
         for iSpecies = species
           pop_str = obj.species{iSpecies};
-          var = var + obj.get_field(['Jy_' pop_str])*obj.wpewce*sqrt(obj.mime); % normalization ???
+          var = var + -obj.get_field(['Jz_' pop_str])*obj.wpewce*sqrt(obj.mime); % normalization ???
         end
       end
       out = var;    
@@ -1209,7 +1216,7 @@
         var = zeros(obj.nx,obj.nz,obj.nt);
         for iSpecies = species
           pop_str = obj.species{iSpecies};
-          var = var + obj.get_field(['Jz_' pop_str])*obj.wpewce*sqrt(obj.mime); % normalization ???
+          var = var + obj.get_field(['Jy_' pop_str])*obj.wpewce*sqrt(obj.mime); % normalization ???
         end
       end
       out = var;  
