@@ -1,7 +1,7 @@
 % Pick simulation
 % make function that searches for possible data locations automatically
 simulation = 'michael'; 
-%simulation = 'cold_protons_new_boundary';
+simulation = 'cold_protons_new_boundary';
 %simulation = 'df_cold_protons_0.4';
 switch simulation
   case 'df_cold_protons_0.8'
@@ -31,6 +31,7 @@ switch simulation
     data_dir = '/Volumes/Fountain/Data/PIC/df_cold_protons_04_new_boundary/data/';
     data_dir = '/Volumes/Fountain/Data/PIC/df_cold_protons_04_new_boundary/data/';
     %data_dir = '/Volumes/pic/in_progress/df_cold_protons_04/data/';
+    data_dir = '/Users/cno062/tesla/cold_ion_new_boundary/data/';
     nss = 6;
 end
 
@@ -40,7 +41,7 @@ timestep = 05978;
 timestep = 02250;
 timestep = 07000;
 timestep = 05000; % 26th file
-timestep = 06000;
+timestep = 07000;
 txtfile = sprintf('%s/fields-%05.0f.dat',data_dir,timestep); % michael's perturbation
 
 
@@ -51,7 +52,7 @@ all_data = read_fields_adaptive(txtfile,'nss',nss);
 ndata = size(all_data,1);
 disp('Loaded: ')
 for idata = 1:ndata
-  eval([all_data{idata,1} '= all_data{idata,2};' ]);
+  eval([all_data{idata,1} ' = all_data{idata,2};' ]);
   fprintf('%s ',all_data{idata,1})
 end
 fprintf('\n') 

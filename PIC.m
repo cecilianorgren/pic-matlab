@@ -7,9 +7,10 @@
   %   B = pic.B; % structure with 3 (nt x nx x ny) matrices  
   
   properties (SetAccess = immutable)
+    software
     file
     namelist
-    software
+    particlebinning
     attributes
     info
     species
@@ -81,9 +82,10 @@
   end
   
   methods
-    function obj = PIC(h5filePath,nameList)
-      % sm = SMILEI(pathFields)
-      % sm = SMILEI(pathFields,[],[]) - current implementation
+    function obj = PIC(h5filePath,nameList,particleBinningPath)
+      % pic = PIC(pathFields) % michaels code
+      % pic = PIC(pathFields,pathNameList,pathParticleBinning) - % smilei code
+      %   pathParticleBinning should contain wildcard: ParticleBinning*.h5
       %
       % Fields:
       %   file - path to hdf5 file
@@ -106,19 +108,30 @@
       obj.attributes = get_attributes(obj);
       obj.software = get_software(obj);
       
-      if strcmp(obj.software,'Smilei') && nargin == 2
-        % meta data
-        obj.namelist = nameList;
-        namelist = parse_namelist(obj);
-        obj.species = namelist.name;
-        obj.charge = namelist.charge;
-        obj.mass = namelist.mass;
-        obj.mime = namelist.mime;
-        obj.wpewce = namelist.wpewce;
-        obj.teti = namelist.teti;
-        % grid
-        obj.xe = namelist.xe;
-        obj.ze = namelist.ze;
+      if strcmp(obj.software,'Smilei') 
+        if nargin == 1
+          error('Wrong number of input arguments for Smilei simulation.')
+        end
+        if nargin >= 2
+          % meta data
+          obj.namelist = nameList;
+          namelist = parse_namelist(obj);
+          obj.species = namelist.name;
+          obj.charge = namelist.charge;
+          obj.mass = namelist.mass;
+          obj.mime = namelist.mime;
+          obj.wpewce = namelist.wpewce;
+          obj.teti = namelist.teti;
+          % grid
+          obj.xe = namelist.xe;
+          obj.ze = namelist.ze;
+          obj.attributes.particles_per_cell = namelist.particles_per_cell;
+        end
+        if nargin == 3 % also load particle binning info
+          obj.particlebinning = particleBinningPath;
+          obj.attributes.deposited_quantity = namelist.deposited_quantity;
+          obj.attributes.deposited_species = namelist.deposited_species;
+        end
       else strcmp(obj.software,'micPIC')
         % meta data
         obj.charge = obj.get_charge;
@@ -146,6 +159,10 @@
       obj.it = 1:1:numel(obj.twpe);
       
       obj.fields_ = get_fields(obj);
+      if strcmp(obj.software,'Smilei') && nargin == 3
+        obj.fields_ = cat(1,obj.fields_(:),unique(namelist.deposited_quantity(:)));
+      end
+        
     end
     
     function [varargout] = subsref(obj,idx)
@@ -870,6 +887,7 @@
       end
         
       out.charge = str2double(regexpi(buffer, '(?<=charge\s*=\s*)(-\d*|\d*)', 'match'));
+      out.particles_per_cell = str2double(regexpi(buffer, '(?<=particles_per_cell\s*=\s*)(-\d*|\d*)', 'match'));
       
       % expression for box size
       [~,gr] = grep('-s',regexpi(buffer,'\nbox_size\s*=\s*','match'),obj.namelist);
@@ -885,9 +903,17 @@
       out.nz = box_size(2)/cell_length(2);
       out.xe = 0:cell_length(1):(box_size(1));
       out.ze = 0:cell_length(2):(box_size(2));
-      %particles_per_cell = regexpi(buffer, '(?<=particles_per_cell\s*=\s*)''\w*''', 'match');
       
-      %number_of_patches = str2double(regexpi(buffer, '(?<=number_of_patches \s* = \s*[)\d*(])', 'match'));
+      % particle binning
+      deposited_quantity = regexpi(buffer, '(?<=deposited_quantity\s*=\s*)("\w*")', 'match');      
+      species = regexpi(buffer, '(?<=species\s*=\s*[)("\w*")', 'match');
+       for ii = 1:numel(deposited_quantity)
+        deposited_quantity{ii} = strrep(deposited_quantity{ii},'"','');
+        species{ii} = strrep(species{ii},'"','');
+        species{ii} = strrep(species{ii},'[','');
+       end
+      out.deposited_quantity = deposited_quantity;
+      out.deposited_species = species;            
       
     end
     function out = get_software(obj)
@@ -944,7 +970,7 @@
         for iout = 1:numel(split_str)
           fields{end+1} = split_str{iout}{end};
         end
-      else % all data are in the same group
+      elseif strcmp(obj.software,'Smilei') % all basic data are in the same group, 2nd order moments are in different files
         all_fields = {fileInfo.Groups(1).Groups(1).Datasets.Name};
         namelist = parse_namelist(obj);        
         species = namelist.name;      
@@ -964,6 +990,8 @@
           end
           ifield = ifield + 1;
         end
+        % load particle binning fields
+        
       end
       out = fields;
     end
@@ -981,7 +1009,7 @@
         end
         out = mass;
       else
-        out = [];
+        out = obj.mass;
       end
     end
     function out = get_charge(obj)
@@ -1136,7 +1164,7 @@
         n = zeros(obj.nx,obj.nz,obj.nt);
         for iSpecies = species
           pop_str = obj.species{iSpecies};
-          n = n + obj.get_field(['Rho_' pop_str]);
+          n = n + obj.charge(iSpecies)*obj.get_field(['Rho_' pop_str]); % Smilei stores charge density, so to get density we multiply with -1
         end    
       end      
       out = n;
@@ -1153,7 +1181,7 @@
     end
     % Flux
     function out = jx(obj,species)
-      % Get jx
+      % Get flux: jx
       
       % Check that only a single species of a given charge is given
       if not(numel(unique(obj.charge(species))) == 1)
@@ -1170,7 +1198,7 @@
         var = zeros(obj.nx,obj.nz,obj.nt);
         for iSpecies = species
           pop_str = obj.species{iSpecies};
-          var = var + obj.get_field(['Jx_' pop_str])*obj.wpewce*sqrt(obj.mime); % normalization ???
+          var = var + obj.charge(iSpecies)*obj.get_field(['Jx_' pop_str])*obj.wpewce*sqrt(obj.mime); % normalization ???
         end
       end
       out = var;
@@ -1193,7 +1221,7 @@
         var = zeros(obj.nx,obj.nz,obj.nt);
         for iSpecies = species
           pop_str = obj.species{iSpecies};
-          var = var + -obj.get_field(['Jz_' pop_str])*obj.wpewce*sqrt(obj.mime); % normalization ???
+          var = var + -1*obj.charge(iSpecies)*obj.get_field(['Jz_' pop_str])*obj.wpewce*sqrt(obj.mime); % normalization ???
         end
       end
       out = var;    
@@ -1216,7 +1244,7 @@
         var = zeros(obj.nx,obj.nz,obj.nt);
         for iSpecies = species
           pop_str = obj.species{iSpecies};
-          var = var + obj.get_field(['Jy_' pop_str])*obj.wpewce*sqrt(obj.mime); % normalization ???
+          var = var + obj.charge(iSpecies)*obj.get_field(['Jy_' pop_str])*obj.wpewce*sqrt(obj.mime); % normalization ???
         end
       end
       out = var;  
@@ -1279,6 +1307,18 @@
       % Get electron velocity, z
       out = obj.jez./obj.ne;
     end
+    function out = vix(obj)
+      % Get electron velocity, x
+      out = obj.jix./obj.ni;
+    end
+    function out = viy(obj)
+      % Get electron velocity, y
+      out = obj.jiy./obj.ni;
+    end
+    function out = viz(obj)
+      % Get electron velocity, z
+      out = obj.jiz./obj.ni;
+    end
     % Current
     function out = Jx(obj)
       out = obj.jix - obj.jex;
@@ -1289,7 +1329,7 @@
     function out = Jz(obj)
       out = obj.jiz - obj.jez;
     end
-    % Stress tensor, not implemented for Smilei
+    % Stress tensor
     function out = vexx(obj)
       iSpecies = find(obj.get_charge == -1); % negatively charge particles are electrons
       dfac = obj.get_dfac;      
@@ -1302,34 +1342,81 @@
       out = var;
       out = [];
     end
-    function out = vxx(obj,value)
-      % Get total density of select species
-      %   out = n(obj,value)
-      dfac = obj.get_dfac;         
-      dataset = sprintf('vxx/%.0f',value);
-      out = obj.mass(value)*obj.wpewce^2*get_field(obj,dataset)*dfac(value);      
+    function out = vxx(obj,species)
+      % Stress tensor components sum(mvv)
+      %   out = vxx(obj,species)
+      if strcmp(obj.software,'micPIC')
+        dfac = obj.get_dfac;         
+        dataset = sprintf('vxx/%.0f',species);
+        out = obj.mass(species)*obj.wpewce^2*get_field(obj,dataset)*dfac(species); 
+      elseif strcmp(obj.software,'Smilei')
+        out = obj.mass(species)*obj.wpewce^2*obj.get_binned_quantity('weight_vx_px',species);        
+      end
     end
-    function out = vyy(obj,value)
-      % Get total density of select species
-      %   out = n(obj,value)
-      dfac = obj.get_dfac;         
-      dataset = sprintf('vyy/%.0f',value);
-      out = obj.mass(value)*obj.wpewce^2*get_field(obj,dataset)*dfac(value);      
+    function out = vxy(obj,species)
+      % Stress tensor components sum(mvv)
+      %   out = vxy(obj,species)
+      if strcmp(obj.software,'micPIC')
+        dfac = obj.get_dfac;         
+        dataset = sprintf('vxy/%.0f',species);
+        out = obj.mass(species)*obj.wpewce^2*get_field(obj,dataset)*dfac(species); 
+      elseif strcmp(obj.software,'Smilei')
+        out = obj.get_binned_quantity('weight_vx_py',species);        
+      end
     end
-    function out = vzz(obj,value)
-      % Get total density of select species
-      %   out = n(obj,value)
-      dfac = obj.get_dfac;         
-      dataset = sprintf('vzz/%.0f',value);
-      out = obj.mass(value)*obj.wpewce^2*get_field(obj,dataset)*dfac(value);      
+    function out = vxz(obj,species)
+      % Stress tensor components sum(mvv)
+      %   out = vxz(obj,species)
+      if strcmp(obj.software,'micPIC')
+        dfac = obj.get_dfac;         
+        dataset = sprintf('vxz/%.0f',species);
+        out = obj.mass(species)*obj.wpewce^2*get_field(obj,dataset)*dfac(species); 
+      elseif strcmp(obj.software,'Smilei')
+        out = -obj.get_binned_quantity('weight_vx_pz',species); % added minus sign for coordinate transformation        
+      end
     end
-    function out = vv_diag(obj,value)
+    function out = vyy(obj,species)
+      % Stress tensor components sum(mvv)
+      %   out = vyy(obj,species)
+      
+      if strcmp(obj.software,'micPIC')
+        dfac = obj.get_dfac;
+        dataset = sprintf('vyy/%.0f',species);
+        out = obj.mass(species)*obj.wpewce^2*get_field(obj,dataset)*dfac(species);
+      elseif strcmp(obj.software,'Smilei')
+        out = obj.get_binned_quantity('weight_vy_py',species);
+      end
+    end
+    function out = vyz(obj,species)
+      % Stress tensor components sum(mvv)
+      %   out = vyz(obj,species)
+      if strcmp(obj.software,'micPIC')
+        dfac = obj.get_dfac;
+        dataset = sprintf('vyz/%.0f',species);
+        out = obj.mass(species)*obj.wpewce^2*get_field(obj,dataset)*dfac(species);
+      elseif strcmp(obj.software,'Smilei')
+        out = -obj.get_binned_quantity('weight_vy_pz',species); % added minus sign for coordinate transformation        
+      end
+    end
+    function out = vzz(obj,species)
+      % Stress tensor components sum(mvv)
+      %   out = vzz(obj,species)
+      if strcmp(obj.software,'micPIC')
+        dfac = obj.get_dfac;
+        dataset = sprintf('vzz/%.0f',species);
+        out = obj.mass(species)*obj.wpewce^2*get_field(obj,dataset)*dfac(species);
+      elseif strcmp(obj.software,'Smilei')
+        out = obj.mass(species)*obj.wpewce^2*obj.get_binned_quantity('weight_vz_pz',species);
+      end      
+    end
+    function out = vv_diag(obj,species)
       %   out = vv_diag(obj,value)
-      dfac = obj.get_dfac;         
-      vxx = get_field(obj,sprintf('vxx/%.0f',value))*dfac(value);
-      vyy = get_field(obj,sprintf('vyy/%.0f',value))*dfac(value);
-      vzz = get_field(obj,sprintf('vzz/%.0f',value))*dfac(value);
-      out = obj.mass(value)*obj.wpewce^2*(vxx + vyy + vzz)/3;
+%       dfac = obj.get_dfac;         
+%       vxx = get_field(obj,sprintf('vxx/%.0f',species))*dfac(species);
+%       vyy = get_field(obj,sprintf('vyy/%.0f',species))*dfac(species);
+%       vzz = get_field(obj,sprintf('vzz/%.0f',species))*dfac(species);
+%       out = obj.mass(species)*obj.wpewce^2*(vxx + vyy + vzz)/3;
+      out = (obj.vxx(species) + obj.vyy(species) + obj.vzz(species))/3;
     end
     function out = pD(obj,species)
       % Get dynamical pressure mn(vx^2 + vy^2 + vz^2)/3
@@ -1368,8 +1455,6 @@
       % pxx = pxx(obj,species)
       
       nSpecies = numel(species);
-      dfac = obj.get_dfac;
-      
       % check so that all species have the same mass and charge
       mass_sp = obj.mass; 
       if numel(unique(mass_sp(species))) > 1
@@ -1381,27 +1466,43 @@
       if numel(unique(charge(species))) > 1
         error('All species do not have the same charge.');         
       end
-      
-      % Initialize variables
-      n = zeros(numel(obj.xi),numel(obj.zi),obj.length);      
-      vxs = zeros(numel(obj.xi),numel(obj.zi),obj.length);
-      vxx = zeros(numel(obj.xi),numel(obj.zi),obj.length);      
         
-      % Sum over species
-      for iSpecies = species                
-        n = n + obj.get_field(sprintf('dns/%.0f',iSpecies))*dfac(iSpecies);  % density      
-        vxs = vxs + obj.get_field(sprintf('vxs/%.0f',iSpecies))*dfac(iSpecies); % flux     
-        vxx = vxx + obj.get_field(sprintf('vxx/%.0f',iSpecies))*dfac(iSpecies); % nvv
-      end        
-      % p = P - mnvv
-      out = mass_sp*obj.wpewce^2*(vxx - vxs.*vxs./n); % pxx
+      if strcmp(obj.software,'micPIC')
+        dfac = obj.get_dfac;
+
+        % Initialize variables
+        n = zeros(numel(obj.xi),numel(obj.zi),obj.length);      
+        vxs = zeros(numel(obj.xi),numel(obj.zi),obj.length);
+        vxx = zeros(numel(obj.xi),numel(obj.zi),obj.length);      
+
+        % Sum over species
+        for iSpecies = species
+          n = n + obj.get_field(sprintf('dns/%.0f',iSpecies))*dfac(iSpecies);  % density      
+          vxs = vxs + obj.get_field(sprintf('vxs/%.0f',iSpecies))*dfac(iSpecies); % flux     
+          vxx = vxx + obj.get_field(sprintf('vxx/%.0f',iSpecies))*dfac(iSpecies); % nvv
+        end        
+        % p = P - mnvv
+        out = mass_sp*obj.wpewce^2*(vxx - vxs.*vxs./n); % pxx
+      elseif strcmp(obj.software,'Smilei')
+        % Initialize variables
+        n = zeros(numel(obj.xi),numel(obj.zi),obj.length);      
+        jx = zeros(numel(obj.xi),numel(obj.zi),obj.length);
+        vxx = zeros(numel(obj.xi),numel(obj.zi),obj.length);      
+
+        % Sum over species
+        for iSpecies = species
+          n = n + obj.n(iSpecies);  % density      
+          jx = jx + obj.jx(iSpecies); % flux     
+          vxx = vxx + obj.vxx(iSpecies); % nvv
+        end        
+        % p = P - mnvv
+        out = mass_sp*obj.wpewce^2*(vxx - jx.*jx./n); % pxx
+      end
     end
     function out = pyy(obj,species)
       % pxx = pxx(obj,species)
       
       nSpecies = numel(species);
-      dfac = obj.get_dfac;
-      
       % check so that all species have the same mass and charge
       mass_sp = obj.mass; 
       if numel(unique(mass_sp(species))) > 1
@@ -1413,27 +1514,43 @@
       if numel(unique(charge(species))) > 1
         error('All species do not have the same charge.');         
       end
-      
-      % Initialize variables
-      n = zeros(numel(obj.xi),numel(obj.zi),obj.length);      
-      vxs = zeros(numel(obj.xi),numel(obj.zi),obj.length);
-      vxx = zeros(numel(obj.xi),numel(obj.zi),obj.length);      
         
-      % Sum over species
-      for iSpecies = species                
-        n = n + obj.get_field(sprintf('dns/%.0f',iSpecies))*dfac(iSpecies);  % density      
-        vxs = vxs + obj.get_field(sprintf('vys/%.0f',iSpecies))*dfac(iSpecies); % flux     
-        vxx = vxx + obj.get_field(sprintf('vyy/%.0f',iSpecies))*dfac(iSpecies); % nvv
-      end        
-      % p = P - mnvv
-      out = mass_sp*obj.wpewce^2*(vxx - vxs.*vxs./n); % pxx
+      if strcmp(obj.software,'micPIC')
+        dfac = obj.get_dfac;
+
+        % Initialize variables
+        n = zeros(numel(obj.xi),numel(obj.zi),obj.length);      
+        vs = zeros(numel(obj.xi),numel(obj.zi),obj.length);
+        vv = zeros(numel(obj.xi),numel(obj.zi),obj.length);      
+
+        % Sum over species
+        for iSpecies = species
+          n = n + obj.get_field(sprintf('dns/%.0f',iSpecies))*dfac(iSpecies);  % density      
+          vs = vs + obj.get_field(sprintf('vys/%.0f',iSpecies))*dfac(iSpecies); % flux     
+          vv = vv + obj.get_field(sprintf('vyy/%.0f',iSpecies))*dfac(iSpecies); % nvv
+        end        
+        % p = P - mnvv
+        out = mass_sp*obj.wpewce^2*(vv - vs.*vs./n); % pxx
+      elseif strcmp(obj.software,'Smilei')
+        % Initialize variables
+        n = zeros(numel(obj.xi),numel(obj.zi),obj.length);      
+        j = zeros(numel(obj.xi),numel(obj.zi),obj.length);
+        vv = zeros(numel(obj.xi),numel(obj.zi),obj.length);      
+
+        % Sum over species
+        for iSpecies = species
+          n = n + obj.n(iSpecies);  % density      
+          j = j + obj.jy(iSpecies); % flux     
+          vv = vv + obj.vyy(iSpecies); % nvv
+        end        
+        % p = P - mnvv
+        out = mass_sp*obj.wpewce^2*(vv - j.*j./n); % pzz
+      end
     end
     function out = pzz(obj,species)
       % pxx = pxx(obj,species)
       
       nSpecies = numel(species);
-      dfac = obj.get_dfac;
-      
       % check so that all species have the same mass and charge
       mass_sp = obj.mass; 
       if numel(unique(mass_sp(species))) > 1
@@ -1445,20 +1562,38 @@
       if numel(unique(charge(species))) > 1
         error('All species do not have the same charge.');         
       end
-      
-      % Initialize variables
-      n = zeros(numel(obj.xi),numel(obj.zi),obj.length);      
-      vxs = zeros(numel(obj.xi),numel(obj.zi),obj.length);
-      vxx = zeros(numel(obj.xi),numel(obj.zi),obj.length);      
         
-      % Sum over species
-      for iSpecies = species                
-        n = n + obj.get_field(sprintf('dns/%.0f',iSpecies))*dfac(iSpecies);  % density      
-        vxs = vxs + obj.get_field(sprintf('vys/%.0f',iSpecies))*dfac(iSpecies); % flux     
-        vxx = vxx + obj.get_field(sprintf('vyy/%.0f',iSpecies))*dfac(iSpecies); % nvv
-      end        
-      % p = P - mnvv
-      out = mass_sp*obj.wpewce^2*(vxx - vxs.*vxs./n); % pxx
+      if strcmp(obj.software,'micPIC')
+        dfac = obj.get_dfac;
+
+        % Initialize variables
+        n = zeros(numel(obj.xi),numel(obj.zi),obj.length);      
+        vxs = zeros(numel(obj.xi),numel(obj.zi),obj.length);
+        vxx = zeros(numel(obj.xi),numel(obj.zi),obj.length);      
+
+        % Sum over species
+        for iSpecies = species
+          n = n + obj.get_field(sprintf('dns/%.0f',iSpecies))*dfac(iSpecies);  % density      
+          vxs = vxs + obj.get_field(sprintf('vzs/%.0f',iSpecies))*dfac(iSpecies); % flux     
+          vxx = vxx + obj.get_field(sprintf('vzz/%.0f',iSpecies))*dfac(iSpecies); % nvv
+        end        
+        % p = P - mnvv
+        out = mass_sp*obj.wpewce^2*(vxx - vxs.*vxs./n); % pxx
+      elseif strcmp(obj.software,'Smilei')
+        % Initialize variables
+        n = zeros(numel(obj.xi),numel(obj.zi),obj.length);      
+        j = zeros(numel(obj.xi),numel(obj.zi),obj.length);
+        vv = zeros(numel(obj.xi),numel(obj.zi),obj.length);      
+
+        % Sum over species
+        for iSpecies = species
+          n = n + obj.n(iSpecies);  % density      
+          j = j + obj.jz(iSpecies); % flux     
+          vv = vv + obj.vzz(iSpecies); % nvv
+        end        
+        % p = P - mnvv
+        out = (vv - j.*j./n); % pzz
+      end
     end
     function out = p(obj,species)
       % p = (pxx+pyy+pzz)/3
@@ -1471,10 +1606,11 @@
       %nargout      
       mass_sp = obj.mass; 
       if numel(unique(mass_sp(iSpecies_orig))) > 1
-        error('All species do not have the same mass.'); 
+        error('All species must have the same mass.'); 
       else
         mass_sp = mass_sp(iSpecies_orig(1));
-      end        
+      end
+      
       dfac = obj.get_dfac;
       nSpecies = numel(iSpecies_orig);
       
@@ -1632,8 +1768,7 @@
         pyy = mean(pyy,dirMean);
         pyz = mean(pyz,dirMean);
         pzz = mean(pzz,dirMean);
-      end
-      
+      end      
     end    
     
     % Ge derived quantities
@@ -1881,6 +2016,38 @@
   end
   
   methods (Access = protected)
+    function out = get_binned_quantity(obj,field,iSpecies)
+      % Get binned quantities from Smilei simulation
+      % h5 structure: '/timestep00000000' (strange)
+      
+      % Check if field exists
+      if not(any(contains(obj.fields,field)))
+        error(sprintf('Unknown field ''%s''.',field))
+      end
+      % Find which file it is, should find one for each species
+      iFile = find(contains(obj.attributes.deposited_quantity,field));      
+      species = obj.attributes.deposited_species(iFile);
+      iSp = obj.species{iSpecies};
+      iFile = iFile(find(contains(species,iSp))); % file name starts at zero, so subtract one
+      allFiles = dir([obj.particlebinning]);
+      file = [allFiles(iFile).folder filesep allFiles(iFile).name];            
+      
+      infoPB = h5info(file);
+      iterations = obj.iteration; % what is in the object (original, or might have been reduced by twci(pe)lim)
+      nIter = numel(iterations);
+      data = nan([obj.get_gridsize,nIter]);
+      for iIter = 1:nIter
+        iter = iterations(iIter);
+        str_iter = sprintf('%08.0f',iter);
+        data_tmp = h5read(file,...
+          ['/timestep' str_iter],...
+          [obj.grid{2}(1) obj.grid{1}(1)]',... % start indices
+          [numel(obj.grid{2}) numel(obj.grid{1})]'); % number of counts
+        data_tmp = data_tmp';
+        data(:,:,iIter) = data_tmp;
+      end
+      out = data;
+    end
     function out = get_field(obj,field)
       % get iterations
       iterations = obj.iteration;
@@ -1896,7 +2063,7 @@
              [obj.grid{1}(1) obj.grid{2}(1)],... % start indices
              [numel(obj.grid{1}) numel(obj.grid{2})]); % number of counts
           %disp(sprintf('Reading %s: [%g %g] datapoints starting at [%g %g]',field,numel(obj.grid{1}),numel(obj.grid{2}),obj.grid{1}(1),obj.grid{2}(1)))
-        else % Smilei
+        elseif strcmp(obj.software,'Smilei') % Smilei
           data_tmp = h5read(obj.file,...
             ['/data/' str_iter '/' field],...
             [obj.grid{2}(1) obj.grid{1}(1)]',... % start indices
