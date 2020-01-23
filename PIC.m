@@ -60,7 +60,7 @@
     
   end
   
-  properties (Constant = true)    
+  properties (Constant = true)
   end
   
   properties (Constant = true, Hidden = true)
@@ -132,7 +132,7 @@
           obj.attributes.deposited_quantity = namelist.deposited_quantity;
           obj.attributes.deposited_species = namelist.deposited_species;
         end
-      else strcmp(obj.software,'micPIC')
+      elseif strcmp(obj.software,'micPIC')
         % meta data
         obj.charge = obj.get_charge;
         obj.mass = obj.get_mass;
@@ -1062,8 +1062,8 @@
           Bz =  obj.Bz;% coordinate tranformation built-in into .Bz and .By
           A = calc_A(obj.xi,obj.zi,Bx,Bz);
         end
+        out = A;
       end
-      out = A;
       % nested function
       function out = calc_A(x,z,bx,bz)
         % Grid

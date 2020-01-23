@@ -225,7 +225,7 @@
     function value = ntr(obj)
       value = numel(obj);
     end
-    function aa= aa() 
+    function aa = aa() 
     end
     
     % Plotting

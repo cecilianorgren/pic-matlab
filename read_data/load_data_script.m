@@ -42,7 +42,7 @@ timestep = 02250;
 timestep = 07000;
 timestep = 05000; % 26th file
 timestep = 07000;
-txtfile = sprintf('%s/fields-%05.0f.dat',data_dir,timestep); % michael's perturbation
+txtfile = sprintf('%s/fields-%05.0f.dat',data_dir,timestep);
 
 
 tic;
@@ -166,7 +166,6 @@ c_eval('wci? = B.abs/(mass(1)/mass(1));',12)
 % Length scales
 c_eval('re? = vte?.perp./wce?;',12)
 c_eval('ri? = vti?.perp./wci?;',12)
-
 %%
 % r1 = b; % magnetic field unit vector
 % r2 = cross_product(r1.x,r1.y,r1.z,0,1,0);
