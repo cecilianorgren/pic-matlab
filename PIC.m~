@@ -1948,11 +1948,10 @@
       % method is the same for xlim, zlim ilim, i, twpelim, twcilim
       
       % Defaults
-      doExact = 0;
       doBounding = 0;
       nBounding = 0;
       doClosest = 0;
-      nClosest = 1; % only the closest index, can be one or many, for example to reduce cadence
+      nClosest = 1; % only the closest index, can be 
       
       if numel(value) == 1
         doClosest = 1;        
@@ -1974,12 +1973,8 @@
           case 'bounding'
             l = 2;
             doBounding = 1;
-            nBounding = args{2};
-            args = args(l+1:end);
-          case 'exact'
-            l = 1;
-            doExact = 1;
-            args = args(l+1:end);
+            nBounding = args{2};            
+            args = args(l+1:end);        
           otherwise
             warning(sprintf('Input ''%s'' not recognized.',args{1}))
             args = args(l+1:end);
@@ -1997,15 +1992,17 @@
           i1 = 1; 
         end
         if i2 > numel(var) 
-          i2 = numel(var); 
+          i2 = numel(var) ; 
         end
         inds = i1:i2;
-      elseif doClosest        
+      elseif doClosest
+        try
         ii = abs(var-value(1));
         [is, index] = sort(abs(var-value(1)));
-        inds = sort(index(1:nClosest)); % why did i just not take the first closest index?     
-      elseif doExact
-        [~,inds,~] = intersect(var,value);
+        inds = sort(index(1:nClosest));
+        catch
+          1;
+        end
       else        
         i1 = find(var >= value(1),1,'first'); 
         i2 = find(var <= value(2),1,'last'); 

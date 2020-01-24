@@ -8,6 +8,7 @@ function fun_pic_h5write(data_dir,filePath,timesteps,nSpecies)
 h5exist = 0;
 if exist(filePath,'file')
   h5exist = 1;
+  disp(sprintf('File %s exists. Loading file to obtain existing times.',filePath))
   pic = PIC(filePath);
 else
   h5writeatt(filePath,'/','software','micPIC')
@@ -52,6 +53,7 @@ for itime = 1:numel(timesteps)
     
   % loop through variables, and save to h5 file in 'filePath'
   %%
+  tic
   nvars = numel(vars);  
   for ivar = 1:nvars
     data = vars{ivar};
@@ -94,6 +96,7 @@ for itime = 1:numel(timesteps)
     h5writeatt(filePath,['/data/' str_iteration '/'], 'dt',dt)
     % info.Groups(1).Groups(ig).Attributes.Name
   end
+  toc
 end
 
 disp('Done.')
