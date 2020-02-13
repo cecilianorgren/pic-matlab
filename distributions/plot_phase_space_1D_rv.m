@@ -7,7 +7,7 @@ savedir  = ['/Users/' localuser '/GoogleDrive/DF_Cold_ions_figures_for_AGU/'];
 
 %%
 zlim = 0+[-0.2 0.2];
-xlim = [0 400];
+xlim = [0 205];
 its = 2;
 twci = 160;
 iss = [2];

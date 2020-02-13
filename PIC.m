@@ -1948,8 +1948,8 @@
       % method is the same for xlim, zlim ilim, i, twpelim, twcilim
       
       % Defaults
-      doExact = 0;
-      doBounding = 0;
+      doExact = 0; % find all exact matches, can be any number
+      doBounding = 0; % find a given number of values bounding the given value
       nBounding = 0;
       doClosest = 0;
       nClosest = 1; % only the closest index, can be one or many, for example to reduce cadence

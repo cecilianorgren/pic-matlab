@@ -1,5 +1,5 @@
 %% See what distributions we have already
-timestep = 08000;
+timestep = 07000;
 root_dir = '/Volumes/Fountain/Data/PIC/df_cold_protons_1/distributions/';
 txtfile = sprintf('/Volumes/Fountain/Data/PIC/df_cold_protons_1/distributions/%.0f.dat',distnumber);
 
@@ -405,10 +405,10 @@ vex = squeeze(pic(ind).vex);
 
 [saddle_locations,saddle_values] = saddle(A,'sort');
 
-x_center = (160:1:205);
-z_center = [0.5:1:3];
-dx_box = 0.25;
-dz_box = 0.25;
+x_center = (165:0.2:189.9);
+z_center = [0];
+dx_box = 0.1;
+dz_box = 0.1;
 % x_center = 150:0.5:205;
 % z_center = 0:0.5:10;
 % dx_box = 0.25;

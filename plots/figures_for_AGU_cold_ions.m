@@ -1,4 +1,5 @@
 df04 = PIC('/Volumes/Fountain/Data/PIC/df_cold_protons_n04/data_h5/fields.h5');
+df04n = PIC('/Volumes/Fountain/Data/PIC/df_cold_protons_04_new_boundary/data_h5/fields.h5');
 df08 = PIC('/Volumes/Fountain/Data/PIC/df_cold_protons_n08/data_h5/fields.h5');
 ds04 = PICDist('/Volumes/Fountain/Data/PIC/df_cold_protons_n04/data_h5/dists.h5');
 tr04 = PICTraj('/Volumes/Fountain/Data/PIC/df_cold_protons_n04/data_h5/trajectories.h5');
@@ -1111,9 +1112,12 @@ end
 %% Mass loading effect on front speed
 tlim = [90 220];
 pic04 = df04.twcilim(tlim);
+pic04n = df04n.twcilim(tlim).twcilim(4:4:200,'exact');
 pic08 = df08.twcilim(tlim);
 [xDF04,vDF04,aDF04,BDF04] = pic04.xva_df;
+[xDF04n,vDF04n,aDF04n,BDF04n] = pic04n.xva_df;
 [xDF08,vDF08,aDF08,BDF08] = pic08.xva_df;
+
 %%
 % Get ExB velocity at the same location;
 for iDF = 1:pic04.length
@@ -3291,7 +3295,7 @@ end
 %tr = tr04.pass('x',[189 190],'z',[-0.25 0.25],'atan2d(vy,vx)',[90 135]);
 %tr = tr04.pass('x',[189 190],'z',[-0.25 0.25]).pass('atan2d(vy,vx)',[90 135]);
 trif = tr04.pass('x',[189 190],'z',[-0.25 0.25],'atan2d(vy,vx)',[90 135]);
-%%
+%% % plot of "ifingers"
 for itr = 1:numel(trif)
   tr = trif(itr);
   h = setup_subplots(5,1,'vertical');

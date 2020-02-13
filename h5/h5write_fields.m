@@ -1,10 +1,14 @@
-function fun_pic_h5write(data_dir,filePath,timesteps,nSpecies)
-% fun_pic_h5write(data_dir,filePath,timesteps)
-% data_dir - directory of data
-% h5 file path - directory and file name
+function h5write_fields(data_dir,filePath,timesteps,nSpecies)
+% H5WRITE_FIELDS Write Michael's simulation output data to h5 file.
+% H5WRITE_FIELDS(dirData,h5FilePath,timesteps,nSpecies)
+% 
+% dirData - directory of data
+% h5FilePath - directory and file name
 % timesteps - timesteps to resave, in units of wpe^-1
 %             if empty [], check which files are in the data directory and 
 %             use those
+% nSpecies - number of species: required in order to read the data right
+
 h5exist = 0;
 if exist(filePath,'file')
   h5exist = 1;

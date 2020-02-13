@@ -264,9 +264,7 @@
       % Update grid and indices
       obj = obj.update_inds(inds);
     end
-    function obj = xpick(obj,value)
-      % pick distributions with centers corresponding to exact value
-    end
+    function xp
     function obj = dxlim(obj,value)
       % Get subset of dx (box size)
       nt = obj.nt;

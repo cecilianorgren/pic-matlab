@@ -370,25 +370,28 @@ for it = 1:sim.length
 end
 
 %% Particle distributions, df04
+timestep = 9000; 
 
 % Better to save original data, and only necessary quantities
 data_dir    = '/Volumes/Fountain/Data/PIC/df_cold_protons_n04/data/';
 data_dir_h5 = '/Volumes/Fountain/Data/PIC/df_cold_protons_n04/data_h5/';
+data_dir    = sprintf('/Users/cno062/tesla/cno062/df_cold_protons_n04/distributions/%05.0f/',timestep);
 filePath = [data_dir_h5 'dists.h5'];
 nSpecies = 6;
-descSpecies = {'hot ion harris sheet plus uniform background',...
+descSpecies = {...
+  'hot ion harris sheet plus uniform background',...
   'hot electron harris sheet plus uniform background',...
   'cold ions from south',...
   'cold electrons from south',...
   'cold ions from north',...
   'cold electrons from north'};
-timestep = 8000; 
-iter = timestep*2; % timestep is 0.5
-dists = 1:367;%300;
+
+iter = timestep*2; % This is only true with constant timestep 0.5
+dists = 1:264;%367;%300;
 nDists = numel(dists);
 nss = 6;
 
-for idist = 255:367%:210%1:nDists  
+for idist = 132:264%255:367%:210%1:nDists  
   %idist = 10;
   distnumber = dists(idist);
   txtfile = sprintf('/Users/cno062/tesla/cno062/df_cold_protons_n04/distributions/%05.0f/%.0f.dat',timestep,distnumber); % df04
@@ -437,12 +440,12 @@ for idist = 255:367%:210%1:nDists
   doPlot = 0;
   if doPlot
     %%
+    isp = 1;
     dx = axes(2,isp)-axes(1,isp);
     dy = dx;
     dz = dx;
     h = setup_subplots(3,3);
     isub = 1;
-    isp = 1;
     if 1
       hca = h(isub); isub = isub + 1;
       imagesc(hca,fxy(:,:,isp))
