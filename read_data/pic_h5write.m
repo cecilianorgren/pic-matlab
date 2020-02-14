@@ -370,7 +370,7 @@ for it = 1:sim.length
 end
 
 %% Particle distributions, df04
-timestep = 9000; 
+timestep = 5000; 
 
 % Better to save original data, and only necessary quantities
 data_dir    = '/Volumes/Fountain/Data/PIC/df_cold_protons_n04/data/';
@@ -387,11 +387,11 @@ descSpecies = {...
   'cold electrons from north'};
 
 iter = timestep*2; % This is only true with constant timestep 0.5
-dists = 1:264;%367;%300;
+dists = 1:644;%367;%300;
 nDists = numel(dists);
 nss = 6;
 
-for idist = 132:264%255:367%:210%1:nDists  
+for idist = 259:390%:390%255:367%:210%1:nDists  
   %idist = 10;
   distnumber = dists(idist);
   txtfile = sprintf('/Users/cno062/tesla/cno062/df_cold_protons_n04/distributions/%05.0f/%.0f.dat',timestep,distnumber); % df04

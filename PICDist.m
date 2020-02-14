@@ -965,11 +965,12 @@
       nz = numel(x0);
       nv = numel(vaxes);
       
-      f_arr = zeros(nx,nz,nv,nv,nv); % f(x,z,vx,vy,vz), typically z or x is singel value
       
-      f_struct = struct('x',x0,'z',z0,'v',vaxes,'fx',{},'fy',{},'fz',{});
+      f_struct = struct('x',{},'z',{},'v',{},'fx',{},'fy',{},'fz',{});
       
-      for it = 1:obj.nt
+      for it = 1:obj.nt        
+        f_arr = zeros(nx,nz,nv,nv,nv); % f(x,z,vx,vy,vz), typically z or x is singel value
+      
         ids = ds.indices{it};
         if isempty(ids)
           continue
@@ -993,6 +994,7 @@
           x_all(id) = mean(f_tmp.x);
           z_all(id) = mean(f_tmp.z);
         end
+        f_struct
       end
       f_all(f_all==0) = nan;
       if nargout == 1

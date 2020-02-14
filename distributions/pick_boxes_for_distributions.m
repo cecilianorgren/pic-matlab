@@ -395,7 +395,7 @@ hold(hca,'off')
 
 %% Pattern governed by A, PIC object
 pic = df04;
-ind = df04.twpelim(8000).it;
+ind = df04.twpelim(5000).it;
 %ind = 26;
 A = squeeze(pic(ind).A);
 Bz = squeeze(pic(ind).Bz);
@@ -405,8 +405,8 @@ vex = squeeze(pic(ind).vex);
 
 [saddle_locations,saddle_values] = saddle(A,'sort');
 
-x_center = (165:0.2:189.9);
-z_center = [0];
+x_center = (192:0.2:205);
+z_center = [0 0.2];
 dx_box = 0.1;
 dz_box = 0.1;
 % x_center = 150:0.5:205;
@@ -430,6 +430,8 @@ Alim = [-24 -17];
 Alim = [-24 -18];
 %Alim = [-20 -16];
 Alim = [-24 saddle_values(1)*0.99];
+Alim = [-25 saddle_values(1)*0.99];
+Alim = [-23.8 0];
 ind_keep = zeros(nboxes,1);
 for ibox = 1:nboxes
   xind = find(abs(pic.xi-XC(ibox))==min(abs(pic.xi-XC(ibox))));
@@ -450,7 +452,7 @@ figure(401)
 hca = subplot(1,1,1);
 imagesc(hca,pic.xi,pic.zi,ni')
 %imagesc(hca,x,z,pi1.scalar')
-hca.XLim = [130 210];
+hca.XLim = [130 240];
 hca.YLim = [-10 10];
 hca.Title.String = sprintf('twci = %g, twpe = %g, n_boxes = %g',pic.twci(ind),pic.twpe(ind),n_boxes);
 hca.Title.Interpreter = 'none';
