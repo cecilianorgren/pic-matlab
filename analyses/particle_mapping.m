@@ -482,8 +482,39 @@ f1_x_vz = make_space_time_1d(ds04,its,xlim,zlim,rdim,3,1);
 f35_x_vx = make_space_time_1d(ds04,its,xlim,zlim,rdim,1,icold);
 f35_x_vy = make_space_time_1d(ds04,its,xlim,zlim,rdim,2,icold);
 f35_x_vz = make_space_time_1d(ds04,its,xlim,zlim,rdim,3,icold);
-%% Make phase space plots for several times
 
-h = setup_subplots(4,3);
+%% Make phase space plots for several times
+xvals = 150:0.2:200;
+ds = ds04.dxlim([0 0.21]).zfind(0);
+%f35 = ds.reduce_1d(xvals,0,linspace(-2,2,101),[3 5]);
+f1 = ds.reduce_1d(xvals,0,linspace(-5,5,101),[1]);
+
+ff = f1;
+h = setup_subplots(5,3,'horizontal');
+isub = 1;
+
+for it = 1:5  
+  hca = h(isub); isub = isub + 1;  
+  pcolor(hca,ff(it).x,vv,ff(it).fvx'); shading(hca,'flat'); 
+  
+  hca = h(isub); isub = isub + 1;  
+  pcolor(hca,ff(it).x,vv,ff(it).fvy'); shading(hca,'flat'); 
+
+  hca = h(isub); isub = isub + 1;  
+  pcolor(hca,ff(it).x,vv,ff(it).fvz'); shading(hca,'flat'); 
+end
+
+colormap(pic_colors('candy'))
+hlinks = linkprop(h,{'CLim','XLim','YLim'});
+hlinks.Targets(1).XLim = xvals([1 end]);
+
+h(1).Title.String = 'f(x,z=0,vx)';
+h(2).Title.String = 'f(x,z=0,vy)';
+h(3).Title.String = 'f(x,z=0,vz)';
+
+for ip = 13:15
+  h(ip).XLabel.String = 'x/d_i';
+end
+compact_panels(0.01,0.02)
 
 

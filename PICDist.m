@@ -264,8 +264,32 @@
       % Update grid and indices
       obj = obj.update_inds(inds);
     end
-    function obj = xpick(obj,value)
-      % pick distributions with centers corresponding to exact value
+    function obj = xfind(obj,value)
+      % pick distributions with centers corresponding to exact value           
+      
+      for it = 1:obj.nt        
+        center = (obj.xi1{it} + obj.xi2{it})/2;
+%         for ii = 1:numel(center)
+%           if find(value==center(ii),1,'first')
+%             IA(ii) = 1;
+%           else
+%             IA(ii) = 0;
+%           end
+%         end
+        [IA,IB] = ismembertol(center,value,1e-3);
+        inds{it} = find(IA);
+      end
+      obj = obj.update_inds(inds);
+    end
+    function obj = zfind(obj,value)
+      % pick distributions with centers corresponding to exact value           
+      
+      for it = 1:obj.nt        
+        center = (obj.zi1{it} + obj.zi2{it})/2;
+        [IA,IB] = ismembertol(center,value,1e-3);
+        inds{it} = find(IA);
+      end      
+      obj = obj.update_inds(inds);
     end
     function obj = dxlim(obj,value)
       % Get subset of dx (box size)
@@ -303,7 +327,7 @@
       % zi
       % dists
       % indices
-      for it = 1:obj.nt        
+      for it = 1:obj.nt
         obj.xi1_{it} = obj.xi1_{it}(inds{it});
         obj.xi2_{it} = obj.xi2_{it}(inds{it});
         obj.zi1_{it} = obj.zi1_{it}(inds{it});
@@ -313,9 +337,7 @@
                 
         obj.dists_{it} = obj.dists_{it}(inds{it});
         obj.indices_{it} = obj.indices_{it}(inds{it});
-      end
-      
-      
+      end        
     end
     function obj = twpelim(obj,value,varargin)
       % Get subset of twpe
@@ -452,8 +474,8 @@
       %doBDir = 1;
       ticks = -15:1:15;
       
-      xlim = [min([obj.xi_{1}{:}]) max([obj.xi_{1}{:}])];
-      zlim = [min([obj.zi_{1}{:}]) max([obj.zi_{1}{:}])];      
+      xlim = [min([obj.xi1_{1}{:}]) max([obj.xi2_{1}{:}])];
+      zlim = [min([obj.zi1_{1}{:}]) max([obj.zi2_{1}{:}])];      
       fig_position = get(0,'screensize'); %[1 330 2555 1015]; 
       fig = figure;
       fig.Position = fig_position; 
@@ -941,8 +963,8 @@
         varargout{3}.dEF = dEF_all;
       end
     end
-    function varargout = make_space_time_1d(obj,x0,z0,vaxes,iSpecies)
-      % MAKE_SPACE_TIME_1D(obj,x0,z0,iSpecies) Make f(x,vx),f(z,vx), etc...
+    function varargout = reduce_1d(obj,x0,z0,vaxes,iSpecies)
+      % reduce_1d(obj,x0,z0,iSpecies) Make f(x,vx),f(z,vx), etc...
       %
       % apply time indices and xlim zlim outside before
       % do all vdims, doesnt take much more time anyways
@@ -954,59 +976,71 @@
       %     plotting, if vaxes is empty, just use the axes of the first
       %     distribution
       
-      id_count = 0;
+      method = 'exact'; % only keep distributions with exact center coordinates
+      
       % First check all pairs of x and z, if one of them is unique, for
       % example the z = 0 row, then make 2D matrix, that is prepared for
       % plotting.
       
-      ds = obj;
+      ds = obj.xfind(x0).zfind(z0);
+      
       
       nx = numel(x0);
       nz = numel(x0);
       nv = numel(vaxes);
       
+      % save results in structure array, one structure for each time
+      % also save time, but for now only the iteration is saved
+      fout = struct('iter',{},'x',{},'z',{},'v',{},'fvx',{},'fvy',{},'fvz',{});
       
-      f_struct = struct('x',{},'z',{},'v',{},'fx',{},'fy',{},'fz',{});
-      
-      for it = 1:obj.nt        
-        f_arr = zeros(nx,nz,nv,nv,nv); % f(x,z,vx,vy,vz), typically z or x is singel value
-      
+      t_count = 0;
+      for it = 1:obj.nt
+        it
         ids = ds.indices{it};
+        nd = numel(ids);
         if isempty(ids)
           continue
+        else
+          t_count = t_count + 1;
         end
-        for id = 1:numel(ids) 
-          id_count = id_count + 1;
-          f_tmp = ds.fxyz(it,id_count,iSpecies);
-          switch vdim
-            case 1
-              f_tmp.f = sum(f_tmp.f,3);
-              f_tmp.f = sum(f_tmp.f,2);
-            case 2
-              f_tmp.f = sum(f_tmp.f,3);
-              f_tmp.f = sum(f_tmp.f,1);
-            case 3
-              f_tmp.f = sum(f_tmp.f,2);
-              f_tmp.f = sum(f_tmp.f,1);
-          end          
-          f_all(id,:) = f_tmp.f;
-          v_all(id,:) = f_tmp.v;
-          x_all(id) = mean(f_tmp.x);
-          z_all(id) = mean(f_tmp.z);
-        end
-        f_struct
-      end
-      f_all(f_all==0) = nan;
-      if nargout == 1
-        varargout{1}.x = x_all;
-        varargout{1}.z = z_all;
-        varargout{1}.v = v_all;
-        varargout{1}.f = f_all;
+        % f(x,z,vx,vy,vz), typically z or x is single value, in future also
+        % make possible to make along a line, for example separatrix
+        f_vx_arr = zeros(nd,nv);
+        f_vy_arr = zeros(nd,nv);
+        f_vz_arr = zeros(nd,nv);
+        x_arr = zeros(nd,1);
+        z_arr = zeros(nd,1);
         
-      elseif nargout == 2        
-       
-      elseif nargout == 3
+        % implement later:
+        % sort indices, in case they wouldnt already be. otherwise plotting
+        % might be strange if one doesnt specify x or z
+        
+        
+        id_count = 0;
+        for id = 1:numel(ids)           
+          id_count = id_count + 1;
+          
+          f_tmp = ds.f(it,id,iSpecies);
+          
+          x_arr(id) = mean(f_tmp.x);
+          z_arr(id) = mean(f_tmp.z);          
+          f_vx_arr(id,:) = interp1(f_tmp.v,sum(f_tmp.fxy,2),vaxes);
+          f_vy_arr(id,:) = interp1(f_tmp.v,sum(f_tmp.fxy,1),vaxes);
+          f_vz_arr(id,:) = interp1(f_tmp.v,sum(f_tmp.fxz,1),vaxes);
+          
+          
+        end
+        [x_arr_sorted,i_sorted] = sort(x_arr);
+        
+        fout(t_count).iter = ds.iteration(it);
+        fout(t_count).x = x_arr(i_sorted);
+        fout(t_count).z = z_arr;
+        fout(t_count).v = vaxes;
+        fout(t_count).fvx = f_vx_arr(i_sorted,:);
+        fout(t_count).fvy = f_vy_arr(i_sorted,:);
+        fout(t_count).fvz = f_vz_arr(i_sorted,:);
       end
+      varargout{1} = fout;
     end
     % Density
     % Flux
@@ -1231,7 +1265,50 @@
       end
       
       out = inds;
-    end        
+    end
+    function out = ind_from_val(var,value,varargin)
+      % method is the same for xlim, zlim ilim, i, twpelim, twcilim
+      
+      % Defaults
+      doExact = 1;
+      doClosest = 0;
+      nClosest = 1; % only the closest index
+           
+      
+      % Check input
+      have_options = 0;
+      nargs = numel(varargin);      
+      if nargs > 0, have_options = 1; args = varargin(:); end
+      
+      while have_options
+        l = 1;
+        switch(lower(args{1}))
+          case 'closest'
+            l = 2;
+            doClosest = 1;
+            nClosest = args{2};            
+            args = args(l+1:end);    
+          otherwise
+            warning(sprintf('Input ''%s'' not recognized.',args{1}))
+            args = args(l+1:end);
+        end        
+        if isempty(args), break, end    
+      end
+      
+      
+      % Find indices
+      if doClosest
+        inds = find()
+        [is, index] = sort(abs(var-value(1)));
+        inds = sort(index(1:nClosest));
+      else
+        i1 = find(var >= value(1),1,'first'); 
+        i2 = find(var <= value(2),1,'last'); 
+        inds = i1:i2;
+      end
+      
+      out = inds;
+    end
   end
   
   methods (Access = protected)
