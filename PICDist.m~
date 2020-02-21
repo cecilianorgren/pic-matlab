@@ -339,12 +339,7 @@
                 
         obj.dists_{it} = obj.dists_{it}(inds{it});
         obj.indices_{it} = obj.indices_{it}(inds{it});
-      end
-      % run through and update time inds if any time is empty: empty times
-      % are removed
-      emptytimes = cellfun(@(x)isempty(x),obj.xi1,'UniformOutput',false);
-      time_inds = find(not([emptytimes{:}]));
-      obj = obj.update_inds_time(time_inds);      
+      end        
     end
     function obj = update_inds_time(obj,inds)
       obj.twpe_ = obj.twpe_(inds);
@@ -1062,10 +1057,9 @@
       % also save time, but for now only the iteration is saved
       fout = struct('iter',{},'x',{},'z',{},'v',{},'fvx',{},'fvy',{},'fvz',{});
       
-      t_count = 0;      
+      t_count = 0;
       for it = 1:obj.nt
-        tic
-        disp(sprintf('it = %g/%g',it,obj.nt))
+        disp(sprintf('it = %g',))
         ids = ds.indices{it};
         nd = numel(ids);
         if isempty(ids)
@@ -1093,11 +1087,6 @@
           id_count = id_count + 1;
           
           f_tmp = ds.f(it,id,iSpecies);
-          
-          % Never mind entering the vaxes, just take whatever comes out
-          % here, which depends on iSpecies. But what if there are
-          % different vaxes for different disitributions, times? Can one go
-          % trough and check that first?          
           
           x_arr(id) = mean(f_tmp.x);
           z_arr(id) = mean(f_tmp.z);          
@@ -1154,8 +1143,6 @@
         fout(t_count).def = f_vabs_mean_arr(i_sorted,:).*V'.^4/2;
         
         fout(t_count).fvabsmean = f_vabs_mean_arr(i_sorted,:);
-        
-        toc
       end
       varargout{1} = fout;
     end

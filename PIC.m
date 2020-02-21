@@ -1830,7 +1830,7 @@
       
       nt = obj.nt;
       tlim = obj.twci([1 end]);
-      zlim = [-0.4 0.4];
+      zlim = [-0.2 0.2];
       xlims = {[obj.xi(1) obj.xi(fix(obj.nx/2))],[obj.xi(fix(obj.nx/2)) obj.xi(end)]};
       
       x = zeros(2,obj.nt);

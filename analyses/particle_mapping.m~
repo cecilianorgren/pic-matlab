@@ -484,8 +484,6 @@ f35_x_vy = make_space_time_1d(ds04,its,xlim,zlim,rdim,2,icold);
 f35_x_vz = make_space_time_1d(ds04,its,xlim,zlim,rdim,3,icold);
 
 %% Make phase space plots for several times
-doLogRED = 0;
-doLogDEF = 1;
 
 twci = [100 180];
 nt = numel(twci);
@@ -493,23 +491,21 @@ nt = numel(twci);
 xvals = 150:0.2:210;
 dxi = [0 0.21]; 
 % old larger boxes
-xvals = 150:1:210;
-zvals = 1;
-dxi = [0.3 0.6]; 
+%xvals = 150:1:210;
+%dxi = [0.3 0.6]; 
 
-ds = ds04.twcilim(twci).dxlim(dxi).zfind(zvals); % make so that twcilim work for eaxct values if there are more than 2
+ds = ds04.twcilim(twci).dxlim(dxi).zfind(0); % make so that twcilim work for eaxct values if there are more than 2
 nt = numel(ds.twci);
-%
-%f35 = ds.reduce_1d(xvals,zvals,linspace(-2,2,101),[3 5],'vabs');
-%f1 = ds.reduce_1d(xvals,zvals,linspace(-5,5,101),[1],'vabs');
-%f135 = ds.reduce_1d(xvals,zvals,linspace(-4,4,121),[1 3 5],'vabs');
 
-ff = f35;
+%f35 = ds.reduce_1d(xvals,0,linspace(-2,2,101),[3 5]);
+%f1 = ds.reduce_1d(xvals,0,linspace(-5,5,101),[1],'vabs');
+%f135 = ds.reduce_1d(xvals,0,linspace(-3,3,101),[1 3 5],'vabs');
+
+ff = f135;
 
 nrows = nt;
-ncols = 5;
+ncols = 4;
 npanels = nrows*ncols;
-toprow = 1:ncols;
 bottomrow = (nrows-1)*ncols+[1:ncols];
 leftcolumn = 1:ncols:(nrows*ncols);
 
@@ -519,69 +515,37 @@ isRED = [];
 h = setup_subplots(nrows,ncols,'horizontal');
 isub = 1;
 
-for it = 1:2%nt
+for it = 1:nt
   hca = h(isub); isub = isub + 1;  
-  if doLogRED
-    pcolor(hca,ff(it).x,ff(it).v,log10(ff(it).fvx')); shading(hca,'flat'); 
-  else
-    pcolor(hca,ff(it).x,ff(it).v,ff(it).fvx'); shading(hca,'flat'); 
-  end
+  pcolor(hca,ff(it).x,ff(it).v,ff(it).fvx'); shading(hca,'flat'); 
   isRED(end+1) = isub - 1;
   
   hca = h(isub); isub = isub + 1;  
-  if doLogRED
-    pcolor(hca,ff(it).x,ff(it).v,log10(ff(it).fvy')); shading(hca,'flat'); 
-  else
-    pcolor(hca,ff(it).x,ff(it).v,ff(it).fvy'); shading(hca,'flat'); 
-  end
-  isRED(end+1) = isub - 1;
+  pcolor(hca,ff(it).x,ff(it).v,ff(it).fvy'); shading(hca,'flat'); 
+  isDEF(end+1) = isub - 1;
 
   hca = h(isub); isub = isub + 1;  
-  if doLogRED
-    pcolor(hca,ff(it).x,ff(it).v,log10(ff(it).fvz')); shading(hca,'flat'); 
-  else
-    pcolor(hca,ff(it).x,ff(it).v,ff(it).fvz'); shading(hca,'flat'); 
-  end
-  isRED(end+1) = isub - 1;
-  
-  hca = h(isub); isub = isub + 1;  
-  pcolor(hca,ff(it).x,ff(it).v(ff(it).v>=0),log10(ff(it).def')); shading(hca,'flat'); 
+  pcolor(hca,ff(it).x,ff(it).v,ff(it).fvz'); shading(hca,'flat'); 
   isDEF(end+1) = isub - 1;
   
   hca = h(isub); isub = isub + 1;  
-  pcolor(hca,ff(it).x,ff(it).v(ff(it).v>=0).^2,log10(ff(it).def')); shading(hca,'flat'); 
+  pcolor(hca,ff(it).x,ff(it).v(ff(it).v>=0),ff(it).def'); shading(hca,'flat'); 
   isDEF(end+1) = isub - 1;
-  hca.YScale = 'log';
-  hca.YLabel.String = 'log_{10}(v^2)';
+  
   %hca = h(isub); isub = isub + 1;  
   %pcolor(hca,ff(it).x,ff(it).v(ff(it).v>=0),ff(it).fvabssum'); shading(hca,'flat'); 
     
 end
 
 colormap(pic_colors('candy'))
+hlinks = linkprop(h,{'XLim','YLim'});
+hlinks.Targets(1).XLim = xvals([1 end]);
+hlinks.Targets(1).YLim = [-4.99 4.99];
 
-hlinksDEF = linkprop(h(isDEF),{'CLim'});
-%hlinksDEF.Targets(1).YLim = 2.99*[0 1];
-
-hlinksRED = linkprop(h(isRED),{'CLim','YLim'});
-hlinksRED.Targets(1).YLim = 2.99*[-1 1];
-
-hlinksALL = linkprop(h,{'XLim'});
-hlinksALL.Targets(1).XLim = xvals([1 end]);
-
-
-h(isRED(1)).Title.String = 'f(x,z=0,vx)';
-h(isRED(2)).Title.String = 'f(x,z=0,vy)';
-h(isRED(3)).Title.String = 'f(x,z=0,vz)';
-if doLogDEF
-  for ip = intersect(isDEF,toprow)
-    h(ip).Title.String = 'log_{10}(def)';
-  end
-else
-  for ip = intersect(isDEF,toprow)
-    h(isDEF(1)).Title.String = 'def';
-  end
-end
+h(1).Title.String = 'f(x,z=0,vx)';
+h(2).Title.String = 'f(x,z=0,vy)';
+h(3).Title.String = 'f(x,z=0,vz)';
+h(4).Title.String = 'def';
 %h(5).Title.String = 'f(x,z=0,|vz|(mean))';
 
 for ip = bottomrow
@@ -599,22 +563,13 @@ for ip = 1:npanels
   h(ip).FontSize = 14;
 end
 
-compact_panels(0.01)
+compact_panels(0.01,0.02)
 
-if not(isempty(isDEF)) % colorbar for def
-  pos = h(isDEF(end)).Position;
-  hb = colorbar('peer',h(isDEF(end)));
-  hb.Position(1) = pos(1)+pos(3);
-  hb.Position(4) = pos(4);
-  h(isDEF(end)).Position = pos;
-end
+pos = h(end).Position;
+hb = colorbar('peer',h(end));
+hb.Position(1) = pos(1)+pos(3);
+hb.Position(4) = pos(4);
+h(end).Position = pos;
 
-if not(isempty(isDEF)) % colorbar for red
-  pos = h(isRED(end)).Position;
-  hb = colorbar('peer',h(isRED(end)));
-  hb.Position(1) = pos(1)+pos(3);
-  hb.Position(4) = pos(4);
-  h(isRED(end)).Position = pos;
-end
-%cn.print('f135')
+cn.print('f135')
 

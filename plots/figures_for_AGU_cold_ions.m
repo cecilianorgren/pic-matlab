@@ -1125,6 +1125,10 @@ for iDF = 1:pic04.length
   %Ex04_(iDF) = mean(mean(pc04.Ex));
   %Ey04_(iDF) = mean(mean(pc04.Ey));  
 end
+vExB04 = 
+
+%%
+  Ex04 = pic04.interp(xDF04(1,:),xDF04(1,:)*0,pic04.twci,'Ex');
   Ey04 = pic04.interp(xDF04(1,:),xDF04(1,:)*0,pic04.twci,'Ey');
   Ez04 = pic04.interp(xDF04(1,:),xDF04(1,:)*0,pic04.twci,'Ez');
   Bx04 = pic04.interp(xDF04(1,:),xDF04(1,:)*0,pic04.twci,'Bx');

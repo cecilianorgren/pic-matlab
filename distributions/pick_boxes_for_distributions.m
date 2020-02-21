@@ -394,8 +394,8 @@ end
 hold(hca,'off')   
 
 %% Pattern governed by A, PIC object
-pic = df04;
-ind = df04.twpelim(5000).it;
+pic = df08;
+ind = df08.twpelim(5000).it;
 %ind = 26;
 A = squeeze(pic(ind).A);
 Bz = squeeze(pic(ind).Bz);
@@ -405,8 +405,8 @@ vex = squeeze(pic(ind).vex);
 
 [saddle_locations,saddle_values] = saddle(A,'sort');
 
-x_center = (192:0.2:205);
-z_center = [0 0.2];
+x_center = (189:0.2:207);
+z_center = [0 0.4 0.8]; % 0.4 0.8
 dx_box = 0.1;
 dz_box = 0.1;
 % x_center = 150:0.5:205;
@@ -432,6 +432,7 @@ Alim = [-24 -18];
 Alim = [-24 saddle_values(1)*0.99];
 Alim = [-25 saddle_values(1)*0.99];
 Alim = [-23.8 0];
+Alim = [-25 0];
 ind_keep = zeros(nboxes,1);
 for ibox = 1:nboxes
   xind = find(abs(pic.xi-XC(ibox))==min(abs(pic.xi-XC(ibox))));

@@ -545,6 +545,125 @@ for idist = 1:259%:210%1:nDists
     h5disp(filePath,dataset_name(1:(end-4)))          
 end
 
+%% Particle distributions, df08
+timestep = 5000; 
+
+% Better to save original data, and only necessary quantities
+data_dir    = '/Volumes/Fountain/Data/PIC/df_cold_protons_n08/data/';
+data_dir_h5 = '/Volumes/Fountain/Data/PIC/df_cold_protons_n08/data_h5/';
+data_dir    = sprintf('/Users/cno062/tesla/cno062/df_cold_protons_n08/distributions/%05.0f/',timestep);
+filePath = [data_dir_h5 'dists.h5'];
+nSpecies = 4;
+descSpecies = {...
+  'hot ion harris sheet plus uniform background',...
+  'hot electron harris sheet plus uniform background',...
+  'cold ions from south',...
+  'cold electrons from south',...
+  'cold ions from north',...
+  'cold electrons from north'};
+
+iter = timestep*2; % This is only true with constant timestep 0.5
+dists = 1:644;%367;%300;
+nDists = numel(dists);
+nss = 6;
+
+for idist = 259:390%:390%255:367%:210%1:nDists  
+  %idist = 10;
+  distnumber = dists(idist);
+  txtfile = sprintf('/Users/cno062/tesla/cno062/df_cold_protons_n04/distributions/%05.0f/%.0f.dat',timestep,distnumber); % df04
+  
+  str_iteration = sprintf('%010.0f',iter);
+  
+  % Read distributions  
+  [axes,xlo,xhi,zlo,zhi,ic,fxyz,fxy,fxz,fyz,vxa,vya,vza] = read_distributions(txtfile,nss);
+      
+  % Write data to file
+  %for isp = 1:nss
+    %dataset_name = ['/data/' str_iteration '/' num2str(distnumber),'/'];
+    %h5create(filePath, dataset_name, size(fxyz));
+    %h5write(filePath, dataset_name, fxyz);
+
+    dataset_name = ['/data/' str_iteration '/' num2str(distnumber,'%05.0f'),'/fxyz'];
+    try
+      h5create(filePath, dataset_name, size(fxyz));
+    catch
+      warning('h5 structure %s already exists',dataset_name)      
+    end
+    h5write(filePath, dataset_name, fxyz);
+    h5writeatt(filePath, dataset_name,'x', [xlo xhi]);
+    h5writeatt(filePath, dataset_name,'z', [zlo zhi]);
+    h5writeatt(filePath, dataset_name,'ic', ic);
+    h5writeatt(filePath, dataset_name,'vxa', vxa);
+    h5writeatt(filePath, dataset_name,'vya', vya);
+    h5writeatt(filePath, dataset_name,'vza', vza);
+    h5writeatt(filePath, dataset_name,'axes', axes);
+    
+    h5disp(filePath,dataset_name(1:(end-4)))
+    %dataset_name = ['/data/' str_iteration '/' num2str(distnumber),'/fxy'];
+    %h5create(filePath, dataset_name, size(fxy));
+    %h5write(filePath, dataset_name, fxy);
+
+    %dataset_name = ['/data/' str_iteration '/' num2str(distnumber),'/fxz'];
+    %h5create(filePath, dataset_name, size(fxz));
+    %h5write(filePath, dataset_name, fxz);
+
+    %dataset_name = ['/data/' str_iteration '/' num2str(distnumber),'/fyz'];
+    %h5create(filePath, dataset_name, size(fyz));
+    %h5write(filePath, dataset_name, fyz);
+  %end
+  
+      
+  doPlot = 0;
+  if doPlot
+    %%
+    isp = 1;
+    dx = axes(2,isp)-axes(1,isp);
+    dy = dx;
+    dz = dx;
+    h = setup_subplots(3,3);
+    isub = 1;
+    if 1
+      hca = h(isub); isub = isub + 1;
+      imagesc(hca,fxy(:,:,isp))
+    end
+    if 1
+      hca = h(isub); isub = isub + 1;
+      imagesc(hca,fxz(:,:,isp))
+    end
+    if 1
+      hca = h(isub); isub = isub + 1;
+      imagesc(hca,fyz(:,:,isp))
+    end
+    if 1
+      hca = h(isub); isub = isub + 1;
+      imagesc(hca,squeeze(sum(fxyz(:,:,:,isp),3))*16.5)
+    end
+    if 1
+      hca = h(isub); isub = isub + 1;
+      imagesc(hca,squeeze(sum(fxyz(:,:,:,isp),2)))
+    end
+    if 1
+      hca = h(isub); isub = isub + 1;
+      imagesc(hca,squeeze(sum(fxyz(:,:,:,isp),1)))
+    end
+    if 1
+      hca = h(isub); isub = isub + 1;
+      imagesc(hca,fxy(:,:,isp)-squeeze(sum(fxyz(:,:,:,isp),3))*17)
+    end
+    if 1
+      hca = h(isub); isub = isub + 1;
+      imagesc(hca,fxz(:,:,isp)-squeeze(sum(fxyz(:,:,:,isp),2)))
+    end
+    if 1
+      hca = h(isub); isub = isub + 1;
+      imagesc(hca,fyz(:,:,isp)-squeeze(sum(fxyz(:,:,:,isp),1)))
+    end
+    c_eval('colorbar(''peer'',h(?))',1:9)
+    hlinks = linkprop(h,{'Clim'});
+  end
+    
+end
+
 %% Trajectories
 data_dir_h5 = '/Volumes/Fountain/Data/PIC/df_cold_protons_n04/data_h5/';
 filePath = [data_dir_h5 'trajectories.h5'];

@@ -1,4 +1,4 @@
-function h5write_dists(data_dir,filePath,nSpecies,timestep,iteration)
+function h5write_dists(data_dir,filePath,distIndices,nSpecies,dt)
 % H5WRITE_DISTS Write Michael's simulation output distribution data to h5 file.
 % H5WRITE_DISTS(dirData,h5filePath,distIndices,nSpecies,dt)
 %
@@ -41,7 +41,7 @@ nFiles = numel(fileList);
 if newh5file
   id = 0;
 else
-  ds = dist.twpelim(timestep);
+  ds dist.twpelim(timestep);
 end
 for iFile = 1:nFiles
   id = id + 1;
