@@ -487,24 +487,24 @@ f35_x_vz = make_space_time_1d(ds04,its,xlim,zlim,rdim,3,icold);
 doLogRED = 0;
 doLogDEF = 1;
 
-twci = [100 180];
+twci = [100 120 140 160 180];
 nt = numel(twci);
 % new smaller boxes
-xvals = 150:0.2:210;
+xvals = 130:0.2:210;
 dxi = [0 0.21]; 
 % old larger boxes
-xvals = 150:1:210;
-zvals = 1;
-dxi = [0.3 0.6]; 
+%xvals = 150:1:210;
+zvals = [0 1 2 3 4 5];
+%dxi = [0.3 0.6]; 
 
-ds = ds04.twcilim(twci).dxlim(dxi).zfind(zvals); % make so that twcilim work for eaxct values if there are more than 2
+ds = ds04.dxlim(dxi); % make so that twcilim work for eaxct values if there are more than 2
 nt = numel(ds.twci);
-%
+%%
 %f35 = ds.reduce_1d(xvals,zvals,linspace(-2,2,101),[3 5],'vabs');
 %f1 = ds.reduce_1d(xvals,zvals,linspace(-5,5,101),[1],'vabs');
 %f135 = ds.reduce_1d(xvals,zvals,linspace(-4,4,121),[1 3 5],'vabs');
 
-ff = f35;
+ff = f1;
 
 nrows = nt;
 ncols = 5;
@@ -618,3 +618,134 @@ if not(isempty(isDEF)) % colorbar for red
 end
 %cn.print('f135')
 
+%% Make phase space plots for several times, several z
+doLogRED = 0;
+doLogDEF = 1;
+
+twci = [100 180];
+nt = numel(twci);
+% new smaller boxes
+xvals = 150:0.2:210;
+dxi = [0 0.21]; 
+% old larger boxes
+xvals = 150:1:210;
+zvals = [0 1 2 3 4];
+dxi = [0.3 0.6]; 
+
+ds = ds04.twcilim(twci).dxlim(dxi).zfind(zvals); % make so that twcilim work for eaxct values if there are more than 2
+nt = numel(ds.twci);
+%
+%f35 = ds.reduce_1d(xvals,zvals,linspace(-2,2,101),[3 5],'vabs');
+%f1 = ds.reduce_1d(xvals,zvals,linspace(-5,5,101),[1],'vabs');
+%f135 = ds.reduce_1d(xvals,zvals,linspace(-4,4,121),[1 3 5],'vabs');
+
+ff = f5;
+
+if 0 % Get X line location for each time
+  xxLine = nan(ds.nt,1);
+  for itime = 1:ds.nt
+    A = df04.twcilim(ds.twci(itime)).A;
+    [A_inds,A_vals] = saddle(A,'sort');  
+    xxLine(itime) = df04.xi(A_inds(1,1));
+  end
+end
+
+% Figure
+[nrows,ncols] = size(ff);
+
+npanels = nrows*ncols;
+toprow = 1:ncols;
+bottomrow = (nrows-1)*ncols+[1:ncols];
+leftcolumn = 1:ncols:(nrows*ncols);
+
+isDEF = [];
+isRED = [];
+
+h = setup_subplots(nrows,ncols,'horizontal');
+h = reshape(h,nrows,ncols);
+isub = 1;
+h_empty = zeros(nrows,ncols);
+
+for it = 1:nrows
+  for iSpace = 1:ncols % ncols:-1:1
+    fftmp = ff(it,iSpace);
+    if isempty(fftmp.iter)
+      h_empty(it,iSpace) = 1;
+      continue; 
+    end
+    z = unique(fftmp.z);
+      
+    if 0 %f(vx)
+      hca = h(isub); isub = isub + 1;  
+      if doLogRED
+        pcolor(hca,fftmp.x,fftmp.v,log10(fftmp.fvx')); shading(hca,'flat'); 
+      else
+        pcolor(hca,fftmp.x,fftmp.v,fftmp.fvx'); shading(hca,'flat'); 
+      end
+      isRED(end+1) = isub - 1;
+    end 
+    if 0 % f(vy)
+      hca = h(isub); isub = isub + 1;  
+      if doLogRED
+        pcolor(hca,fftmp.x,fftmp.v,log10(fftmp.fvy')); shading(hca,'flat'); 
+      else
+        pcolor(hca,fftmp.x,fftmp.v,fftmp.fvy'); shading(hca,'flat'); 
+      end
+      isRED(end+1) = isub - 1;
+    end
+    if 0 % f(vz)
+      hca = h(isub); isub = isub + 1;  
+      if doLogRED
+        pcolor(hca,fftmp.x,fftmp.v,log10(fftmp.fvz')); shading(hca,'flat'); 
+      else
+        pcolor(hca,fftmp.x,fftmp.v,fftmp.fvz'); shading(hca,'flat'); 
+      end
+      isRED(end+1) = isub - 1;
+    end
+    if 0 % def, on vscale
+      hca = h(isub); isub = isub + 1;  
+      pcolor(hca,fftmp.x,fftmp.v(fftmp.v>=0),log10(fftmp.def')); shading(hca,'flat'); 
+      isDEF(end+1) = isub - 1;
+    end
+    if 1 % def on log10(v^2) scale
+      hca = h(it,iSpace); isub = isub + 1;  
+      pcolor(hca,fftmp.x,fftmp.v(fftmp.v>=0).^2,log10(fftmp.def')); shading(hca,'flat'); 
+      isDEF(end+1) = isub - 1;
+      hca.YScale = 'log';
+      hca.YLabel.String = 'log_{10}(v^2)';
+      hca.Title.String = sprintf('iteration = %g, z = %g',fftmp.iter,z);
+      hb = colorbar('peer',hca);
+    end
+  %hca = h(isub); isub = isub + 1;  
+  %pcolor(hca,ff(it).x,ff(it).v(ff(it).v>=0),ff(it).fvabssum'); shading(hca,'flat'); 
+  end
+end
+
+h = h(not(h_empty));
+colormap(pic_colors('candy'))
+hlinksDEF = linkprop(h(:),{'CLim','YLim','YTick'});
+
+hlinksDEF.Targets(1).CLim = [-9 -5];
+hlinksDEF.Targets(1).YLim = [1e-2 2e1];
+hlinksDEF.Targets(1).YTick = [1e-3 1e-2 1e-1 1e0 1e1 1e2];
+
+%hlinksRED = linkprop(h(isRED),{'CLim','YLim'});
+%hlinksRED.Targets(1).YLim = 2.99*[-1 1];
+
+hlinksALL = linkprop(h,{'XLim'});
+hlinksALL.Targets(1).XLim = xvals([1 end]);
+
+
+%h(isRED(1)).Title.String = 'f(x,z=0,vx)';
+%h(isRED(2)).Title.String = 'f(x,z=0,vy)';
+%h(isRED(3)).Title.String = 'f(x,z=0,vz)';
+%if doLogDEF
+%  for ip = intersect(isDEF,toprow)
+%    h(ip).Title.String = 'log_{10}(def)';
+%  end
+%else
+  %for ip = intersect(isDEF,toprow)
+  %  h(isDEF(1)).Title.String = 'def';
+  %end
+%end
+%h(5).Title.String = 'f(x,z=0,|vz|(mean))';

@@ -571,12 +571,12 @@ nDists = numel(dists);
 nss = 4;
 
 h5writeatt(filePath,['/data/' str_iteration],'twpe', timestep);
-h5writeatt(filePath,['/data/' str_iteration],'twci', timestep/(wpewce*mime));
+h5writeatt(filePath,['/data/' str_iteration],'twci', timestep/(wpewc));
 
-for idist = 662:900%:390%255:367%:210%1:nDists  
+for idist = 57%1:300%:390%255:367%:210%1:nDists  
   %idist = 10;
   distnumber = dists(idist);
-  txtfile = sprintf('%s/%04.0f.dat',data_dir,distnumber); % df04
+  txtfile = sprintf('/Users/cno062/tesla/cno062/df_cold_protons_n04/distributions/%05.0f/%.0f.dat',timestep,distnumber); % df04
   
   
   % Read distributions  

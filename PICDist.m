@@ -269,7 +269,7 @@
     function obj = xfind(obj,value)
       % pick distributions with centers corresponding to exact value           
       
-      for it = 1:obj.nt        
+      for it = 1:obj.nt
         center = (obj.xi1{it} + obj.xi2{it})/2;
 %         for ii = 1:numel(center)
 %           if find(value==center(ii),1,'first')
@@ -278,7 +278,7 @@
 %             IA(ii) = 0;
 %           end
 %         end
-        [IA,IB] = ismembertol(center,value,1e-3);
+        [IA,IB] = ismembertol(center,value,1e-5);
         inds{it} = find(IA);
       end
       obj = obj.update_inds(inds);
@@ -324,6 +324,23 @@
       obj = obj.update_inds(inds);   
       
     end
+    function obj = twpelim(obj,value,varargin)
+      % Get subset of twpe
+      inds = obj.ind_from_lim(obj.twpe_,value,varargin{:});
+      obj = obj.update_inds_time(inds);
+    end
+    function obj = twcilim(obj,value,varargin)
+      % Get subset of twci
+      inds = obj.ind_from_lim(obj.twci,value,varargin{:});
+      obj = obj.update_inds_time(inds);
+    end
+    function obj = twcifind(obj,value)
+      % pick distributions with centers corresponding to exact value           
+      
+      inds = find(ismember(obj.twci,value));
+      obj = obj.update_inds_time(inds);
+    end
+    
     function obj = update_inds(obj,inds)
       % xi
       % zi
@@ -359,16 +376,6 @@
       obj.dxi = obj.dxi(inds);
       obj.dzi = obj.dzi(inds);
       obj.dists = obj.dists(inds);      
-    end
-    function obj = twpelim(obj,value,varargin)
-      % Get subset of twpe
-      inds = obj.ind_from_lim(obj.twpe_,value,varargin{:});
-      obj = obj.update_inds_time(inds);
-    end
-    function obj = twcilim(obj,value,varargin)
-      % Get subset of twci
-      inds = obj.ind_from_lim(obj.twci,value,varargin{:});
-      obj = obj.update_inds_time(inds);
     end
     
     % Plotting routines, for simple diagnostics etc
@@ -610,6 +617,60 @@
       varargout{1}.hleg = hleg;
       
     end
+    function varargout = plot_boxes(obj,varargin)
+      % PDIST.PLOT_BOXES Plot boxes of distributions.
+      
+      doPlotIntoAxes = 0;
+      [ax,args,nargs] = axescheck(varargin{:});
+            
+      % Get min and max values in order to set common XLim and YLim
+      nt = obj.nt;
+      
+      if not(nt == numel(ax))        
+        warning('Numer of timesteps not equal to number of axes. Plotting into new figure.')
+        figure;
+      else
+        doPlotIntoAxes = 1;
+      end
+      
+      
+      x1all = []; x2all = []; z1all = []; z2all = [];
+      for it = 1:nt
+        x1all = [x1all obj.xi1{it}];
+        x2all = [x2all obj.xi2{it}];
+        z1all = [z1all obj.zi1{it}];
+        z2all = [z2all obj.zi2{it}];
+      end
+      xmin = min(x1all); 
+      xmax = max(x2all);
+      zmin = min(z1all); 
+      zmax = max(z2all);
+      
+      for it = 1:nt
+        if doPlotIntoAxes
+          hca = ax(it);
+          hold(hca,'on')
+        else
+          hca = subplot(nt,1,it); ax(it) = hca;
+        end
+        for idist = 1:numel(obj.xi1{it})
+          xplot = [obj.xi1{it}(idist) obj.xi2{it}(idist) obj.xi2{it}(idist) obj.xi1{it}(idist) obj.xi1{it}(idist)];
+          zplot = [obj.zi1{it}(idist) obj.zi1{it}(idist) obj.zi2{it}(idist) obj.zi2{it}(idist) obj.zi1{it}(idist)];
+          plot(hca,xplot,zplot,'k')
+          if idist == 1; hold(hca,'on'); end
+        end
+        hold(hca,'off');
+      end
+      drawnow
+      disp('Linking: XLim, YLim.')
+      hlinks = linkprop(ax,{'XLim','YLim'});
+      hlinks.Targets(1).XLim = [xmin xmax] + 5*[-1 1];
+      hlinks.Targets(1).YLim = [zmin zmax] + 2*[-1 1];
+      
+      if nargout == 1
+        varargout{1} = ax;
+      end
+    end
               
     % Data analysis routines, time derivatives, interpolation, etc.
     function out = get_peaks(obj,nPeaks,spacingPeaks,iSpecies)
@@ -741,11 +802,14 @@
       
       for iIter = 1:obj.nt
         iter = iterations(iIter);
-        str_iter = sprintf('%010.0f',iter);        
-        for iDist = 1:numel(obj.dists{iIter})
-          dataset_name = ['/data/' str_iter '/' num2str(iDist,'%05.0f') '/fxyz'];
-          %locs{iIter}{iDist} = [h5readatt(obj.file,dataset_name,'x') h5readatt(obj.file,dataset_name,'z')];
-          xtmp = h5readatt(obj.file,dataset_name,'x')';
+        str_iter = sprintf('%010.0f',iter);
+        % this gives error if there is a jump in dists
+        % use obj.dists{iIter}{iDist} instead of num2str(iDist,'%05.0f')?
+        for iDist = 1:numel(obj.dists{iIter}) 
+          %dataset_name = ['/data/' str_iter '/' num2str(iDist,'%05.0f') '/fxyz'];
+          dataset_name = ['/data/' str_iter '/' obj.dists{iIter}{iDist} '/fxyz'];          
+          %locs{iIter}{iDist} = [h5readatt(obj.file,dataset_name,'x') h5readatt(obj.file,dataset_name,'z')];          
+          xtmp = h5readatt(obj.file,dataset_name,'x')';          
           ztmp = h5readatt(obj.file,dataset_name,'z')';
           x1{1,iIter}(iDist) = xtmp(1);
           x2{1,iIter}(iDist) = xtmp(2);
@@ -849,14 +913,14 @@
         data_tmp = h5read(obj.file,dataset,[1 1 1,iSpeciesTmp],[datasize,1]);
         % The phase space volume might be different due to different vaxes
         % or spatial box sizes. Adjust for that here.
-        vAxesTmp = allAxes(:,iSpecies);
-        dv = vAxesTmp(2) - vAxesTmp(1);
-        xTmp = h5readatt(obj.file,dataset,'x')';
-        zTmp = h5readatt(obj.file,dataset,'z')';
-        dx = diff(xTmp);
-        dz = diff(zTmp);
-        volPhaseSpace = dv.^3*dx*dz;
-        data_tmp = data_tmp/volPhaseSpace;
+%         vAxesTmp = allAxes(:,iSpecies);
+%         dv = vAxesTmp(2) - vAxesTmp(1);
+%         xTmp = h5readatt(obj.file,dataset,'x')';
+%         zTmp = h5readatt(obj.file,dataset,'z')';
+%         dx = diff(xTmp);
+%         dz = diff(zTmp);
+%         volPhaseSpace = dv.^3*dx*dz;
+%         data_tmp = data_tmp/volPhaseSpace;
         
         if nUniqueAxes > 1 % Resample/interpolate to common axes.
           [Vx,Vy,Vz] = meshgrid(allAxes(:,iSpeciesTmp),allAxes(:,iSpeciesTmp),allAxes(:,iSpeciesTmp));
@@ -907,15 +971,16 @@
       for iSpeciesTmp = iSpecies
         data_tmp = h5read(obj.file,dataset,[1 1 1,iSpeciesTmp],[datasize,1]);
         % The phase space volume might be different due to different vaxes
-        % or spatial box sizes. Adjust for that here.
-        vAxesTmp = allAxes(:,iSpecies);
-        dv = vAxesTmp(2) - vAxesTmp(1);
-        xTmp = h5readatt(obj.file,dataset,'x')';
-        zTmp = h5readatt(obj.file,dataset,'z')';
-        dx = diff(xTmp);
-        dz = diff(zTmp);
-        volPhaseSpace = dv.^3*dx*dz;
-        data_tmp = data_tmp/volPhaseSpace;
+        % or spatial box sizes. Adjust for that here. NO, this is already
+        % done in Michael's routine.
+        %vAxesTmp = allAxes(:,iSpecies);
+        %dv = vAxesTmp(2) - vAxesTmp(1);
+        %xTmp = h5readatt(obj.file,dataset,'x')';
+        %zTmp = h5readatt(obj.file,dataset,'z')';
+        %dx = diff(xTmp);
+        %dz = diff(zTmp);
+        %volPhaseSpace = dv.^3*dx*dz;
+%        data_tmp = data_tmp/volPhaseSpace;
         
         if nUniqueAxes > 1
           [Vx,Vy,Vz] = meshgrid(allAxes(:,iSpeciesTmp),allAxes(:,iSpeciesTmp),allAxes(:,iSpeciesTmp));
@@ -1012,13 +1077,17 @@
         varargout{3}.dEF = dEF_all;
       end
     end    
-    function varargout = reduce_1d(obj,x0,z0,vaxes,iSpecies,varargin)
-      % reduce_1d(obj,x0,z0,iSpecies) Make f(x,vx),f(z,vx), etc...
+    function varargout = reduce_1d(obj,depvar,x0,z0,vaxes,iSpecies,varargin)
+      % reduce_1d(obj,depvar,x0,z0,iSpecies) Make f(x,vx),f(z,vx), etc...
       %
       % apply time indices and xlim zlim outside before
       % do all vdims, doesnt take much more time anyways
-      % return as structure array, one for each time
+      % return as structure array, arr(t,x_or_z)
       %
+      %   depvar - 'x' or 'z', variable that is plotted on x-axis, for 
+      %     example if depvar = 'x', the output array has dimensions 
+      %     (nt,nz), and the matrices has dimensions (nv,nx):
+      %     arr(1,1) = f(t=t1,x=xvals,z=zvals(1))      
       %   x0 - needs to match exact distribution centers
       %   z0 - needs to match exact distribution centers
       %   vaxes - common velocity axes to interpolate fields to, for
@@ -1048,114 +1117,137 @@
       % example the z = 0 row, then make 2D matrix, that is prepared for
       % plotting.
       
-      ds = obj.xfind(x0).zfind(z0);
+      %ds = obj.xfind(x0).zfind(z0); % moved this below
       
       
       nx = numel(x0);
-      nz = numel(x0);
+      nz = numel(z0);
       nv = numel(vaxes);
+      
+      if strcmp(depvar,'x')
+        ns = nz;
+      else
+        ns = nx;
+      end
+      
       % for vabs distribution
       vaxes_pos = vaxes(vaxes>=0);
       nv_pos = numel(vaxes_pos-1); % vaxes_pos are the edges of the bins, so the number of bins is one less
       
       % save results in structure array, one structure for each time
       % also save time, but for now only the iteration is saved
-      fout = struct('iter',{},'x',{},'z',{},'v',{},'fvx',{},'fvy',{},'fvz',{});
-      
-      t_count = 0;      
-      for it = 1:obj.nt
-        tic
-        disp(sprintf('it = %g/%g',it,obj.nt))
-        ids = ds.indices{it};
-        nd = numel(ids);
-        if isempty(ids)
-          continue
-        else
-          t_count = t_count + 1;
+      fout = struct('time',{},'iter',{},'x',{},'z',{},'v',{},'fvx',{},'fvy',{},'fvz',{});
+         
+      for itime = 1:obj.nt % loop through times
+        dst = obj.twcifind(obj.twci(itime));
+        if isempty(dst.xi1), continue; end
+        
+        for is = 1:ns % loop through x or z          
+          if strcmp(depvar,'x')
+            ds = dst.xfind(x0).zfind(z0(is)); % loop through zvals
+          else
+            ds = dst.xfind(x0(is)).zfind(z0); % loop through xvals
+          end
+          if isempty(ds.xi1), continue; end
+        
+%         t_count = 0; 
+          t_count = itime;
+          tic
+          disp(sprintf('it = %g/%g, is = %g/%g',itime,obj.nt,is,ns))          
+          ids = ds.indices{1}; % this produces error if empty, fix this, because it might interrupt a long run
+          
+          nd = numel(ids);
+          if isempty(ids)
+            continue
+          %else
+          %  t_count = t_count + 1; % this not necessary because empty
+          %  entries in the structure matrix is ok
+          end
+          % f(x,z,vx,vy,vz), typically z or x is single value, in future also
+          % make possible to make along a line, for example separatrix
+          f_vx_arr = zeros(nd,nv);
+          f_vy_arr = zeros(nd,nv);
+          f_vz_arr = zeros(nd,nv);
+          f_vabs_sum_arr = zeros(nd,nv_pos);
+          f_vabs_mean_arr = zeros(nd,nv_pos);
+          x_arr = zeros(nd,1);
+          z_arr = zeros(nd,1);
+
+          % implement later:
+          % sort indices, in case they wouldnt already be. otherwise plotting
+          % might be strange if one doesnt specify x or z
+
+
+          id_count = 0;
+          for id = 1:numel(ids)
+            id_count = id_count + 1;
+
+            f_tmp = ds.f(1,id,iSpecies);
+
+            % Never mind entering the vaxes, just take whatever comes out
+            % here, which depends on iSpecies. But what if there are
+            % different vaxes for different disitributions, times? Can one go
+            % trough and check that first?          
+
+            x_arr(id) = mean(f_tmp.x);
+            z_arr(id) = mean(f_tmp.z);          
+            f_vx_arr(id,:) = interp1(f_tmp.v,sum(f_tmp.fxy,2),vaxes);
+            f_vy_arr(id,:) = interp1(f_tmp.v,sum(f_tmp.fxy,1),vaxes);
+            f_vz_arr(id,:) = interp1(f_tmp.v,sum(f_tmp.fxz,1),vaxes);
+
+            if doV2
+              [VX,VY,VZ] = ndgrid(f_tmp.v,f_tmp.v,f_tmp.v);
+              VABS = sqrt(VX.^2 + (VY).^2 + VZ.^2);
+              %fvv = f_tmp.f.*VV2; % this is not used..?
+              %ENERGY = VV2/2;
+              [N,EDGES,BIN] = histcounts(VABS(:),vaxes_pos);
+              f_vabs_edges = tocolumn(EDGES);
+              f_dvabs = diff(f_vabs_edges);
+              f_vabs_centers = tocolumn((EDGES(2:end)+EDGES(1:end-1))*0.5);
+              nbins = nv_pos;
+              for ibin = 1:nbins
+                %try
+                %ibin
+                ind_bin = find(BIN==ibin);      
+                f_dist_tmp = f_tmp.f(ind_bin);
+                f_mean_tmp = nanmean(f_dist_tmp);
+                f_sum_tmp = nansum(f_dist_tmp);
+                if f_mean_tmp>0
+                  1;
+                end
+                if not(isempty(f_mean_tmp))
+                  f_vabs_mean_arr(id,ibin) = f_mean_tmp;
+                end
+                if not(isempty(f_sum_tmp))
+                  f_vabs_sum_arr(id,ibin) = f_sum_tmp;%/f_dvabs(ibin);
+                end
+                %catch
+                  1;
+                %end
+              end
+            end          
+          end
+          [x_arr_sorted,i_sorted] = sort(x_arr);
+          
+          fout(t_count,is).time = ds.twci(1);
+          fout(t_count,is).iter = ds.iteration(1);
+          fout(t_count,is).x = x_arr(i_sorted);
+          fout(t_count,is).z = z_arr;
+          fout(t_count,is).v = vaxes;
+          fout(t_count,is).fvx = f_vx_arr(i_sorted,:);
+          fout(t_count,is).fvy = f_vy_arr(i_sorted,:);
+          fout(t_count,is).fvz = f_vz_arr(i_sorted,:);
+          fout(t_count,is).vabs_edges = vaxes_pos;
+          [X,V] = meshgrid(fout(t_count,is).x,vaxes_pos);
+          fout(t_count,is).vabs_edges = vaxes_pos;
+          fout(t_count,is).vabs_mat = V; % multiply f_vabs_mean_arr(i_sorted,:) with vabs_mat.^4/2 to get DEF        
+          fout(t_count,is).fvabssum = f_vabs_sum_arr(i_sorted,:);
+          fout(t_count,is).def = f_vabs_mean_arr(i_sorted,:).*V'.^4/2;
+
+          fout(t_count,is).fvabsmean = f_vabs_mean_arr(i_sorted,:);
+
+          toc
         end
-        % f(x,z,vx,vy,vz), typically z or x is single value, in future also
-        % make possible to make along a line, for example separatrix
-        f_vx_arr = zeros(nd,nv);
-        f_vy_arr = zeros(nd,nv);
-        f_vz_arr = zeros(nd,nv);
-        f_vabs_sum_arr = zeros(nd,nv_pos);
-        f_vabs_mean_arr = zeros(nd,nv_pos);
-        x_arr = zeros(nd,1);
-        z_arr = zeros(nd,1);
-        
-        % implement later:
-        % sort indices, in case they wouldnt already be. otherwise plotting
-        % might be strange if one doesnt specify x or z
-        
-        
-        id_count = 0;
-        for id = 1:numel(ids)
-          id_count = id_count + 1;
-          
-          f_tmp = ds.f(it,id,iSpecies);
-          
-          % Never mind entering the vaxes, just take whatever comes out
-          % here, which depends on iSpecies. But what if there are
-          % different vaxes for different disitributions, times? Can one go
-          % trough and check that first?          
-          
-          x_arr(id) = mean(f_tmp.x);
-          z_arr(id) = mean(f_tmp.z);          
-          f_vx_arr(id,:) = interp1(f_tmp.v,sum(f_tmp.fxy,2),vaxes);
-          f_vy_arr(id,:) = interp1(f_tmp.v,sum(f_tmp.fxy,1),vaxes);
-          f_vz_arr(id,:) = interp1(f_tmp.v,sum(f_tmp.fxz,1),vaxes);
-          
-          if doV2
-            [VX,VY,VZ] = ndgrid(f_tmp.v,f_tmp.v,f_tmp.v);
-            VABS = sqrt(VX.^2 + (VY).^2 + VZ.^2);
-            %fvv = f_tmp.f.*VV2; % this is not used..?
-            %ENERGY = VV2/2;
-            [N,EDGES,BIN] = histcounts(VABS(:),vaxes_pos);
-            f_vabs_edges = tocolumn(EDGES);
-            f_dvabs = diff(f_vabs_edges);
-            f_vabs_centers = tocolumn((EDGES(2:end)+EDGES(1:end-1))*0.5);
-            nbins = nv_pos;
-            for ibin = 1:nbins
-              %try
-              %ibin
-              ind_bin = find(BIN==ibin);      
-              f_dist_tmp = f_tmp.f(ind_bin);
-              f_mean_tmp = nanmean(f_dist_tmp);
-              f_sum_tmp = nansum(f_dist_tmp);
-              if f_mean_tmp>0
-                1;
-              end
-              if not(isempty(f_mean_tmp))
-                f_vabs_mean_arr(id,ibin) = f_mean_tmp;
-              end
-              if not(isempty(f_sum_tmp))
-                f_vabs_sum_arr(id,ibin) = f_sum_tmp;%/f_dvabs(ibin);
-              end
-              %catch
-                1;
-              %end
-            end
-          end          
-        end
-        [x_arr_sorted,i_sorted] = sort(x_arr);
-        
-        fout(t_count).iter = ds.iteration(it);
-        fout(t_count).x = x_arr(i_sorted);
-        fout(t_count).z = z_arr;
-        fout(t_count).v = vaxes;
-        fout(t_count).fvx = f_vx_arr(i_sorted,:);
-        fout(t_count).fvy = f_vy_arr(i_sorted,:);
-        fout(t_count).fvz = f_vz_arr(i_sorted,:);
-        fout(t_count).vabs_edges = vaxes_pos;
-        [X,V] = meshgrid(fout(t_count).x,vaxes_pos);
-        fout(t_count).vabs_edges = vaxes_pos;
-        fout(t_count).vabs_mat = V; % multiply f_vabs_mean_arr(i_sorted,:) with vabs_mat.^4/2 to get DEF        
-        fout(t_count).fvabssum = f_vabs_sum_arr(i_sorted,:);
-        fout(t_count).def = f_vabs_mean_arr(i_sorted,:).*V'.^4/2;
-        
-        fout(t_count).fvabsmean = f_vabs_mean_arr(i_sorted,:);
-        
-        toc
       end
       varargout{1} = fout;
     end

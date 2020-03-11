@@ -61,10 +61,6 @@ findpeaks_varargin{end+1} = MinPeakProminence;
 %   MinPeakProminence = 1e-2;
 %   fprintf('Using ''MinPeakProminence'' %g to find saddle points. \n',MinPeakProminence)
 % end
-
-if doRefine
-  
-end
 [nx,ny] = size(A);
 
 indices = nan(nx,1);
@@ -72,6 +68,8 @@ vals = nan(nx,1);
 
 for ix = 1:nx
   [val,ind] = min(A(ix,:));
+  if doRefine
+    
   y_indices_of_min_A(ix) = ind;
   vals_of_min_A(ix) = val;
 end
@@ -81,8 +79,6 @@ A_saddle = pks;
 if isempty(A_saddle)
   warning('No saddle points found, consider changing ''MinPeakProminence''.')  
 end
-
-
 
 if numel(locs) == 1
   ix_saddle = locs;
