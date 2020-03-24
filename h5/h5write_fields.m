@@ -8,6 +8,11 @@ function h5write_fields(data_dir,filePath,timesteps,nSpecies)
 %             if empty [], check which files are in the data directory and 
 %             use those
 % nSpecies - number of species: required in order to read the data right
+%
+% Examples:
+%   % Mounted tesla from tiny laptop to Fountain
+%   h5write_fields('/Users/cecilia/tesla/cno062/df_cold_protons_n04/data/','/Volumes/Fountain/Data/PIC/df_cold_protons_n04/data_h5/fields.h5',7000:50:8000,6)
+%
 
 h5exist = 0;
 if exist(filePath,'file')
@@ -34,6 +39,7 @@ for itime = 1:numel(timesteps)
     continue
   end
   txtfile = sprintf('%s/fields-%05.0f.dat',data_dir,timestep); 
+  disp(sprintf('Reading twpe = %g.',timestep))
   
   
   % read unnormalized data

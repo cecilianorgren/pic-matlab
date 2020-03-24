@@ -664,8 +664,10 @@
       drawnow
       disp('Linking: XLim, YLim.')
       hlinks = linkprop(ax,{'XLim','YLim'});
-      hlinks.Targets(1).XLim = [xmin xmax] + 5*[-1 1];
-      hlinks.Targets(1).YLim = [zmin zmax] + 2*[-1 1];
+      if not(doPlotIntoAxes)
+        hlinks.Targets(1).XLim = [xmin xmax] + 5*[-1 1];
+        hlinks.Targets(1).YLim = [zmin zmax] + 2*[-1 1];
+      end
       
       if nargout == 1
         varargout{1} = ax;
@@ -913,14 +915,15 @@
         data_tmp = h5read(obj.file,dataset,[1 1 1,iSpeciesTmp],[datasize,1]);
         % The phase space volume might be different due to different vaxes
         % or spatial box sizes. Adjust for that here.
-%         vAxesTmp = allAxes(:,iSpecies);
-%         dv = vAxesTmp(2) - vAxesTmp(1);
+        vAxesTmp = allAxes(:,iSpecies);
+        dv = vAxesTmp(2) - vAxesTmp(1);
 %         xTmp = h5readatt(obj.file,dataset,'x')';
 %         zTmp = h5readatt(obj.file,dataset,'z')';
 %         dx = diff(xTmp);
 %         dz = diff(zTmp);
 %         volPhaseSpace = dv.^3*dx*dz;
-%         data_tmp = data_tmp/volPhaseSpace;
+        volVelocitySpace = dv.^3;
+        data_tmp = data_tmp/volVelocitySpace;
         
         if nUniqueAxes > 1 % Resample/interpolate to common axes.
           [Vx,Vy,Vz] = meshgrid(allAxes(:,iSpeciesTmp),allAxes(:,iSpeciesTmp),allAxes(:,iSpeciesTmp));
@@ -944,6 +947,7 @@
       if nargout == 1
         out.f = dist;
         out.v = comAxes;
+        out.dv = comAxes(2)-comAxes(1);
         out.x = x;
         out.z = z;
         varargout{1} = out;
@@ -953,8 +957,24 @@
         varargout{1} = dist;
       end
     end
-    function varargout = f(obj,it,id,iss)
+    function varargout = f(obj,it,id,iss,varargin)
             
+      doPar = 0;
+      have_options = 0;
+      if not(isempty(varargin))
+        args = varargin;
+        have_options = 1;
+      end
+      while have_options
+        l = 1;
+        switch lower(args{1})
+          case 'par'
+            doPar = 1;
+            l = 1;
+        end
+        args = args((1+l):end);
+      end
+      
       iSpecies = iss;        
       dataset = obj.dataset_str(it,id);
       info = h5info(obj.file,dataset);      
@@ -971,16 +991,20 @@
       for iSpeciesTmp = iSpecies
         data_tmp = h5read(obj.file,dataset,[1 1 1,iSpeciesTmp],[datasize,1]);
         % The phase space volume might be different due to different vaxes
-        % or spatial box sizes. Adjust for that here. NO, this is already
-        % done in Michael's routine.
-        %vAxesTmp = allAxes(:,iSpecies);
-        %dv = vAxesTmp(2) - vAxesTmp(1);
+        % or spatial box sizes. Adjust for that here. W/hen summing up the
+        % untreated distribution, one gets the density, which means the
+        % data loaded is actually already multiplied with the velocity volume
+        % element, but not the space volume element. Need to undo that here
+        % so that distributions with different velocity axes can be added 
+        % together.
+        vAxesTmp = allAxes(:,iSpecies);
+        dv = vAxesTmp(2) - vAxesTmp(1);
         %xTmp = h5readatt(obj.file,dataset,'x')';
         %zTmp = h5readatt(obj.file,dataset,'z')';
         %dx = diff(xTmp);
         %dz = diff(zTmp);
-        %volPhaseSpace = dv.^3*dx*dz;
-%        data_tmp = data_tmp/volPhaseSpace;
+        volVelocitySpace = dv.^3;
+        data_tmp = data_tmp/volVelocitySpace;
         
         if nUniqueAxes > 1
           [Vx,Vy,Vz] = meshgrid(allAxes(:,iSpeciesTmp),allAxes(:,iSpeciesTmp),allAxes(:,iSpeciesTmp));
@@ -993,7 +1017,7 @@
             
       % Reduce distribution
       fstr = {'yz','xz','xy'};
-      for sumdim = 1:3        
+      for sumdim = 1:3
         for isum = numel(sumdim):-1:1
           dist_sum{sumdim} = squeeze(sum(dist,sumdim(isum)));
         end        
@@ -1001,6 +1025,11 @@
       
       x = h5readatt(obj.file,dataset,'x');
       z = h5readatt(obj.file,dataset,'z');
+      
+      if doPar        
+        vpar = comAxes;
+        
+      end
       
       out.f = dist;
       out.fyz = dist_sum{1};
@@ -1096,6 +1125,7 @@
       
       method = 'exact'; % only keep distributions with exact center coordinates
       doV2 = 0;
+      doPar = 0;
       
       % Check for additional input
       args = varargin;
@@ -1105,7 +1135,11 @@
         switch(lower(args{1}))
           case {'v2','vabs'} % calculate v^2 (similar to dEF), do not include by default because it might take extra time
             l = 1;            
-            doV2 = 1;          
+            doV2 = 1;
+          case {'vpar','par'}
+            l = 2;
+            doPar = 1;
+            B = args{2};
           otherwise
             error(sprintf('Can not recognize flag ''%s'' ',args{1}))
         end
@@ -1142,7 +1176,7 @@
         dst = obj.twcifind(obj.twci(itime));
         if isempty(dst.xi1), continue; end
         
-        for is = 1:ns % loop through x or z          
+        for is = 1:ns % loop through x or z
           if strcmp(depvar,'x')
             ds = dst.xfind(x0).zfind(z0(is)); % loop through zvals
           else
@@ -1225,7 +1259,10 @@
                   1;
                 %end
               end
-            end          
+            end    
+            if doPar
+              [VX,VY,VZ] = ndgrid(f_tmp.v,f_tmp.v,f_tmp.v);
+            end
           end
           [x_arr_sorted,i_sorted] = sort(x_arr);
           

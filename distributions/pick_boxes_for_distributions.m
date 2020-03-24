@@ -483,6 +483,100 @@ hcb = colorbar('peer',hca);
 
 
 hold(hca,'on')
+for ibox = 1:n_boxes
+  %hstar = plot(hca,[xlo xlo xhi xhi],[zlo zhi zhi zlo],'*k');
+  %hpatch = patch(hca,[keep_boxes(ibox,1) keep_boxes(ibox,1) keep_boxes(ibox,2) keep_boxes(ibox,2)],[keep_boxes(ibox,1) keep_boxes(ibox,2) keep_boxes(ibox,2) keep_boxes(ibox,1)],'w');
+  hpatch = patch(hca,keep_boxes(ibox,[1 1 2 2]),keep_boxes(ibox,[3 4 4 3]),'w');
+  hpatch.FaceAlpha = 0;
+  hpatch.LineWidth = 1;   
+  
+end
+hold(hca,'off')
+
+%% Pattern governed by A, distributions along a field line, PIC object
+xlim = [150 200];
+zlim = [-1 10];
+twpe = 7000;
+pic = df04.twpelim(7000).xlim(xlim).zlim(zlim);
+%ind = 26;
+A = squeeze(pic.A);
+Bz = squeeze(pic.Bz);
+ni = squeeze(pic.ni);
+vex = squeeze(pic.vex);
+viz = squeeze(pic.viz);
+
+Avals = -20;
+if numel(Avals) == 1  
+  S = contourcs(pic.xi,pic.zi,A',Avals*[1 1]);
+else
+  S = contourcs(pic.xi,pic.zi,A',Avals);
+end
+
+% interpolate/downpolate to fewer point
+nq = 200;
+d_arc_x = diff(S.X);
+d_arc_y = diff(S.Y);
+d_arc_distance = sqrt(d_arc_x.^2 + d_arc_y.^2);
+arc_distance = [0 cumsum(d_arc_distance)];
+d_arcdist = 0.1;
+new_arc_distance = arc_distance(1):d_arcdist:arc_distance(end); % try to get atleast one box at start
+%rel_arc_distance = arc_distance/arc_distance(end);
+%new_rel_arc_distance = linspace(rel_arc_distance(1),rel_arc_distance(end),nq);
+% First resample new_arc_distance so that one instance of it appears at z =
+% 0 (so that it's top-bot symmetrical).
+%
+
+x_new = interp1(rel_arc_distance,S.X,new_rel_arc_distance);
+z_new = interp1(rel_arc_distance,S.Y,new_rel_arc_distance);
+    
+
+x_center = x_new;
+z_center = z_new;
+
+dx_box = 0.1;
+dz_box = 0.1;
+
+xlow = x_center-dx_box;
+xhigh = x_center+dx_box;
+zlow = z_center-dz_box;
+zhigh = z_center+dz_box;
+
+
+n_boxes = numel(x_center);
+ind_keep = ones(nboxes,1);
+%
+if 0
+for ibox = 1:nboxes
+  xind = find(abs(pic.xi-XC(ibox))==min(abs(pic.xi-XC(ibox))));
+  zind = find(abs(pic.zi-ZC(ibox))==min(abs(pic.zi-ZC(ibox))));
+  A(xind,zind);
+%   if A(xind,zind)>Alim(1) && A(xind,zind)<Alim(2) % keep
+%     ind_keep(ibox) = 1;
+%   else
+%     ind_keep(ibox) = 0;
+%   end
+end
+end
+
+all_boxes = [tocolumn(x_center)-dx_box tocolumn(x_center)+dx_box tocolumn(z_center)-dz_box tocolumn(z_center)+dz_box];
+%keep_boxes = all_boxes(find(ind_keep==1),:);
+keep_boxes = all_boxes;
+n_boxes = size(keep_boxes,1);%size(keep_boxes,1);
+%
+figure(401)
+h = setup_subplots(2,1);
+isub = 1;
+
+hca = h(isub); isub = isub + 1;
+imagesc(hca,pic.xi,pic.zi,ni')
+%imagesc(hca,x,z,pi1.scalar')
+%hca.XLim = [60 240];
+%hca.YLim = [-10 10];
+hca.Title.String = sprintf('twci = %g, twpe = %g, n_boxes = %g',pic.twci,pic.twpe,n_boxes);
+hca.Title.Interpreter = 'none';
+hcb = colorbar('peer',hca);
+
+hold(hca,'on')
 for ibox = 1:n_boxes      
   %hstar = plot(hca,[xlo xlo xhi xhi],[zlo zhi zhi zlo],'*k');
   %hpatch = patch(hca,[keep_boxes(ibox,1) keep_boxes(ibox,1) keep_boxes(ibox,2) keep_boxes(ibox,2)],[keep_boxes(ibox,1) keep_boxes(ibox,2) keep_boxes(ibox,2) keep_boxes(ibox,1)],'w');
@@ -492,3 +586,26 @@ for ibox = 1:n_boxes
   
 end
 hold(hca,'off')   
+
+hca = h(isub); isub = isub + 1;
+imagesc(hca,pic.xi,pic.zi,vex')
+%imagesc(hca,x,z,pi1.scalar')
+%hca.XLim = [60 240];
+%hca.YLim = [-10 10];
+hca.Title.String = sprintf('twci = %g, twpe = %g, n_boxes = %g',pic.twci,pic.twpe,n_boxes);
+hca.Title.Interpreter = 'none';
+hcb = colorbar('peer',hca);
+
+
+hold(hca,'on')
+for ibox = 1:n_boxes      
+  %hstar = plot(hca,[xlo xlo xhi xhi],[zlo zhi zhi zlo],'*k');
+  %hpatch = patch(hca,[keep_boxes(ibox,1) keep_boxes(ibox,1) keep_boxes(ibox,2) keep_boxes(ibox,2)],[keep_boxes(ibox,1) keep_boxes(ibox,2) keep_boxes(ibox,2) keep_boxes(ibox,1)],'w');
+  hpatch = patch(hca,keep_boxes(ibox,[1 1 2 2]),keep_boxes(ibox,[3 4 4 3]),'w');
+  hpatch.FaceAlpha = 0;
+  hpatch.LineWidth = 1;   
+  
+end
+hold(hca,'off')   
+
+hlinks = linkprop(h,{'XLim','YLim'});

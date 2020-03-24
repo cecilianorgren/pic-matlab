@@ -3,6 +3,7 @@
 simulation = 'michael'; 
 simulation = 'cold_protons_new_boundary';
 %simulation = 'df_cold_protons_0.4';
+simulation = 'guide_field_05';
 switch simulation
   case 'df_cold_protons_0.8'
     savedir_root = '/Users/cno062/Research/PIC/df_cold_protons_1/';
@@ -33,6 +34,10 @@ switch simulation
     %data_dir = '/Volumes/pic/in_progress/df_cold_protons_04/data/';
     data_dir = '/Users/cno062/tesla/cold_ion_new_boundary/data/';
     nss = 6;
+  case 'guide_field_05'
+    savedir_root = '/Users/cecilia/Research/PIC/guide_field_05/';
+    data_dir = '/Volumes/Fountain/Data/PIC/guide_field_05/data/';    
+    nss = 6;
 end
 
 %% Load data
@@ -42,6 +47,7 @@ timestep = 02250;
 timestep = 07000;
 timestep = 05000; % 26th file
 timestep = 07000;
+timestep = 5;
 txtfile = sprintf('%s/fields-%05.0f.dat',data_dir,timestep);
 
 

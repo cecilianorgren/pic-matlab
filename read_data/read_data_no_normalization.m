@@ -3,6 +3,11 @@ function varargout = read_data_no_normalization(txtfile,nss)
 % name and one with data
 % [varstrs,vars] = read_data_no_normalization(txtfile,nss);
 %   nss - number of species
+% Examples:
+%   txtfile = '/Users/cecilia/tesla/cno062/guide_field_05/data/fields-00030.dat';
+%   nss = 6;
+%   [varstrs,vars] = read_data_no_normalization(txtfile,nss);
+
 
 %% Load data
 [fid, message] = fopen(txtfile,'r','ieee-le');

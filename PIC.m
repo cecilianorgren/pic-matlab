@@ -858,84 +858,92 @@
       out.vy = x_sol(:,5);
       out.vz = x_sol(:,6);
     end
-    function out = separatrix_location(obj,varargin)            
+    function out = separatrix_location(obj,varargin)
       doNorth = 1;
       nTimes = obj.nt;      
       x = obj.xi;
       z = obj.zi;
-      nTimes
+      %nTimes
+      % Calculate separatrix for each time step
       for it = 1:nTimes
         
         twci = obj.twci(it);
-        twci
-        A_tmp = squeeze(obj.twcilim(twci).A);
-        [saddle_locations,saddle_values] = saddle(A_tmp,'sort');
-        AX = saddle_values(1);
+        %twci
+        A_tmp = squeeze(obj.twcilim(twci).A); % get A for this time step
+        [saddle_locations,saddle_values] = saddle(A_tmp,'sort'); % get saddle locations
+        AX = saddle_values(1); % A-value of outermost X line
         
+        % Save location of X line
         xX(it) = x(saddle_locations(1,1));
         zX(it) = z(saddle_locations(1,2));
         
-        % refine A
+        % Since the X line is a saddle point, it's very sensitive to small 
+        % changes in A. Therefore, refine the grid around the X line and
+        % find the location again.
         doRefine = 1;
-        if doRefine
-          % find major Xline
-          % pick out subregion around Xpoint to interpolate to finer grid
+        if doRefine          
+          % Indices of coarse X line.
           ixX(it) = saddle_locations(1,1);
           izX(it) = saddle_locations(1,2);
           
+          % Refind A on a 21 x 21 grid around this point
           ind_x_sub = ixX(it)+(-10:10);
           ind_z_sub = izX(it)+(-10:10);
-          n_old = numel(ind_x_sub);
-          n_new = 100;
-          x_old = x(ind_x_sub);
-          z_old = z(ind_z_sub);
-          A_old = A_tmp(ind_x_sub,ind_z_sub);
+          n_old = numel(ind_x_sub); % number of original cells
+          n_new = 100; % new number of cells for refinement
+          x_old = x(ind_x_sub); % x values of original grid
+          z_old = z(ind_z_sub); % z values of original grid
+          A_old = A_tmp(ind_x_sub,ind_z_sub); % A values of original grid
           [X_old,Z_old] = meshgrid(x_old,z_old);
           x_new = linspace(x_old(1),x_old(end),n_new);
           z_new = linspace(z_old(1),z_old(end),n_new);
           [X_new,Z_new] = meshgrid(x_new,z_new);          
-          
+          % Interpolate A from old grid to new refined grid
           A_new = interp2(X_old,Z_old,A_old,X_new,Z_new);
           %contour(A_new')
           %drawnow
           %pause
-          % whwn refininf A, the MinPeakProminence needs to be lowered
+          % when refining A, the MinPeakProminence needs to be lowered
           n_ref = n_old/n_new;
           default_minpeakprominence = 1e-2;          
           [saddle_locations,saddle_values] = saddle(A_new,'sort','minpeakprominence',n_ref*default_minpeakprominence);
           AX = saddle_values(1);
                     
-          xX(it) = x_new(saddle_locations(1,1));
+          xX(it) = x_new(saddle_locations(1,1)); % new X line locations
           zX(it) = z_new(saddle_locations(1,2));
-        end
-        
-        
+        end        
+        % Pick a number of A values around the X line to get the magnetic 
+        % field line from. Because In aleays want to find the northern one.
+        % But sometimes I if just pick one A value, it becomes southern, or
+        % inside the outflow (and then goes from north to south). From this
+        % set of lines, I then find the one I want.
         dAmult = [1 1 1 1 1 1 1]+[-1e-2 -1e-4 -1e-6 0 1e-6 1e-4 1e-2];
-        S = contourcs(x,z,A_tmp',AX*dAmult);
+        S = contourcs(x,z,A_tmp',AX*dAmult); % get contour lines
         % find contour of top (largest mean(z))
         nS = numel(S); % number of contour lines
         dxS = nan(nS,1);
         zminS = nan(nS,1);
         zmeanS = nan(nS,1);
         xmeanS = nan(nS,1);
-        for iS = 1:nS
+        % Loop through lines and save some values. For example, a northern
+        % line has larger mean(z) (Y) than a southern one, or one that is 
+        % inside the outflow.
+        for iS = 1:nS 
           dxS(iS) = S(iS).X(end) - S(iS).X(1);
           zminS(iS) = min(S(iS).Y);
           zmeanS(iS) = mean(S(iS).Y);
           xmeanS(iS) = mean(S(iS).X);
         end
         keep_ind_0 = 1:nS;        
-        keep_ind_1 = find(dxS > 0.9*max(dxS));                
-        keep_ind_2 = find(zmeanS > 0);
-        keep_ind_3 = intersect(keep_ind_1,keep_ind_2);
-        keep_ind_4 = find(zminS == min(zminS(keep_ind_3)));
+        keep_ind_1 = find(dxS > 0.9*max(dxS)); % longest extent in x direction
+        keep_ind_2 = find(zmeanS > 0); % should be above z = 0
+        keep_ind_3 = intersect(keep_ind_1,keep_ind_2); % find lines that satisfy both these first two conditions
+        keep_ind_4 = find(zminS == min(zminS(keep_ind_3))); % now find the line that has the smallest z value (maybe theres two northern lines)
         keep_ind = keep_ind_4;
         indS = keep_ind;
-        %indS = find(zminS == max(zminS)); % pick line with highest min value
-        %indS = indS(1);
-                
+               
         % remove all values below the x-line (in z)
-        try
+        try % This was for bugfixing I think
         xSep = S(indS).X;
         zSep = S(indS).Y;
         catch
@@ -945,8 +953,13 @@
         %keep_ind = find(zSep>=zX(it));
         %xSep = xSep(keep_ind);
         %zSep = zSep(keep_ind);
-        plot(S(indS).X,S(indS).Y,xSep,zSep)
-        pause(0.1)
+        
+        if 1 % Diagnostic plotting
+          plot(S(indS).X,S(indS).Y,xSep,zSep)
+          pause(0.1)
+        end
+        
+        % Interpolate the chosen line to the simulation x-grid
         new_x(it,:) = x;
         new_z(it,:) = interp1(xSep,zSep,x); % only need to do this one ? no      
       end

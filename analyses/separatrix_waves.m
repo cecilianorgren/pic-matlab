@@ -19,7 +19,7 @@ vex = squeeze(mean(pic.vex,meandim));
 %vexh = squeeze(mean(pic.vx([2]),meandim));
 Ex = squeeze(mean(pic.Ex,meandim));
 
-nrows = 5;
+nrows = 3;
 ncols = 1;
 npanels = nrows*ncols;
 h = setup_subplots(nrows,ncols);
@@ -44,7 +44,7 @@ if 1 % ne
   hca.XLabel.String = 'x (d_i)';
   hca.YLabel.String = 't (\omega_{ci}^{-1})';
 end
-if 1 % vix
+if 0 % vix
   hca = h(isub); isub = isub + 1;
   pcolor(hca,pic.xi,pic.twci,vix');
   shading(hca,'flat')
@@ -55,7 +55,7 @@ if 1 % vix
   hca.CLim = max(abs(hca.CLim))*[-1 1];
   hca.Colormap = pic_colors('blue_red');
 end
-if 1 % vex
+if 0 % vex
   hca = h(isub); isub = isub + 1;
   pcolor(hca,pic.xi,pic.twci,vex');
   shading(hca,'flat')
@@ -105,8 +105,8 @@ hlinks = linkprop(h,{'XLim','YLim'});
 compact_panels(0.01)
 
 for ip = 1:npanels
-  h(ip).XTick = 0:10:max(pic.xi);
-  h(ip).YTick = 0:10:500;
+  h(ip).XTick = 0:1:max(pic.xi);
+  h(ip).YTick = 0:1:500;
   h(ip).XGrid = 'on';
   h(ip).YGrid = 'on';
   h(ip).Layer = 'top';

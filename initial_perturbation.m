@@ -101,7 +101,7 @@ switch velocities
     vo = Jy;
 end
 
-% Plot
+%% Plot
 nrows = 3;
 ncols = 2;
 npanels = nrows*ncols;
