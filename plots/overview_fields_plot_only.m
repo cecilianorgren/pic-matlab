@@ -172,6 +172,23 @@ varstrs = {'B.z','ni2','ni12','ti2.scalar','ti12.scalar','ti2_fac.xx','0.5*(ti2_
 clim = {0.5*[-1 1],[-1 1],[-1 1],0.2*[-1 1],0.2*[-1 1],0.2*[-1 1],0.2*[-1 1]};
 
 
+varstrs = {'B.x','B.y','B.z','B.abs','KB.x','KB.y','KB.z','KB.abs','1./KB.abs'};
+%clim = {0.5*[-1 1],[-1 1],[-1 1],0.2*[-1 1],0.2*[-1 1],0.2*[-1 1],0.2*[-1 1]};
+clim = {};
+
+varstrs = {'B.abs','KB.abs','1./KB.abs','1./KB.xz'};
+clim = {[0 1.2],0.3*[0 1],30*[-1 1],30*[-1 1]};
+
+varstrs = {'B.x','B.y','B.z','E.y','vi1.x','vi1.y','ve1.x','ve1.y'};
+%clim = {0.5*[-1 1],[-1 1],[-1 1],0.2*[-1 1],0.2*[-1 1],0.2*[-1 1],0.2*[-1 1]};
+clim = {};
+
+%varstrs = {'B.abs','E.y','ve1.x','ve1.y','ne1'};
+%clim = {0.5*[-1 1],[-1 1],[-1 1],0.2*[-1 1],0.2*[-1 1],0.2*[-1 1],0.2*[-1 1]};
+clim = {};
+
+%varstrs = {'ne1','ne2','B.y','ve1.par','ve2.par','E.y'};
+
 doLinkCLim = 0; % overrides manual clim
 
 %clim = {[-4 4],[-4 4],[-4 4],[-4 4],[-4 4],[-4 4]};
@@ -187,7 +204,7 @@ nvars = numel(varstrs);
 
 % Initialize figure
 npanels = nvars;
-maxrows = 9;
+maxrows = 4;
 nrows = min([npanels,maxrows]);
 ncols = ceil(npanels/nrows);
 npanels = nrows*ncols;
@@ -197,6 +214,9 @@ linkaxes(h);
 % Indices to plot
 xlim = [x(1) x(end)]; xlim = [0 x(end)]; xlim = [-20 0];%[x(1) x(end)] + 150*[1 -1];
 zlim = [z(1) z(end)]; zlim = [-5 5];
+xlim = [-30 30]; zlim = [-10 10];
+%xlim = [-10 10]; zlim = [-3 3];
+
 ipx1 = find(x>xlim(1),1,'first');
 ipx2 = find(x<xlim(2),1,'last');
 ipz1 = find(z>zlim(1),1,'first');
@@ -271,8 +291,10 @@ for ivar = 1:nvars
   
   %hcb.YLim = hca.CLim(2)*[-1 1];
   %colormap(hca,cn.cmap('blue_red'));
-  colormap(hca,cn.cmap('blue_red'));
-    
+  %colormap(hca,cn.cmap('blue_red'));
+  colormap(hca,pic_colors('candy2'));
+  
+  cl = hca.CLim;
   if doA
     hold(hca,'on')
     hcont = contour(hca,x(ipx),z(ipz),squeeze(A(ipx,ipz))',nA,'color',cA,'linewidth',0.5,'displayname','A'); 
@@ -285,12 +307,12 @@ for ivar = 1:nvars
   if doAx
     hold(hca,'on')
     [saddle_locations,saddle_values] = saddle(A,'sort');
-    hcont = contour(hca,x(ipx),z(ipz),squeeze(A(ipx,ipz))',saddle_values(1)*[1 1],'color',cA,'linewidth',2,'displayname','A_X','linestyle','-'); 
+    hcont = contour(hca,x(ipx),z(ipz),squeeze(A(ipx,ipz))',saddle_values(1)*[1 1],'color',cA,'linewidth',0.5,'displayname','A_X','linestyle','-'); 
     hold(hca,'off')  
   end
-
+  hca.CLim = cl;
 end
-legend(hca);
+%legend(hca);
 
 h(1).Title.String = sprintf('time = %g (1/wce) = %g (1/wpi)',timestep,time); 
 

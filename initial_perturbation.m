@@ -1,33 +1,48 @@
+%
+%
+%
 
-mass = 25;
-wpewce = 2;
-xmax = 200;
-zmax = 100;
-lz = 2*zmax;
-lx = xmax;
-ah = 1;
-ap = 0.25;
-zh = 10;
-xp = 10;
-zp = 10;
-TeTi = 5;
-Ttot = 0.5;
+mass = 25; % not used
+wpewce = 2; % not used
+xmax = 200; % sixe of box
+zmax = 25; % size of box
+B0 = 1; % harris sheet asymptotic amplitude
+BG = 0.5;
+zh = 1; % harris sheet width
+xp = 1*zh; % scale length of perturbation
+zp = 1*zh; % scale length of perturbation
+ah = B0*zh; % amplitude of harris sheet
+ap = ah*0.25; % amplitude of perturbation
+TeTi = 5; % not used
+Ttot = 0.5; % not used
 
-
+% If you want to get the expressions in terms of all parameters (zh,zp,xp,
+% ah,ap, etc), you need to add these as syms here.
+% syms x y z zh xp zp ah ap
+% and
+% add them as variables below, ex
+% fA = symfun(A,[x y z]); 
+% -->
+% fA = symfun(A,[x y z zh xp zp ah ap]);
+% Otherwise they are mulitplied together as numbers
 syms x y z %xp zp ah ap
+
 R = [x y z];
 
 doLocal = 0;
 % Harris current sheet
 AH = [0; -ah*log(cosh(z/zh)); 0]; 
 % Perturbation
+AP = [0; -ap*exp(-x^2/2/xp^2 -z^2/2/zp^2 + 0.0); 0]; % circular perturbation
+AG = [BG*z; 0; 0]; % guide field
+%AP = [0; ah*log(cosh(z/zh))*exp(-x^2/2/xp^2 -z^2/2/zp^2); 0]; 
 %AP = [0 a0*sin(0.5*pi*(1+x/xm))*sin(0.5*pi*(1+z/zm)) 0];
-AP = [0; -ap*exp(-x^2/2/xp^2 -z^2/2/zp^2 + 0.0); 0];
 %AP = [0 ap*exp(-x^2/2/xp^2 + 0.5)*cos(pi*z/lz) 0];
 %AP = [0 a0*sech(pi*x/xm)*sech(pi*z/zm) 0];
 %AP = [0 0+a0*cos(0.5*pi*(x/xm))*cos(0.5*pi*(z/zm)) 0];
   
-A = AH + AP;
+A = AH + AP + AG;
+%A = AP;
 B = curl(A,R);
 J = curl(B,R);
 
@@ -92,16 +107,16 @@ if doLocal
   matJz(any([abs(X(:))>xp abs(Z(:))>xp],2)) = 0;
 end
 
-% Particle velocities
+% Particle velocities, NOT IMPLEMENTED
 velocities = 'diamagnetic only';
 switch velocities
-  case 'diamagnetic only'
-    v0 = Jy;
-  case 'stationary ions'
-    vo = Jy;
+  case 'diamagnetic only' % no electric field
+    
+  case 'stationary ions' % finite electric field
+    
 end
 
-%% Plot
+% Plot
 nrows = 3;
 ncols = 2;
 npanels = nrows*ncols;
@@ -118,18 +133,25 @@ colorbar('peer',hca)
 hca.Title.String = 'Ay';
 
 hca = h(isub); isub = isub + 1;
-pcolor(hca,X,Z,matBz);
-shading(hca,'flat')
-hca.CLim = max(abs(hca.CLim))*[-1 1];
-colorbar('peer',hca)
-hca.Title.String = 'Bz';
-
-hca = h(isub); isub = isub + 1;
 pcolor(hca,X,Z,matBx);
 shading(hca,'flat')
 hca.CLim = max(abs(hca.CLim))*[-1 1];
 colorbar('peer',hca)
 hca.Title.String = 'Bx';
+
+hca = h(isub); isub = isub + 1;
+pcolor(hca,X,Z,matBy);
+shading(hca,'flat')
+hca.CLim = max(abs(hca.CLim))*[-1 1];
+colorbar('peer',hca)
+hca.Title.String = 'By';
+
+hca = h(isub); isub = isub + 1;
+pcolor(hca,X,Z,matBz);
+shading(hca,'flat')
+hca.CLim = max(abs(hca.CLim))*[-1 1];
+colorbar('peer',hca)
+hca.Title.String = 'Bz';
 
 hca = h(isub); isub = isub + 1;
 pcolor(hca,X,Z,matJx);
@@ -145,14 +167,19 @@ hca.CLim = max(abs(hca.CLim))*[-1 1];
 colorbar('peer',hca)
 hca.Title.String = 'Jy';
 
-hca = h(isub); isub = isub + 1;
-pcolor(hca,X,Z,matJz);
-shading(hca,'flat')
-hca.CLim = max(abs(hca.CLim))*[-1 1];
-colorbar('peer',hca)
-hca.Title.String = 'Jz';
-
+if 0
+  hca = h(isub); isub = isub + 1;
+  pcolor(hca,X,Z,matJz);
+  shading(hca,'flat')
+  hca.CLim = max(abs(hca.CLim))*[-1 1];
+  colorbar('peer',hca)
+  hca.Title.String = 'Jz';
+end
 colormap(cn.cmap('blue_red'))
+
+hlinks = linkprop(h,{'XLim','YLim'});
+hlinks.Targets(1).XLim = [-10 10];
+hlinks.Targets(1).YLim = [-10 10];
 
 %% Old
 if 0

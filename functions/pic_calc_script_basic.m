@@ -54,6 +54,10 @@ c_eval('gradpini?.x = gradpi?_smooth.x./ni?; gradpini?.x(ni?<min_ni) = 0;',iss)
 c_eval('gradpini?.y = gradpi?_smooth.y./ni?; gradpini?.y(ni?<min_ni) = 0;',iss)
 c_eval('gradpini?.z = gradpi?_smooth.z./ni?; gradpini?.z(ni?<min_ni) = 0;',iss)
 
+
+c_eval('ve?.par = (ve?.x.*b.x + ve?.y.*b.y + ve?.z.*b.z);',iss)
+c_eval('vi?.par = (vi?.x.*b.x + vi?.y.*b.y + vi?.z.*b.z);',iss)
+
 % Motional electric field
 c_eval('ve?xB = cross_product(ve?.x,ve?.y,ve?.z,B.x,B.y,B.z);',iss) % electron motional electric field
 c_eval('vi?xB = cross_product(vi?.x,vi?.y,vi?.z,B.x,B.y,B.z);',iss) % ion motional electric field
