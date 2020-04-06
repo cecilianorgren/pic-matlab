@@ -598,16 +598,9 @@
             bx = Bx/Babs;
             by = By/Babs;
             bz = Bz/Babs;
-            switch sumdim
-              case 2 % xz
-                line_slope = (bz/bx);
-              case 1 % yz
-                line_slope = (bz/by);
-              case 3 % xy
-                line_slope = (by/bx);  
-            end
-                        
             
+            line.x = 
+            line_slope = (line.z/line.x);
             xx = min(hca.XLim(2)*[1 1/abs(line_slope)])*[-1 1];
             hold(hca,'on')                
             hBline = plot(hca,xx,xx*line_slope,'linewidth',0.5,'color',[0.5 0.5 0.5]);

@@ -20,6 +20,7 @@ if exist(filePath,'file')
   disp(sprintf('File %s exists. Loading file to obtain existing times.',filePath))
   pic = PIC(filePath);
 else
+  fid = H5F.create(filePath);
   h5writeatt(filePath,'/','software','micPIC')
 end
 

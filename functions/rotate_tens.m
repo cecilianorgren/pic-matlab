@@ -9,7 +9,7 @@ switch nargin
     old_yy = varargin{1}.yy;
     old_yz = varargin{1}.yz;
     old_zz = varargin{1}.zz;        
-    rx = varargin{2}(1,:);
+    rx = varargin{2}(1,:); 
     ry = varargin{2}(2,:);
     rz = varargin{2}(3,:);
   case 4 % spatially varying rotation matrix

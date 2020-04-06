@@ -527,8 +527,7 @@ classdef PIC
       
       % Interpolate to particle position
       % Vq = interp3(V,Xq,Yq,Zq) assumes X=1:N, Y=1:M, Z=1:P where [M,N,P]=SIZE(V).      
-      % The variables has their individual grids, so interpolate from these
-      % individual grids to the common grid (Ey, and moments).
+
       [X_EX,Z_EX,T] = meshgrid(tmppic.xivar.Ex,tmppic.zivar.Ex,tmpt);
       [X_EY,Z_EY,T] = meshgrid(tmppic.xivar.Ey,tmppic.zivar.Ey,tmpt);
       [X_EZ,Z_EZ,T] = meshgrid(tmppic.xivar.Ez,tmppic.zivar.Ez,tmpt);
@@ -536,12 +535,12 @@ classdef PIC
       [X_BY,Z_BY,T] = meshgrid(tmppic.xivar.By,tmppic.zivar.By,tmpt);
       [X_BZ,Z_BZ,T] = meshgrid(tmppic.xivar.Bz,tmppic.zivar.Bz,tmpt);
       
-      Ex = interp3(X_EX,Z_EX,T,permute(tmpEx,[2 1 3]),tmpx,tmpz,t,method);
-      Ey = interp3(X_EY,Z_EY,T,permute(tmpEy,[2 1 3]),tmpx,tmpz,t,method);
-      Ez = interp3(X_EZ,Z_EZ,T,permute(tmpEz,[2 1 3]),tmpx,tmpz,t,method);
-      Bx = interp3(X_BX,Z_BX,T,permute(tmpBx,[2 1 3]),tmpx,tmpz,t,method);
-      By = interp3(X_BY,Z_BY,T,permute(tmpBy,[2 1 3]),tmpx,tmpz,t,method);
-      Bz = interp3(X_BZ,Z_BZ,T,permute(tmpBz,[2 1 3]),tmpx,tmpz,t,method);
+      Ex = interp3(X_EX,Z_EX,T,permute(tmpEx,[2 1 3]),tmppic.xivar.Ey,tmppic.zivar.Ey,t,method);
+      Ey = interp3(X_EY,Z,T_EY,permute(tmpEy,[2 1 3]),tmppic.xivar.Ey,tmppic.zivar.Ey,t,method);
+      Ez = interp3(X_EZ,Z_EZ,T,permute(tmpEz,[2 1 3]),tmppic.xivar.Ey,tmppic.zivar.Ey,t,method);
+      Bx = interp3(X_BX,Z_BX,T,permute(tmpBx,[2 1 3]),tmppic.xivar.Ey,tmppic.zivar.Ey,t,method);
+      By = interp3(X_BY,Z_BY,T,permute(tmpBy,[2 1 3]),tmppic.xivar.Ey,tmppic.zivar.Ey,t,method);
+      Bz = interp3(X_BZ,Z_BZ,T,permute(tmpBz,[2 1 3]),tmppic.xivar.Ey,tmppic.zivar.Ey,t,method);
       
       %disp(sprintf('intEx = %g, meanEx = %g',Ex,mean(tmpEx(:))))
       % For debugging purposes
@@ -614,19 +613,17 @@ classdef PIC
         % Vq = interp3(V,Xq,Yq,Zq) assumes X=1:N, Y=1:M, Z=1:P where [M,N,P]=SIZE(V).      
 
         [X,Z,T] = meshgrid(tmpx,tmpz,tmpt);
-        [X_EX,Z_EX,T] = meshgrid(tmppic.xivar.Ex,tmppic.zivar.Ex,tmpt);
-        [X_EY,Z_EY,T] = meshgrid(tmppic.xivar.Ey,tmppic.zivar.Ey,tmpt);
-        [X_EZ,Z_EZ,T] = meshgrid(tmppic.xivar.Ez,tmppic.zivar.Ez,tmpt);
-        [X_BX,Z_BX,T] = meshgrid(tmppic.xivar.Bx,tmppic.zivar.Bx,tmpt);
-        [X_BY,Z_BY,T] = meshgrid(tmppic.xivar.By,tmppic.zivar.By,tmpt);
-        [X_BZ,Z_BZ,T] = meshgrid(tmppic.xivar.Bz,tmppic.zivar.Bz,tmpt);
-              
-        Ex(iP) = interp3(X_EX,Z_EX,T,permute(tmpEx,[2 1 3]),x(iP),z(iP),t(iP),method);
-        Ey(iP) = interp3(X_EY,Z_EY,T,permute(tmpEy,[2 1 3]),x(iP),z(iP),t(iP),method);
-        Ez(iP) = interp3(X_EZ,Z_EZ,T,permute(tmpEz,[2 1 3]),x(iP),z(iP),t(iP),method);
-        Bx(iP) = interp3(X_BX,Z_BX,T,permute(tmpBx,[2 1 3]),x(iP),z(iP),t(iP),method);
-        By(iP) = interp3(X_BY,Z_BY,T,permute(tmpBy,[2 1 3]),x(iP),z(iP),t(iP),method);
-        Bz(iP) = interp3(X_BZ,Z_BZ,T,permute(tmpBz,[2 1 3]),x(iP),z(iP),t(iP),method);              
+        try
+        Ex(iP) = interp3(X,Z,T,permute(tmpEx,[2 1 3]),x(iP),z(iP),t(iP),method);
+        Ey(iP) = interp3(X,Z,T,permute(tmpEy,[2 1 3]),x(iP),z(iP),t(iP),method);
+        Ez(iP) = interp3(X,Z,T,permute(tmpEz,[2 1 3]),x(iP),z(iP),t(iP),method);
+        Bx(iP) = interp3(X,Z,T,permute(tmpBx,[2 1 3]),x(iP),z(iP),t(iP),method);
+        By(iP) = interp3(X,Z,T,permute(tmpBy,[2 1 3]),x(iP),z(iP),t(iP),method);
+        Bz(iP) = interp3(X,Z,T,permute(tmpBz,[2 1 3]),x(iP),z(iP),t(iP),method);
+        catch
+          1;
+        end
+      
       end
     end
     function [Ex,Ey,Ez,Bx,By,Bz] = interp_EB2(obj,x,z,t)

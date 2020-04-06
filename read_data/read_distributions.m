@@ -1,13 +1,13 @@
 %% Read distribution function binary files
  
 function [axes,xlo,xhi,zlo,zhi,ic,fxyz,fxy,fxz,fyz,vxa,vya,vza] ...
-    = read_distributions(txtfile,nss)
+    = read_distributions(txtfile,nss,nv)
 
 fid = fopen(txtfile,'r','ieee-le');
 
 %nss = 4; % Oxygen run has 4 species
 
-numberel = 101; %hardcoded? 
+numberel = nv; %hardcoded? 
 
 %% preallocate
 fxy = zeros(numberel,numberel,nss);

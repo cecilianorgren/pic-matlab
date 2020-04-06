@@ -57,7 +57,7 @@ timestep = 02250;
 timestep = 07000;
 timestep = 05000; % 26th file
 timestep = 07000;
-timestep = 1000;
+timestep = 4600;
 txtfile = sprintf('%s/fields-%05.0f.dat',data_dir,timestep);
 
 

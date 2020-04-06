@@ -176,18 +176,13 @@ varstrs = {'B.x','B.y','B.z','B.abs','KB.x','KB.y','KB.z','KB.abs','1./KB.abs'};
 %clim = {0.5*[-1 1],[-1 1],[-1 1],0.2*[-1 1],0.2*[-1 1],0.2*[-1 1],0.2*[-1 1]};
 clim = {};
 
-varstrs = {'B.abs','KB.abs','1./KB.abs','1./KB.xz'};
-clim = {[0 1.2],0.3*[0 1],30*[-1 1],30*[-1 1]};
 
-varstrs = {'B.x','B.y','B.z','E.y','vi1.x','vi1.y','ve1.x','ve1.y'};
-%clim = {0.5*[-1 1],[-1 1],[-1 1],0.2*[-1 1],0.2*[-1 1],0.2*[-1 1],0.2*[-1 1]};
-clim = {};
 
 %varstrs = {'B.abs','E.y','ve1.x','ve1.y','ne1'};
 %clim = {0.5*[-1 1],[-1 1],[-1 1],0.2*[-1 1],0.2*[-1 1],0.2*[-1 1],0.2*[-1 1]};
 clim = {};
 
-%varstrs = {'ne1','ne2','B.y','ve1.par','ve2.par','E.y'};
+varstrs = {'ne1','ne2','B.y','ve1.par','ve2.par','E.y'};
 
 doLinkCLim = 0; % overrides manual clim
 
@@ -196,6 +191,18 @@ doLinkCLim = 0; % overrides manual clim
 %varstrs = {'log10(ne12)'};
 %clim = {[-2 0.5],[],[]};
 
+varstrs = {'B.abs','KB.abs','1./KB.abs','1./KB.xz'};
+clim = {[0 1.2],0.3*[0 1],30*[-1 1],30*[-1 1]};
+
+varstrs = {'B.x','B.y','B.z','E.y','vi1.x','vi1.y','ve1.x','ve1.y'};
+%clim = {0.5*[-1 1],[-1 1],[-1 1],0.2*[-1 1],0.2*[-1 1],0.2*[-1 1],0.2*[-1 1]};
+clim = {};
+
+varstrs = {'B.abs','KB.abs','1./KB.abs','ve2.par','ne2','B.y','pe2.scalar','te2.scalar'};
+clim = {[0 1.2],[0 0.5],[0 20],[0 2],[0 0.4],0.5 + 0.3*[-1 1],[0 0.02],[0 0.1]};
+
+varstrs = {'B.y','KB.abs','ne1','ne2'};
+clim = {};
 
 nvars = numel(varstrs);
 
@@ -214,15 +221,15 @@ linkaxes(h);
 % Indices to plot
 xlim = [x(1) x(end)]; xlim = [0 x(end)]; xlim = [-20 0];%[x(1) x(end)] + 150*[1 -1];
 zlim = [z(1) z(end)]; zlim = [-5 5];
-xlim = [-30 30]; zlim = [-10 10];
+xlim = [-50 50]; zlim = [-10 10];
 %xlim = [-10 10]; zlim = [-3 3];
 
 ipx1 = find(x>xlim(1),1,'first');
 ipx2 = find(x<xlim(2),1,'last');
 ipz1 = find(z>zlim(1),1,'first');
 ipz2 = find(z<zlim(2),1,'last');
-ipx = ipx1:2:ipx2;
-ipz = ipz1:2:ipz2;
+ipx = ipx1:3:ipx2;
+ipz = ipz1:3:ipz2;
     
 % Flux function
 doAx = 1; % plot separatrix
@@ -307,7 +314,7 @@ for ivar = 1:nvars
   if doAx
     hold(hca,'on')
     [saddle_locations,saddle_values] = saddle(A,'sort');
-    hcont = contour(hca,x(ipx),z(ipz),squeeze(A(ipx,ipz))',saddle_values(1)*[1 1],'color',cA,'linewidth',0.5,'displayname','A_X','linestyle','-'); 
+    hcont = contour(hca,x(ipxA),z(ipzA),squeeze(A(ipxA,ipzA))',saddle_values(1)*[1 1],'color',cA,'linewidth',0.5,'displayname','A_X','linestyle','-'); 
     hold(hca,'off')  
   end
   hca.CLim = cl;
@@ -334,6 +341,8 @@ toc
 if doLinkCLim
   hlinks = linkprop(h,'CLim');
 end
+
+compact_panels(0.01)
 
 %% Line plot at given x or z, define variable in cell array
 % Define what variables to plot
