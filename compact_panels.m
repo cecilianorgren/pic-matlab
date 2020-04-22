@@ -58,13 +58,16 @@ for iax = 1:nax
   end
 end
 
-if doX
+if doX  
   xminus = positions(:,1);
   xplus =  positions(:,1) + positions(:,3);
-  xlowbound = min(xminus);
-  xhighbound = max(xplus);
-  new_xheight = (xhighbound-xlowbound-(n_cols-1)*space)/n_cols;
+  %xlowbound = min([space min(xminus)]);
+  %xhighbound = max([1+space max(xplus)]);
+  xlowbound = 0.5*space_x;
+  xhighbound = 1-space_x;
+  new_xheight = (xhighbound-xlowbound-(n_cols-1)*space_x)/n_cols;
   xbottom = min(unique_xpos);
+  xbottom = xlowbound;
 
   for iax = 1:nax  
     ax(iax).Position(3) = new_xheight;  

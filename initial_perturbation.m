@@ -13,8 +13,8 @@ xp = 1*zh; % scale length of perturbation
 zp = 1*zh; % scale length of perturbation
 ah = B0*zh; % amplitude of harris sheet
 ap = ah*0.25; % amplitude of perturbation
-TeTi = 5; % not used
-Ttot = 0.5; % not used
+TeTi = 5; % not used, implement to get densities
+Ttot = 0.5; % not used, implement to get densities
 
 % If you want to get the expressions in terms of all parameters (zh,zp,xp,
 % ah,ap, etc), you need to add these as syms here.
@@ -29,12 +29,15 @@ syms x y z %xp zp ah ap
 
 R = [x y z];
 
+z0_BG = 5;
+zL_BG = 1;
+
 doLocal = 0;
 % Harris current sheet
 AH = [0; -ah*log(cosh(z/zh)); 0]; 
 % Perturbation
 AP = [0; -ap*exp(-x^2/2/xp^2 -z^2/2/zp^2 + 0.0); 0]; % circular perturbation
-AG = [BG*z; 0; 0]; % guide field
+AG = [BG*z + 1*BG*log(cosh((z-z0_BG)/zL_BG)); 0; 0]; % guide field
 %AP = [0; ah*log(cosh(z/zh))*exp(-x^2/2/xp^2 -z^2/2/zp^2); 0]; 
 %AP = [0 a0*sin(0.5*pi*(1+x/xm))*sin(0.5*pi*(1+z/zm)) 0];
 %AP = [0 ap*exp(-x^2/2/xp^2 + 0.5)*cos(pi*z/lz) 0];
@@ -45,6 +48,10 @@ A = AH + AP + AG;
 %A = AP;
 B = curl(A,R);
 J = curl(B,R);
+divB = divergence(B,R);
+
+% How to add a polarized inflow current sheet, such that the electrons are
+% drifting, and not the ions?
 
 Ax = A(1);
 Ay = A(2);
@@ -95,6 +102,7 @@ matJx = mfJx(X,0,Z); if isscalar(matJx); matJx = repmat(matJx,nz,nx); end
 matJy = mfJy(X,0,Z); if isscalar(matJy); matJy = repmat(matJy,nz,nx); end
 matJz = mfJz(X,0,Z); if isscalar(matJz); matJz = repmat(matJz,nz,nx); end
 
+% Densitites and fluxes for ions and electrons respectively.
 if doLocal
   matAx(any([abs(X(:))>xp abs(Z(:))>xp],2)) = 0;
   matAy(any([abs(X(:))>xp abs(Z(:))>xp],2)) = 0;
@@ -118,54 +126,85 @@ end
 
 % Plot
 nrows = 3;
-ncols = 2;
+ncols = 3;
 npanels = nrows*ncols;
 for ipanel = 1:npanels
   h(ipanel) = subplot(nrows,ncols,ipanel);  
 end
 isub = 1;
 
-hca = h(isub); isub = isub + 1;
-pcolor(hca,X,Z,matAy);
-shading(hca,'flat')
-hca.CLim = max(abs(hca.CLim))*[-1 1];
-colorbar('peer',hca)
-hca.Title.String = 'Ay';
-
-hca = h(isub); isub = isub + 1;
-pcolor(hca,X,Z,matBx);
-shading(hca,'flat')
-hca.CLim = max(abs(hca.CLim))*[-1 1];
-colorbar('peer',hca)
-hca.Title.String = 'Bx';
-
-hca = h(isub); isub = isub + 1;
-pcolor(hca,X,Z,matBy);
-shading(hca,'flat')
-hca.CLim = max(abs(hca.CLim))*[-1 1];
-colorbar('peer',hca)
-hca.Title.String = 'By';
-
-hca = h(isub); isub = isub + 1;
-pcolor(hca,X,Z,matBz);
-shading(hca,'flat')
-hca.CLim = max(abs(hca.CLim))*[-1 1];
-colorbar('peer',hca)
-hca.Title.String = 'Bz';
-
-hca = h(isub); isub = isub + 1;
-pcolor(hca,X,Z,matJx);
-shading(hca,'flat')
-hca.CLim = max(abs(hca.CLim))*[-1 1];
-colorbar('peer',hca)
-hca.Title.String = 'Jx';
-
-hca = h(isub); isub = isub + 1;
-pcolor(hca,X,Z,matJy);
-shading(hca,'flat')
-hca.CLim = max(abs(hca.CLim))*[-1 1];
-colorbar('peer',hca)
-hca.Title.String = 'Jy';
+if 1 % Ax
+  hca = h(isub); isub = isub + 1;
+  pcolor(hca,X,Z,matAx);
+  shading(hca,'flat')
+  hca.CLim = max(abs(hca.CLim))*[-1 1];
+  colorbar('peer',hca)
+  hca.Title.String = 'Ax';
+end
+if 1 % Ay
+  hca = h(isub); isub = isub + 1;
+  pcolor(hca,X,Z,matAy);
+  shading(hca,'flat')
+  hca.CLim = max(abs(hca.CLim))*[-1 1];
+  colorbar('peer',hca)
+  hca.Title.String = 'Ay';
+end
+if 1 % Az
+  hca = h(isub); isub = isub + 1;
+  pcolor(hca,X,Z,matAy);
+  shading(hca,'flat')
+  hca.CLim = max(abs(hca.CLim))*[-1 1];
+  colorbar('peer',hca)
+  hca.Title.String = 'Az';
+end
+if 1 % Bx
+  hca = h(isub); isub = isub + 1;
+  pcolor(hca,X,Z,matBx);
+  shading(hca,'flat')
+  hca.CLim = max(abs(hca.CLim))*[-1 1];
+  colorbar('peer',hca)
+  hca.Title.String = 'Bx';
+end
+if 1 % By
+  hca = h(isub); isub = isub + 1;
+  pcolor(hca,X,Z,matBy);
+  shading(hca,'flat')
+  hca.CLim = max(abs(hca.CLim))*[-1 1];
+  colorbar('peer',hca)
+  hca.Title.String = 'By';
+end
+if 1 % Bz
+  hca = h(isub); isub = isub + 1;
+  pcolor(hca,X,Z,matBz);
+  shading(hca,'flat')
+  hca.CLim = max(abs(hca.CLim))*[-1 1];
+  colorbar('peer',hca)
+  hca.Title.String = 'Bz';
+end
+if 1 % Jx
+  hca = h(isub); isub = isub + 1;
+  pcolor(hca,X,Z,matJx);
+  shading(hca,'flat')
+  hca.CLim = max(abs(hca.CLim))*[-1 1];
+  colorbar('peer',hca)
+  hca.Title.String = 'Jx';
+end
+if 1 % Jy
+  hca = h(isub); isub = isub + 1;
+  pcolor(hca,X,Z,matJy);
+  shading(hca,'flat')
+  hca.CLim = max(abs(hca.CLim))*[-1 1];
+  colorbar('peer',hca)
+  hca.Title.String = 'Jy';
+end
+if 1 % Jz
+  hca = h(isub); isub = isub + 1;
+  pcolor(hca,X,Z,matJz);
+  shading(hca,'flat')
+  hca.CLim = max(abs(hca.CLim))*[-1 1];
+  colorbar('peer',hca)
+  hca.Title.String = 'Jz';
+end
 
 if 0
   hca = h(isub); isub = isub + 1;
@@ -178,8 +217,8 @@ end
 colormap(cn.cmap('blue_red'))
 
 hlinks = linkprop(h,{'XLim','YLim'});
-hlinks.Targets(1).XLim = [-10 10];
-hlinks.Targets(1).YLim = [-10 10];
+%hlinks.Targets(1).XLim = [-10 10];
+%hlinks.Targets(1).YLim = [-10 10];
 
 %% Old
 if 0

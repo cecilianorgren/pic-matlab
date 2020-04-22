@@ -937,7 +937,7 @@ classdef PIC
         % changes in A. Therefore, refine the grid around the X line and
         % find the location again.
         doRefine = 1;
-        if doRefine          
+        if doRefine
           % Indices of coarse X line.
           ixX(it) = saddle_locations(1,1);
           izX(it) = saddle_locations(1,2);
@@ -994,7 +994,7 @@ classdef PIC
         keep_ind_1 = find(dxS > 0.9*max(dxS)); % longest extent in x direction
         keep_ind_2 = find(zmeanS > 0); % should be above z = 0
         keep_ind_3 = intersect(keep_ind_1,keep_ind_2); % find lines that satisfy both these first two conditions
-        keep_ind_4 = find(zminS == min(zminS(keep_ind_3))); % now find the line that has the smallest z value (maybe theres two northern lines)
+        keep_ind_4 = find(zminS == min(zminS(keep_ind_3))); % now find the line that has the smallest z value (because maybe theres two northern lines)
         keep_ind = keep_ind_4;
         indS = keep_ind;
                
@@ -1019,6 +1019,7 @@ classdef PIC
         new_x(it,:) = x;
         new_z(it,:) = interp1(xSep,zSep,x); % only need to do this one ? no      
       end
+      out.twci = obj.twci;
       out.x = new_x;
       out.z = new_z;
       out.xline_x = xX;
@@ -1623,6 +1624,73 @@ classdef PIC
       out = mass_sp*obj.wpewce^2*(vxs.*vxs + vys.*vys + vzs.*vzs)./n/3;
     end
     % Pressure, not implemented for Smilei
+    function out = p12(obj,species,comp)
+      % p12 = p12(obj,species,comp)
+      % load general tensor components, 
+      % comp is some of 'xx','xy','xz','yy','yz','zz'
+      
+      comp = sort(comp);
+      
+      nSpecies = numel(species);
+      % check so that all species have the same mass and charge
+      mass_sp = obj.mass; 
+      if numel(unique(mass_sp(species))) > 1
+        error('All species do not have the same mass.'); 
+      else
+        mass_sp = mass_sp(species(1));
+      end
+      charge = obj.get_charge; charge(species);
+      if numel(unique(charge(species))) > 1
+        error('All species do not have the same charge.');
+      end
+        
+      if strcmp(obj.software,'micPIC')
+        dfac = obj.get_dfac;
+
+        % Initialize variables
+        n = zeros(numel(obj.xi),numel(obj.zi),obj.length);
+        v1s = zeros(numel(obj.xi),numel(obj.zi),obj.length);
+        v2s = zeros(numel(obj.xi),numel(obj.zi),obj.length);
+        v12 = zeros(numel(obj.xi),numel(obj.zi),obj.length);
+
+        % Sum over species
+        for iSpecies = species
+          n = n + obj.get_field(sprintf('dns/%.0f',iSpecies))*dfac(iSpecies);  % density
+          v1s = v1s + obj.get_field(sprintf('v%ss/%.0f',comp(1),iSpecies))*dfac(iSpecies); % flux 
+          if strcmp(comp(1),comp(2))
+            v2s = v1s;
+          else
+            v2s = v2s + obj.get_field(sprintf('v%ss/%.0f',comp(2),iSpecies))*dfac(iSpecies); % flux
+          end
+          v12 = v12 + obj.get_field(sprintf('v%s/%.0f',comp,iSpecies))*dfac(iSpecies); % nvv
+        end
+        % p = P - mnvv
+        out = mass_sp*obj.wpewce^2*(v12 - v1s.*v2s./n); % p12
+      elseif strcmp(obj.software,'Smilei')
+        % Initialize variables
+        n = zeros(numel(obj.xi),numel(obj.zi),obj.length);      
+        j1 = zeros(numel(obj.xi),numel(obj.zi),obj.length);
+        j2 = zeros(numel(obj.xi),numel(obj.zi),obj.length);
+        v12 = zeros(numel(obj.xi),numel(obj.zi),obj.length);      
+
+        % Sum over species
+        for iSpecies = species
+          n = n + obj.n(iSpecies);  % density      
+          eval(sprintf('j1 = j1 + obj.j%s(iSpecies);',comp(1))) % flux     
+          if strcmp(comp(1),comp(2))
+            j2 = j1;
+          else
+            eval(sprintf('j2 = j2 + obj.j%s(iSpecies);',comp(2))) % flux     
+          end
+          eval(sprintf('v12 = v12 + obj.v%s(iSpecies);',comp)) % nvv
+        end        
+        % p = P - mnvv
+        out = mass_sp*obj.wpewce^2*(v12 - j1.*j2./n); % p12
+        
+      end
+    end
+    % To reduce lines of code, make these following call p12 when Smilei 
+    % has been verified.
     function out = pxx(obj,species)
       % pxx = pxx(obj,species)
       
@@ -1669,6 +1737,120 @@ classdef PIC
         end        
         % p = P - mnvv
         out = mass_sp*obj.wpewce^2*(vxx - jx.*jx./n); % pxx
+      end
+    end
+    function out = pxy(obj,species)
+      % pxx = pxx(obj,species)
+      
+      nSpecies = numel(species);
+      % check so that all species have the same mass and charge
+      mass_sp = obj.mass; 
+      if numel(unique(mass_sp(species))) > 1
+        error('All species do not have the same mass.'); 
+      else
+        mass_sp = mass_sp(species(1));
+      end
+      charge = obj.get_charge; charge(species);
+      if numel(unique(charge(species))) > 1
+        error('All species do not have the same charge.');         
+      end
+        
+      if strcmp(obj.software,'micPIC')
+        dfac = obj.get_dfac;
+
+        % Initialize variables
+        n = zeros(numel(obj.xi),numel(obj.zi),obj.length);      
+        vxs = zeros(numel(obj.xi),numel(obj.zi),obj.length);
+        vys = zeros(numel(obj.xi),numel(obj.zi),obj.length);
+        vxy = zeros(numel(obj.xi),numel(obj.zi),obj.length);      
+
+        % Sum over species
+        for iSpecies = species
+          n = n + obj.get_field(sprintf('dns/%.0f',iSpecies))*dfac(iSpecies);  % density      
+          vxs = vxs + obj.get_field(sprintf('vxs/%.0f',iSpecies))*dfac(iSpecies); % flux     
+          vys = vys + obj.get_field(sprintf('vys/%.0f',iSpecies))*dfac(iSpecies); % flux     
+          vxy = vxy + obj.get_field(sprintf('vxy/%.0f',iSpecies))*dfac(iSpecies); % nvv
+        end        
+        % p = P - mnvv
+        out = mass_sp*obj.wpewce^2*(vxy - vxs.*vys./n); % pxy
+      elseif strcmp(obj.software,'Smilei')
+        % not implemented
+      end
+    end
+    function out = pxz(obj,species)
+      % pxx = pxx(obj,species)
+      
+      nSpecies = numel(species);
+      % check so that all species have the same mass and charge
+      mass_sp = obj.mass; 
+      if numel(unique(mass_sp(species))) > 1
+        error('All species do not have the same mass.'); 
+      else
+        mass_sp = mass_sp(species(1));
+      end
+      charge = obj.get_charge; charge(species);
+      if numel(unique(charge(species))) > 1
+        error('All species do not have the same charge.');         
+      end
+        
+      if strcmp(obj.software,'micPIC')
+        dfac = obj.get_dfac;
+
+        % Initialize variables
+        n = zeros(numel(obj.xi),numel(obj.zi),obj.length);      
+        vxs = zeros(numel(obj.xi),numel(obj.zi),obj.length);
+        vzs = zeros(numel(obj.xi),numel(obj.zi),obj.length);
+        vxz = zeros(numel(obj.xi),numel(obj.zi),obj.length);      
+
+        % Sum over species
+        for iSpecies = species
+          n = n + obj.get_field(sprintf('dns/%.0f',iSpecies))*dfac(iSpecies);  % density      
+          vxs = vxs + obj.get_field(sprintf('vxs/%.0f',iSpecies))*dfac(iSpecies); % flux     
+          vzs = vzs + obj.get_field(sprintf('vzs/%.0f',iSpecies))*dfac(iSpecies); % flux     
+          vxz = vxz + obj.get_field(sprintf('vxz/%.0f',iSpecies))*dfac(iSpecies); % nvv
+        end        
+        % p = P - mnvv
+        out = mass_sp*obj.wpewce^2*(vxz - vxs.*vzs./n); % pxy
+      elseif strcmp(obj.software,'Smilei')
+        % not implemented
+      end
+    end
+    function out = pyz(obj,species)
+      % pxx = pxx(obj,species)
+      
+      nSpecies = numel(species);
+      % check so that all species have the same mass and charge
+      mass_sp = obj.mass; 
+      if numel(unique(mass_sp(species))) > 1
+        error('All species do not have the same mass.'); 
+      else
+        mass_sp = mass_sp(species(1));
+      end
+      charge = obj.get_charge; charge(species);
+      if numel(unique(charge(species))) > 1
+        error('All species do not have the same charge.');         
+      end
+        
+      if strcmp(obj.software,'micPIC')
+        dfac = obj.get_dfac;
+
+        % Initialize variables
+        n = zeros(numel(obj.xi),numel(obj.zi),obj.length);      
+        vys = zeros(numel(obj.xi),numel(obj.zi),obj.length);
+        vzs = zeros(numel(obj.xi),numel(obj.zi),obj.length);
+        vyz = zeros(numel(obj.xi),numel(obj.zi),obj.length);      
+
+        % Sum over species
+        for iSpecies = species
+          n = n + obj.get_field(sprintf('dns/%.0f',iSpecies))*dfac(iSpecies);  % density      
+          vys = vys + obj.get_field(sprintf('vys/%.0f',iSpecies))*dfac(iSpecies); % flux     
+          vzs = vzs + obj.get_field(sprintf('vzs/%.0f',iSpecies))*dfac(iSpecies); % flux     
+          vyz = vyz + obj.get_field(sprintf('vyz/%.0f',iSpecies))*dfac(iSpecies); % nvv
+        end        
+        % p = P - mnvv
+        out = mass_sp*obj.wpewce^2*(vyz - vys.*vzs./n); % pyz
+      elseif strcmp(obj.software,'Smilei')
+        % not implemented
       end
     end
     function out = pyy(obj,species)
@@ -1770,6 +1952,80 @@ classdef PIC
     function out = p(obj,species)
       % p = (pxx+pyy+pzz)/3
       out = (obj.pxx(species) + obj.pyy(species) + obj.pzz(species))/3;
+    end
+    % Temperature, not implemented for Smilei
+    function out = t(obj,species)
+      n = obj.n(species);
+      p = obj.p(species);
+      out = p./n;
+    end
+    function out = t_diag(obj,species)
+      n = obj.n(species);
+      pxx = obj.pxx(species);
+      pyy = obj.pyy(species);
+      pzz = obj.pzz(species);      
+      t.xx = pxx./n;
+      t.yy = pyy./n;
+      t.zz = pzz./n;
+      out = t;
+    end
+    function out = t_tens(obj,species)
+      n = obj.n(species);
+      pxx = obj.pxx(species);
+      pxy = obj.pxy(species);
+      pxz = obj.pxz(species);
+      pyy = obj.pyy(species);
+      pyz = obj.pyz(species);
+      pzz = obj.pzz(species);
+      t.xx = pxx./n;
+      t.xy = pxy./n;
+      t.xz = pxz./n;
+      t.yy = pyy./n;
+      t.yz = pyz./n;
+      t.zz = pzz./n;
+      out = t;
+    end
+    function out = t_fac(obj,species)
+      % PIC.T_FAC Load t_tens, and rotate to field aligned coordinate system
+      % tfac = PIC.T_FAC(species)
+      % r1 = B/|B|;
+      % r2 = r1 x [0 1 0] - in inflow, without guide field, this is then
+      %                     close to z
+      % r3 = r1 x r2
+      
+      % Temperature
+      t = obj.t_tens(species);
+      % Magnetic field
+      Bx = obj.Bx;
+      By = obj.By;
+      Bz = obj.Bz;
+      Babs = sqrt(Bx.^2 + By.^2 + Bz.^2);
+      b.x =  Bx./Babs;
+      b.y =  By./Babs;
+      b.z =  Bz./Babs;
+      % New coordinate system
+      r1 = b; % magnetic field unit vector
+      r2 = cross_product(r1.x,r1.y,r1.z,0,1,0);
+      r2.abs = sqrt(r2.x.^2 + r2.y.^2 + r2.z.^2);
+      r2.x = r2.x./r2.abs;
+      r2.y = r2.y./r2.abs;
+      r2.z = r2.z./r2.abs;
+      r2.abs = sqrt(r2.x.^2 + r2.y.^2 + r2.z.^2);
+      r2 = cross_product(r2.x,r2.y,r2.z,r1.x,r1.y,r1.z);
+      r3 = cross_product(r1.x,r1.y,r1.z,r2.x,r2.y,r2.z);
+      r3.abs = sqrt(r3.x.^2 + r3.y.^2 + r3.z.^2);
+      
+      % Rotate tensor
+      % To get fac, we dont really need the entire tensor, do we? The 
+      % diagonal should be enough?
+      t_fac = rotate_tens(t,r1,r2,r3);
+      t_perp = 0.5*(t_fac.yy + t_fac.zz);
+      t_par = t_fac.xx;  
+      t_scal = (t_fac.xx + t_fac.yy + t_fac.zz)/3;
+      out.fac = t_fac;
+      out.perp = t_perp;
+      out.par = t_par;
+      out.scal = t_scal;
     end
     
     % Sets of moments, not implemented for Smilei
@@ -1977,6 +2233,66 @@ classdef PIC
       out = out(obj.indices_);
     end        
     % Calculated each time, not implemented for Smilei
+    function out = curlb(obj)
+      % PIC.CURLB Rotation of B.
+      %   Jx = dBy/dz - dBz/dy
+      %   Jy = dBz/dx - dBx/dz
+      %   Jz = dBx/dy - dBy/dx
+      %
+      %   h = setup_subplots(3,3);
+      %
+      %
+            
+      bx = obj.Bx;
+      by = obj.By;
+      bz = obj.Bz;
+      
+      dx = obj.xi(2)-obj.xi(1);
+      dz = obj.zi(2)-obj.zi(1);
+      dy = Inf;
+      
+      
+      % 2D mesh of grid points, for interpolating
+      [XI_EY,ZI_EY] = meshgrid(obj.xivar.Ey,obj.zivar.Ey);
+      [XI_BY,ZI_BY] = meshgrid(obj.xivar.By,obj.zivar.By);
+      [XI_BX,ZI_BX] = meshgrid(obj.xivar.Bx,obj.zivar.Bx);
+      [XI_BZ,ZI_BZ] = meshgrid(obj.xivar.Bz,obj.zivar.Bz);
+      
+      % Since we are not always at the edge of the box, I just treat the
+      % edges as duplicates of the adjacent value. 
+      
+      % -- adjusted grid
+      dxbz = zeros(obj.nx,obj.nz);
+      dxbz(2:end,:) = diff(bz,1,1)/dx;
+      dxbz(1,:) = dxbz(2,1);
+      dybz = 0;
+      
+      dzbx = zeros(obj.nx,obj.nz);
+      dzbx(:,1) = (bx(:,2)-bx(:,1))/(dz); % just the same as the pount inside
+      dzbx(:,2:end) = diff(bx,1,2)/dz;
+      dybx = 0;
+      
+      dxby_ = diff(by,1,1)/dx; % ends up on Bx/Ez grid one step to the right
+      dxby = interp2(XI_BX(:,2:end),ZI_BY(:,2:end),dxby_',XI_EY,ZI_EY)';
+      
+      dzby_ = diff(by,1,2)/dz; % ends up on Bz/Ex grid one step to the top
+      dzby = interp2(XI_BY(2:end,:),ZI_BY(2:end,:),dzby_',XI_EY,ZI_EY)';
+      
+      %bx_at_ey = interp2(XI_BX,ZI_BX,bx',XI_EY,ZI_EY)';
+      %by_at_ey = interp2(XI_BY,ZI_BY,by',XI_EY,ZI_EY)';
+      %bz_at_ey = interp2(XI_BZ,ZI_BZ,bz',XI_EY,ZI_EY)';
+      
+      % Jx = dBy/dz - dBz/dy
+      % Jy = dBz/dx - dBx/dz
+      % Jz = dBx/dy - dBy/dx
+      bcurl_x = dybz - dzby;
+      bcurl_y = dzbx - dxbz;
+      bcurl_z = dxby - dybx;
+      
+      out.x = bcurl_x;
+      out.y = bcurl_y;
+      out.z = bcurl_z;      
+    end
     function out = magnetic_curvature(obj)
       % PIC.MAGNETIC_CURVATURE Calculate magnetic field curvature.
       %   bcurv = dot(b,nabla) b
@@ -2020,10 +2336,10 @@ classdef PIC
       
       if 1
       % 2D mesh of grid points, for interpolating
-      [XI_EY,ZI_EY] = meshgrid(obj.x.i_Ey,obj.z.i_Ey);
-      [XI_BY,ZI_BY] = meshgrid(obj.x.i_By,obj.z.i_By);
-      [XI_BX,ZI_BX] = meshgrid(obj.x.i_Bx,obj.z.i_Bx);
-      [XI_BZ,ZI_BZ] = meshgrid(obj.x.i_Bz,obj.z.i_Bz);
+      [XI_EY,ZI_EY] = meshgrid(obj.xivar.Ey,obj.zivar.Ey);
+      [XI_BY,ZI_BY] = meshgrid(obj.xivar.By,obj.zivar.By);
+      [XI_BX,ZI_BX] = meshgrid(obj.xivar.Bx,obj.zivar.Bx);
+      [XI_BZ,ZI_BZ] = meshgrid(obj.xivar.Bz,obj.zivar.Bz);
       
       % -- new
       dxbz = zeros(obj.nx,obj.nz);
@@ -2295,7 +2611,146 @@ classdef PIC
       out = inds;
     end
     function out = eom()
-    end      
+    end  
+    function vargout = rotate_tens(varargin)
+      % new_tens = R*old_tens*R^T
+
+      switch nargin 
+        case 2 % constant rotation matrix
+          old_xx = varargin{1}.xx;
+          old_xy = varargin{1}.xy;
+          old_xz = varargin{1}.xz;
+          old_yy = varargin{1}.yy;
+          old_yz = varargin{1}.yz;
+          old_zz = varargin{1}.zz;        
+          rx = varargin{2}(1,:); 
+          ry = varargin{2}(2,:);
+          rz = varargin{2}(3,:);
+        case 4 % spatially varying rotation matrix
+          old_xx = varargin{1}.xx;
+          old_xy = varargin{1}.xy;
+          old_xz = varargin{1}.xz;
+          old_yy = varargin{1}.yy;
+          old_yz = varargin{1}.yz;
+          old_zz = varargin{1}.zz;        
+          rx = varargin{2};
+          ry = varargin{3};
+          rz = varargin{4};
+        case 9
+          old_xx = varargin{1};
+          old_xy = varargin{2};
+          old_xz = varargin{3};
+          old_yy = varargin{4};
+          old_yz = varargin{5};
+          old_zx = varargin{6};    
+          rx = varargin{7};
+          ry = varargin{8};
+          rz = varargin{9};    
+        otherwise
+          error('Input not recognized.')    
+      end
+      %      | rx.x rx.y rx.z |
+      % r =  | ry.x ry.y ry.z |
+      %      | rz.x rz.y rz.z |
+      %
+      %      | rx.x ry.x rz.x |
+      % rt = | rx.y ry.y rz.y |
+      %      | rx.z ry.z rz.z |
+      %                       
+      % newT = r*T*rt
+      %
+      %        | rx.x rx.y rx.z |     | T.xx T.xy T.xz |     | rx.x ry.x rz.x |
+      %     =  | ry.x ry.y ry.z | dot | T.yx T.yy T.yz | dot | rx.y ry.y rz.y |
+      %        | rz.x rz.y rz.z |     | T.zx T.zy T.zz |     | rx.z ry.z rz.z |
+      %
+      %        | rx.x*T.xx + rx.y*T.yx + rx.z*T.zx |     | rx.x ry.x rz.x |
+      %     =  | ry.x*T.xy + ry.y*T.yy + ry.z*T.zy |  dot | rx.y ry.y rz.y |
+      %        | rz.x*T.xz + rz.y*T.yz + rz.z*T.zz |      | rx.z ry.z rz.z |
+      %
+      %        | rTx |'    | rx.x ry.x rz.x |
+      %     =  | rTy | dot | rx.y ry.y rz.y |
+      %        | rTz |     | rx.z ry.z rz.z |
+
+
+      %rxt.x = rx.x; rxt.y = ry.x; rxt.z = rz.x;
+      %ryt.x = rx.y; ryt.y = ry.y; ryt.z = rz.x;
+
+      R = zeros(3,3,size(old_xx,1),size(old_xx,2));
+      R(1,1,:,:) = rx.x;
+      R(1,2,:,:) = rx.y;
+      R(1,3,:,:) = rx.z;
+      R(2,1,:,:) = ry.x;
+      R(2,2,:,:) = ry.y;
+      R(2,3,:,:) = ry.z;
+      R(3,1,:,:) = rz.x;
+      R(3,2,:,:) = rz.y;
+      R(3,3,:,:) = rz.z;
+
+      T = zeros(3,3,size(old_xx,1),size(old_xx,2));
+      T(1,1,:,:) = old_xx;
+      T(1,2,:,:) = old_xy;
+      T(1,3,:,:) = old_xz;
+      T(2,1,:,:) = old_xy;
+      T(2,2,:,:) = old_yy;
+      T(2,3,:,:) = old_yz;
+      T(3,1,:,:) = old_xz;
+      T(3,2,:,:) = old_yz;
+      T(3,3,:,:) = old_zz;
+
+      newT = T*0;
+      % sum over i j
+      % nT_mn = R_mi * R_nj * T_ij
+      for mm = 1:3
+        for nn = mm:3
+          for ii = 1:3
+            for jj = 1:3
+              newT(mm,nn,:,:) = newT(mm,nn,:,:) + R(mm,ii,:,:).*R(nn,jj,:,:).*T(ii,jj,:,:);
+            end
+          end
+        end
+      end
+
+      new_xx = squeeze(newT(1,1,:,:));
+      new_xy = squeeze(newT(1,2,:,:));
+      new_xz = squeeze(newT(1,3,:,:));
+      new_yy = squeeze(newT(2,2,:,:));
+      new_yz = squeeze(newT(2,3,:,:));
+      new_zz = squeeze(newT(3,3,:,:));
+
+      % rTx = old_xx.*rx.x + old_xy.*rx.y + old_xz.*rx.z;
+      % rTy = old_xy.*rx.x + old_yy.*rx.y + old_yz.*rx.z;
+      % rTz = old_xz.*rx.x + old_yz.*rx.y + old_zz.*rx.z;
+      % 
+      % new_xx = rTx.*rx.x + rTx.*rx.y + rTx.*rx.z;
+      % 
+      % new_yy = old_xx.*ry.x + old_xy.*ry.y + old_xz.*ry.z;
+      % new_xy = old_xy.*ry.x + old_yy.*ry.y + old_yz.*ry.z;
+      % new_xz = old_xz.*rx.x + old_yz.*rx.y + old_zz.*rx.z;
+      % 
+      % 
+      % new_y = old_x.*ry.x + old_y.*ry.y + old_z.*ry.z;
+      % new_z = old_x.*rz.x + old_y.*rz.y + old_z.*rz.z;
+
+      switch nargout
+        case 1
+          new_tens.xx = new_xx;
+          new_tens.xy = new_xy;
+          new_tens.xz = new_xz;
+          new_tens.yy = new_yy;
+          new_tens.yz = new_yz;
+          new_tens.zz = new_zz;
+          vargout(1) = new_tens;
+        case 6
+          vargout(1) = new_xx;
+          vargout(2) = new_xy;
+          vargout(3) = new_xz;
+          vargout(4) = new_yy;
+          vargout(5) = new_yz;
+          vargout(6) = new_zz;
+      end
+    end
+    function out = curl_vector(x,z,vx,vy,vz)
+    end
   end
   
   methods (Access = protected)

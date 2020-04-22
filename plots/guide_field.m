@@ -514,7 +514,7 @@ if 0 % Ez
   end  
   %irf_legend(hca,sprintf('twpe = %05.0f',pic_tmp.twpe),[0.02 0.98],'color','k')
 end 
-if 1 % KB
+if 0 % KB
   hca = h(isub); isub = isub + 1;    
   Bx = pic_tmp.Bx;
   By = pic_tmp.By;
@@ -532,7 +532,7 @@ if 1 % KB
   end
  % irf_legend(hca,sprintf('twpe = %05.0f',pic_tmp.twpe),[0.02 0.98],'color','k')
 end
-if 1 % 1/KB
+if 0 % 1/KB
   hca = h(isub); isub = isub + 1;    
   Bx = pic_tmp.Bx;
   By = pic_tmp.By;
@@ -757,7 +757,7 @@ if 0 % pic
     hold(hca,'off') 
   end
 end
-if 0 % tec
+if 1 % tec
   hca = h(isub); isub = isub + 1;    
   p = pic_tmp.p(3);
   n = pic_tmp.n(3);
@@ -773,7 +773,7 @@ if 0 % tec
     hold(hca,'off') 
   end
 end
-if 0 % tec par
+if 1 % tec par
   hca = h(isub); isub = isub + 1;
   imagesc(hca,pic_tmp.xi,pic_tmp.zi,t_par');
   hb = colorbar('peer',hca); hbs(end+1) = hb;
@@ -786,7 +786,7 @@ if 0 % tec par
     hold(hca,'off') 
   end
 end
-if 0 % tec perp
+if 1 % tec perp
   hca = h(isub); isub = isub + 1; 
   imagesc(hca,pic_tmp.xi,pic_tmp.zi,t_perp');
   hb = colorbar('peer',hca); hbs(end+1) = hb;
@@ -826,4 +826,314 @@ end
 drawnow
 compact_panels(0.01)
 
+%% Plot for comparison to Shay 2014 (electron heating)
+twpe = [9000];
+pic = gf05.twpelim(twpe,'exact').xlim([30 170]).zlim([-15 15]);
+pic_tmp = pic;
+
+nrows = 4;
+ncols = 2;
+npanels = nrows*ncols;
+%h = setup_subplots(nrows,ncols,'horizontal');
+h = setup_subplots(nrows,ncols,'vertical');
+isub = 1;
+
+doA = 1;
+doAx = 0; % plot separatrix, NOT impl.
+if doA % Flux function, set parameters
+  cA = 0*[0.8 0.8 0.8];
+  nA = 20;
+  nA = [-50:1:50];
+  ipxA = 1:10:pic.nx;
+  ipzA = 1:10:pic.nz;     
+  A_tmp = pic.A;
+end
+  
+links = cell(10,1); 
+hbs = gobjects(0);
+
+%
+KB = pic.magnetic_curvature;
+Bx = pic_tmp.Bx;
+By = pic_tmp.By;
+Bz = pic_tmp.Bz;
+Babs = sqrt(Bx.^2 + By.^2 + Bz.^2);
+b.x =  Bx./Babs;
+b.y =  By./Babs;
+b.z =  Bz./Babs;
+
+wce = Babs/(pic.mass(4)/pic.mime);
+
+Ex = pic_tmp.Ex;
+Ey = pic_tmp.Ey;
+Ez = pic_tmp.Ez;
+Epar = (Ex.*b.x + Ey.*b.y + Ez.*b.z);
+
+
+if 0 % make par/perp temperatures
+  %%
+  tic
+  clear p t
+  pec.xx = pic_tmp.pxx(4);
+  pec.yy = pic_tmp.pyy(4);
+  pec.zz = pic_tmp.pzz(4);
+  nec = pic_tmp.n(4);
+  tec.xx = pec.xx./nec;
+  tec.yy = pec.yy./nec;
+  tec.zz = pec.zz./nec;
+  
+  tec.xy = tec.xx*0;
+  tec.xz = tec.xx*0;
+  tec.yz = tec.xx*0;
+  
+  peh.xx = pic_tmp.pxx(2);
+  peh.yy = pic_tmp.pyy(2);
+  peh.zz = pic_tmp.pzz(2);
+  neh = pic_tmp.n(2);
+  teh.xx = peh.xx./neh;
+  teh.yy = peh.yy./neh;
+  teh.zz = peh.zz./neh;
+  
+  teh.xy = teh.xx*0;
+  teh.xz = teh.xx*0;
+  teh.yz = teh.xx*0;
+  
+  r1 = b; % magnetic field unit vector
+  r2 = cross_product(r1.x,r1.y,r1.z,0,1,0);
+  r2.abs = sqrt(r2.x.^2 + r2.y.^2 + r2.z.^2);
+  r2.x = r2.x./r2.abs;
+  r2.y = r2.y./r2.abs;
+  r2.z = r2.z./r2.abs;
+  r2.abs = sqrt(r2.x.^2 + r2.y.^2 + r2.z.^2);
+  r2 = cross_product(r2.x,r2.y,r2.z,r1.x,r1.y,r1.z);
+  r3 = cross_product(r1.x,r1.y,r1.z,r2.x,r2.y,r2.z);
+  r3.abs = sqrt(r3.x.^2 + r3.y.^2 + r3.z.^2);
+  
+  
+  tec_fac = rotate_tens(tec,r1,r2,r3);
+  tec_perp = 0.5*(tec_fac.yy + tec_fac.zz);
+  tec_par = tec_fac.xx;  
+  tec_scal = (tec_fac.xx + tec_fac.yy + tec_fac.zz)/3;
+  vtec_scal = real(sqrt(2*tec_scal/(1/25)));
+  anis_ec = (tec_par./tec_perp);
+  anis_ec(anis<0) = NaN;
+  tec_0 = 0.02;
+  
+  
+  teh_fac = rotate_tens(teh,r1,r2,r3);
+  teh_perp = 0.5*(teh_fac.yy + teh_fac.zz);
+  teh_par = teh_fac.xx;  
+  teh_scal = (teh_fac.xx + teh_fac.yy + teh_fac.zz)/3;
+  vteh_scal = real(sqrt(2*teh_scal/(1/25)));
+  anis_eh = (teh_par./teh_perp);
+  anis_eh(anis<0) = NaN;
+  teh_0 = 0.5/6;
+  toc
+end
+
+
+
+if doA
+  A_tmp = pic_tmp.A;
+end
+if 0 % vex,cold
+  hca = h(isub); isub = isub + 1;            
+  imagesc(hca,pic_tmp.xi,pic_tmp.zi,pic_tmp.vx([2 4])');   
+  hb = colorbar('peer',hca);
+  hca.CLim = 5*[-1 1]*0.99;
+  colormap(hca,pic_colors('blue_red'));
+  hb.YLabel.String = 'v_{ec,x} (v_{A0})';
+  if doA
+    hold(hca,'on')
+    hcont = contour(hca,pic_tmp.xi(ipxA),pic_tmp.zi(ipzA),squeeze(A_tmp(ipxA,ipzA))',nA,'color',cA,'linewidth',0.5,'displayname','A'); 
+    hold(hca,'off') 
+  end  
+  %irf_legend(hca,sprintf('twpe = %05.0f',pic_tmp.twpe),[0.02 0.98],'color','k')
+end 
+if 0 % Epar
+  hca = h(isub); isub = isub + 1;    
+  imagesc(hca,pic_tmp.xi,pic_tmp.zi,Epar');
+  hb = colorbar('peer',hca); hbs(end+1) = hb;
+  hca.CLim = 0.2*[-1 1];
+  colormap(hca,pic_colors('blue_red'));
+  hb.YLabel.String = 'E_{||} (v_{A0}B_0)';
+  if doA      
+    hold(hca,'on')
+    hcont = contour(hca,pic_tmp.xi(ipxA),pic_tmp.zi(ipzA),squeeze(A_tmp(ipxA,ipzA))',nA,'color',cA,'linewidth',0.5,'displayname','A'); 
+    hold(hca,'off') 
+  end
+  %irf_legend(hca,sprintf('twpe = %05.0f',pic_tmp.twpe),[0.02 0.98],'color','k')
+end
+if 0 % vt cold e
+  hca = h(isub); isub = isub + 1; 
+  imagesc(hca,pic_tmp.xi,pic_tmp.zi,vtec_scal');
+  hb = colorbar('peer',hca); hbs(end+1) = hb;
+  hca.CLim = [0 5];
+  colormap(hca,pic_colors('waterfall'));
+  hb.YLabel.String = 'v_{t,ec} = (2T/m_e)^{1/2}';
+  if doA      
+    hold(hca,'on')
+    hcont = contour(hca,pic_tmp.xi(ipxA),pic_tmp.zi(ipzA),squeeze(A_tmp(ipxA,ipzA))',nA,'color',cA,'linewidth',0.5,'displayname','A'); 
+    hold(hca,'off') 
+  end
+  %irf_legend(hca,sprintf('twpe = %05.0f',pic_tmp.twpe),[0.02 0.98],'color','k')
+end 
+if 1 % tec
+  hca = h(isub); isub = isub + 1;
+  imagesc(hca,pic_tmp.xi,pic_tmp.zi,tec_scal');
+  hb = colorbar('peer',hca); hbs(end+1) = hb;
+  hca.CLim = [0 0.2];
+  colormap(hca,pic_colors('waterfall'));
+  hb.YLabel.String = 't_{ec}';
+  if doA
+    hold(hca,'on')
+    hcont = contour(hca,pic_tmp.xi(ipxA),pic_tmp.zi(ipzA),squeeze(A_tmp(ipxA,ipzA))',nA,'color',cA,'linewidth',0.5,'displayname','A'); 
+    hold(hca,'off') 
+  end
+end
+if 1 % tec - tecin
+  hca = h(isub); isub = isub + 1;
+  imagesc(hca,pic_tmp.xi,pic_tmp.zi,tec_scal'-tec_0);
+  hb = colorbar('peer',hca); hbs(end+1) = hb;
+  hca.CLim = [0 0.2];
+  colormap(hca,pic_colors('waterfall'));
+  hb.YLabel.String = sprintf('t_{ec}-%.4f',tec_0);
+  if doA
+    hold(hca,'on')
+    hcont = contour(hca,pic_tmp.xi(ipxA),pic_tmp.zi(ipzA),squeeze(A_tmp(ipxA,ipzA))',nA,'color',cA,'linewidth',0.5,'displayname','A'); 
+    hold(hca,'off') 
+  end
+end
+if 1 % tec par
+  hca = h(isub); isub = isub + 1;
+  imagesc(hca,pic_tmp.xi,pic_tmp.zi,tec_par');
+  hb = colorbar('peer',hca); hbs(end+1) = hb;
+  hca.CLim = [0 0.2];
+  colormap(hca,pic_colors('waterfall'));
+  hb.YLabel.String = 't_{ec,||}';
+  if doA
+    hold(hca,'on')
+    hcont = contour(hca,pic_tmp.xi(ipxA),pic_tmp.zi(ipzA),squeeze(A_tmp(ipxA,ipzA))',nA,'color',cA,'linewidth',0.5,'displayname','A'); 
+    hold(hca,'off') 
+  end
+end
+if 1 % tec perp
+  hca = h(isub); isub = isub + 1; 
+  imagesc(hca,pic_tmp.xi,pic_tmp.zi,tec_perp');
+  hb = colorbar('peer',hca); hbs(end+1) = hb;
+  hca.CLim = [0 0.2];
+  colormap(hca,pic_colors('waterfall'));
+  hb.YLabel.String = 't_{ec,\perp} (m_i v_{A0}^2)';
+  if doA
+    hold(hca,'on')
+    hcont = contour(hca,pic_tmp.xi(ipxA),pic_tmp.zi(ipzA),squeeze(A_tmp(ipxA,ipzA))',nA,'color',cA,'linewidth',0.5,'displayname','A'); 
+    hold(hca,'off') 
+  end
+end
+if 0 % tec par/perp
+  hca = h(isub); isub = isub + 1;      
+  imagesc(hca,pic_tmp.xi,pic_tmp.zi,log10(real(anis_ec))');
+  hb = colorbar('peer',hca); hbs(end+1) = hb;
+  hca.CLim = [-1 1];
+  colormap(hca,pic_colors('blue_red'));
+  hb.YLabel.String = 'log_{10}(t_{ec,||}/t_{ec,\perp})';
+  if doA
+    hold(hca,'on')
+    hcont = contour(hca,pic_tmp.xi(ipxA),pic_tmp.zi(ipzA),squeeze(A_tmp(ipxA,ipzA))',nA,'color',cA,'linewidth',0.5,'displayname','A'); 
+    hold(hca,'off') 
+  end
+end
+if 0 % vt hot e
+  hca = h(isub); isub = isub + 1; 
+  imagesc(hca,pic_tmp.xi,pic_tmp.zi,vteh_scal');
+  hb = colorbar('peer',hca); hbs(end+1) = hb;
+  hca.CLim = [0 5];
+  colormap(hca,pic_colors('waterfall'));
+  hb.YLabel.String = 'v_{t,eh} = (2T/m_e)^{1/2}';
+  if doA      
+    hold(hca,'on')
+    hcont = contour(hca,pic_tmp.xi(ipxA),pic_tmp.zi(ipzA),squeeze(A_tmp(ipxA,ipzA))',nA,'color',cA,'linewidth',0.5,'displayname','A'); 
+    hold(hca,'off') 
+  end
+  %irf_legend(hca,sprintf('twpe = %05.0f',pic_tmp.twpe),[0.02 0.98],'color','k')
+end 
+if 1 % teh
+  hca = h(isub); isub = isub + 1;
+  imagesc(hca,pic_tmp.xi,pic_tmp.zi,teh_scal');
+  hb = colorbar('peer',hca); hbs(end+1) = hb;
+  hca.CLim = [0 0.2];
+  colormap(hca,pic_colors('waterfall'));
+  hb.YLabel.String = 't_{eh}';
+  if doA
+    hold(hca,'on')
+    hcont = contour(hca,pic_tmp.xi(ipxA),pic_tmp.zi(ipzA),squeeze(A_tmp(ipxA,ipzA))',nA,'color',cA,'linewidth',0.5,'displayname','A'); 
+    hold(hca,'off') 
+  end
+end
+if 1 % teh-teh0
+  hca = h(isub); isub = isub + 1;
+  imagesc(hca,pic_tmp.xi,pic_tmp.zi,teh_scal'-teh_0);
+  hb = colorbar('peer',hca); hbs(end+1) = hb;
+  hca.CLim = [0 0.2];
+  colormap(hca,pic_colors('waterfall'));
+  %hb.YLabel.String = 't_{eh}-t{eh,0}';
+  hb.YLabel.String = sprintf('t_{eh}-%.4f',teh_0);
+  if doA
+    hold(hca,'on')
+    hcont = contour(hca,pic_tmp.xi(ipxA),pic_tmp.zi(ipzA),squeeze(A_tmp(ipxA,ipzA))',nA,'color',cA,'linewidth',0.5,'displayname','A'); 
+    hold(hca,'off') 
+  end
+end
+if 1 % teh par
+  hca = h(isub); isub = isub + 1;
+  imagesc(hca,pic_tmp.xi,pic_tmp.zi,teh_par');
+  hb = colorbar('peer',hca); hbs(end+1) = hb;
+  hca.CLim = [0 0.5];
+  colormap(hca,pic_colors('waterfall'));
+  hb.YLabel.String = 't_{eh,||}';
+  if doA
+    hold(hca,'on')
+    hcont = contour(hca,pic_tmp.xi(ipxA),pic_tmp.zi(ipzA),squeeze(A_tmp(ipxA,ipzA))',nA,'color',cA,'linewidth',0.5,'displayname','A'); 
+    hold(hca,'off') 
+  end
+end
+if 1 % tec perp
+  hca = h(isub); isub = isub + 1; 
+  imagesc(hca,pic_tmp.xi,pic_tmp.zi,teh_perp');
+  hb = colorbar('peer',hca); hbs(end+1) = hb;
+  hca.CLim = [0 0.5];
+  colormap(hca,pic_colors('waterfall'));
+  hb.YLabel.String = 't_{eh,\perp} (m_i v_{A0}^2)';
+  if doA
+    hold(hca,'on')
+    hcont = contour(hca,pic_tmp.xi(ipxA),pic_tmp.zi(ipzA),squeeze(A_tmp(ipxA,ipzA))',nA,'color',cA,'linewidth',0.5,'displayname','A'); 
+    hold(hca,'off') 
+  end
+end
+if 0 % tec par/perp
+  hca = h(isub); isub = isub + 1;      
+  imagesc(hca,pic_tmp.xi,pic_tmp.zi,log10(real(anis_eh))');
+  hb = colorbar('peer',hca); hbs(end+1) = hb;
+  hca.CLim = [-1 1];
+  colormap(hca,pic_colors('blue_red'));
+  hb.YLabel.String = 'log_{10}(t_{eh,||}/t_{eh,\perp})';
+  if doA
+    hold(hca,'on')
+    hcont = contour(hca,pic_tmp.xi(ipxA),pic_tmp.zi(ipzA),squeeze(A_tmp(ipxA,ipzA))',nA,'color',cA,'linewidth',0.5,'displayname','A'); 
+    hold(hca,'off') 
+  end
+end
+drawnow
+
+
+linkprop(h,{'XLim','YLim'});
+drawnow
+
+for ip = 1:npanels
+h(ip).YDir = 'normal';
+h(ip).XLabel.String = 'x (di)';
+h(ip).YLabel.String = 'z (di)';
+end
+drawnow
+compact_panels(0.01)
 

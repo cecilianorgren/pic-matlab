@@ -70,28 +70,27 @@ end
 
 %rxt.x = rx.x; rxt.y = ry.x; rxt.z = rz.x;
 %ryt.x = rx.y; ryt.y = ry.y; ryt.z = rz.x;
+datasize = size(old_xx);
+T(1,1,:) = reshape(old_xx,1,prod(datasize)); 
+T(2,2,:) = reshape(old_yy,1,prod(datasize)); 
+T(3,3,:) = reshape(old_zz,1,prod(datasize)); 
+T(1,2,:) = reshape(old_xy,1,prod(datasize)); 
+T(2,1,:) = reshape(old_xy,1,prod(datasize)); 
+T(1,3,:) = reshape(old_xz,1,prod(datasize)); 
+T(3,1,:) = reshape(old_xz,1,prod(datasize)); 
+T(2,3,:) = reshape(old_yz,1,prod(datasize)); 
+T(3,2,:) = reshape(old_yz,1,prod(datasize)); 
 
-R = zeros(3,3,size(old_xx,1),size(old_xx,2));
-R(1,1,:,:) = rx.x;
-R(1,2,:,:) = rx.y;
-R(1,3,:,:) = rx.z;
-R(2,1,:,:) = ry.x;
-R(2,2,:,:) = ry.y;
-R(2,3,:,:) = ry.z;
-R(3,1,:,:) = rz.x;
-R(3,2,:,:) = rz.y;
-R(3,3,:,:) = rz.z;
+R(1,1,:) = reshape(rx.x,1,prod(datasize));
+R(1,2,:) = reshape(rx.y,1,prod(datasize));
+R(1,3,:) = reshape(rx.z,1,prod(datasize));
+R(2,1,:) = reshape(ry.x,1,prod(datasize));
+R(2,2,:) = reshape(ry.y,1,prod(datasize));
+R(2,3,:) = reshape(ry.z,1,prod(datasize));
+R(3,1,:) = reshape(rz.x,1,prod(datasize));
+R(3,2,:) = reshape(rz.y,1,prod(datasize));
+R(3,3,:) = reshape(rz.z,1,prod(datasize));
 
-T = zeros(3,3,size(old_xx,1),size(old_xx,2));
-T(1,1,:,:) = old_xx;
-T(1,2,:,:) = old_xy;
-T(1,3,:,:) = old_xz;
-T(2,1,:,:) = old_xy;
-T(2,2,:,:) = old_yy;
-T(2,3,:,:) = old_yz;
-T(3,1,:,:) = old_xz;
-T(3,2,:,:) = old_yz;
-T(3,3,:,:) = old_zz;
 
 newT = T*0;
 % sum over i j
