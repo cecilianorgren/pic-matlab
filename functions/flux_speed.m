@@ -1,4 +1,4 @@
-function out = flux_speed(t,x,z,A,varargin)
+function varargout = flux_speed(t,x,z,A,varargin)
 % FLUX_SPEED Calculates (perpendicular) speed of flux.
 %   [vAx,vAz] = FLUX_SPEED(t,x,z,A,options);
 %   A(t,x,z) - (nt x nx x nz) matrix
@@ -16,7 +16,7 @@ vx = zeros(matsize);
 vz = zeros(matsize);
 
 % Grid size
-dt = t(2)-t(1);
+dt = t(2)-t(1); % need to implement uneven timestep
 dx = x(2)-x(1);
 dz = z(2)-z(1);
 
@@ -45,8 +45,8 @@ vx = -Bz.*dAdt./(Bx.^2+Bz.^2);
 vz = Bx.*dAdt./(Bx.^2+Bz.^2);
 
 if nargout == 1
-  out = cat(vx,vz);  
+  varargout = cat(vx,vz);  
 elseif nargout == 2
-  out{1} = vx;
-  out{2} = vz;
+  varargout{1} = vx;
+  varargout{2} = vz;
 end

@@ -104,7 +104,7 @@ classdef PIC
       %   xe, ze - x, z coordinate in terms of electron inertial lengths
       %   xi, zi - x, z coordinate in terms of proton inertial lengths
       %   m                   
-      
+      tic;
       obj.file = h5filePath; 
       obj.info = h5info(h5filePath);
       
@@ -200,7 +200,7 @@ classdef PIC
       if strcmp(obj.software,'Smilei') && nargin == 3
         obj.fields_ = cat(1,obj.fields_(:),unique(namelist.deposited_quantity(:)));
       end
-        
+      toc
     end
     
     function [varargout] = subsref(obj,idx)
@@ -324,6 +324,7 @@ classdef PIC
       obj.twpe_ = obj.twpe_(inds);
       obj.twci_ = obj.twci_(inds);
       obj.it_ = obj.it_(inds);
+      obj.indices_ = obj.indices_(inds);
       obj.iteration_ = obj.iteration_(inds);
     end
     function obj = twcilim(obj,value,varargin)
@@ -447,6 +448,51 @@ classdef PIC
       % collect frames
       
     end
+    function varargout = plot(obj,varstrs)
+      % Plots variables directly loaded from file
+      % h = pic.plot({'Ey','Ez'})
+      
+      [nrows,ncols] = size(varstrs);      
+      for ip = 1:nrows*ncols
+        h(ip) = subplot(nrows,ncols,ip);
+      end
+      hb = gobjects(0);
+      for ivar = 1:nrows*ncols
+        hca = h(ivar);
+        % check if input demand som andditional input, e.g. n(1)
+        
+        if strfind(varstrs{ivar},'(')
+          ind1 = strfind(varstrs{ivar},'(');
+          ind2 = strfind(varstrs{ivar},')');
+          %varsplit = regexp(varstrs{ivar}, '(?<var>\w+)\W+(?<ind>\d)\W+','names');
+          indstr = varstrs{ivar}(ind1+1:ind2-1);
+          varstr =  varstrs{ivar}(1:ind1-1);
+          var = obj.(varstr)(eval(indstr));
+        else
+          var = obj.(varstrs{ivar});
+        end        
+        imagesc(hca,obj.xi,obj.zi,var');
+        hb(ivar) = colorbar('peer',hca);
+        hb(ivar).YLabel.String = varstrs{ivar};
+        hca.XLabel.String = 'x (d_i)';
+        hca.YLabel.String = 'z (d_i)';
+        hca.YDir = 'normal';
+      end
+      drawnow;
+      compact_panels(0.01)
+      hlinks = linkprop(h,{'XLim','YLim'});
+      set(gcf,'userdata',{'hlinks',hlinks})
+      if nargout == 1
+        varargout{1} = h;
+      elseif nargout == 2
+        varargout{1} = h;
+        varargout{2} = hb;
+      elseif nargout == 3
+        varargout{1} = h;
+        varargout{2} = hb;
+        varargout{3} = hlinks;
+      end
+    end
               
     % Data analysis routines, time derivatives, interpolation, etc.
     % Interpolate fields    
@@ -464,7 +510,7 @@ classdef PIC
       % PIC.INTERP_EB3 - Interpolate for a number of given points.
       %
       % To be implemented:
-      %  - interpolation for several timesteps
+      %  - interpolation for several - SEEMS TO BE DONE
       %  - shape preserving interpolation
       %  - different interpolation types for temporal and spatial
       %    dimensions, particularly important for temporal dimension where
@@ -1099,6 +1145,20 @@ classdef PIC
         attributes.(obj.info.Attributes(iAttr).Name) = obj.info.Attributes(iAttr).Value;        
       end
       out = attributes;
+    end
+    function out = get_timeline_attributes(obj,attr_str)
+      fileInfo = obj.info;
+      iGroup = find(contains({fileInfo.Groups.Name},'/data'));
+      nIter = numel(fileInfo.Groups(iGroup).Groups); % number of iterations
+      
+      for iIter = 1:nIter
+        % /data/00000xxxxx/ 
+        % redo to actually find the 
+        iAtt = find(contains({fileInfo.Groups(iGroup).Groups(iIter).Attributes.Name},attr_str));
+        datasize = fileInfo.Groups(iGroup).Groups(iIter).Attributes(iAtt).Dataspace.Size;
+        attr(iIter,:) = fileInfo.Groups(iGroup).Groups(iIter).Attributes(iAtt).Value;
+      end
+      out = attr;
     end
     function out = get_twpe(obj)
       fileInfo = obj.info;
@@ -2200,11 +2260,45 @@ classdef PIC
     end  
     
     % Get derived quantities
+    function out = vExBx(obj)
+      % (EyBz - EzBy)/|B|
+      Bx = obj.Bx;
+      By = obj.By;
+      Bz = obj.Bz;
+      
+      Ey = obj.Ey;
+      Ez = obj.Ez;
+      
+      out = (Ey.*Bz-Ez.*By)./(Bx.^2+By.^2+Bz.^2);
+    end
+    function out = vExBy(obj)
+      % (EyBz - EzBy)/|B|
+      Bx = obj.Bx;
+      By = obj.By;
+      Bz = obj.Bz;
+      
+      Ex = obj.Ex;
+      Ez = obj.Ez;
+      
+      out = (Ez.*Bx-Ex.*Bz)./(Bx.^2+By.^2+Bz.^2);
+    end
+    function out = vExBz(obj)
+      % (EyBz - EzBy)/|B|
+      Bx = obj.Bx;
+      By = obj.By;
+      Bz = obj.Bz;
+      
+      Ex = obj.Ex;
+      Ey = obj.Ey;
+      
+      out = (Ex.*By-Ey.*Bx)./(Bx.^2+By.^2+Bz.^2);
+    end
     % Stored, not implemented for Smilei
     function out = UB(obj)
-      % Magnetic energy density 0.5*(Bx^2 + By^2 + Bz^2) summed up 
-      out = h5read(obj.file,'/scalar_timeseries/U/B');
-      out = out(obj.indices_);
+      % Magnetic energy density 0.5*(Bx^2 + By^2 + Bz^2) summed up
+      out = obj.get_timeline_attributes('UB');
+      %out = h5read(obj.file,'/scalar_timeseries/U/B');
+      %out = out(obj.indices_);
     end
     function out = dUB(obj)
       % Magnetic energy density 0.5*(Bx^2 + By^2 + Bz^2) summed up 
@@ -2224,14 +2318,36 @@ classdef PIC
     end
     function out = RE(obj)
       % Reconnection rate from out-of-plane electric field Ey at X line
-      out = h5read(obj.file,'/scalar_timeseries/R/Ey');
-      out = out(obj.indices_);
+      try
+        out = obj.get_timeline_attributes('RE');
+      catch
+        try
+          out = h5read(obj.file,'/scalar_timeseries/R/Ey');
+          out = out(obj.indices_);
+        end
+      end
     end
     function out = RA(obj)
       % Reconnection rate from vector potential dA/dt at X line
-      out = h5read(obj.file,'/scalar_timeseries/R/A');
+      %out = h5read(obj.file,'/scalar_timeseries/R/A');
+      out = obj.get_timeline_attributes('RA');
       out = out(obj.indices_);
-    end        
+    end
+    function out = xline_position(obj)
+      % X line position
+      xz_xline = obj.get_timeline_attributes('xline_position');
+      out = out(obj.indices_);
+    end
+    function out = x_xline(obj)
+      % X line position
+      xz_xline = obj.get_timeline_attributes('xline_position');
+      out = xz_xline(obj.indices_,1);
+    end
+    function out = z_xline(obj)
+      % X line position
+      xz_xline = obj.get_timeline_attributes('xline_position');
+      out = xz_xline(obj.indices_,2);
+    end
     % Calculated each time, not implemented for Smilei
     function out = curlb(obj)
       % PIC.CURLB Rotation of B.
@@ -2401,21 +2517,33 @@ classdef PIC
     function out = xline(obj)
       % Not implemented.
       % Assume xline is close to middle of box in z
-      %zlim = [-0.2 0.2];
+      % zlim = [-0.2 0.2];
       % Assume xline has not moved too much left and right
       %xlim = [-50 50];
-      A = obj.A;
-      
-      
-      
+      [saddle_x,saddle_z,saddle_val] = obj.saddle;
+      A = obj.A; 
+      1;
     end
-    function out = saddle(obj)
+    function varargout = saddle(obj)
       % Not implemented.
       % Assume xline is close to middle of box in z
       %zlim = [-0.2 0.2];
       % Assume xline has not moved too much left and right
       %xlim = [-50 50];
-      A = obj.A;      
+      %A = obj.A;
+      times = obj.twci;
+      for it = 1:obj.nt
+        A = obj.twcilim(times(it)).A;
+        [inds,vals] = saddle(A,'sort');
+        inds_x_all(it) = inds(1,1);
+        inds_z_all(it) = inds(1,2);
+        vals_all(it) = vals(1);
+      end
+      
+      varargout{1} = times;
+      varargout{2} = obj.xi(inds_x_all);
+      varargout{3} = obj.zi(inds_z_all);
+      varargout{4} = vals_all;
     end
     function [x,v,a,B] = xva_df(obj)
       % [xDF,vDF,aDF,BDF] = df04.xva_df;
