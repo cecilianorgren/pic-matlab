@@ -2230,7 +2230,8 @@ classdef PIC
       n = obj.n(species);
       p = obj.pzz(species);
       out = p./n;      
-    end    
+    end
+    
     % Sets of moments, not implemented for Smilei
     function [vxx,vxy,vxz,vyy,vyz,vzz] = vv(obj,iSpecies_orig)
       % [vxx,vxy,vxz,vyy,vyz,vzz] = vv(obj,iSpecies_orig)
@@ -2472,18 +2473,16 @@ classdef PIC
       %   wc0 I suppose since time is normalized to wc0^-1. 
       %   wpe/wce = 2, wci/wce = me/mi, wpi/wpe = sqrt(me/mi)
       %   (wpe/wce)*(wce/wci)*(wpi/wpe) = wpe/wce*mi/me*sqrt(me/mi) =
-      %   wpe/wce*sqrt(mi/me) = wpi/wci
-      %
-      %   out = wp(obj,species);
-      %   out = obj.wp(species);
+      %   wpe/wce*sqrt(me/mi) = wpi/wci
+      %   out = wp(obj,species)
       % 
       n = obj.n(species);
       % wp = (ne^2/eps0m)
       % should be normalized to wci
       % (wp/wci)^2 = (n*e^2/eps0*m)/(e^2*B0^2/m(1)^2)
-      wpwp0 = sqrt(n/obj.mass(species(1)));
-      wpiwci = obj.wpewce*sqrt(obj.mass(1)/obj.mass(2));
-      out = wpwp0*wpiwci;
+      wpwp0 = sqrt(n.^2/obj.mass(species(1)))*sqrt(obj.mass(1)/obj.mass(species(1)));
+      pi
+      out = wpwp0/
     end
     function out = lde(obj,species,mode)
       % PIC.LDE Debye length

@@ -1,0 +1,31 @@
+%% Harris plasma sheet + cold inflow, without hot uniform background
+% Harris plasma sheet + cold inflow, without hot uniform background
+% Without the hot background, there is vaccuum in the center with this 
+% setup. Should there be a hot background that is limited in z? Let's see
+% how it evolves...
+%pic = PIC('/Volumes/Fountain/Data/PIC/no_hot_bg_test/data_h5/fields.h5');
+
+nrows = 3;
+ncols = 1;
+h = setup_subplots(nrows,ncols);
+isub = 1;
+
+xlim = [100 105];
+if 1 % ni
+  hca = h(isub); isub = isub + 1;
+  plot(hca,pic.zi,squeeze(mean(pic.xlim(xlim).ni,1)));
+  hca.YLabel.String = 'n_i';
+  hca.XLabel.String = 'z';
+end
+if 1 % Bx
+  hca = h(isub); isub = isub + 1;
+  plot(hca,pic.zi,squeeze(mean(pic.xlim(xlim).Bx,1)));
+  hca.YLabel.String = 'B_x';
+  hca.XLabel.String = 'z';
+end
+if 1 % 
+  hca = h(isub); isub = isub + 1;
+  plot(hca,pic.zi,squeeze(mean(pic.xlim(xlim).Bx,1)));
+  hca.YLabel.String = 'B_x';
+  hca.XLabel.String = 'z';
+end

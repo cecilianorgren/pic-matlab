@@ -1,6 +1,6 @@
 %df04 = PIC('/Volumes/Fountain/Data/PIC/df_cold_protons_n04/data_h5/fields.h5');
 
-pic = df04;
+pic = bs;
 %% Energy partitioning, UB, UK, UT
 times = pic.twci;
 for it = 1:pic.nt
@@ -18,10 +18,10 @@ end
 times = pic.twci;
 for it = 1:pic.nt
   pic_tmp = pic.twcilim(times(it));
-  %Bx = pic_tmp.Bx;
-  %Bz = pic_tmp.Bz;
-  %A = vector_potential(pic_tmp.xi,pic_tmp.zi,Bx,Bz);
-  A = pic_tmp.A;
+  Bx = pic_tmp.Bx;
+  Bz = pic_tmp.Bz;
+  A = vector_potential(pic_tmp.xi,pic_tmp.zi,Bx,Bz);
+  %A = pic_tmp.A;
   [Ainds,Avals] = saddle(A,'sort');
   xXline(it) = pic_tmp.xi(Ainds(1,1));
   zXline(it) = pic_tmp.zi(Ainds(1,2));
@@ -47,13 +47,14 @@ h5write_attr(pic,times,'UB',UB)
 h5write_attr(pic,times,'xline_position',[xXline' zXline'])
 
 %% Write ancillary data (not attributes), for example A
-pic = df04n;
+pic = bs;
 timesteps = pic.twpe;
-for time = timesteps(1:end)
+for time = timesteps(2:end)
   pic_tmp = pic.twpelim(time);
   Bx = pic_tmp.Bx;
   Bz = pic_tmp.Bz;
   A = vector_potential(pic_tmp.xi,pic_tmp.zi,Bx,Bz);
+  imagesc(A'); colorbar; pause(0.1)
   h5write_fields_ancillary(pic_tmp,pic_tmp.twpe,'A',A)
   
 end

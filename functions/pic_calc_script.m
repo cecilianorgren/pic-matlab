@@ -97,6 +97,7 @@ vExB.y = ExB.y./B.abs./B.abs; vExB.y(B.abs<0.1) = 0;
 vExB.z = ExB.z./B.abs./B.abs; vExB.z(B.abs<0.1) = 0;
 
 % Thermal velocities
+% why is the 2 outside the sqrt()???
 c_eval('vte? = 2*sqrt(te?.scalar/(mass(2)/mass(1))); vte? = real(vte?);',1:2) % obs, fix temperature instead
 c_eval('vti? = 2*sqrt(ti?.scalar/(mass(1)/mass(1))); vti? = real(vti?);',1:2) % obs, fix temperature instead
 

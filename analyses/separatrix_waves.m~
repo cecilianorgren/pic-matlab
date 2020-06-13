@@ -574,24 +574,22 @@ if 1 % f(vx)
     hold(hca,'on')
     hl_E = plot(hca,pic.xivar.Ex,mean(Ex,2),'linewidth',1,'color',Ecolor,'linestyle','-');
     hlegs(end+1) = hl_E;
-    legs{end+1} = 'E_x';
+    legs = {E}
     hold(hca,'off')
   end
   if doV % vx
     hold(hca,'on')
     hl_vx = plot(hca,v.x,v.vx,'linewidth',1,'color',vlinecolor,'linestyle',vlinestyle);
     hlegs(end+1) = hl_vx;
-    legs{end+1} = 'v_x';
     hold(hca,'off')
   end
   if doVExB % vExBx
     hold(hca,'on')
     hl_vxB = plot(hca,v.x,v.ExBx,'linewidth',1,'color',ExBlinecolor,'linestyle',ExBlinestyle);
     hlegs(end+1) = hl_vxB;
-    legs{end+1} = 'vxB';
     hold(hca,'off')
   end
-  %legend(hlegs,legs)
+  legend(hlegs,{})
 end 
 if 0 % f(vy)
   hca = h(isub); isub = isub + 1;  
@@ -693,8 +691,6 @@ hlinksALL = linkprop(h,{'XLim'});
 
 hlinksMAP = linkprop(h(isMAP),{'YLim'});
 hlinksMAP.Targets(1).YLim = zlim;
-
-h(end).XLabel.String = 'x/d_{i0}';
 %%
 for ipanel = 1:npanels
   h(ipanel).XTick = 0:5:500;
@@ -702,7 +698,7 @@ for ipanel = 1:npanels
   h(ipanel).XGrid = 'on';
   h(ipanel).YGrid = 'on';
   h(ipanel).Layer = 'top';
-  h(ipanel).FontSize = 14;
+  h(ipanel).FontSize = 12;
 end
 
 drawnow

@@ -19,6 +19,9 @@ pic = pic_orig.twcilim(timesteps,'exact');
 if not(isequal(timesteps,pic.twci))
   error('Check timesteps.')  
 end
+if not(size(attr_data,1)==pic.nt) 
+  attr_data = attr_data';
+end
 
 for itime = 1:pic.nt
   pic_tmp = pic.twcilim(pic.twci(itime));    
@@ -26,6 +29,7 @@ for itime = 1:pic.nt
   dataset_name = ['/data/' str_iteration '/'];
   disp(dataset_name)    
   % Write attributes
+  
   h5writeatt(pic.file,dataset_name, attr_str ,attr_data(itime,:))
 end
 
