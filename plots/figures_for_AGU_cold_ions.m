@@ -1271,7 +1271,7 @@ end
 %% Particle trajectories corresponding to cold ion fingers, interpolated EB
 % find spots with increased phase space density
 
-it = 2;
+it = 4;
 if 1
 iSpecies = [3];
 %ds = ds04(it).xlim([166 169]+[-0.1 0.1]).zlim([-0.1 0.6]);

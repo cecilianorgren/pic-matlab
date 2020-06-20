@@ -339,7 +339,7 @@ classdef PIC
     
     % Plotting routines, for simple diagnostics etc
     function [all_im, map] = make_gif(obj,fields,nrows,ncols,varargin)
-      % [all_im, map] = MAKE_GIF(obj,fields,nrows,ncols)      
+      % [all_im, map] = MAKE_GIF(obj,fields,nrows,ncols)
       % make gif
       % imwrite(im,map,'delme.gif','DelayTime',0.0,'LoopCount',0)  
       
@@ -349,17 +349,19 @@ classdef PIC
       doAdjustCLim = 0;
       cmap = pic_colors('blue_red');
       doA = 0;
+      doAdjustCMap = 0;
       
       nfields = numel(fields);
       ntimes = obj.length;
       
+      have_options = 0;
       nargs = numel(varargin);      
       if nargs > 0, have_options = 1; args = varargin(:); end
       
       while have_options
         l = 1;
         switch(lower(args{1}))
-          case 'a'            
+          case 'a'
             if numel(args{2}) == 1              
               doA = args{2};
               levA = -25:1:0;
@@ -371,12 +373,15 @@ classdef PIC
           case 'clim'
             l = 2;
             doAdjustCLim = 1;  
-            clims = args{2};
-            args = args(l+1:end);
+            clims = args{2};            
+          case 'cmap'
+            l = 2;
+            doAdjustCMap = 1;
+            cmaps = args{2};
           otherwise
-            warning(sprintf('Input ''%s'' not recognized.',args{1}))
-            args = args(l+1:end);
+            warning(sprintf('Input ''%s'' not recognized.',args{1}))            
         end        
+        args = args(l+1:end);
         if isempty(args), break, end    
       end
       
@@ -408,6 +413,14 @@ classdef PIC
             hca.CLim = clims{ifield};            
             %colormap(cmap)
           end
+          if doAdjustCMap
+            if isa(cmaps,'cell')
+              hca.CLim = cmaps{ifield};
+            elseif isnumeric(cmaps)
+              colormap(hca,cmaps)
+            end
+            %colormap(cmap)
+          end
           if doA
             hold(hca,'on')
             iAx = 1:4:obj.nx;
@@ -425,6 +438,8 @@ classdef PIC
           colormap(cmap)
         end
         pause(0.1)
+        h(1).Title.String = ['t\omega_{pe} = ' sprintf('%g',obj.twpe(itime)) ', t\omega_{ci} = ' sprintf('%g',obj.twci(itime))];
+        drawnow
         if 1 % collect frames, for making gif
           iframe = itime;
           nframes = ntimes;
@@ -447,6 +462,202 @@ classdef PIC
       
       % collect frames
       
+    end
+    function [all_im, map] = movie(obj,varstrs,varargin)
+      % [all_im, map] = MOVIE(obj,fields,nrows,ncols)
+      % Examples:
+      % nobg.zlim([0 25]*0.99).movie({'tzz(4)'},'A',1,'cmap',pic_colors('waterfall'),'clim',{[0 0.015]},'filename','tzz(4)');
+      
+      % Subsref error: Does not accept two outputs
+      
+      % Default options, values
+      doVideo = 1;
+      doGif = 0;
+      doAdjustCLim = 0;
+      cmap = pic_colors('blue_red');
+      doA = 0;
+      doAdjustCMap = 0;
+      fileName = 'movie'; % .mp4/.gif added later
+      doTrajectories = 0;
+      
+      ntimes = obj.length;
+      
+      have_options = 0;
+      nargs = numel(varargin);      
+      if nargs > 0, have_options = 1; args = varargin(:); end
+      
+      while have_options
+        l = 1;
+        switch(lower(args{1}))
+          case {'traj','trajectories','tr','orbits'}
+            doTrajectories = 1;
+            tr = args{2};
+            l = 2;            
+          case 'a'
+            doA = 1;
+            stepA = args{2};
+            l = 2;
+          case 'clim'
+            l = 2;
+            doAdjustCLim = 1;  
+            clims = args{2};
+          case 'cmap'
+            l = 2;
+            doAdjustCMap = 1;
+            cmaps = args{2};
+          case {'path','filename'}
+            l = 2;
+            fileName = args{2};
+          case 'gif'
+            l = 1;
+            doGif = 1;
+            doVideo = 0;            
+          otherwise
+            warning(sprintf('Input ''%s'' not recognized.',args{1}))            
+        end        
+        args = args(l+1:end);
+        if isempty(args), break, end    
+      end
+                  
+      % setup figure
+      fig = figure;      
+      [nrows,ncols] = size(varstrs);           
+      npanels = nrows*ncols;
+      ip = 0;
+      for irow = 1:nrows
+        for icol = 1:ncols
+          ip = ip + 1;
+          h(irow,icol) = subplot(nrows,ncols,ip);
+        end
+      end
+      
+      if doVideo
+        vidObj = VideoWriter([fileName '.mp4'],'MPEG-4');
+        open(vidObj);
+      end
+      if doGif
+        iframe = 0;
+      end
+      
+      disp('Adjust figure size, then hit any key to continue.')
+      pause
+      
+      for itime = 1:obj.nt
+        tmp_obj = obj.twcilim(obj.twci(itime));
+        hleg = gobjects(0);
+        ivar = 0;
+        for irow = 1:nrows
+          for icol = 1:ncols
+            ivar = ivar + 1;
+            isHoldOn = 0;
+            ip = sub2ind([ncols nrows],icol,irow);
+            hca = h(ip);
+
+            % check if input demand som andditional input, e.g. n(1)
+            if strfind(varstrs{ivar},'(')
+              ind1 = strfind(varstrs{ivar},'(');
+              ind2 = strfind(varstrs{ivar},')');
+              %varsplit = regexp(varstrs{ivar}, '(?<var>\w+)\W+(?<ind>\d)\W+','names');
+              indstr = varstrs{ivar}(ind1+1:ind2-1);
+              varstr =  varstrs{ivar}(1:ind1-1);
+              var = tmp_obj.(varstr)(eval(indstr));
+            else
+              var = tmp_obj.(varstrs{ivar});
+            end        
+            imagesc(hca,tmp_obj.xi,tmp_obj.zi,var');
+            hb(ivar) = colorbar('peer',hca);
+            hb(ivar).YLabel.String = varstrs{ivar};
+            hca.XLabel.String = 'x (d_i)';
+            hca.YLabel.String = 'z (d_i)';
+            hca.YDir = 'normal';
+            if doA
+              clim = hca.CLim;
+              A = tmp_obj.A;
+              %stepA = 1;
+              levA = floor(min(A(:))/stepA)*stepA:stepA:ceil(max(A(:))/stepA)*stepA;
+              iAx = 1:5:obj.nx;
+              iAz = 1:5:obj.nz;
+              hold(hca,'on')
+              contour(hca,tmp_obj.xi(iAx),tmp_obj.zi(iAz),A(iAx,iAz)',levA,'k')
+              hold(hca,'off')
+              hca.CLim = clim; 
+            end            
+            if doAdjustCLim
+              hca.CLim = clims{ip};
+              %colormap(cmap)
+            end
+            if doAdjustCMap
+              if isa(cmaps,'cell')
+                colormap(hca,cmaps{ifield});
+              elseif isnumeric(cmaps)
+                colormap(hca,cmaps)
+              end
+              %colormap(cmap)
+            end
+            if doTrajectories
+              hold(hca,'on')
+              for itr = 1:tr.ntr
+                tt = tr(itr).t;
+                xx = tr(itr).x;
+                zz = tr(itr).z;
+                idup = find(diff(tr(itr).t)==0);
+                tt(idup) = [];
+                xx(idup) = [];
+                zz(idup) = [];                
+                xnow = interp1(tt,xx,tmp_obj.twci);
+                znow = interp1(tt,zz,tmp_obj.twci);
+                plot(hca,tr(itr).x,tr(itr).z,'k')
+                plot(hca,xnow,znow,'k.','markerSize',20)
+                hp = plot(hca,tr(itr).x0,tr(itr).z0,'ko');
+              end
+              hold(hca,'off')
+            end
+           % drawnow;
+          end
+        end 
+        %drawnow;
+        h(1).Title.String = sprintf('twpe = %g, twci = %g',tmp_obj.twpe,tmp_obj.twci);
+        compact_panels(0.01)
+        % Collect frames
+        pause(1)
+        if doVideo
+          set(gcf,'color','white');
+          currFrame = getframe(gcf);
+          writeVideo(vidObj,currFrame);
+        end
+        if doGif
+          if 1 % collect frames, for making gif
+            iframe = iframe + 1;    
+            nframes = pic0.nt;
+            currentBackgroundColor = get(gcf,'color');
+            set(gcf,'color',[1 1 1]);
+            drawnow      
+            tmp_frame = getframe(gcf);
+            %cell_movies{imovie}(itime) = tmp_frame;
+            if iframe == 1 % initialize animated gif matrix
+              [im_tmp,map] = rgb2ind(tmp_frame.cdata,256,'nodither');
+              %map(end+1,:) = get(gcf,'color');
+              im_tmp(1,1,1,nframes) = 0;                                                
+              all_im = im_tmp;
+            else
+              all_im(:,:,1,iframe) = rgb2ind(tmp_frame.cdata,map,'nodither');
+            end       
+          end    
+        end
+      end
+      %hlinks = linkprop(h,{'XLim','YLim'});
+      %set(gcf,'userdata',{'hlinks',hlinks})
+      if nargout == 1
+        varargout{1} = h;
+      elseif nargout == 2
+        varargout{1} = h;
+        varargout{2} = hb;
+      elseif nargout == 3
+        varargout{1} = h;
+        varargout{2} = hb;
+        varargout{3} = hlinks;
+      end
+                     
     end
     function varargout = plotmap(obj,varstrs,varargin)
       % Plots variables directly loaded from file
@@ -481,6 +692,144 @@ classdef PIC
         iAz = 1:5:obj.nz;
       end
       
+      [nrows,ncols] = size(varstrs);           
+      npanels = nrows*ncols;
+      ip = 0;
+      for irow = 1:nrows
+        for icol = 1:ncols
+          ip = ip + 1;
+          h(irow,icol) = subplot(nrows,ncols,ip);
+        end
+      end
+      
+      hleg = gobjects(0);
+      ivar = 0;
+      for irow = 1:nrows
+        for icol = 1:ncols
+          ivar = ivar + 1;
+          isHoldOn = 0;
+          ip = sub2ind([ncols nrows],icol,irow);
+          hca = h(ip);
+        
+          % check if input demand som andditional input, e.g. n(1)
+
+          if strfind(varstrs{ivar},'(')
+            ind1 = strfind(varstrs{ivar},'(');
+            ind2 = strfind(varstrs{ivar},')');
+            %varsplit = regexp(varstrs{ivar}, '(?<var>\w+)\W+(?<ind>\d)\W+','names');
+            indstr = varstrs{ivar}(ind1+1:ind2-1);
+            varstr =  varstrs{ivar}(1:ind1-1);
+            var = obj.(varstr)(eval(indstr));
+          else
+            var = obj.(varstrs{ivar});
+          end        
+          imagesc(hca,obj.xi,obj.zi,var');
+          hb(ivar) = colorbar('peer',hca);
+          hb(ivar).YLabel.String = varstrs{ivar};
+          hca.XLabel.String = 'x (d_i)';
+          hca.YLabel.String = 'z (d_i)';
+          hca.YDir = 'normal';
+          clim = hca.CLim;
+          if doA
+            hold(hca,'on')
+            contour(hca,obj.xi(iAx),obj.zi(iAz),A(iAx,iAz)',levA,'k')
+            hold(hca,'off')
+          end
+          hca.CLim = clim;
+         % drawnow;
+        end
+      end 
+      %drawnow;
+      h(1).Title.String = sprintf('twpe = %g, twci = %g',obj.twpe,obj.twci);
+      compact_panels(0.01)
+      hlinks = linkprop(h,{'XLim','YLim'});
+      set(gcf,'userdata',{'hlinks',hlinks})
+      if nargout == 1
+        varargout{1} = h;
+      elseif nargout == 2
+        varargout{1} = h;
+        varargout{2} = hb;
+      elseif nargout == 3
+        varargout{1} = h;
+        varargout{2} = hb;
+        varargout{3} = hlinks;
+      end
+    end
+    function varargout = plottimemap(obj,dim,varstrs,varargin)
+      % Plots variables directly loaded from file
+      % h = pic.PLOTTIMEMAP('zt',{'Ey','Ez'})
+      % h = pic.PLOTTIMEMAP('tx',{'Ey','Ez'},'A')
+      
+      % Defaults
+      doA = 0;
+      
+      
+      % Which dimension to plot against
+      if strfind(dim,'x')
+        if strfind(dim,'x') == 1 % x on x-axis
+          plot_depx = obj.xi;
+          plot_depy = obj.twci;
+          permuteorder = [2 1];
+        else
+          plot_depx = obj.twci;
+          plot_depy = obj.xi;
+          permuteorder = [1 2];
+        end                
+        sum_dim = 2;
+        range = obj.zi([1 end]);
+        rangestr = 'z';
+      elseif strfind(dim,'z')
+        if strfind(dim,'z') == 1 % x on x-axis
+          plot_depx = obj.zi;
+          plot_depy = obj.twci;
+          permuteorder = [2 1];
+        else
+          plot_depx = obj.twci;
+          plot_depy = obj.zi;
+          permuteorder = [1 2];
+        end                
+        sum_dim = 1;
+        range = obj.xi([1 end]);
+        rangestr = 'x';        
+      else
+        error(sprintf('Unknown dependent dimension %s. Must be ''xt'', ''tx'', ''zt'', or ''tz''.',dim))
+      end
+      lim_depx = plot_depx([1 end]);
+      lim_depy = plot_depy([1 end]);
+      
+      % Check input
+      have_options = 0;
+      nargs = numel(varargin);      
+      if nargs > 0, have_options = 1; args = varargin(:); end      
+      while have_options
+        l = 1;
+        switch(lower(args{1}))
+          case 'a'
+            doA = 1;
+            stepA = args{2};
+            l = 2;
+          otherwise 
+            warning(sprintf('Unknown argument %s.',args{1}))
+        end
+        args = args(l+1:end);  
+        if isempty(args), break, end    
+      end
+      
+      if doA
+        A = obj.A;
+        A = squeeze(mean(A,sum_dim));
+        A = permute(A,permuteorder);
+        %stepA = 1;
+        levA = floor(min(A(:))/stepA)*stepA:stepA:ceil(max(A(:))/stepA)*stepA;
+        if strfind(dim,'t') == 1
+          iAdepx = 1:1:numel(plot_depx);
+          iAdepy = 1:5:numel(plot_depy);
+        else
+          iAdepx = 1:5:numel(plot_depx);
+          iAdepy = 1:1:numel(plot_depy);
+        end
+      end
+      
       [nrows,ncols] = size(varstrs);      
       for ip = 1:nrows*ncols
         h(ip) = subplot(nrows,ncols,ip);
@@ -489,7 +838,7 @@ classdef PIC
       for ivar = 1:nrows*ncols
         hca = h(ivar);
         % check if input demand som andditional input, e.g. n(1)
-        
+        tic
         if strfind(varstrs{ivar},'(')
           ind1 = strfind(varstrs{ivar},'(');
           ind2 = strfind(varstrs{ivar},')');
@@ -499,23 +848,26 @@ classdef PIC
           var = obj.(varstr)(eval(indstr));
         else
           var = obj.(varstrs{ivar});
-        end        
-        imagesc(hca,obj.xi,obj.zi,var');
+        end
+        toc
+        var = permute(squeeze(nanmean(var,sum_dim)),permuteorder);
+        pcolor(hca,plot_depx,plot_depy,var);
+        shading(hca,'flat')
         hb(ivar) = colorbar('peer',hca);
         hb(ivar).YLabel.String = varstrs{ivar};
-        hca.XLabel.String = 'x (d_i)';
-        hca.YLabel.String = 'z (d_i)';
+        hca.XLabel.String = [dim(1) ' (d_i)'];
+        hca.YLabel.String = [dim(2) ' (d_i)'];
         hca.YDir = 'normal';
         clim = hca.CLim;
         if doA
           hold(hca,'on')
-          contour(hca,obj.xi(iAx),obj.zi(iAz),A(iAx,iAz)',levA,'k')
+          contour(hca,plot_depx(iAdepx),plot_depy(iAdepy),A(iAdepy,iAdepx),levA,'k')
           hold(hca,'off')
         end
         hca.CLim = clim;
       end
       drawnow;
-      h(1).Title.String = sprintf('twpe = %g, twci = %g',obj.twpe,obj.twci)
+      h(1).Title.String = sprintf('%s = [%.2f %.2f]',rangestr,range(1),range(2));
       compact_panels(0.01)
       hlinks = linkprop(h,{'XLim','YLim'});
       set(gcf,'userdata',{'hlinks',hlinks})
@@ -538,14 +890,16 @@ classdef PIC
       % Which dimension to plot against
       if strcmp(dim,'x')
         plot_dep = obj.xi;
+        dep_lim = obj.xi([1 end]);
         sum_dim = 2;
         range = obj.zi([1 end]);
         rangestr = 'z';
       elseif strcmp(dim,'z')
         plot_dep = obj.zi;
+        dep_lim = obj.zi([1 end]);
         sum_dim = 1;
         range = obj.xi([1 end]);
-        rangestr = 'x';
+        rangestr = 'x';        
       else
         error(sprintf('Unknown dependent dimension %s. Must be ''x'' or ''z''.',dim))
       end
@@ -567,44 +921,73 @@ classdef PIC
       
       [nrows,ncols] = size(varstrs_all);    
       npanels = nrows*ncols;
-      for ip = 1:nrows*ncols
-        h(ip) = subplot(nrows,ncols,ip);
-      end      
-      hleg = gobjects(0);
-      for ip = 1:npanels
-        hca = h(ip);
-        % check if input demand som andditional input, e.g. n(1)
-        varstrs = varstrs_all{ip};
-        nvars = numel(varstrs);
-        for ivar = 1:nvars
-          if strfind(varstrs{ivar},'(')
-            ind1 = strfind(varstrs{ivar},'(');
-            ind2 = strfind(varstrs{ivar},')');            
-            indstr = varstrs{ivar}(ind1+1:ind2-1);
-            varstr =  varstrs{ivar}(1:ind1-1);
-            var = obj.(varstr)(eval(indstr));
-          else
-            var = obj.(varstrs{ivar});
-          end     
-          if ivar == 2
-            hold(hca,'on')
-          end
-          var = squeeze(mean(var,sum_dim));
-          plot(hca,plot_dep,var,'DisplayName',varstrs{ivar});        
-          hca.XLabel.String = [dim ' (d_i)'];                        
+      ip = 0;
+      for irow = 1:nrows
+        for icol = 1:ncols
+          ip = ip + 1;
+          h(irow,icol) = subplot(nrows,ncols,ip);
         end
-        hold(hca,'off')
-        hca.XGrid = 'on';
-        hca.YGrid = 'on';
-        hleg(ip) = legend(hca,'location','eastoutside'); % this may make the panels of different widths, fix below
+      end
+      
+      hleg = gobjects(0);
+      ip = 0;
+      for irow = 1:nrows
+        for icol = 1:ncols
+          ip = ip + 1;
+          isHoldOn = 0;
+          %ip = sub2ind([ncols nrows],icol,irow);
+          hca = h(irow,icol);
+          % check if input demand som andditional input, e.g. n(1)
+          varstrs = varstrs_all{ip};
+          nvars = numel(varstrs);
+          for ivar = 1:nvars
+            if strfind(varstrs{ivar},'(')
+              ind1 = strfind(varstrs{ivar},'(');
+              ind2 = strfind(varstrs{ivar},')');            
+              indstr = varstrs{ivar}(ind1+1:ind2-1);
+              varstr =  varstrs{ivar}(1:ind1-1);
+              var = obj.(varstr)(eval(indstr));
+            else
+              var = obj.(varstrs{ivar});
+            end     
+            if ivar == 2
+              hold(hca,'on')
+            end
+            var = squeeze(mean(var,sum_dim));
+            ntimes = obj.nt;size(var,2);
+            for itime = 1:ntimes
+              displayname = [varstrs{ivar} ' (t\omega_{pe}=' sprintf('%.0f)',obj.twpe(itime))];
+              if ntimes == 1
+                plot(hca,plot_dep,var,'DisplayName',displayname);
+              else
+                plot(hca,plot_dep,var(:,itime),'DisplayName',displayname);
+              end
+              if not(isHoldOn)
+                hold(hca,'on')
+                isHoldOn = 1;
+              end
+            end
+            hca.XLabel.String = [dim ' (d_i)'];
+          end
+          hold(hca,'off')
+          hca.XGrid = 'on';
+          hca.YGrid = 'on';
+          hleg(ip) = legend(hca,'location','eastoutside'); % this may make the panels of different widths, fix below
+        end
       end
       drawnow;
       leftpos = 1;
       for ip = 1:npanels, panel_width(ip) = h(ip).Position(3); end      
       for ip = 1:npanels, h(ip).Position(3) = min(panel_width); end
-      h(1).Title.String = sprintf('twpe = %g, twci = %g, %s = [%g %g]',obj.twpe,obj.twci,rangestr,range(1),range(2));
+      if obj.nt == 1
+        titlestring = sprintf('twpe = %g, twci = %g, %s = [%g %g]',obj.twpe,obj.twci,rangestr,range(1),range(2));
+      else
+        titlestring = sprintf('twpe = %g-%g, twci = %g-%g, %s = [%.2f %.2f]',obj.twpe(1),obj.twpe(end),obj.twci(1),obj.twci(end),rangestr,range(1),range(2));
+      end
+      h(1).Title.String = titlestring;
       compact_panels(0.01)
       hlinks = linkprop(h,{'XLim'});
+      h(1).XLim = dep_lim;
       set(gcf,'userdata',{'hlinks',hlinks})
       if nargout == 1
         varargout{1} = h;
@@ -706,12 +1089,12 @@ classdef PIC
       [X_BY,Z_BY,T] = meshgrid(tmppic.xivar.By,tmppic.zivar.By,tmpt);
       [X_BZ,Z_BZ,T] = meshgrid(tmppic.xivar.Bz,tmppic.zivar.Bz,tmpt);
       
-      Ex = interp3(X_EX,Z_EX,T,permute(tmpEx,[2 1 3]),tmpx,tmpz,t,method);
-      Ey = interp3(X_EY,Z_EY,T,permute(tmpEy,[2 1 3]),tmpx,tmpz,t,method);
-      Ez = interp3(X_EZ,Z_EZ,T,permute(tmpEz,[2 1 3]),tmpx,tmpz,t,method);
-      Bx = interp3(X_BX,Z_BX,T,permute(tmpBx,[2 1 3]),tmpx,tmpz,t,method);
-      By = interp3(X_BY,Z_BY,T,permute(tmpBy,[2 1 3]),tmpx,tmpz,t,method);
-      Bz = interp3(X_BZ,Z_BZ,T,permute(tmpBz,[2 1 3]),tmpx,tmpz,t,method);
+      Ex = interp3(X_EX,Z_EX,T,permute(tmpEx,[2 1 3]),x,z,t,method);
+      Ey = interp3(X_EY,Z_EY,T,permute(tmpEy,[2 1 3]),x,z,t,method);
+      Ez = interp3(X_EZ,Z_EZ,T,permute(tmpEz,[2 1 3]),x,z,t,method);
+      Bx = interp3(X_BX,Z_BX,T,permute(tmpBx,[2 1 3]),x,z,t,method);
+      By = interp3(X_BY,Z_BY,T,permute(tmpBy,[2 1 3]),x,z,t,method);
+      Bz = interp3(X_BZ,Z_BZ,T,permute(tmpBz,[2 1 3]),x,z,t,method);
       
       %disp(sprintf('intEx = %g, meanEx = %g',Ex,mean(tmpEx(:))))
       % For debugging purposes
@@ -1362,7 +1745,7 @@ classdef PIC
       else
         out = obj.mass;
       end
-      out = out/out(1); % mass is normalized to mass of first species.
+      out = out; % mass is normalized to mass of first species.
     end
     function out = get_charge(obj)
       fileInfo = obj.info;
@@ -2446,7 +2829,7 @@ classdef PIC
       end
       switch mode
         case {'xx','yy','zz'}
-          p = obj.p12(obj,mode);
+          p = obj.p12(species,mode);
           n = obj.n(species);
           t = p./n;
         case {'total','abs','scalar'}
@@ -2463,9 +2846,18 @@ classdef PIC
       t_neg = find(t<0);
       warning('t has %g negative values, putting them to zero.',numel(t_neg))
       t(t_neg) = 0;
-      mass = obj.mass(species(1));
+      mass = obj.mass(species(1))/obj.mass(1);
       vt = sqrt(2*t/mass);
       out = vt;
+    end
+    function out = vtxx(obj,species)
+      out = vt(obj,species,'xx');
+    end
+    function out = vtyy(obj,species)
+      out = vt(obj,species,'yy');
+    end
+    function out = vtzz(obj,species)
+      out = vt(obj,species,'zz');
     end
     function out = wp(obj,species) % plasma frequency
       % PIC.LDE Plasma frequency normalized to wp0, should be normalized to
@@ -2478,11 +2870,12 @@ classdef PIC
       %   out = obj.wp(species);
       % 
       n = obj.n(species);
-      % wp = (ne^2/eps0m)
+      % wp = sqrt(ne^2/eps0m)
       % should be normalized to wci
       % (wp/wci)^2 = (n*e^2/eps0*m)/(e^2*B0^2/m(1)^2)
-      wpwp0 = sqrt(n/obj.mass(species(1)));
-      wpiwci = obj.wpewce*sqrt(obj.mass(1)/obj.mass(2));
+      % wp/wp0 = sqrt(n/m)/sqrt(n0/m0) = sqrt(n/n0*m0/m)
+      wpwp0 = sqrt(n/obj.mass(species(1)))/sqrt(1/obj.mass(1));
+      wpiwci = obj.wpewce*sqrt(obj.mime);
       out = wpwp0*wpiwci;
     end
     function out = lde(obj,species,mode)
@@ -2493,7 +2886,16 @@ classdef PIC
       end
       vt = obj.vt(species,mode);
       wp = obj.wp(species);
-      out = vt./wp;
+      out = vt./wp/sqrt(2); % because we have included a 2 inside vt = sqrt(2T/m)
+    end
+    function out = ldexx(obj,species)
+      out = lde(obj,species,'xx');
+    end
+    function out = ldeyy(obj,species)
+      out = lde(obj,species,'yy');
+    end
+    function out = ldezz(obj,species)
+      out = lde(obj,species,'zz');
     end
     % Stored, not implemented for Smilei
     function out = UB(obj)

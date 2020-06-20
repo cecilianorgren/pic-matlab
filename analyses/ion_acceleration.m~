@@ -1,0 +1,44 @@
+df04 = PIC('/Volumes/Fountain/Data/PIC/df_cold_protons_n04/data_h5/fields.h5');
+ds04 = PICDist('/Volumes/Fountain/Data/PIC/df_cold_protons_n04/data_h5/dists.h5');
+tr04 = PICTraj('/Volumes/Fountain/Data/PIC/df_cold_protons_n04/data_h5/trajectories.h5');
+
+
+%%
+
+
+%% vdotE
+tr = tr04.lim('mass',[0.5 1.5]);
+for itr = 1:numel(tr)
+  % only include backwards in time from t0
+  itime = find(tr(itr).t<tr(itr).t0);
+  vEx(itr) = nansum(tr(itr).vx(itime).*tr(itr).Ex(itime));
+  vEy(itr) = nansum(tr(itr).vy(itime).*tr(itr).Ey(itime));
+  vEz(itr) = nansum(tr(itr).vz(itime).*tr(itr).Ez(itime));
+end
+vE = vEx + vEy + vEz;
+vE(vE==0) = NaN;
+
+nrows = 3;
+ncols = 1;
+h = setup_subplots(nrows,ncols);
+isub = 1;
+
+if 1
+  hca = h(isub); isub = isub + 1;
+  scatter(hca,[tr.x0],[tr.vz0],vEx,vEx)
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'v_xE_x (t<t_0)';
+end
+if 1
+  hca = h(isub); isub = isub + 1;
+  scatter(hca,[tr.x0],[tr.vz0],vEy,vEy)
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'v_yE_y (t<t_0)';
+end
+if 1
+  hca = h(isub); isub = isub + 1;
+  scatter(hca,[tr.x0],[tr.vz0],abs(vE),vEz)
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'v_zE_z (t<t_0)';
+end
+hlinks = linkprop(h,{'XLim','YLim','CLim'});

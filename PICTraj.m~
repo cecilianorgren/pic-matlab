@@ -2,7 +2,7 @@
   % PIC particle trajectory data
   %   pic = PIC(h5FilePath)
   
-  properties
+  properties  
     id
     nt
     t
@@ -28,7 +28,7 @@
     mass
     charge
     userData = []; % anything can be added here
-  end
+  end    
   
   methods
     function obj = PICTraj(h5file)
@@ -118,60 +118,57 @@
         end        
       end    
     end
+%     function [varargout] = subsref(obj,idx)
+%       %SUBSREF handle indexing
+% %      nargout
+% %      idx(:)
+%       switch idx(1).type        
+% %        case '.' % Use the built-in subsref for dot notation
+% %          [varargout{1:nargout}] = builtin('subsref',obj,idx);
+%         case '()'
+%           [varargout{1:nargout}] = builtin('subsref',obj,idx);
+%         case '{}'          
+%           error('PICTraj:subsref',...
+%             'Not a supported subscripted reference.')
+%       end
+%     end  
     
     % Analysis
     function out = zcross(obj)
       % PICTraj.ZCROSS Locations where the particle crossez z = 0.
-      % See also PICTRAJ.NCROSS
       for itr = 1:obj.ntr
-        t = obj(itr).t;
         z = obj(itr).z;
         x = obj(itr).x;
-        %idup = find(diff(obj(itr).t)==0);
-        %idup = find(diff(obj(itr).z)<1e-11);
-        %t(idup) = [];
-        %x(idup) = [];
-        %z(idup) = [];
-                
         zci = @(v) find(v(:).*circshift(v(:), [-1 0]) <= 0);
-        icross = zci(z);
-        icross(icross == 1) = [];
-        icross(icross == numel(z)) = [];
+        zcross(itr).it = zci(z);
         
-        idup = find(diff(icross)==1);
-        icross(idup) = [];
+        zcross(zcross == 1) = [];
+        zcross(zcross == numel(z)) = [];
         
-        out(itr).ic = icross;
-        out(itr).t = t(icross);
-        out(itr).x = x(icross);
-        out(itr).z = z(icross);
-        out(itr).nc = numel(icross);
-                
-        if 1 % plot
-          %plot(obj(itr).x,obj(itr).z,obj(itr).x(icross),obj(itr).z(icross),'*')
-          plot(x,z,x(icross),z(icross),'*')
+        xcross = x(zci(z));
+        zcross(itr).x = z(zci(z));
+        zcross(itr).nc = z(zci(z));
+        xcr_all(itr) = numel(zcross);
+        if 0 % plot
+          plot(obj(itr).x,obj(itr).z,obj(itr).x(zcross),obj(itr).z(zcross),'*')
           set(gca,'XGrid','on','YGrid','on')
-          title(gca,sprintf('itr = %.0f, ncr = %g',itr,out(itr).nc))
+          title(hca,sprintf('itr = %.0f',itr))
           pause
         end
       end
-      
+      out = xcr_all;
     end
     function out = ncross(obj)
-      % PICTraj.NCROSS Number of crosses where the particle crossez z = 0.
-      % See also PICTRAJ.ZCROSS
+        
       for itr = 1:obj.ntr
         z = obj(itr).z;
         zci = @(v) find(v(:).*circshift(v(:), [-1 0]) <= 0);
-        icross = zci(z);
-        icross(icross == 1) = [];
-        icross(icross == numel(z)) = [];
-        idup = find(diff(icross)==1);
-        icross(idup) = [];
-        
-        xcr_all(itr) = numel(icross);
+        zcross = zci(z);
+        zcross(zcross == 1) = [];
+        zcross(zcross == numel(z)) = [];
+        xcr_all(itr) = numel(zcross);
         if 0 % plot
-          plot(obj(itr).x,obj(itr).z,obj(itr).x(icross),obj(itr).z(icross),'*')
+          plot(obj(itr).x,obj(itr).z,obj(itr).x(zcross),obj(itr).z(zcross),'*')
           set(gca,'XGrid','on','YGrid','on')
           title(hca,sprintf('itr = %.0f',itr))
           pause
@@ -278,7 +275,6 @@
       TR = TR(ikeep);   
     end    
     function TR = select_inds(obj,inds)
-      % PICTraj
       TR = obj;
       ndata = numel(TR.t);
       fields = fieldnames(obj);

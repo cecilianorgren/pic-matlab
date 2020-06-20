@@ -14,7 +14,7 @@ else % electrons
  % ds = ds04(it).xlim([166 169]+[-0.1 0.1]).zlim([0.4 0.6]); % top row.
 
 end
-ds = ds04.twcilim(120).zlim([-0.2 0.2]).dxlim([0 0.25]).xfind([180:1:210]);
+ds = ds04.twcilim(160).zlim([-0.2 0.2]).dxlim([0 0.25]).xlim([171 187]);
 nPeaks = 5;
 spacingPeaks = 4; % for ions its 2 equals 0.2 vA
 fpeaks = ds.get_peaks(nPeaks,spacingPeaks,iSpecies);
@@ -88,25 +88,23 @@ if doPlot
     if doPrint
       cn.print(sprintf('fpeaks_z=0_id=%04.0f',id))
     end
-    pause
+    pause(0.2)
   end
 end
 
 %% Integrate trajectories based on fpeaks
 pic = df04;
-t0 = 120;
-tspan = [60,t0,210];
+tspan = [60,160,210];
 m = 1; 
 q = 1;
 tic
-for iTr = 1:numel(fpeaks)
+for iTr = 17:20%numel(fpeaks)  
   fprintf('iTr = %g/%g\n',iTr,numel(fpeaks))
   r0 = [fpeaks(iTr).x, fpeaks(iTr).y, fpeaks(iTr).z];
   v0 = [fpeaks(iTr).vx, fpeaks(iTr).vy, fpeaks(iTr).vz];
   tr_tmp = df04.integrate_trajectory(r0,v0,tspan,m,q);    
   [Ex,Ey,Ez,Bx,By,Bz] = df04.interp_EB3(tr_tmp.x,tr_tmp.z,tr_tmp.t);  % interpolate
 
-  tr_tmp.t0 = t0;
   tr_tmp.Ex = Ex;
   tr_tmp.Ey = Ey;
   tr_tmp.Ez = Ez;

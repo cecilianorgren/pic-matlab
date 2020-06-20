@@ -48,6 +48,7 @@ for iTr = 1:numel(tr_arr)
   fpeaks_info.x2 = fpeaks(iTr).dist_x2;
   fpeaks_info.z1 = fpeaks(iTr).dist_z1;
   fpeaks_info.z2 = fpeaks(iTr).dist_z2;
+  fpeaks_info.f = fpeaks(iTr).f;
   fpeaks_info.spacingPeaks = fpeaks(iTr).spacingPeaks;
   fpeaks_info.nPeaks = fpeaks(iTr).nPeaks;  
   fpeaks_info.iPeak = fpeaks(iTr).iPeak;
@@ -95,7 +96,7 @@ for iTr = 1:numel(tr_arr)
   h5write(filePath, [group_name 'By'], By);
   h5write(filePath, [group_name 'Bz'], Bz);
     
-  h5writeatt(filePath, group_name,'t0', 160); % tr.t0
+  h5writeatt(filePath, group_name,'t0', tr.t0); % tr.t0
   h5writeatt(filePath, group_name,'x0', tr.x0);
   h5writeatt(filePath, group_name,'y0', tr.y0);
   h5writeatt(filePath, group_name,'z0', tr.z0);
@@ -105,6 +106,7 @@ for iTr = 1:numel(tr_arr)
   h5writeatt(filePath, group_name,'m', m);
   h5writeatt(filePath, group_name,'q', q);
   %h5writeatt(filePath, group_name,'tags', tags);
+  h5writeatt(filePath, group_name,'fpeaks_f', fpeaks_info.f);
   h5writeatt(filePath, group_name,'fpeaks_x', fpeaks_info.x);
   h5writeatt(filePath, group_name,'fpeaks_z', fpeaks_info.z);
   h5writeatt(filePath, group_name,'fpeaks_x1', fpeaks_info.x1);
