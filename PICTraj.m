@@ -29,7 +29,6 @@
     charge
     userData = []; % anything can be added here
   end
-  
   methods
     function obj = PICTraj(h5file)
       % traj = PICTraj('opt1',arg1,'opt2',arg2,...)
@@ -81,6 +80,8 @@
           obj(itraj_).vz0 = read_attributes(itraj,1,'vz0');
           obj(itraj_).mass = read_attributes(itraj,1,'m');
           obj(itraj_).charge = read_attributes(itraj,1,'q');
+          
+          obj(itraj_) = obj(itraj_).rem_duplicates;
         end              
       end
       
@@ -119,6 +120,126 @@
       end    
     end
     
+    % Dervied quantities
+    function out = U(obj)
+      % PICTRAJ.U Kinetic energy of particle.
+      
+      for itr = 1:obj.ntr
+        obj_tmp = obj(itr);
+        out(itr).U = 0.5*obj_tmp.mass*(obj_tmp.vx.^2 + obj_tmp.vy.^2 + obj_tmp.vz.^2);
+      end
+      
+      if obj.ntr == 1
+        out = out.U;
+      end
+    end
+    function out = Ux(obj)
+      % PICTRAJ.U Kinetic energy of particle.
+      
+      for itr = 1:obj.ntr
+        obj_tmp = obj(itr);
+        out(itr).U = 0.5*obj_tmp.mass*(obj_tmp.vx.^2);
+      end
+      
+      if obj.ntr == 1
+        out = out.U;
+      end
+    end
+    function out = Uy(obj)
+      % PICTRAJ.U Kinetic energy of particle.
+      
+      for itr = 1:obj.ntr
+        obj_tmp = obj(itr);
+        out(itr).U = 0.5*obj_tmp.mass*(obj_tmp.vy.^2);
+      end
+      
+      if obj.ntr == 1
+        out = out.U;
+      end
+    end
+    function out = Uz(obj)
+      % PICTRAJ.U Kinetic energy of particle.
+      
+      for itr = 1:obj.ntr
+        obj_tmp = obj(itr);
+        out(itr).U = 0.5*obj_tmp.mass*(obj_tmp.vz.^2);
+      end
+      
+      if obj.ntr == 1
+        out = out.U;
+      end
+    end   
+    function out = W(obj)
+      % PICTRAJ.U Work done on the particle.
+      % W = F dot dl = Fxdx + Fydy + Fzdz
+      % F = qE
+      
+      for itr = 1:obj.ntr
+        obj_tmp = obj(itr).rem_duplicates;
+        dt = diff(obj_tmp.t);
+        dx = diff(obj_tmp.x); %dx = interp1(obj_tmp.t(1:end-1)+dt,dx,obj_tmp.t); find(isnan(dx))
+        dy = diff(obj_tmp.y); %dy = interp1(obj_tmp.t(1:end-1)+dt,dy,obj_tmp.t); find(isnan(dy))
+        dz = diff(obj_tmp.z); %dz = interp1(obj_tmp.t(1:end-1)+dt,dz,obj_tmp.t); find(isnan(dz))
+        out(itr).W = obj_tmp.charge*(obj_tmp.Ex.*[0;dx] + obj_tmp.Ey.*[0;dy] + obj_tmp.Ez.*[0;dz]);
+      end
+      
+      if obj.ntr == 1
+        out = out.W;
+      end
+    end
+    function out = Wx(obj)
+      % PICTRAJ.U Work done on the particle.
+      % W = F dot dl = Fxdx + Fydy + Fzdz
+      % F = qE
+      
+      for itr = 1:obj.ntr
+        obj_tmp = obj(itr).rem_duplicates;
+        dt = diff(obj_tmp.t);
+        dx = diff(obj_tmp.x); %dx = interp1(obj_tmp.t(1:end-1)+dt,dx,obj_tmp.t); find(isnan(dx))
+        
+        out(itr).W = obj_tmp.charge*(obj_tmp.Ex.*[0;dx]);
+      end
+      
+      if obj.ntr == 1
+        out = out.W;
+      end
+    end
+    function out = Wy(obj)
+      % PICTRAJ.U Work done on the particle.
+      % W = F dot dl = Fxdx + Fydy + Fzdz
+      % F = qE
+      
+      for itr = 1:obj.ntr
+        obj_tmp = obj(itr).rem_duplicates;
+        dt = diff(obj_tmp.t);
+        dx = diff(obj_tmp.x); %dx = interp1(obj_tmp.t(1:end-1)+dt,dx,obj_tmp.t); find(isnan(dx))
+        dy = diff(obj_tmp.y); %dy = interp1(obj_tmp.t(1:end-1)+dt,dy,obj_tmp.t); find(isnan(dy))
+        dz = diff(obj_tmp.z); %dz = interp1(obj_tmp.t(1:end-1)+dt,dz,obj_tmp.t); find(isnan(dz))
+        out(itr).W = obj_tmp.charge*(obj_tmp.Ey.*[0;dy]);
+      end
+      
+      if obj.ntr == 1
+        out = out.W;
+      end
+    end
+    function out = Wz(obj)
+      % PICTRAJ.U Work done on the particle.
+      % W = F dot dl = Fxdx + Fydy + Fzdz
+      % F = qE
+      
+      for itr = 1:obj.ntr
+        obj_tmp = obj(itr).rem_duplicates;
+        dt = diff(obj_tmp.t);
+        dx = diff(obj_tmp.x); %dx = interp1(obj_tmp.t(1:end-1)+dt,dx,obj_tmp.t); find(isnan(dx))
+        dy = diff(obj_tmp.y); %dy = interp1(obj_tmp.t(1:end-1)+dt,dy,obj_tmp.t); find(isnan(dy))
+        dz = diff(obj_tmp.z); %dz = interp1(obj_tmp.t(1:end-1)+dt,dz,obj_tmp.t); find(isnan(dz))
+        out(itr).W = obj_tmp.charge*(obj_tmp.Ez.*[0;dz]);
+      end
+      
+      if obj.ntr == 1
+        out = out.W;
+      end
+    end 
     % Analysis
     function out = zcross(obj)
       % PICTraj.ZCROSS Locations where the particle crossez z = 0.
@@ -154,8 +275,7 @@
           title(gca,sprintf('itr = %.0f, ncr = %g',itr,out(itr).nc))
           pause
         end
-      end
-      
+      end      
     end
     function out = ncross(obj)
       % PICTraj.NCROSS Number of crosses where the particle crossez z = 0.
@@ -199,9 +319,28 @@
       
     end
     function out = nancat(obj)
-      TR(itr)
+      % PICTRAJ.NANCAT Don't know what it was supposed to do, not
+      % implemented.
+      %TR(itr)
+      out = obj;
+    end
+    %
+    function TR = rem_duplicates(obj)
+    % PICTRAJ.REM_DUPLICATES Removes duplicates points, which may cause
+    %   problems when interpolating data;
+    % 
+      for itr = 1:obj.ntr
+        idup = find(diff(obj(itr).t)==0);
+        ikeep = find(not(diff(obj(itr).t)==0));
+        ikeep = setdiff(1:obj(itr).length,idup);
+        obj(itr) = obj(itr).select_inds(ikeep);
+      end
+      TR = obj;
     end
     % Finding subsets of data
+    function TR = find(obj,varargin)
+      TR = obj;%(find(obj));
+    end
     function TR = pass(obj,varargin)
       if mod(nargin,1) == 1
         error('Wrong number of input.')
@@ -298,8 +437,116 @@
     end
     
     % Plotting
+    function varargout = plot_single(obj,varstrs,varargin)
+      % PICTRAJ.PLOT_SINGLE Plots single trajectory in various ways.
+      %   PICTRAJ.PLOT_SINGLE('opt1','opt2',...'optN')
+      %   Possible options:
+      %   any combination of x y z - trajectory in given plane, or 3D
+      %   any combination of vx vy vz - velocity in phase space
+            % Default options, values
+      doAdjustCLim = 0;
+      cmap = pic_colors('blue_red');
+      doAdjustCMap = 0;
+      nvars = numel(varstrs);
+      
+      have_options = 0;
+      nargs = numel(varargin);      
+      if nargs > 0, have_options = 1; args = varargin(:); end
+      
+      while have_options
+        l = 1;
+        varstr = lower(args{1});
+        switch varstr
+          case {'xy','yz','xz','xz','yz','zy'}
+            do2Dtraj = 1;
+            coord2D = args{2};
+            l = 2;            
+          case {'xyz','yzx','zxy','zyx','yxz','xzy'}
+            do3Dtraj = 1;
+            coord3D = args{2};
+            l = 2;
+          case {'vxvy','vyvz','vxvz','vxvz','vyvz','vzvy'}
+            doV2Dtraj = 1;
+            coordV2D = args{2};
+            l = 2;
+          case 'clim'
+            l = 2;
+            doAdjustCLim = 1;  
+            clims = args{2};
+          case 'cmap'
+            l = 2;
+            doAdjustCMap = 1;
+            cmaps = args{2};        
+          otherwise
+            warning(sprintf('Input ''%s'' not recognized.',args{1}))            
+        end        
+        args = args(l+1:end);
+        if isempty(args), break, end    
+      end
+                  
+      % setup figure
+      fig = figure;      
+      [nrows,ncols] = size(varstrs);           
+      npanels = nrows*ncols;
+      ip = 0;
+      for irow = 1:nrows
+        for icol = 1:ncols
+          ip = ip + 1;
+          h(irow,icol) = subplot(nrows,ncols,ip);
+        end
+      end
+      
+      for ivar = 1:nvars
+        hca = h(ivar);
+        varstr_split = strsplit(varstrs{ivar},'_');
+        varstr = varstr_split{1};
+        switch varstr
+          case {'tU','tW'}
+            plot(hca,obj.(varstr(1)),obj.(varstr(2)))
+            hca.XLabel.String = sprintf('%s ()',varstr(1));
+            hca.YLabel.String = sprintf('%s ()',varstr(2)); 
+            hca.XGrid = 'on';
+            hca.YGrid = 'on';
+          case {'xU','yU','zU','xUx','yUx','zUx','xUy','yUy','zUy','xUz','yUz','zUz',...
+              'xW','yW','zW','xWx','yWx','zWx','xWy','yWy','zWy','xWz','yWz','zWz',...
+              'xEx','yEx','zEx','xEy','yEy','zEy','xEz','yEz','zEz',...
+              'xvx','yvx','zvx','xvy','yvy','zvy','xvz','yvz','zvz'}
+            if numel(varstr_split) > 1 && strcmp(varstr_split{2},'cumsum')
+              plot(hca,obj.(varstr(1)),cumsum(obj.(varstr(2:end)),'omitnan'))
+            else
+              plot(hca,obj.(varstr(1)),obj.(varstr(2:end)))
+            end            
+            hca.XLabel.String = sprintf('%s ()',varstr(1));
+            hca.YLabel.String = sprintf('%s ()',varstr(2:end)); 
+            hca.XGrid = 'on';
+            hca.YGrid = 'on';
+          case {'xy','yz','xz','xz','yz','zy'}
+            plot(hca,obj.(varstr(1)),obj.(varstr(2)))
+            hca.XLabel.String = sprintf('%s (d_i)',varstr(1));
+            hca.YLabel.String = sprintf('%s (d_i)',varstr(2)); 
+            hca.XGrid = 'on';
+            hca.YGrid = 'on';
+          case {'xyz','yzx','zxy','zyx','yxz','xzy'}
+            plot2(hca,obj.(varstr(1)),obj.(varstr(2)),obj.(varstr(3)))
+            hca.XLabel.String = sprintf('%s (d_i)',varstr(1));
+            hca.YLabel.String = sprintf('%s (d_i)',varstr(2)); 
+            hca.YLabel.String = sprintf('%s (d_i)',varstr(3)); 
+            hca.XGrid = 'on';
+            hca.YGrid = 'on';
+          case {'vxvy','vyvz','vxvz','vxvz','vyvz','vzvy',...
+                'vxEx','vxEy','vxEz','vyEx','vyEy','vyEz','vzEx','vzEy','vzEz'}
+            plot(hca,obj.(varstr(1:2)),obj.(varstr(3:4)));
+            hca.XLabel.String = sprintf('%s (d_i)',varstr(1:2));
+            hca.YLabel.String = sprintf('%s (d_i)',varstr(3:4)); 
+            hca.XGrid = 'on';
+            hca.YGrid = 'on';
+          otherwise
+            warning(sprintf('Variable %s not supported/implemented.',varstr_split{1}))
+        end
+      end
+    end
     function h = plot_all_xz(obj,varargin)
-      %hca = axes;
+      % PICTRAJ.PLOT_ALL_XZ Plots all trajectories in xz plane.
       
       for itr = 1:obj.ntr
         plot(obj(itr).x,obj(itr).z);
@@ -315,7 +562,7 @@
       h.YLabel.String = 'z (d_i)';
     end
     function h = plot_all_xy(obj,varargin)
-      %hca = axes;
+      % PICTRAJ.PLOT_ALL_XY Plots all trajectories in xy plane.
       
       for itr = 1:obj.ntr
         plot(obj(itr).x,obj(itr).y);
@@ -331,7 +578,7 @@
       h.YLabel.String = 'y (d_i)';
     end
     function h = plot_all_xyz(obj,varargin)
-      %hca = axes;
+      % PICTRAJ.PLOT_ALL_XZZ Plots all trajectories in xyz plane.
       
       for itr = 1:obj.ntr
         plot3(obj(itr).x,obj(itr).y,obj(itr).z);

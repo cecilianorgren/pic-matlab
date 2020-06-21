@@ -1058,44 +1058,51 @@ classdef PIC
       %    the time steps are quite large
       
       method = 'linear';
-      if strcmp(method,'linear')
-        nClosestT = 2;
-        nClosestXZ = 5;
+      %method = 'spline';
+      switch method
+        case 'spline'
+          nBoundingT = 1; % spline for two points gives linear interpolation
+          nClosestXZ = 5;
+        case 'linear'
+          nBoundingT = 1;
+          nClosestXZ = 4;
       end
-      method = 'spline';
+      
       
       nPoints = numel(t); 
       
-      tmppic = obj.xlim(x,'closest',nClosestXZ).zlim(z,'closest',nClosestXZ).twcilim(t,'closest',nClosestT);  
+      for iP = 1:nPoints
+        tmppic = obj.xlim(x(iP),'closest',nClosestXZ).zlim(z(iP),'closest',nClosestXZ).twcilim(t(iP),'bounding',nBoundingT);          
       
-      tmpt =  tmppic.twci;
-      tmpx =  tmppic.xi;
-      tmpz =  tmppic.zi;
-      tmpEx = tmppic.Ex; %tmpEx(:,:,1) = smooth2(tmpEx(:,:,1),2,2); tmpEx(:,:,2) = smooth2(tmpEx(:,:,2),2,2);
-      tmpEy = tmppic.Ey; 
-      tmpEz = tmppic.Ez;
-      tmpBx = tmppic.Bx;
-      tmpBy = tmppic.By;
-      tmpBz = tmppic.Bz;
+        tmpt =  tmppic.twci;
+        tmpx =  tmppic.xi;
+        tmpz =  tmppic.zi;
+        tmpEx = tmppic.Ex; %tmpEx(:,:,1) = smooth2(tmpEx(:,:,1),2,2); tmpEx(:,:,2) = smooth2(tmpEx(:,:,2),2,2);
+        tmpEy = tmppic.Ey; 
+        tmpEz = tmppic.Ez;
+        tmpBx = tmppic.Bx;
+        tmpBy = tmppic.By;
+        tmpBz = tmppic.Bz;
       
-      % Interpolate to particle position
-      % Vq = interp3(V,Xq,Yq,Zq) assumes X=1:N, Y=1:M, Z=1:P where [M,N,P]=SIZE(V).      
-      % The variables has their individual grids, so interpolate from these
-      % individual grids to the common grid (Ey, and moments).
-      [X_EX,Z_EX,T] = meshgrid(tmppic.xivar.Ex,tmppic.zivar.Ex,tmpt);
-      [X_EY,Z_EY,T] = meshgrid(tmppic.xivar.Ey,tmppic.zivar.Ey,tmpt);
-      [X_EZ,Z_EZ,T] = meshgrid(tmppic.xivar.Ez,tmppic.zivar.Ez,tmpt);
-      [X_BX,Z_BX,T] = meshgrid(tmppic.xivar.Bx,tmppic.zivar.Bx,tmpt);
-      [X_BY,Z_BY,T] = meshgrid(tmppic.xivar.By,tmppic.zivar.By,tmpt);
-      [X_BZ,Z_BZ,T] = meshgrid(tmppic.xivar.Bz,tmppic.zivar.Bz,tmpt);
+        % Interpolate to particle position
+        % Vq = interp3(V,Xq,Yq,Zq) assumes X=1:N, Y=1:M, Z=1:P where [M,N,P]=SIZE(V).      
+        % The variables has their individual grids, so interpolate from these
+        % individual grids to the common grid (Ey, and moments).
+        [X_EX,Z_EX,T] = meshgrid(tmppic.xivar.Ex,tmppic.zivar.Ex,tmpt);
+        [X_EY,Z_EY,T] = meshgrid(tmppic.xivar.Ey,tmppic.zivar.Ey,tmpt);
+        [X_EZ,Z_EZ,T] = meshgrid(tmppic.xivar.Ez,tmppic.zivar.Ez,tmpt);
+        [X_BX,Z_BX,T] = meshgrid(tmppic.xivar.Bx,tmppic.zivar.Bx,tmpt);
+        [X_BY,Z_BY,T] = meshgrid(tmppic.xivar.By,tmppic.zivar.By,tmpt);
+        [X_BZ,Z_BZ,T] = meshgrid(tmppic.xivar.Bz,tmppic.zivar.Bz,tmpt);
+
+        Ex(iP) = interp3(X_EX,Z_EX,T,permute(tmpEx,[2 1 3]),x(iP),z(iP),t(iP),method);
+        Ey(iP) = interp3(X_EY,Z_EY,T,permute(tmpEy,[2 1 3]),x(iP),z(iP),t(iP),method);
+        Ez(iP) = interp3(X_EZ,Z_EZ,T,permute(tmpEz,[2 1 3]),x(iP),z(iP),t(iP),method);
+        Bx(iP) = interp3(X_BX,Z_BX,T,permute(tmpBx,[2 1 3]),x(iP),z(iP),t(iP),method);
+        By(iP) = interp3(X_BY,Z_BY,T,permute(tmpBy,[2 1 3]),x(iP),z(iP),t(iP),method);
+        Bz(iP) = interp3(X_BZ,Z_BZ,T,permute(tmpBz,[2 1 3]),x(iP),z(iP),t(iP),method);
       
-      Ex = interp3(X_EX,Z_EX,T,permute(tmpEx,[2 1 3]),x,z,t,method);
-      Ey = interp3(X_EY,Z_EY,T,permute(tmpEy,[2 1 3]),x,z,t,method);
-      Ez = interp3(X_EZ,Z_EZ,T,permute(tmpEz,[2 1 3]),x,z,t,method);
-      Bx = interp3(X_BX,Z_BX,T,permute(tmpBx,[2 1 3]),x,z,t,method);
-      By = interp3(X_BY,Z_BY,T,permute(tmpBy,[2 1 3]),x,z,t,method);
-      Bz = interp3(X_BZ,Z_BZ,T,permute(tmpBz,[2 1 3]),x,z,t,method);
-      
+        plot(tmppic.xivar.Ez,tmpEz(:,:,2),'o',x(iP),Ez(iP),'x')
       %disp(sprintf('intEx = %g, meanEx = %g',Ex,mean(tmpEx(:))))
       % For debugging purposes
 %       doPlot = 1;
@@ -1122,6 +1129,7 @@ classdef PIC
 %         hca.ZLabel.String = 't';
 %         %pause
 %       end
+      end
     end
     function [Ex,Ey,Ez,Bx,By,Bz] = interp_EB3(obj,x,z,t)
       % Interpolate field to a any number of points (x,z,t)
@@ -1137,7 +1145,15 @@ classdef PIC
       
       method = 'linear';
       if strcmp(method,'linear')
-        nClosest = 2;
+        % There is a problem when using 2, because some grid point are
+        % offset by 0.5 from the "basic grid". It's slowed down considerably
+        % though. 
+        nClosestXZ = 3;
+        % For time, 'closest' can become a problem with nonuniform spacing.
+        % But, bounding also always returns 3 indices, which is
+        % unnecessary. Changed bounding .
+        nBoundingT = 1; 
+        
       end
       
       nPoints = numel(t);
@@ -1151,7 +1167,7 @@ classdef PIC
       
       for iP = 1:nPoints
       
-        tmppic = obj.xlim(x(iP),'closest',nClosest).zlim(z(iP),'closest',nClosest).twcilim(t(iP),'closest',nClosest);  
+        tmppic = obj.xlim(x(iP),'closest',nClosestXZ).zlim(z(iP),'closest',nClosestXZ).twcilim(t(iP),'bounding',nBoundingT);  
 
         tmpt =  tmppic.twci;
         tmpx =  tmppic.xi;
@@ -1166,7 +1182,7 @@ classdef PIC
         % Interpolate to particle position
         % Vq = interp3(V,Xq,Yq,Zq) assumes X=1:N, Y=1:M, Z=1:P where [M,N,P]=SIZE(V).      
 
-        [X,Z,T] = meshgrid(tmpx,tmpz,tmpt);
+        %[X,Z,T] = meshgrid(tmpx,tmpz,tmpt);
         [X_EX,Z_EX,T] = meshgrid(tmppic.xivar.Ex,tmppic.zivar.Ex,tmpt);
         [X_EY,Z_EY,T] = meshgrid(tmppic.xivar.Ey,tmppic.zivar.Ey,tmpt);
         [X_EZ,Z_EZ,T] = meshgrid(tmppic.xivar.Ez,tmppic.zivar.Ez,tmpt);
@@ -1179,7 +1195,14 @@ classdef PIC
         Ez(iP) = interp3(X_EZ,Z_EZ,T,permute(tmpEz,[2 1 3]),x(iP),z(iP),t(iP),method);
         Bx(iP) = interp3(X_BX,Z_BX,T,permute(tmpBx,[2 1 3]),x(iP),z(iP),t(iP),method);
         By(iP) = interp3(X_BY,Z_BY,T,permute(tmpBy,[2 1 3]),x(iP),z(iP),t(iP),method);
-        Bz(iP) = interp3(X_BZ,Z_BZ,T,permute(tmpBz,[2 1 3]),x(iP),z(iP),t(iP),method);              
+        Bz(iP) = interp3(X_BZ,Z_BZ,T,permute(tmpBz,[2 1 3]),x(iP),z(iP),t(iP),method); 
+        if isnan(Ez(iP))
+          disp(sprintf('ip = ',iP))
+          disp(sprintf('xp = %g, xgrid = %g, %g, %g',x(iP),tmpx(1),tmpx(2),tmpx(3)))          
+          disp(sprintf('zp = %g, zgrid = %g, %g, %g',z(iP),tmpz(1),tmpz(2),tmpz(3)))
+          disp(sprintf('tp = %g, tgrid = %g, %g, ',t(iP),tmpt(1),tmpt(2)))
+          1;
+        end
       end
     end
     function [Ex,Ey,Ez,Bx,By,Bz] = interp_EB2(obj,x,z,t)
@@ -1260,7 +1283,7 @@ classdef PIC
       zz = interp3(X,Z,T,permute(tmpVz,[2 1 3]),x,z,t,method);
       
     end
-    function out = integrate_trajectory(obj,r0,v0,tspan,m,q,varargin)
+    function out = integrate_trajectory_old(obj,r0,v0,tspan,m,q,varargin)
       % out = integrate_trajectory(r0,v0,tspan,m,q,varargin)
       % tspan = [tstart tstop] - back or forward, if tstart > tstop, integrating is done backward in time
       %     or  [tstop_back tstart tstop_forw] -  integration is done forward and backward      
@@ -1353,7 +1376,7 @@ classdef PIC
         %out = x_sol;
       end
       % sort by time
-      [~,I] = sort(x_sol(:,7));
+      [~,I] = sort(x_sol(:,7)); % to implement: remove duplicates here
       out.t = x_sol(I,7);
       out.x = x_sol(I,1);
       out.y = x_sol(I,2);
@@ -1369,6 +1392,171 @@ classdef PIC
       out.vy0 = v0(2);
       out.vz0 = v0(3);
       out.options = options;      
+    end    
+    function out = integrate_trajectory(obj,r0,v0,tspan,m,q,varargin)
+      % out = integrate_trajectory(r0,v0,tspan,m,q,varargin)
+      % tspan = [tstart tstop] - back or forward, if tstart > tstop, integrating is done backward in time
+      %     or  [tstop_back tstart tstop_forw] -  integration is done forward and backward      
+      % Additional input arguments varargin are passed on to as options in 
+      % odeset. See 'help odeset', but commonly used are:
+      %   'RelTol'
+      %   'AbsTol'
+      
+      doPrintInfo = 0;
+      
+      if numel(tspan) == 2 % [tstart tstop]
+        tstart = tspan(1);
+        tstop_all = tspan(2);        
+      elseif numel(tspan) == 3 % [tstop_back tstart tstop_forw]
+        tstart = tspan(2);
+        tstop_all = tspan([1 3]);
+      end
+      
+      x_sol = [];
+      x_sol_all = [];
+      
+      for tstop = tstop_all
+        % Print information
+        if doPrintInfo
+          if tstart < tstop, disp(['Integrating trajectory forward in time.'])
+          else, disp(['Integrating trajectory backward in time.'])
+          end
+        end
+        ttot = tic;
+        x_init = [r0, v0]; % di, vA
+        disp(sprintf('tstart = %5.2f, tstop = %5.2f, [x0,y0,z0] = [%5.1f, %5.1f, %5.1f], [vx0,vy0,vz0] = [%5.2f, %5.2f, %5.2f]',...
+          tstart,tstop,x_init(1),x_init(2),x_init(3),x_init(4),x_init(5),x_init(6)))
+
+        % Integrate trajectory
+        %options = odeset();
+        %options = odeset('AbsTol',1e-14,'Events',@exitBox);
+        options = odeset('Events',@exitBox,varargin{:});
+        %options = odeset('AbsTol',1e-7,'AbsTol',1e-9,'Events',@exitBox);
+        %options = odeset('RelTol',1e-6);
+        EoM = @(ttt,xxx) eom_pic_internal(ttt,xxx,obj,m,q); 
+
+        [t,x_sol_tmp] = ode45(EoM,[tstart tstop],x_init,options);%,options); % 
+        x_sol_tmp(:,7) = t; % x_sol = (x,y,z,vx,vy,vz,t)
+
+        x_sol = [x_sol; x_sol_tmp]; % 1st points are duplicates
+        
+        doPlot = 0; % diagnostics
+        if doPlot
+          %%
+          h = setup_subplots(2,2);
+
+          hca = h(1);
+          plot3(hca,x_sol(:,1),x_sol(:,2),x_sol(:,3),...
+                    x_sol(1,1),x_sol(1,2),x_sol(1,3),'g*',...
+                    x_sol(end,1),x_sol(end,2),x_sol(end,3),'r*')
+          hca.XLabel.String = 'x';
+          hca.YLabel.String = 'y';        
+          hca.ZLabel.String = 'z';
+          hca.XGrid = 'on';
+          hca.YGrid = 'on';
+          hca.ZGrid = 'on';
+
+          hca = h(2);
+          plot(hca,x_sol(:,4),x_sol(:,5),...
+                    x_sol(1,4),x_sol(1,5),'g*',...
+                    x_sol(end,4),x_sol(end,5),'r*')
+          hca.XLabel.String = 'vx';
+          hca.YLabel.String = 'vy';
+          hca.XGrid = 'on';
+          hca.YGrid = 'on';
+
+          hca = h(3);
+          plot(hca,x_sol(:,4),x_sol(:,6),...
+                    x_sol(1,4),x_sol(1,6),'g*',...
+                    x_sol(end,4),x_sol(end,6),'r*')
+          hca.XLabel.String = 'vx';
+          hca.YLabel.String = 'vz';
+          hca.XGrid = 'on';
+          hca.YGrid = 'on';
+
+          hca = h(4);
+          plot(hca,x_sol(:,5),x_sol(:,6),...
+                    x_sol(1,5),x_sol(1,6),'g*',...
+                    x_sol(end,5),x_sol(end,6),'r*')
+          hca.XLabel.String = 'vy';
+          hca.YLabel.String = 'vz';
+          hca.XGrid = 'on';
+          hca.YGrid = 'on';
+          drawnow
+        end
+        tt = toc(ttot);
+        %out = x_sol;
+      end
+      
+      % Sort by time
+      [~,isort] = sort(x_sol_all(:,7));
+      x_sol_all = x_sol_all(isort,:);
+      
+      % Find duplicate indices from interpolated values in solver
+      idup = find(diff(x_sol_all(:,7))==0);
+      x_sol_all(idup,:) = [];
+      
+      % sort by time
+      [~,I] = sort(x_sol(:,7));                  
+      out.t = x_sol(I,7);
+      x_sol_all_ = interp1(x_sol_all(:,7),x_sol_all(:,1:6),x_sol(I,7));
+      out.x = x_sol(I,1);
+      out.y = x_sol(I,2);
+      out.z = x_sol(I,3);
+      out.vx = x_sol(I,4);
+      out.vy = x_sol(I,5);
+      out.vz = x_sol(I,6);   
+      out.Ex = x_sol_all_(:,1);
+      out.Ey = x_sol_all_(:,2);
+      out.Ez = x_sol_all_(:,3);
+      out.Bx = x_sol_all_(:,4);
+      out.By = x_sol_all_(:,5);
+      out.Bz = x_sol_all_(:,6);
+      out.t0 = tstart;
+      out.x0 = r0(1);
+      out.y0 = r0(2);
+      out.z0 = r0(3);
+      out.vx0 = v0(1);
+      out.vy0 = v0(2);
+      out.vz0 = v0(3);
+      out.options = options;   
+      
+      function  x_res = eom_pic_internal(t,x_vect,pic,m,q)
+        x = x_vect(1);
+        y = x_vect(2);
+        z = x_vect(3);
+        vx = x_vect(4);
+        vy = x_vect(5);
+        vz = x_vect(6);
+
+        if isnan(x)
+          1;
+        end
+        %disp(sprintf('t = %g, x = %g, y = %g, z = %g',t,x,y,z))
+
+        
+        [Ex,Ey,Ez,Bx,By,Bz] = pic.interp_EB(x,z,t);
+        
+        %disp(sprintf('%.3f %.3f %.3f, %.3f %.3f %.3f, %.3f %.3f %.3f, %.3f, %.3f %.3f',Ex,Ey,Ez,Bx,By,Bz,x_vect(1),x_vect(2),x_vect(3),x_vect(4),x_vect(5),x_vect(6)))        
+        it = size(x_sol_all,1);
+        x_sol_all(it+1,1) = Ex;
+        x_sol_all(it+1,2) = Ey;
+        x_sol_all(it+1,3) = Ez;
+        x_sol_all(it+1,4) = Bx;
+        x_sol_all(it+1,5) = By;
+        x_sol_all(it+1,6) = Bz;
+        x_sol_all(it+1,7) = t;
+
+        % Equations to be solved
+        x_res = zeros(6,1);
+        x_res(1) = vx; % dx/dt = vx;
+        x_res(2) = vy; % dy/dt = vy;
+        x_res(3) = vz; % dz/dt = vz;
+        x_res(4) = (q/m)*(Ex + vy*Bz - vz*By);
+        x_res(5) = (q/m)*(Ey + vz*Bx - vx*Bz);
+        x_res(6) = (q/m)*(Ez + vx*By - vy*Bx);                                              
+
+      end
     end    
     function out = integrate_trajectory_constant_EB(obj,r0,v0,tstart,tstop,m,q)
       % out = integrate_trajectory(r0,v0,tstart,tstop,m,q)
@@ -3278,6 +3466,7 @@ classdef PIC
       % Defaults
       doExact = 0; % find all exact matches, can be any number
       doBounding = 0; % find a given number of values bounding the given value
+      doBoundingOld = 0;
       nBounding = 0;
       doClosest = 0;
       nClosest = 1; % only the closest index, can be one or many, for example to reduce cadence
@@ -3316,6 +3505,18 @@ classdef PIC
       
       % Find indices
       if doBounding
+        i1 = find(var<value(1),nBounding,'last');
+        i2 = find(var>value(1),nBounding,'first');
+        
+        % Check so that indices are not outside range
+        if i1 < 1
+          i1 = 1; 
+        end
+        if i2 > numel(var) 
+          i2 = numel(var); 
+        end
+        inds = i1:i2;
+      elseif doBoundingOld
         i0 = find(abs(var-value(1)) == min(abs(var-value(1))));
         i1 = i0 - nBounding;
         i2 = i0 + nBounding;

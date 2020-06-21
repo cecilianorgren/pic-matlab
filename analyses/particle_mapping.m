@@ -99,7 +99,7 @@ tspan = [60,t0,210];
 m = 1; 
 q = 1;
 tic
-for iTr = 1:numel(fpeaks)
+for iTr = 1%:numel(fpeaks)
   fprintf('iTr = %g/%g\n',iTr,numel(fpeaks))
   r0 = [fpeaks(iTr).x, fpeaks(iTr).y, fpeaks(iTr).z];
   v0 = [fpeaks(iTr).vx, fpeaks(iTr).vy, fpeaks(iTr).vz];
@@ -113,7 +113,7 @@ for iTr = 1:numel(fpeaks)
   tr_tmp.Bx = Bx;
   tr_tmp.By = By;
   tr_tmp.Bz = Bz;
-  h5write_trajs('/Volumes/Fountain/Data/PIC/df_cold_protons_n04/data_h5/trajectories.h5',tr_tmp,fpeaks(iPeak,id))
+  %0
 
   %tr(iPeak,id) = tr_tmp;
   toc

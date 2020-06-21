@@ -16,6 +16,7 @@ end
 if isa(pic,'PIC')
   [Ex,Ey,Ez,Bx,By,Bz] = pic.interp_EB(x,z,t);
 elseif isa(pic,'struct')
+  1
   Ex = interp2(pic.x,pic.z,pic.Ex',x,z);
   Ey = interp2(pic.x,pic.z,pic.Ey',x,z);
   Ez = interp2(pic.x,pic.z,pic.Ez',x,z);
@@ -23,7 +24,7 @@ elseif isa(pic,'struct')
   By = interp2(pic.x,pic.z,pic.By',x,z);
   Bz = interp2(pic.x,pic.z,pic.Bz',x,z);
 end
-
+%disp(sprintf('%.3f %.3f %.3f, %.3f %.3f %.3f, %.3f %.3f %.3f, %.3f, %.3f %.3f',Ex,Ey,Ez,Bx,By,Bz,x_vect(1),x_vect(2),x_vect(3),x_vect(4),x_vect(5),x_vect(6)))
 
 % Equations to be solved
 x_res = zeros(6,1);
