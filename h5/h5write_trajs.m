@@ -22,8 +22,11 @@ doAppend = 1; % for future
 m = 1; % hardcoded for now, need to change
 q = 1;
 
-iTr0 = traj.ntr; % add number to append correctly.
-
+if h5exist
+  iTr0 = traj.ntr; % add number to append correctly.
+else
+  iTr0 = 0;
+end
 for iTr = 1:numel(tr_arr)
   % TO IMPLEMENT: check if the trajectory is already there
   

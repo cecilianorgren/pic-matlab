@@ -479,6 +479,8 @@ classdef PIC
       doAdjustCMap = 0;
       fileName = 'movie'; % .mp4/.gif added later
       doTrajectories = 0;
+      colorTrajDot = [0 0 0];
+      doColorTrajDot = 0;
       
       ntimes = obj.length;
       
@@ -488,11 +490,16 @@ classdef PIC
       
       while have_options
         l = 1;
+        %lower(args{1})
         switch(lower(args{1}))
           case {'traj','trajectories','tr','orbits'}
             doTrajectories = 1;
             tr = args{2};
-            l = 2;            
+            l = 2;         
+          case {'trajcolordot'}
+            doColorTrajDot = 1;
+            cTrajDot = args{2};
+            l = 2;
           case 'a'
             doA = 1;
             stepA = args{2};
@@ -518,7 +525,24 @@ classdef PIC
         args = args(l+1:end);
         if isempty(args), break, end    
       end
-                  
+         
+      
+      if doColorTrajDot
+        if or(size(cTrajDot)==[tr.ntr 1],size(cTrajDot)==[1 tr.ntr])
+          if unique(cTrajDot)<=7
+            colors = [     0    0.4470    0.7410; % matlab colors
+                      0.8500    0.3250    0.0980;
+                      0.9290    0.6940    0.1250;
+                      0.4940    0.1840    0.5560;
+                      0.4660    0.6740    0.1880;
+                      0.3010    0.7450    0.9330;
+                      0.6350    0.0780    0.1840];
+            for itr = 1:tr.ntr
+              colorTrajDot(itr,:) = colors(fix(cTrajDot(itr)),:);
+            end
+          end
+        end
+      end
       % setup figure
       fig = figure;      
       [nrows,ncols] = size(varstrs);           
@@ -607,7 +631,12 @@ classdef PIC
                 xnow = interp1(tt,xx,tmp_obj.twci);
                 znow = interp1(tt,zz,tmp_obj.twci);
                 plot(hca,tr(itr).x,tr(itr).z,'k')
-                plot(hca,xnow,znow,'k.','markerSize',20)
+                if doColorTrajDot
+                  coldot = colorTrajDot(itr,:);
+                else
+                  coldot = [0 0 0];
+                end
+                plot(hca,xnow,znow,'color',coldot,'markerSize',20,'marker','.','linestyle','none')                
                 hp = plot(hca,tr(itr).x0,tr(itr).z0,'ko');
               end
               hold(hca,'off')
@@ -1047,7 +1076,7 @@ classdef PIC
       end
       out = var;
     end
-    function [Ex,Ey,Ez,Bx,By,Bz] = interp_EB(obj,x,z,t)
+    function [Ex,Ey,Ez,Bx,By,Bz] = interp_EB(obj,x,z,t,varargin)
       % Interpolate field to a given point (x,z,t)
       %
       % To be implemented:
@@ -1056,9 +1085,26 @@ classdef PIC
       %  - different interpolation types for temporal and spatial
       %    dimensions, particularly important for temporal dimension where
       %    the time steps are quite large
+            
+      method = 'spline';
+      %method = 'linear';
       
-      method = 'linear';
-      %method = 'spline';
+      if numel(varargin) > 0
+        have_options = 1;
+        args = varargin;
+      end
+      while have_options
+        l = 1;
+        switch lower(args{1})
+          case 'spline'
+            method = 'spline';
+          case 'linear'
+            method = 'linear';            
+        end    
+        args = args(l+1:end);
+        if isempty(args), break, end 
+      end
+      
       switch method
         case 'spline'
           nBoundingT = 1; % spline for two points gives linear interpolation
@@ -1102,7 +1148,7 @@ classdef PIC
         By(iP) = interp3(X_BY,Z_BY,T,permute(tmpBy,[2 1 3]),x(iP),z(iP),t(iP),method);
         Bz(iP) = interp3(X_BZ,Z_BZ,T,permute(tmpBz,[2 1 3]),x(iP),z(iP),t(iP),method);
       
-        plot(tmppic.xivar.Ez,tmpEz(:,:,2),'o',x(iP),Ez(iP),'x')
+        %plot(tmppic.xivar.Ez,tmpEz(:,:,2),'o',x(iP),Ez(iP),'x')
       %disp(sprintf('intEx = %g, meanEx = %g',Ex,mean(tmpEx(:))))
       % For debugging purposes
 %       doPlot = 1;
@@ -1402,8 +1448,27 @@ classdef PIC
       %   'RelTol'
       %   'AbsTol'
       
-      doPrintInfo = 0;
+      % Default values
+      doPrintInfo = 0;            
+      method = 'spline';
+      %method = 'linear';
       
+%       if numel(varargin) > 0
+%         have_options = 1;
+%         args = varargin;
+%       end
+%       while have_options
+%         l = 1;
+%         switch lower(args{1})
+%           case 'spline'
+%             method = 'spline';
+%           case 'linear'
+%             method = 'linear';            
+%         end    
+%         args = args(l+1:end);
+%         if isempty(args), break, end 
+%       end
+      disp(sprintf('Interpolation method: %s', method))
       if numel(tspan) == 2 % [tstart tstop]
         tstart = tspan(1);
         tstop_all = tspan(2);        
@@ -1534,8 +1599,9 @@ classdef PIC
         end
         %disp(sprintf('t = %g, x = %g, y = %g, z = %g',t,x,y,z))
 
-        
-        [Ex,Ey,Ez,Bx,By,Bz] = pic.interp_EB(x,z,t);
+        %method = 'spline';        
+
+        [Ex,Ey,Ez,Bx,By,Bz] = pic.interp_EB(x,z,t,method);
         
         %disp(sprintf('%.3f %.3f %.3f, %.3f %.3f %.3f, %.3f %.3f %.3f, %.3f, %.3f %.3f',Ex,Ey,Ez,Bx,By,Bz,x_vect(1),x_vect(2),x_vect(3),x_vect(4),x_vect(5),x_vect(6)))        
         it = size(x_sol_all,1);

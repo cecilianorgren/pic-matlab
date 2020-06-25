@@ -15,9 +15,14 @@ else % electrons
 
 end
 ds = ds04.twcilim(120).zlim([-0.2 0.2]).dxlim([0 0.25]).xfind([180:1:210]);
-nPeaks = 5;
+ds = ds04.twcilim(140).zlim([-0.2 0.2]).dxlim([0 0.25]).xfind([177:1:210]);
+ds = ds04.twcilim(160).zlim([-0.2 0.2]).dxlim([0 0.25]).xfind([166:1:205]);
+ds = ds04.twcilim(160).zlim([-0.2 0.2]).dxlim([0 0.25]).xfind([166:1:175]);
+
+nPeaks = 15;
 spacingPeaks = 4; % for ions its 2 equals 0.2 vA
 fpeaks = ds.get_peaks(nPeaks,spacingPeaks,iSpecies);
+
 nDists = ds.nd;
 doPlot = 1;
 doPrint = 0;
@@ -94,27 +99,31 @@ end
 
 %% Integrate trajectories based on fpeaks
 pic = df04;
-t0 = 120;
+t0 = 160;
 tspan = [60,t0,210];
 m = 1; 
 q = 1;
-tic
-for iTr = 1%:numel(fpeaks)
+
+for iTr = 19:numel(fpeaks)
+  tic
   fprintf('iTr = %g/%g\n',iTr,numel(fpeaks))
   r0 = [fpeaks(iTr).x, fpeaks(iTr).y, fpeaks(iTr).z];
   v0 = [fpeaks(iTr).vx, fpeaks(iTr).vy, fpeaks(iTr).vz];
-  tr_tmp = df04.integrate_trajectory(r0,v0,tspan,m,q);    
-  [Ex,Ey,Ez,Bx,By,Bz] = df04.interp_EB3(tr_tmp.x,tr_tmp.z,tr_tmp.t);  % interpolate
-
-  tr_tmp.t0 = t0;
-  tr_tmp.Ex = Ex;
-  tr_tmp.Ey = Ey;
-  tr_tmp.Ez = Ez;
-  tr_tmp.Bx = Bx;
-  tr_tmp.By = By;
-  tr_tmp.Bz = Bz;
+  tr_tmp = df04.integrate_trajectory(r0,v0,tspan,m,q);
+  plot(tr_tmp.x,tr_tmp.z,tr_tmp.x0,tr_tmp.z0,'o')  
+  grid on
+  drawnow
+%   [Ex,Ey,Ez,Bx,By,Bz] = df04.interp_EB3(tr_tmp.x,tr_tmp.z,tr_tmp.t);  % interpolate
+% 
+%   tr_tmp.t0 = t0;
+%   tr_tmp.Ex = Ex;
+%   tr_tmp.Ey = Ey;
+%   tr_tmp.Ez = Ez;
+%   tr_tmp.Bx = Bx;
+%   tr_tmp.By = By;
+%   tr_tmp.Bz = Bz;
   %0
-
+  h5write_trajs('/Volumes/Fountain/Data/PIC/df_cold_protons_n04/data_h5/trajectories.h5',tr_tmp,fpeaks(iTr))
   %tr(iPeak,id) = tr_tmp;
   toc
   %catch
