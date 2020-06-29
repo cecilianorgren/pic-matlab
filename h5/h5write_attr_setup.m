@@ -1,6 +1,6 @@
 %df04 = PIC('/Volumes/Fountain/Data/PIC/df_cold_protons_n04/data_h5/fields.h5');
 
-pic = bs;
+pic = nobg;
 %% Energy partitioning, UB, UK, UT
 times = pic.twci;
 for it = 1:pic.nt
@@ -15,6 +15,10 @@ end
 
 %% X line position, Ey at X line, A at X line
 
+xXlineAll = [];
+zXlineAll = [];
+EyXlineAll = [];
+plot(nan,nan); hold on
 times = pic.twci;
 for it = 1:pic.nt
   pic_tmp = pic.twcilim(times(it));
@@ -24,9 +28,16 @@ for it = 1:pic.nt
   %A = pic_tmp.A;
   [Ainds,Avals] = saddle(A,'sort');
   xXline(it) = pic_tmp.xi(Ainds(1,1));
-  zXline(it) = pic_tmp.zi(Ainds(1,2));
+  zXline(it) = pic_tmp.zi(Ainds(1,2));  
   Aval(it) = Avals(1);
   EyXline(it) = mean(mean(pic_tmp.xlim(xXline(it)+[-0.1 0.1]).zlim(zXline(it)+[-0.1 0.1]).Ey));
+  for iX = 1:numel(Avals)
+    xXlineAll = [xXlineAll pic_tmp.xi(Ainds(iX,1))];
+    zXlineAll = [zXlineAll pic_tmp.zi(Ainds(iX,2))];
+    EyXlineAll = [EyXlineAll mean(mean(pic_tmp.xlim(xXlineAll(end)+[-0.1 0.1]).zlim(zXlineAll(end)+[-0.1 0.1]).Ey))];
+    scatter(pic_tmp.twci,xXlineAll(end),abs(EyXlineAll(end))*100,iX)
+    drawnow
+  end
   disp(sprintf('%g',it))
 end
 

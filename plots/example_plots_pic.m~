@@ -1,0 +1,40 @@
+%% plotmap
+twpe = 10000;
+xlim = [140 210];
+zlim = [0 15];
+pic = nobg.twpelim(twpe).xlim(xlim).zlim(zlim);
+varstrs = {'Ex','Ez';'ni','ne';'vix','vex'}';
+clims = {[-1 1],[-1 1];[0 0.5],[0 0.5];[-4 4],[-4 4]}';
+cmapbr = pic_colors('blue_red');
+cmapwa = pic_colors('waterfall');
+cmaps = {cmapbr,cmapbr;cmapwa,cmapwa;cmapbr,cmapbr}';
+
+pic.plotmap(varstrs,'A',1,'clim',clims,'cmap',cmaps)
+
+%% plotmap
+twpe = 10000;
+xlim = [140 210];
+zlim = [0 15];
+pic = nobg.twpelim(twpe).xlim(xlim).zlim(zlim);
+varstrs = {'Ex';'Ez';'Jx';'Jz'};
+clims = {[-1 1];[-1 1];0.4*[-1 1];0.4*[-1 1]};
+cmapbr = pic_colors('blue_red');
+cmapwa = pic_colors('waterfall');
+cmaps = {cmapbr;cmapbr;cmapbr;cmapbr};
+
+pic.plotmap(varstrs,'A',1,'clim',clims,'cmap',cmaps)
+
+%% movie
+twpe = 5000:200:10000;
+xlim = [140 210];
+zlim = [0 15];
+pic = nobg.twpelim(twpe).xlim(xlim).zlim(zlim);
+varstrs = {'Ex','Ez';'ni','ne';'vix','vex'}';
+clims = {[-1 1],[-1 1];[0 0.5],[0 0.5];[-4 4],[-4 4]}';
+cmapbr = pic_colors('blue_red');
+cmapwa = pic_colors('waterfall');
+cmaps = {cmapbr,cmapbr;cmapwa,cmapwa;cmapbr,cmapbr}';
+
+pic.plotmap(varstrs,'A',1,'clim',clims,'cmap',cmaps)
+
+nobg.twpelim([5000:1000:10000],'exact').xlim([130 210]).zlim([0 15]*0.99).movie({'ni';'vix';'Ex';'Ey';'Ez'},'A',1,'cmap',pic_colors('waterfall'),'clim',{[0 2],1*[-1 1],1*[-1 1]},'filename',[printpath 'nobg_niExEz_10000_quad2']);

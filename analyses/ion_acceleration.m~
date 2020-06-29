@@ -467,18 +467,25 @@ drawnow
 colormap(pic_colors('waterfall'))
 compact_panels(0.01)
 
-%% Come scatter properties
+%% Some scatter properties ()
 limUstart = 0.5;
-tr = trs.find([trs.t0] == 160,trs.Ustart < limUstart);
+t0 = 60;
+tr = trs.find([trs.t0] == t0,trs.Ustart < limUstart,[trs.x0]<204);
 
 sp = 5;
 nrows = 2;
-ncols = 1;
+ncols = 2;
 npanels = nrows*ncols;
 h = setup_subplots(nrows,ncols);
 isub = 1;
 
-if 1
+doA = 1; stepA = 1; pic = df04; tstart = 60; tstop = 210;
+
+isXZ = [];
+markerStop = 's';
+markerStart = 'o';
+markerInter = '^';
+if 0
   hca = h(isub); isub = isub + 1;
   scatter(hca,tr.ncross,abs(tr.coordgen('z',1)),30,tr.Ustop-tr.Ustart);
   hca.XGrid = 'on';
@@ -490,7 +497,7 @@ if 1
   hca.CLim = [0 2];
   colormap(hca,pic_colors('waterfall'))
 end
-if 1
+if 0 % deltaU(Ncr,zstart)
   hca = h(isub); isub = isub + 1;
   tr_ = tr;
   %scatter(hca,tr_.ncross,abs(tr_.coordgen('z',1)),30,tr_.Ustop-tr_.Ustart,'o');
@@ -509,20 +516,186 @@ if 1
   hca.XGrid = 'on';
   hca.YGrid = 'on';
   hca.XLabel.String = 'N_{cross}';
-  hca.YLabel.String = 'x_{t=60}';
+  hca.YLabel.String = 'z_{t=60}';
   hcb = colorbar('peer',hca);
   hcb.YLabel.String = 'U(t=210) - U(t=60)';
   hca.CLim = [0 2];
   colormap(hca,pic_colors('waterfall'))
   hca.Box = 'on';
 end
+if 1 % Ncr(x,z)
+  isXZ(end+1) = isub;
+  ms = 40; % marker size
+  hca = h(isub); isub = isub + 1;
+  scatter(hca,tr.xstart,tr.zstart,ms,tr.ncross,'Marker',markerStart)
+  hold(hca,'on')
+  scatter(hca,tr.interp('x',tinterp),tr.interp('z',tinterp),ms,tr.ncross,'Marker',markerStop)
+  scatter(hca,tr.interp('x',tinterp),tr.interp('z',tinterp),ms,tr.ncross,'Marker',markerInter)
+  %scatter(hca,[tr.x0],[tr.z0],ms,tr.ncross,'Marker',markerInter)
+  hold(hca,'off')
+  hca.XGrid = 'on';
+  hca.YGrid = 'on';
+  hca.Box = 'on';
+  hca.XLabel.String = 'x';
+  hca.YLabel.String = 'z';
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'N_{cross}';
+  hca.CLim = [0 10];
+  colormap(hca,pic_colors('waterfall'))
+  if doA % t0, separatrix
+    clim = hca.CLim;
+    pic_tmp = pic.twcilim(t0).xlim(hca.XLim).zlim(hca.YLim);
+    [~,~,~,Axline] = pic_tmp.saddle;
+    A = pic_tmp.A;
+    %stepA = 1;
+    levA = floor(min(A(:))/stepA)*stepA:stepA:ceil(max(A(:))/stepA)*stepA;
+    levA = Axline*[1 1];      
+    iAx = 1:5:pic_tmp.nx;
+    iAz = 1:5:pic_tmp.nz;
+    hold(hca,'on')
+    contour(hca,pic_tmp.xi(iAx),pic_tmp.zi(iAz),A(iAx,iAz)',levA,'k')
+    hold(hca,'off')
+    if 1 % tstart
+      pic_tmp = pic.twcilim(tstart).xlim(hca.XLim).zlim(hca.YLim);
+      A = pic_tmp.A;
+      iAx = 1:5:pic_tmp.nx;
+      iAz = 1:5:pic_tmp.nz;
+      hold(hca,'on')
+      contour(hca,pic_tmp.xi(iAx),pic_tmp.zi(iAz),A(iAx,iAz)',levA,'k')
+      hold(hca,'off')
+    end
+    if 1 % tstop
+      pic_tmp = pic.twcilim(tstop).xlim(hca.XLim).zlim(hca.YLim);
+      A = pic_tmp.A;
+      iAx = 1:5:pic_tmp.nx;
+      iAz = 1:5:pic_tmp.nz;
+      hold(hca,'on')
+      contour(hca,pic_tmp.xi(iAx),pic_tmp.zi(iAz),A(iAx,iAz)',levA,'k')
+      hold(hca,'off')
+    end
+    hca.CLim = clim; 
+  end  
+end
+if 1 % Ncr(x,z)
+  isXZ(end+1) = isub;
+  ms = 40; % marker size
+  hca = h(isub); isub = isub + 1;
+  scatter(hca,tr.xstart,tr.zstart,ms,tr.ncross,'Marker',markerStart)
+  hold(hca,'on')
+  scatter(hca,tr.xstop,tr.zstop,ms,tr.ncross,'Marker',markerStop)
+  scatter(hca,[tr.x0],[tr.z0],ms,tr.ncross,'Marker',markerInter)
+  hold(hca,'off')
+  hca.XGrid = 'on';
+  hca.YGrid = 'on';
+  hca.Box = 'on';
+  hca.XLabel.String = 'x';
+  hca.YLabel.String = 'z';
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'N_{cross}';
+  hca.CLim = [0 10];
+  colormap(hca,pic_colors('waterfall'))
+  if doA % t0, separatrix
+    clim = hca.CLim;
+    pic_tmp = pic.twcilim(t0).xlim(hca.XLim).zlim(hca.YLim);
+    [~,~,~,Axline] = pic_tmp.saddle;
+    A = pic_tmp.A;
+    %stepA = 1;
+    levA = floor(min(A(:))/stepA)*stepA:stepA:ceil(max(A(:))/stepA)*stepA;
+    levA = Axline*[1 1];      
+    iAx = 1:5:pic_tmp.nx;
+    iAz = 1:5:pic_tmp.nz;
+    hold(hca,'on')
+    contour(hca,pic_tmp.xi(iAx),pic_tmp.zi(iAz),A(iAx,iAz)',levA,'k')
+    hold(hca,'off')
+    if 1 % tstart
+      pic_tmp = pic.twcilim(tstart).xlim(hca.XLim).zlim(hca.YLim);
+      A = pic_tmp.A;
+      iAx = 1:5:pic_tmp.nx;
+      iAz = 1:5:pic_tmp.nz;
+      hold(hca,'on')
+      contour(hca,pic_tmp.xi(iAx),pic_tmp.zi(iAz),A(iAx,iAz)',levA,'k')
+      hold(hca,'off')
+    end
+    if 1 % tstop
+      pic_tmp = pic.twcilim(tstop).xlim(hca.XLim).zlim(hca.YLim);
+      A = pic_tmp.A;
+      iAx = 1:5:pic_tmp.nx;
+      iAz = 1:5:pic_tmp.nz;
+      hold(hca,'on')
+      contour(hca,pic_tmp.xi(iAx),pic_tmp.zi(iAz),A(iAx,iAz)',levA,'k')
+      hold(hca,'off')
+    end
+    hca.CLim = clim; 
+  end  
+end
+if 1 % delta U(x,z)
+  isXZ(end+1) = isub;
+  ms = 40; % marker size
+  hca = h(isub); isub = isub + 1;
+  scatter(hca,tr.xstart,tr.zstart,ms,tr.dU,'Marker',markerStart)
+  hold(hca,'on')
+  scatter(hca,tr.xstop,tr.zstop,ms,tr.Ustop-tr.Ustart,'Marker',markerStop)
+  scatter(hca,[tr.x0],[tr.z0],ms,tr.Ustop-tr.Ustart,'Marker',markerInter)
+  hold(hca,'off')
+  hca.XGrid = 'on';
+  hca.YGrid = 'on';
+  hca.Box = 'on';
+  hca.XLabel.String = 'x';
+  hca.YLabel.String = 'z';
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = '\Delta U';
+  hca.CLim = [0 1.5];
+  colormap(hca,pic_colors('waterfall'))
+end
+if 1 % Ustart
+  isXZ(end+1) = isub;
+  ms = 40; % marker size
+  hca = h(isub); isub = isub + 1;
+  scatter(hca,tr.xstart,tr.zstart,ms,tr.Ustart,'Marker',markerStart)
+  hold(hca,'on')
+  scatter(hca,tr.xstop,tr.zstop,ms,tr.Ustart,'Marker',markerStop)
+  scatter(hca,[tr.x0],[tr.z0],ms,tr.Ustart,'Marker',markerInter)
+  hold(hca,'off')
+  hca.XGrid = 'on';
+  hca.YGrid = 'on';
+  hca.Box = 'on';
+  hca.XLabel.String = 'x';
+  hca.YLabel.String = 'z';
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'U_{start}';
+  hca.CLim = ceil(prctile(tr.Ustart,80)*10)/10*[0 1];
+  colormap(hca,pic_colors('waterfall'))
+end
+if 1 % Ustop
+  isXZ(end+1) = isub;
+  ms = 40; % marker size
+  hca = h(isub); isub = isub + 1;
+  scatter(hca,tr.xstart,tr.zstart,ms,tr.Ustop,'Marker',markerStart)
+  hold(hca,'on')
+  scatter(hca,tr.xstop,tr.zstop,ms,tr.Ustop,'Marker',markerStop)
+  scatter(hca,[tr.x0],[tr.z0],ms,tr.Ustop,'Marker',markerInter)
+  hold(hca,'off')
+  hca.XGrid = 'on';
+  hca.YGrid = 'on';
+  hca.Box = 'on';
+  hca.XLabel.String = 'x';
+  hca.YLabel.String = 'z';
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'U_{stop}';
+  hca.CLim = [0 2];
+  colormap(hca,pic_colors('waterfall'))
+end
+
+hlinksXZ = linkprop(h(isXZ),{'XLim','YLim'});
 
 %% Some timelines with multiple particles
 limUstart = 0.5;
-tr = trs.find([trs.t0] == 160,trs.Ustart < limUstart);
+tr = trs.find([trs.t0] == 60,trs.Ustart < limUstart);
+
+newt = 60:10:210; % for downsampling
 
 sp = 5;
-nrows = 2;
+nrows = 4;
 ncols = 1;
 npanels = nrows*ncols;
 h = setup_subplots(nrows,ncols);
@@ -540,10 +713,11 @@ if 1 % U(t)
   hca.XLabel.String = 't';
   hca.YLabel.String = 'U';
 end
-if 1 % dU(t)
+if 0 % U(t) downsampled
   hca = h(isub); isub = isub + 1;
-  for itr = 1:tr.ntr
-    plot(hca,tr(itr).t,diff(tr(itr).U));
+  for itr = 1:tr.ntr  
+    newvar = resample_average(tr(itr).t,tr(itr).U,newt);
+    plot(hca,newt,newvar);
     if itr == 1; hold(hca,'on'); end
   end
   hold(hca,'off');
@@ -552,3 +726,188 @@ if 1 % dU(t)
   hca.XLabel.String = 't';
   hca.YLabel.String = 'U';
 end
+if 0 % dU(t), this makes no sense, because the time step is not uniform
+  hca = h(isub); isub = isub + 1;
+  for itr = 1:tr.ntr
+    plot(hca,tr(itr).t(1:end-1),diff(tr(itr).U));
+    if itr == 1; hold(hca,'on'); end
+  end
+  hold(hca,'off');
+  hca.XGrid = 'on';
+  hca.YGrid = 'on';
+  hca.XLabel.String = 't';
+  hca.YLabel.String = '\Delta U';
+end
+if 0 % dU(t) downsampled, this makes no sense, because the time step is not uniform
+  hca = h(isub); isub = isub + 1;
+  for itr = 1:tr.ntr  
+    newvar = resample_average(tr(itr).t,tr(itr).U,newt);
+    plot(hca,newt(1:end-1)+0.5*diff(newt),diff(newvar));
+    if itr == 1; hold(hca,'on'); end
+  end
+  hold(hca,'off');
+  hca.XGrid = 'on';
+  hca.YGrid = 'on';
+  hca.XLabel.String = 't';
+  hca.YLabel.String = '\Delta U';
+end
+if 1 % Wx(t)
+  hca = h(isub); isub = isub + 1;
+  for itr = 1:tr.ntr
+    plot(hca,tr(itr).t,tr(itr).Wx);
+    if itr == 1; hold(hca,'on'); end
+  end
+  hold(hca,'off');
+  hca.XGrid = 'on';
+  hca.YGrid = 'on';
+  hca.XLabel.String = 't';
+  hca.YLabel.String = 'W_x';
+end
+if 1 % Wy(t)
+  hca = h(isub); isub = isub + 1;
+  for itr = 1:tr.ntr
+    plot(hca,tr(itr).t,tr(itr).Wy);
+    if itr == 1; hold(hca,'on'); end
+  end
+  hold(hca,'off');
+  hca.XGrid = 'on';
+  hca.YGrid = 'on';
+  hca.XLabel.String = 't';
+  hca.YLabel.String = 'W_y';
+end
+if 1 % Wz(t)
+  hca = h(isub); isub = isub + 1;
+  for itr = 1:tr.ntr
+    plot(hca,tr(itr).t,tr(itr).Wz);
+    if itr == 1; hold(hca,'on'); end
+  end
+  hold(hca,'off');
+  hca.XGrid = 'on';
+  hca.YGrid = 'on';
+  hca.XLabel.String = 't';
+  hca.YLabel.String = 'W_z';
+end
+
+hlinks = linkprop(h,{'XLim'});
+compact_panels(0.01)
+
+%% Make reduced velocity distributions
+tr = trs.find([trs.t0] == 60,[trs.z0]==2).lim('z',[-0.2 0.2],'t',170+10*[-1 1]);
+
+ncrlim = [0 10];
+
+sp = 5;
+nrows = 4;
+ncols = 1;
+npanels = nrows*ncols;
+h = setup_subplots(nrows,ncols);
+isub = 1;
+
+if 0 % x vz
+  hca = h(isub); isub = isub + 1;
+  for itr = 1:tr.ntr
+    plot(hca,tr(itr).x,tr(itr).vz,'.');
+    if itr == 1; hold(hca,'on'); end
+  end
+  hold(hca,'off');
+  hca.XGrid = 'on';
+  hca.YGrid = 'on';
+  hca.XLabel.String = 'x';
+  hca.YLabel.String = 'v_z';
+end
+if 0 % x vy, plot
+  hca = h(isub); isub = isub + 1;
+  for itr = 1:tr.ntr
+    plot(hca,tr(itr).x,tr(itr).vy,'.');
+    if itr == 1; hold(hca,'on'); end
+  end
+  hold(hca,'off');
+  hca.XGrid = 'on';
+  hca.YGrid = 'on';
+  hca.XLabel.String = 'x';
+  hca.YLabel.String = 'v_y';
+end
+
+if 1 % x vz, scatter
+  hca = h(isub); isub = isub + 1; 
+  crange = unique([tr.z0]); crange = [min(crange) max(crange)];
+  crange = ncrlim;
+  cmap = pic_colors('waterfall');
+  for itr = 1:tr.ntr
+    color = cmap2color(cmap,crange,tr(itr).ncross);
+    scatter(hca,tr(itr).x,tr(itr).vz,sp,color);
+    if itr == 1; hold(hca,'on'); end
+  end
+  hold(hca,'off');   
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'N_{cross}';
+  colormap(hca,cmap)
+  hca.CLim = crange;
+  hca.XGrid = 'on';
+  hca.YGrid = 'on';
+  hca.XLabel.String = 'x';
+  hca.YLabel.String = 'v_z';
+end
+if 1 % x vy, scatter
+  hca = h(isub); isub = isub + 1; 
+  crange = unique([tr.z0]); crange = [min(crange) max(crange)];
+  crange = ncrlim;
+  cmap = pic_colors('waterfall');
+  for itr = 1:tr.ntr
+    color = cmap2color(cmap,crange,tr(itr).ncross);
+    scatter(hca,tr(itr).x,tr(itr).vy,sp,color);
+    if itr == 1; hold(hca,'on'); end
+  end
+  hold(hca,'off');   
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'N_{cross}';
+  colormap(hca,cmap)
+  hca.CLim = crange;
+  hca.XGrid = 'on';
+  hca.YGrid = 'on';
+  hca.XLabel.String = 'x';
+  hca.YLabel.String = 'v_y';
+end
+if 1 % x vy, scatter
+  hca = h(isub); isub = isub + 1; 
+  crange = unique([tr.z0]); crange = [min(crange) max(crange)];
+  crange = [0 10];
+  cmap = pic_colors('waterfall');
+  for itr = 1:tr.ntr
+    color = cmap2color(cmap,crange,tr(itr).z0);
+    scatter(hca,tr(itr).x,tr(itr).vy,sp,color);
+    if itr == 1; hold(hca,'on'); end
+  end
+  hold(hca,'off');   
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'z_{0}';
+  colormap(hca,cmap)
+  hca.CLim = crange;
+  hca.XGrid = 'on';
+  hca.YGrid = 'on';
+  hca.XLabel.String = 'x';
+  hca.YLabel.String = 'v_y';
+end
+if 1 % x vy, scatter
+  hca = h(isub); isub = isub + 1; 
+  crange = unique([tr.xstop]); crange = [min(crange) max(crange)];
+  %crange = [0 10];
+  cmap = pic_colors('waterfall');
+  for itr = 1:tr.ntr
+    color = cmap2color(cmap,crange,tr(itr).xstop);
+    scatter(hca,tr(itr).x,tr(itr).vy,sp,color);
+    if itr == 1; hold(hca,'on'); end
+  end
+  hold(hca,'off');   
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'x_{stop}';
+  colormap(hca,cmap)
+  hca.CLim = crange;
+  hca.XGrid = 'on';
+  hca.YGrid = 'on';
+  hca.XLabel.String = 'x';
+  hca.YLabel.String = 'v_y';
+end
+
+
+

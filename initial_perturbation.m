@@ -4,15 +4,15 @@
 
 mass = 25; % not used
 wpewce = 2; % not used
-xmax = 200; % sixe of box
-zmax = 25; % size of box
+xmax = 50; % sixe of box
+zmax = 15; % size of box
 B0 = 1; % harris sheet asymptotic amplitude
 BG = 0*0.5;
 zh = 1; % harris sheet width
 xp = 1*zh; % scale length of perturbation
 zp = 1*zh; % scale length of perturbation
 ah = B0*zh; % amplitude of harris sheet
-ap = ah*0.25; % amplitude of perturbation
+ap = ah*0.5; % amplitude of perturbation
 TeTi = 5; % not used, implement to get densities
 Ttot = 0.5; % not used, implement to get densities
 
@@ -63,8 +63,8 @@ Jx = J(1);
 Jy = J(2);
 Jz = J(3);
 
-nx = 1000;
-nz = 500;
+nx = 250;
+nz = 300;
 xvec = linspace(-xmax,xmax,nx);
 zvec = linspace(-zmax,zmax,nz);
 [X,Z] = meshgrid(xvec,zvec);
@@ -219,6 +219,7 @@ colormap(cn.cmap('blue_red'))
 hlinks = linkprop(h,{'XLim','YLim'});
 %hlinks.Targets(1).XLim = [-10 10];
 %hlinks.Targets(1).YLim = [-10 10];
+compact_panels(0.03,0.08)
 
 %% Old
 if 0

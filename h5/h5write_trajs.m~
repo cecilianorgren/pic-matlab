@@ -12,8 +12,16 @@ function h5write_trajs(filePath,tr_arr,varargin)
 
 % Default options
 doFPeaks = 0;
-doLoadExisting = 1;
-doHardItr = 0;
+
+h5exist = 0;
+if exist(filePath,'file')
+  h5exist = 1;
+  disp(sprintf('File %s exists. Loading file to obtain existing times.',filePath))
+  traj = PICTraj(filePath);
+else
+  % do i need to initialize something? dont remember
+  %h5writeatt(filePath,'/','software','micPIC')
+end
 
 have_options = 0;
 nargs = numel(varargin);      
@@ -27,31 +35,14 @@ while have_options
       doFPeaks = 1;
       fpeaks = args{2};
       l = 2;        
-    case {'itr','id'} % the new id, should atleast be traj.ntr + 1
-      id = args{2};
-      l = 2;
-      doHardItr = 1;
-      doLoadExisting = 0;
+    case {'id'}
+      id
     otherwise
       warning(sprintf('Input ''%s'' not recognized.',args{1}))            
   end        
   args = args(l+1:end);
   if isempty(args), break, end    
 end
-
-h5exist = 0;
-if exist(filePath,'file') && doLoadExisting
-  h5exist = 1;
-  disp(sprintf('File %s exists. Loading file to obtain existing times.',filePath))
-  traj = PICTraj(filePath);
-elseif doHardItr
-  
-  % do i need to initialize something? dont remember
-  %h5writeatt(filePath,'/','software','micPIC')
-else
-  error(['Can not determine and assign id of new trajectory, aborting.'])
-end
-
       
 
 doAppend = 1; % for future
@@ -59,10 +50,8 @@ doAppend = 1; % for future
 m = 1; % hardcoded for now, need to change
 q = 1;
 
-if h5exist && doLoadExisting
+if h5exist
   iTr0 = traj.ntr; % add number to append correctly.
-elseif doHardItr
-  iTr0 = id - 1;
 else
   iTr0 = 0;
 end

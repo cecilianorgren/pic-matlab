@@ -71,27 +71,28 @@ end
 %rxt.x = rx.x; rxt.y = ry.x; rxt.z = rz.x;
 %ryt.x = rx.y; ryt.y = ry.y; ryt.z = rz.x;
 
-R = zeros(3,3,size(old_xx,1),size(old_xx,2));
-R(1,1,:,:) = rx.x;
-R(1,2,:,:) = rx.y;
-R(1,3,:,:) = rx.z;
-R(2,1,:,:) = ry.x;
-R(2,2,:,:) = ry.y;
-R(2,3,:,:) = ry.z;
-R(3,1,:,:) = rz.x;
-R(3,2,:,:) = rz.y;
-R(3,3,:,:) = rz.z;
+% 3rd dimension of old_xx is time
+R = zeros(3,3,size(old_xx,1),size(old_xx,2),size(old_xx,3));
+R(1,1,:,:,:) = rx.x;
+R(1,2,:,:,:) = rx.y;
+R(1,3,:,:,:) = rx.z;
+R(2,1,:,:,:) = ry.x;
+R(2,2,:,:,:) = ry.y;
+R(2,3,:,:,:) = ry.z;
+R(3,1,:,:,:) = rz.x;
+R(3,2,:,:,:) = rz.y;
+R(3,3,:,:,:) = rz.z;
 
-T = zeros(3,3,size(old_xx,1),size(old_xx,2));
-T(1,1,:,:) = old_xx;
-T(1,2,:,:) = old_xy;
-T(1,3,:,:) = old_xz;
-T(2,1,:,:) = old_xy;
-T(2,2,:,:) = old_yy;
-T(2,3,:,:) = old_yz;
-T(3,1,:,:) = old_xz;
-T(3,2,:,:) = old_yz;
-T(3,3,:,:) = old_zz;
+T = zeros(3,3,size(old_xx,1),size(old_xx,2),size(old_xx,3));
+T(1,1,:,:,:) = old_xx;
+T(1,2,:,:,:) = old_xy;
+T(1,3,:,:,:) = old_xz;
+T(2,1,:,:,:) = old_xy;
+T(2,2,:,:,:) = old_yy;
+T(2,3,:,:,:) = old_yz;
+T(3,1,:,:,:) = old_xz;
+T(3,2,:,:,:) = old_yz;
+T(3,3,:,:,:) = old_zz;
 
 newT = T*0;
 % sum over i j
@@ -100,18 +101,18 @@ for mm = 1:3
   for nn = mm:3
     for ii = 1:3
       for jj = 1:3
-        newT(mm,nn,:,:) = newT(mm,nn,:,:) + R(mm,ii,:,:).*R(nn,jj,:,:).*T(ii,jj,:,:);
+        newT(mm,nn,:,:,:) = newT(mm,nn,:,:,:) + R(mm,ii,:,:,:).*R(nn,jj,:,:,:).*T(ii,jj,:,:,:);
       end
     end
   end
 end
 
-new_xx = squeeze(newT(1,1,:,:));
-new_xy = squeeze(newT(1,2,:,:));
-new_xz = squeeze(newT(1,3,:,:));
-new_yy = squeeze(newT(2,2,:,:));
-new_yz = squeeze(newT(2,3,:,:));
-new_zz = squeeze(newT(3,3,:,:));
+new_xx = squeeze(newT(1,1,:,:,:));
+new_xy = squeeze(newT(1,2,:,:,:));
+new_xz = squeeze(newT(1,3,:,:,:));
+new_yy = squeeze(newT(2,2,:,:,:));
+new_yz = squeeze(newT(2,3,:,:,:));
+new_zz = squeeze(newT(3,3,:,:,:));
 
 % rTx = old_xx.*rx.x + old_xy.*rx.y + old_xz.*rx.z;
 % rTy = old_xy.*rx.x + old_yy.*rx.y + old_yz.*rx.z;

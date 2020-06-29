@@ -1,11 +1,11 @@
 localuser = datastore('local','user');
 %tr04 = PICTraj('/Volumes/Fountain/Data/PIC/df_cold_protons_n04/data_h5/trajectories.h5');
 
-%% Get peaks of f
+%% Get r0,v0 from peaks of distributions
 
 it = 2;
 if 1
-  iSpecies = [3];
+  iSpecies = [5];
   %ds = ds04(it).xlim([166 169]+[-0.1 0.1]).zlim([-0.1 0.6]);
 %  ds = ds04(it).xlim([190 203]).zlim([-0.1 0.1]); % top row.
 else % electrons
@@ -17,11 +17,11 @@ end
 ds = ds04.twcilim(120).zlim([-0.2 0.2]).dxlim([0 0.25]).xfind([180:1:210]);
 ds = ds04.twcilim(140).zlim([-0.2 0.2]).dxlim([0 0.25]).xfind([177:1:210]);
 ds = ds04.twcilim(160).zlim([-0.2 0.2]).dxlim([0 0.25]).xfind([166:1:205]);
-ds = ds04.twcilim(160).zlim([-0.2 0.2]).dxlim([0 0.25]).xfind([166:1:175]);
+ds = ds04.twcilim(160).zlim([-0.2 0.2]).dxlim([0 0.25]).xfind([167:0.2:175]);
 
-nPeaks = 15;
-spacingPeaks = 4; % for ions its 2 equals 0.2 vA
-fpeaks = ds.get_peaks(nPeaks,spacingPeaks,iSpecies);
+nPeaks = 3;
+spacingPeaks = 7; % for ions its 2 equals 0.2 vA
+fpeaks = ds.get_peaks(nPeaks,spacingPeaks,iSpecies); % ,'vz',[-0.19 0.19]
 
 nDists = ds.nd;
 doPlot = 1;
@@ -87,6 +87,8 @@ if doPlot
       h(ip).FontSize = 14;
        h(ip).Position(2) = 0.2;
       h(ip).Position(4) = 0.7;
+      h(ip).XLim = [-1.5 1];
+      h(ip).YLim = [-1 1];
     end
     hb = colorbar('peer',h(3));
     hb.Position(1) = h(3).Position(1) + h(3).Position(3) + 0.01;
@@ -97,21 +99,111 @@ if doPlot
   end
 end
 
-%% Integrate trajectories based on fpeaks
+%% Get r0,v0 from moments, suitable for inflow at early times
+pic = df04.twpelim(3000);
+A = squeeze(pic.A);
+x_center = [202.2:0.2:202.9 203.2:0.2:203.9];
+z_center = (3:1:10);
+[ZC,XC] = meshgrid(z_center,x_center);
+XC = reshape(XC,prod(size(XC)),1);
+ZC = reshape(ZC,prod(size(ZC)),1);
+nboxes = numel(XC);
+clear fpeaks
+if 0 % A
+  Alim = [-24 0];
+  ind_keep = zeros(nboxes,1);
+  for ibox = 1:nboxes
+    xind = find(abs(pic.xi-XC(ibox))==min(abs(pic.xi-XC(ibox))));
+    zind = find(abs(pic.zi-ZC(ibox))==min(abs(pic.zi-ZC(ibox))));
+
+    if A(xind,zind)>Alim(1) && A(xind,zind)<Alim(2) % keep
+      ind_keep(ibox) = 1;
+    else
+      ind_keep(ibox) = 0;
+    end
+  end
+  keep_boxes = all_boxes(find(ind_keep==1),:);
+  n_boxes = size(keep_boxes,1);
+  x0 = XC(find(ind_keep));
+  z0 = ZC(find(ind_keep));
+else % n
+  n = pic.n(3);
+  vx = pic.vx(3);
+  vy = pic.vy(3);
+  vz = pic.vz(3);
+  nlim = 0.02;
+  ind_keep = zeros(nboxes,1);
+  for ibox = 1:nboxes
+    xind = find(abs(pic.xi-XC(ibox))==min(abs(pic.xi-XC(ibox))));
+    zind = find(abs(pic.zi-ZC(ibox))==min(abs(pic.zi-ZC(ibox))));
+
+    x0(ibox) = XC(ibox);
+    y0(ibox) = 0;
+    z0(ibox) = ZC(ibox);
+    vx0(ibox) = vx(xind,zind);
+    vy0(ibox) = vy(xind,zind);
+    vz0(ibox) = vz(xind,zind);
+    
+    if n(xind,zind)>nlim(1) % keep
+      ind_keep(ibox) = 1;
+    else
+      ind_keep(ibox) = 0;
+    end
+  end
+  %x0 = XC(find(ind_keep));
+  %z0 = ZC(find(ind_keep));
+  x0 = x0(find(ind_keep));
+  y0 = y0(find(ind_keep));
+  z0 = z0(find(ind_keep));
+  vx0 = vx0(find(ind_keep));
+  vy0 = vy0(find(ind_keep));
+  vz0 = vz0(find(ind_keep));
+  for ii = 1:numel(x0)
+    fpeaks(ii).x = x0(ii);
+    fpeaks(ii).y = y0(ii);
+    fpeaks(ii).z = z0(ii);
+    fpeaks(ii).vx = vx0(ii);
+    fpeaks(ii).vy = vy0(ii);
+    fpeaks(ii).vz = vz0(ii);
+  end
+  hca = subplot(1,1,1);
+  imagesc(hca,pic.xi,pic.zi,n');
+  hca.YDir = 'normal';
+  hold(hca,'on')
+  plot(hca,[fpeaks.x],[fpeaks.z],'.')
+  hold(hca,'off')
+end
+
+%% Integrate trajectories based on fpeaks (which may be based or moments)
 pic = df04;
-t0 = 160;
-tspan = [60,t0,210];
+t0 = 160; 
+tspan = [50,t0,239];
+%t0 = 60;
+%tspan = [t0,239];
 m = 1; 
 q = 1;
+istart = 1;
+ntr_pre = trs.ntr-(istart-1); % the +(istart-1) is there becuse i already did the 1 and added it to the datafile
 
-for iTr = 19:numel(fpeaks)
+for iTr = istart:numel(fpeaks)
   tic
   fprintf('iTr = %g/%g\n',iTr,numel(fpeaks))
   r0 = [fpeaks(iTr).x, fpeaks(iTr).y, fpeaks(iTr).z];
   v0 = [fpeaks(iTr).vx, fpeaks(iTr).vy, fpeaks(iTr).vz];
   tr_tmp = df04.integrate_trajectory(r0,v0,tspan,m,q);
-  plot(tr_tmp.x,tr_tmp.z,tr_tmp.x0,tr_tmp.z0,'o')  
-  grid on
+  
+  hca = subplot(2,1,1);
+  plot(hca,tr_tmp.x,tr_tmp.z,tr_tmp.x0,tr_tmp.z0,'o')  
+  hca.XGrid = 'on';
+  hca.YGrid = 'on';
+  hca.XLabel.String = 'x';
+  hca.YLabel.String = 'z';
+  hca = subplot(2,1,2);
+  plot(hca,tr_tmp.y,tr_tmp.z,tr_tmp.y0,tr_tmp.z0,'o')  
+  hca.XGrid = 'on';
+  hca.YGrid = 'on';
+  hca.XLabel.String = 'y';
+  hca.YLabel.String = 'z';
   drawnow
 %   [Ex,Ey,Ez,Bx,By,Bz] = df04.interp_EB3(tr_tmp.x,tr_tmp.z,tr_tmp.t);  % interpolate
 % 
@@ -123,7 +215,8 @@ for iTr = 19:numel(fpeaks)
 %   tr_tmp.By = By;
 %   tr_tmp.Bz = Bz;
   %0
-  h5write_trajs('/Volumes/Fountain/Data/PIC/df_cold_protons_n04/data_h5/trajectories.h5',tr_tmp,fpeaks(iTr))
+  h5write_trajs('/Volumes/Fountain/Data/PIC/df_cold_protons_n04/data_h5/trajectories.h5',tr_tmp,'fpeaks',fpeaks(iTr),'id',ntr_pre+iTr)
+  %h5write_trajs('/Volumes/Fountain/Data/PIC/df_cold_protons_n04/data_h5/trajectories.h5',tr_tmp)
   %tr(iPeak,id) = tr_tmp;
   toc
   %catch

@@ -45,7 +45,7 @@
 %         end
 %         args = args{l+1:end};            
 %       end
-      
+      %tic; % time it to get a feel for how different file sizes slow affect the loading
       if not(nargin == 0) % if its 0 then allocate the empty object array
         % get h5 info
         info = h5info(h5file);
@@ -84,7 +84,7 @@
           obj(itraj_) = obj(itraj_).rem_duplicates;
         end              
       end
-      
+      %toc
       % these are unnecessary, can just read directly
       function out = read_itr(info)
         iGroup = find(contains({info.Groups.Name},'/traj'));
@@ -206,7 +206,13 @@
     function out = Uzstop(obj)
       % PICTRAJ.U Kinetic energy of particle.      
       out = Ugen(obj,'z',obj.length);
-    end  
+    end
+    function out = dU(obj)
+      out = obj.Ustop-obj.Ustart;
+    end
+    function out = dUz(obj)
+      out = obj.Uzstop-obj.Uzstart;
+    end
     function out = W(obj)
       % PICTRAJ.U Work done on the particle.
       % W = F dot dl = Fxdx + Fydy + Fzdz
@@ -367,8 +373,7 @@
       out = xcr_all;
     end
     
-    %
-    
+    % 
     function out = coordgen(obj,comp,ind)
       % PICTRAJ.XGEN x position energy of particle.
       % out = Ugen(obj,comp,ind)
@@ -397,6 +402,12 @@
       elseif istart == istop
         out = [out.x];
       end
+    end
+    function out = tstart(obj)
+      out = obj.coordgen('t',1);      
+    end
+    function out = tstop(obj)
+      out = obj.coordgen('t',obj.length);      
     end
     function out = xstart(obj)
       out = obj.coordgen('x',1);      
@@ -455,6 +466,9 @@
     end
     % Finding subsets of data
     function TR = find(obj,varargin)
+      % PICTARAJ.FIND Finds subsets of data
+      %   PICTARAJ.FIND(cond1,cond1,cond3,cond4)
+      %   PICTARAJ.FIND([tr.t0]==160,[tr.x0]<170,tr.ncross==1)
       inds = 1:obj.ntr;
       for iarg = 1:numel(varargin)
         inds = intersect(inds,find(varargin{iarg}));
@@ -535,19 +549,55 @@
         TR(itr) = TR(itr).select_inds(ind);  
       end   
       TR = TR(ikeep);   
-    end    
+    end   
+    function TR = tlim(obj,tint)
+      TR = obj.lim('t',tint); 
+      for itr = 1:TR.ntr
+        TR(itr) = TR(itr).lim('t',tint);
+      end
+    end
+    function TR = subset(obj,inds)
+      % PICTRAJ.SUBSET Same as PICTRAJ.SELECT_INDS
+      % See also PICTRAJ.SELECT_INDS
+      TR = obj.select_inds(inds);
+    end
     function TR = select_inds(obj,inds)
-      % PICTraj
-      TR = obj;
-      ndata = numel(TR.t);
-      fields = fieldnames(obj);
+      % PICTRAJ.SELECT_INDS Select subset of individual trajectory.
+      % TR = TR.SELECT_SUBSET(1:10)
+      TR = obj;      
+      fields = fieldnames(TR);
+      if numel(inds) == 1
+        inds = repmat(inds,TR.ntr,1);
+      elseif numel(inds) == TR.ntr
+        inds = reshape(inds,numel(inds),1);
+      elseif any(size(inds)==1)
+        inds = repmat(reshape(inds,1,numel(inds)),TR.ntr,1);
+      end
       
-      for ifield = 1:numel(fields)
-        data = TR.(fields{ifield});
-        if not(numel(data)==ndata)
-          continue
+      for itr = 1:TR.ntr
+        nt = TR(itr).length;
+        for ifield = 1:numel(fields)
+          data = TR(itr).(fields{ifield});
+          if not(numel(data) == nt)
+            continue
+          end
+          TR(itr).(fields{ifield}) = data(inds(itr,:));
         end
-        TR.(fields{ifield}) = data(inds);
+      end
+    end
+    function out = interp(obj,field,time)
+      % PICTRAJ.INTERP Interpolates trjectories to given time/timeline.
+      
+      for itr = 1:obj.ntr
+        tt = obj(itr).t;
+        dd = obj(itr).(field);
+        idup = find(diff(tt)==0);
+        tt(idup) = [];
+        dd(idup) = [];        
+        out(itr).data = interp1(tt,dd,time,'linear','extrap');        
+      end
+      if numel(time) == 1
+        out = [out.data];
       end
     end
     
@@ -693,14 +743,60 @@
     function h = plot_all_xz(obj,varargin)
       % PICTRAJ.PLOT_ALL_XZ Plots all trajectories in xz plane.
       
+      % Defaults
+      color = [0 0 0];
+      doColor = 1;
+      cmap = pic_colors('waterfall'); % maybe I should build-in the cmap
+      have_input = 0;
+      
+      [h,args,nargs] = axescheck(varargin{:});
+      if isempty(h)
+        h = gca; % current or new axes
+      end
+      
+      if nargs > 0; have_input = 1; args = args; end
+      while have_input
+        l = 2;
+        switch lower(args{1})
+          case {'color'}
+            doColor = 1;
+            color = args{2};
+            l = 2;
+          otherwise
+            warning(sprintf('Unknown input %s.',args{1}))
+        end
+        args = args(l+1:end);
+        if isempty(args), break, end
+      end
+      
+      
       for itr = 1:obj.ntr
-        plot(obj(itr).x,obj(itr).z);
+        if numel(color) == 3
+          tmpColor = color;
+          doColorbar = 0;
+        elseif numel(color) == obj.ntr
+          crange = [min(color) max(color)];
+          if crange(1) == crange(2)
+            crange = crange+crange(1)*0.1*[-1 1];
+          end
+          tmpColor = cmap2color(cmap,crange,color(itr));
+          doColorbar = 1;
+        elseif all(size(color) == [obj.ntr 3])
+          tmpColor = color(itr,:);
+          doColorbar = 1;
+        end
+        plot(h,obj(itr).x,obj(itr).z,'color',tmpColor);
+        if doColorbar
+          hcb = colorbar('peer',h);
+          colormap(h,cmap)
+          h.CLim = crange;
+        end
         if itr == 1
           hold(gca,'on')
         end
       end
       hold(gca,'off')
-      h=gca;      
+      
       h.XGrid = 'on';
       h.YGrid = 'on';
       h.XLabel.String = 'x (d_i)';

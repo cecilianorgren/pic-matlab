@@ -45,7 +45,7 @@
 %         end
 %         args = args{l+1:end};            
 %       end
-      
+      %tic; % time it to get a feel for how different file sizes slow affect the loading
       if not(nargin == 0) % if its 0 then allocate the empty object array
         % get h5 info
         info = h5info(h5file);
@@ -84,7 +84,7 @@
           obj(itraj_) = obj(itraj_).rem_duplicates;
         end              
       end
-      
+      %toc
       % these are unnecessary, can just read directly
       function out = read_itr(info)
         iGroup = find(contains({info.Groups.Name},'/traj'));
@@ -123,13 +123,18 @@
     % Dervied quantities
     function out = Ugen(obj,comp,ind)
       % PICTRAJ.U Kinetic energy of particle.
+      % out = Ugen(obj,comp,ind)
+      %
         
       if or(not(exist('ind','var')),isempty(ind))       
-        inds = 1:obj.ntr;
+        istart = repmat(1,obj.ntr,1);
+        istop = [obj.length];
       elseif numel(ind) == 1
-        inds = repmat(ind,obj.ntr,1);
+        istart = repmat(ind,obj.ntr,1);
+        istop = istart;
       elseif numel(ind) == obj.ntr
-        inds = ind;
+        istart = ind;
+        istop = istart;
       else
         error(sprintf('Wrong dimension of input.'))
       end
@@ -138,132 +143,76 @@
         case {'x','y','z'}
           for itr = 1:obj.ntr
             obj_tmp = obj(itr);
-            U_tmp = 
-            out(itr).U = 0.5*obj_tmp.mass*obj_tmp.(['v' comp]).^2;
+            U_tmp = 0.5*obj_tmp.mass*obj_tmp.(['v' comp]).^2;
+            out(itr).U = U_tmp(istart(itr):istop(itr));
           end
         case {'xyz','tot'}
           for itr = 1:obj.ntr
-            obj_tmp = obj(itr);                      
-            out(itr).U = 0.5*obj_tmp.mass*(obj_tmp.vx.^2 + obj_tmp.vy.^2 + obj_tmp.vz.^2);
+            obj_tmp = obj(itr);  
+            U_tmp = 0.5*obj_tmp.mass*(obj_tmp.vx.^2 + obj_tmp.vy.^2 + obj_tmp.vz.^2);
+            out(itr).U = U_tmp(istart(itr):istop(itr));
           end        
       end      
       if obj.ntr == 1
         out = out.U;
+      elseif istart == istop
+        out = [out.U];
       end
     end
     function out = U(obj)
-      % PICTRAJ.U Kinetic energy of particle.
-      
-      for itr = 1:obj.ntr
-        obj_tmp = obj(itr);
-        out(itr).U = 0.5*obj_tmp.mass*(obj_tmp.vx.^2 + obj_tmp.vy.^2 + obj_tmp.vz.^2);
-      end
-      
-      if obj.ntr == 1
-        out = out.U;
-      end
+      % PICTRAJ.U Kinetic energy of particle.      
+      out = Ugen(obj,'tot',[]);
     end
     function out = Ux(obj)
-      % PICTRAJ.U Kinetic energy of particle.
-      
-      for itr = 1:obj.ntr
-        obj_tmp = obj(itr);
-        out(itr).U = 0.5*obj_tmp.mass*(obj_tmp.vx.^2);
-      end
-      
-      if obj.ntr == 1
-        out = out.U;
-      end
+      % PICTRAJ.Ux Kinetic energy of particle.
+      out = Ugen(obj,'x',[]);
     end
     function out = Uy(obj)
-      % PICTRAJ.U Kinetic energy of particle.
-      
-      for itr = 1:obj.ntr
-        obj_tmp = obj(itr);
-        out(itr).U = 0.5*obj_tmp.mass*(obj_tmp.vy.^2);
-      end
-      
-      if obj.ntr == 1
-        out = out.U;
-      end
+      % PICTRAJ.Uy Kinetic energy of particle.
+      out = Ugen(obj,'y',[]);
     end
     function out = Uz(obj)
-      % PICTRAJ.U Kinetic energy of particle.
-      
-      for itr = 1:obj.ntr
-        obj_tmp = obj(itr);
-        out(itr).U = 0.5*obj_tmp.mass*(obj_tmp.vz.^2);
-      end
-      
-      if obj.ntr == 1
-        out = out.U;
-      end
-    end
-    function out = Uind(obj,ind)
-      % PICTRAJ.U Kinetic energy of particle.
-      if numel(ind) == 1
-        inds = repmat(ind,obj.ntr,1);
-      elseif numel(ind) == obj.ntr
-        inds = ind;
-      else
-        error(sprintf('Wrong dimension of input.'))
-      end
-        
-      for itr = 1:obj.ntr
-        Utmp = obj(itr).U;
-        out(itr) = Utmp(inds(itr));
-      end
-    end     
+      % PICTRAJ.Uz Kinetic energy of particle.
+      out = Ugen(obj,'z',[]);      
+    end   
     function out = Ustart(obj)
       % PICTRAJ.U Kinetic energy of particle.
-      out = Uind(obj,1);    
+      out = Ugen(obj,'tot',1);    
     end  
     function out = Uxstart(obj)
       % PICTRAJ.U Kinetic energy of particle.
-      out = Uind(obj,1);
+      out = Ugen(obj,'x',1);    
     end  
     function out = Uystart(obj)
       % PICTRAJ.U Kinetic energy of particle.      
-      for itr = 1:obj.ntr
-        Utmp = obj(itr).Uy;
-        out(itr) = Utmp(1);
-      end      
+      out = Ugen(obj,'y',1);
     end  
     function out = Uzstart(obj)
       % PICTRAJ.U Kinetic energy of particle.      
-      for itr = 1:obj.ntr
-        Utmp = obj(itr).Uz;
-        out(itr) = Utmp(1);
-      end      
+      out = Ugen(obj,'z',1);     
     end  
     function out = Ustop(obj)
       % PICTRAJ.U Kinetic energy of particle.      
-      for itr = 1:obj.ntr
-        Utmp = obj(itr).U;
-        out(itr) = Utmp(end);
-      end      
+      out = Ugen(obj,'tot',obj.length);     
     end  
     function out = Uxstop(obj)
       % PICTRAJ.U Kinetic energy of particle.      
-      for itr = 1:obj.ntr
-        Utmp = obj(itr).Ux;
-        out(itr) = Utmp(end);
-      end      
+      out = Ugen(obj,'x',obj.length);
     end  
     function out = Uystop(obj)
       % PICTRAJ.U Kinetic energy of particle.      
-      for itr = 1:obj.ntr
-        Utmp = obj(itr).Uy;
-        out(itr) = Utmp(end);
-      end      
+      out = Ugen(obj,'y',obj.length);
     end  
     function out = Uzstop(obj)
       % PICTRAJ.U Kinetic energy of particle.      
-      for itr = 1:obj.ntr
-        Utmp = obj(itr).Uz;
-        out(itr) = Utmp(end);
-      end      
-    end  
+      out = Ugen(obj,'z',obj.length);
+    end
+    function out = dU(obj)
+      out = obj.Ustop-obj.Ustart;
+    end
+    function out = dUz(obj)
+      out = obj.Uzstop-obj.Uzstart;
+    end
     function out = W(obj)
       % PICTRAJ.U Work done on the particle.
       % W = F dot dl = Fxdx + Fydy + Fzdz
@@ -385,7 +334,7 @@
         out(itr).z = z(icross);
         out(itr).nc = numel(icross);
                 
-        if 1 % plot
+        if 0 % plot
           %plot(obj(itr).x,obj(itr).z,obj(itr).x(icross),obj(itr).z(icross),'*')
           plot(x,z,x(icross),z(icross),'*')
           set(gca,'XGrid','on','YGrid','on')
@@ -393,6 +342,13 @@
           pause
         end
       end      
+    end
+    function out = firstcross(obj)
+      allcross = obj.zcross;
+      for itr = 1:obj.ntr
+        out(itr) = allcross(itr).x(1);
+      end
+      
     end
     function out = ncross(obj)
       % PICTraj.NCROSS Number of crosses where the particle crossez z = 0.
@@ -417,6 +373,60 @@
       out = xcr_all;
     end
     
+    % 
+    function out = coordgen(obj,comp,ind)
+      % PICTRAJ.XGEN x position energy of particle.
+      % out = Ugen(obj,comp,ind)
+      %
+        
+      if or(not(exist('ind','var')),isempty(ind))       
+        istart = repmat(1,obj.ntr,1);
+        istop = [obj.length];
+      elseif numel(ind) == 1
+        istart = repmat(ind,obj.ntr,1);
+        istop = istart;
+      elseif numel(ind) == obj.ntr
+        istart = ind;
+        istop = istart;
+      else
+        error(sprintf('Wrong dimension of input.'))
+      end
+      
+      for itr = 1:obj.ntr
+        obj_tmp = obj(itr);
+        tmp = obj_tmp.(comp);
+        out(itr).x = tmp(istart(itr):istop(itr));
+      end                
+      if obj.ntr == 1
+        out = out.x;
+      elseif istart == istop
+        out = [out.x];
+      end
+    end
+    function out = tstart(obj)
+      out = obj.coordgen('t',1);      
+    end
+    function out = tstop(obj)
+      out = obj.coordgen('t',obj.length);      
+    end
+    function out = xstart(obj)
+      out = obj.coordgen('x',1);      
+    end
+    function out = xstop(obj)
+      out = obj.coordgen('x',obj.length);      
+    end
+    function out = ystart(obj)
+      out = obj.coordgen('y',1);      
+    end
+    function out = ystop(obj)
+      out = obj.coordgen('y',obj.length);      
+    end
+    function out = zstart(obj)
+      out = obj.coordgen('z',1);      
+    end
+    function out = zstop(obj)
+      out = obj.coordgen('z',obj.length);      
+    end
     % Operators
     function out = nt_(obj)
       value = numel(obj);
@@ -456,7 +466,14 @@
     end
     % Finding subsets of data
     function TR = find(obj,varargin)
-      TR = obj;%(find(obj));
+      % PICTARAJ.FIND Finds subsets of data
+      %   PICTARAJ.FIND(cond1,cond1,cond3,cond4)
+      %   PICTARAJ.FIND([tr.t0]==160,[tr.x0]<170,tr.ncross==1)
+      inds = 1:obj.ntr;
+      for iarg = 1:numel(varargin)
+        inds = intersect(inds,find(varargin{iarg}));
+      end      
+      TR = obj(unique(inds));
     end
     function TR = pass(obj,varargin)
       if mod(nargin,1) == 1
@@ -532,19 +549,55 @@
         TR(itr) = TR(itr).select_inds(ind);  
       end   
       TR = TR(ikeep);   
-    end    
+    end   
+    function TR = tlim(obj,tint)
+      TR = obj.lim('t',tint); 
+      for itr = 1:TR.ntr
+        TR(itr) = TR(itr).lim('t',tint);
+      end
+    end
+    function TR = subset(obj,inds)
+      % PICTRAJ.SUBSET Same as PICTRAJ.SELECT_INDS
+      % See also PICTRAJ.SELECT_INDS
+      TR = obj.select_inds(inds);
+    end
     function TR = select_inds(obj,inds)
-      % PICTraj
-      TR = obj;
-      ndata = numel(TR.t);
-      fields = fieldnames(obj);
+      % PICTRAJ.SELECT_INDS Select subset of individual trajectory.
+      % TR = TR.SELECT_SUBSET(1:10)
+      TR = obj;      
+      fields = fieldnames(TR);
+      if numel(inds) == 1
+        inds = repmat(inds,TR.ntr,1);
+      elseif numel(inds) == TR.ntr
+        inds = reshape(inds,numel(inds),1);
+      elseif any(size(inds)==1)
+        inds = repmat(reshape(inds,1,numel(inds)),TR.ntr,1);
+      end
       
-      for ifield = 1:numel(fields)
-        data = TR.(fields{ifield});
-        if not(numel(data)==ndata)
-          continue
+      for itr = 1:TR.ntr
+        nt = TR(itr).length;
+        for ifield = 1:numel(fields)
+          data = TR(itr).(fields{ifield});
+          if not(numel(data) == nt)
+            continue
+          end
+          TR(itr).(fields{ifield}) = data(inds(itr,:));
         end
-        TR.(fields{ifield}) = data(inds);
+      end
+    end
+    function TR = interp()
+      % PICTRAJ.INTERP Interpolates trjectories to given time/timeline.
+      
+      for itr = 1:obj
+      tt = tr(itr).t;
+      xx = tr(itr).x;
+      zz = tr(itr).z;
+      idup = find(diff(tr(itr).t)==0);
+      tt(idup) = [];
+      xx(idup) = [];
+      zz(idup) = [];                
+      xnow = interp1(tt,xx,tmp_obj.twci);
+      znow = interp1(tt,zz,tmp_obj.twci);
       end
     end
     
@@ -615,57 +668,108 @@
       
       for ivar = 1:nvars
         hca = h(ivar);
-        varstr_split = strsplit(varstrs{ivar},'_');
-        varstr = varstr_split{1};
-        switch varstr
-          case {'tU','tW'}
-            plot(hca,obj.(varstr(1)),obj.(varstr(2)))
-            hca.XLabel.String = sprintf('%s ()',varstr(1));
-            hca.YLabel.String = sprintf('%s ()',varstr(2)); 
-            hca.XGrid = 'on';
-            hca.YGrid = 'on';
-          case {'xU','yU','zU','xUx','yUx','zUx','xUy','yUy','zUy','xUz','yUz','zUz',...
-              'xW','yW','zW','xWx','yWx','zWx','xWy','yWy','zWy','xWz','yWz','zWz',...
-              'xEx','yEx','zEx','xEy','yEy','zEy','xEz','yEz','zEz',...
-              'xvx','yvx','zvx','xvy','yvy','zvy','xvz','yvz','zvz'}
-            if numel(varstr_split) > 1 && strcmp(varstr_split{2},'cumsum')
-              plot(hca,obj.(varstr(1)),cumsum(obj.(varstr(2:end)),'omitnan'))
-            else
-              plot(hca,obj.(varstr(1)),obj.(varstr(2:end)))
-            end            
-            hca.XLabel.String = sprintf('%s ()',varstr(1));
-            hca.YLabel.String = sprintf('%s ()',varstr(2:end)); 
-            hca.XGrid = 'on';
-            hca.YGrid = 'on';
-          case {'xy','yz','xz','xz','yz','zy'}
-            plot(hca,obj.(varstr(1)),obj.(varstr(2)))
-            hca.XLabel.String = sprintf('%s (d_i)',varstr(1));
-            hca.YLabel.String = sprintf('%s (d_i)',varstr(2)); 
-            hca.XGrid = 'on';
-            hca.YGrid = 'on';
-          case {'xyz','yzx','zxy','zyx','yxz','xzy'}
-            plot2(hca,obj.(varstr(1)),obj.(varstr(2)),obj.(varstr(3)))
-            hca.XLabel.String = sprintf('%s (d_i)',varstr(1));
-            hca.YLabel.String = sprintf('%s (d_i)',varstr(2)); 
-            hca.YLabel.String = sprintf('%s (d_i)',varstr(3)); 
-            hca.XGrid = 'on';
-            hca.YGrid = 'on';
-          case {'vxvy','vyvz','vxvz','vxvz','vyvz','vzvy',...
-                'vxEx','vxEy','vxEz','vyEx','vyEy','vyEz','vzEx','vzEy','vzEz'}
-            plot(hca,obj.(varstr(1:2)),obj.(varstr(3:4)));
-            hca.XLabel.String = sprintf('%s (d_i)',varstr(1:2));
-            hca.YLabel.String = sprintf('%s (d_i)',varstr(3:4)); 
-            hca.XGrid = 'on';
-            hca.YGrid = 'on';
-          otherwise
-            warning(sprintf('Variable %s not supported/implemented.',varstr_split{1}))
+        varstr_split_vars = strsplit(varstrs{ivar},',');
+        nvars = numel(varstr_split_vars);
+        legs = cell(0);
+        for ivar = 1:nvars
+          varstr_split = strsplit(varstr_split_vars{ivar},'_');
+          varstr = varstr_split{1};
+          holdOn = 0;
+          switch varstr
+            case {'tU','tU','tU','tUx','tUx','tUx','tUy','tUy','tUy','tUz','tUz','tUz',...
+                'tW','tW','tW','tWx','tWx','tWx','tWy','tWy','tWy','tWz','tWz','tWz',...
+                'tEx','tEx','tEx','tEy','tEy','tEy','tEz','tEz','tEz',...
+                'tvx','tvx','tvx','tvy','tvy','tvy','tvz','tvz','tvz',...
+                'tx','ty','tz'}
+              if numel(varstr_split) > 1 && strcmp(varstr_split{2},'cumsum')
+                plot(hca,obj.(varstr(1)),cumsum(obj.(varstr(2:end)),'omitnan'))
+              else
+                plot(hca,obj.(varstr(1)),obj.(varstr(2:end)))
+              end                        
+              %plot(hca,obj.(varstr(1)),obj.(varstr(2:end)))
+              hca.XLabel.String = sprintf('%s ()',varstr(1));
+              hca.YLabel.String = sprintf('%s ()',varstr(2:end)); 
+              hca.XGrid = 'on';
+              hca.YGrid = 'on';
+            case {'xU','yU','zU','xUx','yUx','zUx','xUy','yUy','zUy','xUz','yUz','zUz',...
+                'xW','yW','zW','xWx','yWx','zWx','xWy','yWy','zWy','xWz','yWz','zWz',...
+                'xEx','yEx','zEx','xEy','yEy','zEy','xEz','yEz','zEz',...
+                'xvx','yvx','zvx','xvy','yvy','zvy','xvz','yvz','zvz'}
+              if numel(varstr_split) > 1 && strcmp(varstr_split{2},'cumsum')
+                plot(hca,obj.(varstr(1)),cumsum(obj.(varstr(2:end)),'omitnan'))
+              else
+                plot(hca,obj.(varstr(1)),obj.(varstr(2:end)))
+              end            
+              hca.XLabel.String = sprintf('%s ()',varstr(1));
+              hca.YLabel.String = sprintf('%s ()',varstr(2:end)); 
+              hca.XGrid = 'on';
+              hca.YGrid = 'on';
+            case {'xy','yz','xz','xz','yz','zy'}
+              plot(hca,obj.(varstr(1)),obj.(varstr(2)))
+              hca.XLabel.String = sprintf('%s (d_i)',varstr(1));
+              hca.YLabel.String = sprintf('%s (d_i)',varstr(2)); 
+              hca.XGrid = 'on';
+              hca.YGrid = 'on';
+            case {'xyz','yzx','zxy','zyx','yxz','xzy'}
+              plot2(hca,obj.(varstr(1)),obj.(varstr(2)),obj.(varstr(3)))
+              hca.XLabel.String = sprintf('%s (d_i)',varstr(1));
+              hca.YLabel.String = sprintf('%s (d_i)',varstr(2)); 
+              hca.YLabel.String = sprintf('%s (d_i)',varstr(3)); 
+              hca.XGrid = 'on';
+              hca.YGrid = 'on';
+            case {'vxvy','vxvz','vyvx','vzvx','vyvz','vzvy',...
+                  'vxEx','vxEy','vxEz','vyEx','vyEy','vyEz','vzEx','vzEy','vzEz',...
+                  'WxWy','WxWz','WyWx','WzWx','WyWz','WzWy'}
+              plot(hca,obj.(varstr(1:2)),obj.(varstr(3:4)));
+              hca.XLabel.String = sprintf('%s (d_i)',varstr(1:2));
+              hca.YLabel.String = sprintf('%s (d_i)',varstr(3:4)); 
+              hca.XGrid = 'on';
+              hca.YGrid = 'on';
+            otherwise
+              warning(sprintf('Variable %s not supported/implemented.',varstr_split{1}))          
+          end
+          legs{end+1} = varstr_split_vars{ivar};
+          if ivar == 1 && holdOn  == 0
+            hold(hca,'on')
+            holdOn = 1;
+          end
+        end
+        
+        if nvars > 1
+          legend(hca,legs,'location','west','interpreter','none')
         end
       end
     end
     function h = plot_all_xz(obj,varargin)
       % PICTRAJ.PLOT_ALL_XZ Plots all trajectories in xz plane.
       
+      % Defaults
+      color = [0 0 0];
+      doColor = 1;
+      cmap = pic_colors('waterfall'); % maybe I should build-in the cmap
+      have_input = 0;
+      if nargin > 0; have_input = 1; args = varargin; end
+      while have_input
+        l = 2;
+        switch lower(args{1})          
+          case {'color'}
+            doColor = 1;
+            color = args{2};
+            l = 2;
+          otherwise
+            warning(sprintf('Unknown input %s.',args{1}))
+        end
+        args = args{l+1:end};            
+      end
+      
+      
       for itr = 1:obj.ntr
+        if numel(color) == obj.ntr
+          crange = [min(color) max(color)];
+          tmpColor = cmap2color(cmap,crange,color(itr));
+        elseif all(size(color) == [obj.ntr 3])
+          tmpColor = color(itr,:);
+        end
         plot(obj(itr).x,obj(itr).z);
         if itr == 1
           hold(gca,'on')

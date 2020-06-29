@@ -686,9 +686,9 @@
     % Data analysis routines, time derivatives, interpolation, etc.
     function out = get_peaks(obj,nPeaks,spacingPeaks,iSpecies,varargin)
       
-      doVxlim = 0;
-      doVylim = 0;
-      doVzlim = 0;
+      vxlim = [];
+      vylim = [];
+      vzlim = [];
       have_options = 0;
       nargs = numel(varargin);      
       if nargs > 0, have_options = 1; args = varargin(:); end
@@ -705,8 +705,8 @@
             vylim = args{2};
             l = 2;  
           case {'vz'}
-            doVzlim = 1;
-            vzlim = args{2};
+            doVxlim = 1;
+            vxlim = args{2};
             l = 2;                 
           otherwise
             warning(sprintf('Input ''%s'' not recognized.',args{1}))            
@@ -723,14 +723,10 @@
           f = obj.f(it,id,iSpecies);
           ftmp = f.f;
           v = f.v;
-          if doVxlim, vxind = union(find(v<vxlim(1)),find(v>vxlim(2)));
-          else, vxind = []; end
-          if doVylim, vyind = union(find(v<vylim(1)),find(v>vylim(2)));
-          else, vyind = []; end
-          if doVzlim, vzind = union(find(v<vzlim(1)),find(v>vzlim(2)));
-          else, vzind = []; end
-          
-          ftmp(vxind,vyind,vzind) = NaN;
+          if doVzlim, vzind = intersect(find(v>vzlim(1),1,'first'),find(v<vzlim(2),1,'last'));
+          else 
+            vzind = find(v);
+          end
           
           for iPeak = 1:nPeaks
             [val,ind] = max(ftmp(:));

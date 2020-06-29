@@ -480,6 +480,9 @@ classdef PIC
       fileName = 'movie'; % .mp4/.gif added later
       doTrajectories = 0;
       colorTrajDot = [0 0 0];
+      doColorTrajDot = 0;
+      stepA = 0.5;
+      colorMapTraj = pic_colors('waterfall');
       
       ntimes = obj.length;
       
@@ -497,7 +500,7 @@ classdef PIC
             l = 2;         
           case {'trajcolordot'}
             doColorTrajDot = 1;
-            colorTrajDot = args{2};
+            cTrajDot = args{2};
             l = 2;
           case 'a'
             doA = 1;
@@ -527,18 +530,24 @@ classdef PIC
          
       
       if doColorTrajDot
-        if or(size(colorTrajDot==[tr.ntr 1]),size(colorTrajDot==[1 tr.ntr]))
-          if unique(colorTrajDot)<=7
-            colors = [     0    0.4470    0.7410; % matlab colors
+        if ischar(cTrajDot)
+          colorTrajDot = cTrajDot; % color will be assigned further down, when trajectory is loaded
+        elseif 0%any(or(size(cTrajDot)==[tr.ntr 1],size(cTrajDot)==[1 tr.ntr]))
+          if numel(unique(cTrajDot))<=7
+             % matlab colors
+            colors = [     0    0.4470    0.7410;
                       0.8500    0.3250    0.0980;
                       0.9290    0.6940    0.1250;
                       0.4940    0.1840    0.5560;
                       0.4660    0.6740    0.1880;
                       0.3010    0.7450    0.9330;
-                      0.6350    0.0780    0.1840]
+                      0.6350    0.0780    0.1840];
             for itr = 1:tr.ntr
-              colorTrajDot(itr,:) = 
+              colorTrajDot(itr,:) = colors(fix(cTrajDot(itr)),:);
             end
+          else
+            colorTrajDot = reshape(cTrajDot,tr.ntr,1);
+          end
         end
       end
       % setup figure
@@ -576,19 +585,36 @@ classdef PIC
             hca = h(ip);
 
             % check if input demand som andditional input, e.g. n(1)
-            if strfind(varstrs{ivar},'(')
-              ind1 = strfind(varstrs{ivar},'(');
-              ind2 = strfind(varstrs{ivar},')');
-              %varsplit = regexp(varstrs{ivar}, '(?<var>\w+)\W+(?<ind>\d)\W+','names');
-              indstr = varstrs{ivar}(ind1+1:ind2-1);
-              varstr =  varstrs{ivar}(1:ind1-1);
-              var = tmp_obj.(varstr)(eval(indstr));
-            else
-              var = tmp_obj.(varstrs{ivar});
-            end        
-            imagesc(hca,tmp_obj.xi,tmp_obj.zi,var');
-            hb(ivar) = colorbar('peer',hca);
-            hb(ivar).YLabel.String = varstrs{ivar};
+            if strfind(varstrs{ivar},'Acont') % only plot A contours        
+              plot(hca,NaN,NaN)
+              doA = 1;
+            else              
+              if strfind(varstrs{ivar},'(')
+                ind1 = strfind(varstrs{ivar},'(');
+                ind2 = strfind(varstrs{ivar},')');
+                %varsplit = regexp(varstrs{ivar}, '(?<var>\w+)\W+(?<ind>\d)\W+','names');
+                indstr = varstrs{ivar}(ind1+1:ind2-1);
+                varstr =  varstrs{ivar}(1:ind1-1);
+                var = tmp_obj.(varstr)(eval(indstr));
+              else
+                var = tmp_obj.(varstrs{ivar});
+              end        
+              imagesc(hca,tmp_obj.xi,tmp_obj.zi,var');
+              hb(ivar) = colorbar('peer',hca);
+              hb(ivar).YLabel.String = varstrs{ivar};
+              if doAdjustCLim
+                hca.CLim = clims{ip};
+                %colormap(cmap)
+              end
+              if doAdjustCMap
+              if isa(cmaps,'cell')
+                colormap(hca,cmaps{ip});
+              elseif isnumeric(cmaps)
+                colormap(hca,cmaps)
+              end
+              %colormap(cmap)
+            end
+            end
             hca.XLabel.String = 'x (d_i)';
             hca.YLabel.String = 'z (d_i)';
             hca.YDir = 'normal';
@@ -603,19 +629,7 @@ classdef PIC
               contour(hca,tmp_obj.xi(iAx),tmp_obj.zi(iAz),A(iAx,iAz)',levA,'k')
               hold(hca,'off')
               hca.CLim = clim; 
-            end            
-            if doAdjustCLim
-              hca.CLim = clims{ip};
-              %colormap(cmap)
-            end
-            if doAdjustCMap
-              if isa(cmaps,'cell')
-                colormap(hca,cmaps{ifield});
-              elseif isnumeric(cmaps)
-                colormap(hca,cmaps)
-              end
-              %colormap(cmap)
-            end
+            end        
             if doTrajectories
               hold(hca,'on')
               for itr = 1:tr.ntr
@@ -630,16 +644,24 @@ classdef PIC
                 znow = interp1(tt,zz,tmp_obj.twci);
                 plot(hca,tr(itr).x,tr(itr).z,'k')
                 if doColorTrajDot
-                  if or(size(colorTrajDot==[tr.ntr 1]),size(colorTrajDot==[1 tr.ntr]))
-                    
-                    colorTrajDot
+                  if ischar(colorTrajDot)
+                    var = tr(itr).(colorTrajDot); 
+                    var(idup) = [];
+                    coldot = interp1(tt,var,tmp_obj.twci);
+                  else
+                    coldot = colorTrajDot(itr,:);
                   end
+                else
+                  coldot = [0 0 0];
                 end
-                plot(hca,xnow,znow,'color',colorTrajDot,'markerSize',20,'marker','.','linestyle','none')                
+                %plot(hca,xnow,znow,'color',coldot,'markerSize',20,'marker','.','linestyle','none')
+                sc = scatter(hca,xnow,znow,40,coldot,'Marker','o','MarkerFaceColor','flat');
                 hp = plot(hca,tr(itr).x0,tr(itr).z0,'ko');
               end
               hold(hca,'off')
             end
+            hca.XLim = obj.xi([1 end]);
+            hca.YLim = obj.zi([1 end]);
            % drawnow;
           end
         end 
@@ -693,6 +715,9 @@ classdef PIC
       
       % Defaults
       doA = 0;
+      doAdjustCLim = 0;
+      cmap = pic_colors('blue_red');      
+      doAdjustCMap = 0;
       
       % Check input
       have_options = 0;
@@ -705,6 +730,14 @@ classdef PIC
             doA = 1;
             stepA = args{2};
             l = 2;
+          case 'clim'
+            l = 2;
+            doAdjustCLim = 1;  
+            clims = args{2};
+          case 'cmap'
+            l = 2;
+            doAdjustCMap = 1;
+            cmaps = args{2};
           otherwise 
             warning(sprintf('Unknown argument %s.',args{1}))
         end
@@ -764,6 +797,18 @@ classdef PIC
             hold(hca,'off')
           end
           hca.CLim = clim;
+          if doAdjustCLim
+            hca.CLim = clims{ip};
+            %colormap(cmap)
+          end
+          if doAdjustCMap
+          if isa(cmaps,'cell')
+            colormap(hca,cmaps{ip});
+          elseif isnumeric(cmaps)
+            colormap(hca,cmaps)
+          end
+          %colormap(cmap)
+        end
          % drawnow;
         end
       end 
@@ -1033,6 +1078,8 @@ classdef PIC
     % Interpolate fields    
     function out = interp(obj,x,z,t,field,varargin)
       % Interpolates fields to given x,z,t
+      %   out = interp(obj,x,z,t,field,varargin)
+      %
       
       % Check input
       
@@ -1059,7 +1106,7 @@ classdef PIC
       nPoints = numel(t);      
       var = nan(nPoints,1);
       
-      for iP = 1:nPoints      
+      for iP = 1:nPoints
         tmppic = obj.xlim(x(iP),'closest',nClosest).zlim(z(iP),'closest',nClosest).twcilim(t(iP),'closest',nClosest);  
 
         tmpt =  tmppic.twci;
@@ -1494,7 +1541,10 @@ classdef PIC
         % Integrate trajectory
         %options = odeset();
         %options = odeset('AbsTol',1e-14,'Events',@exitBox);
-        options = odeset('Events',@exitBox,varargin{:});
+        %options = odeset('Events',@exitBox,varargin{:},'Events', @myEventCrossEquator);
+        %options = odeset('Events',@exitBox,varargin{:},'Events', @(tt,xx) myEventCrossEquator(tt,xx,0));
+        options = odeset('Events',@exitBox,varargin{:},'Events', @(tt,xx) myEventBoxEdge(tt,xx,obj.xi(([1 end]))));
+        %options = odeset('Events',@exitBox,varargin{:},'Events', @(tt,xx) myEventBoxEdge(tt,xx,[190 210]));
         %options = odeset('AbsTol',1e-7,'AbsTol',1e-9,'Events',@exitBox);
         %options = odeset('RelTol',1e-6);
         EoM = @(ttt,xxx) eom_pic_internal(ttt,xxx,obj,m,q); 
@@ -1621,6 +1671,18 @@ classdef PIC
         x_res(5) = (q/m)*(Ey + vz*Bx - vx*Bz);
         x_res(6) = (q/m)*(Ez + vx*By - vy*Bx);                                              
 
+      end      
+      function [value, isterminal, direction] = myEventBoxEdge(t, x_vect,boxedge)
+        % integration is terminated when value changes sign
+        % for this setup, value is initially negative
+        value      = (x_vect(1)-boxedge(1))*(x_vect(1)-boxedge(2));        
+        isterminal = 1;   % Stop the integration
+        direction  = 0;
+      end
+      function [value, isterminal, direction] = myEventCrossEquator(t, x_vect,z)
+        value      = x_vect(3) - z;
+        isterminal = 1;   % Stop the integration
+        direction  = 0;
       end
     end    
     function out = integrate_trajectory_constant_EB(obj,r0,v0,tstart,tstop,m,q)
@@ -1931,6 +1993,8 @@ classdef PIC
         iAtt = find(contains({fileInfo.Groups(iGroup).Groups(iIter).Attributes.Name},'time'));
         time(iIter) = fileInfo.Groups(iGroup).Groups(iIter).Attributes(iAtt).Value;
       end
+      precision = 10; % after I change the timestep for nobg, there were some very small number in the 9th digit
+      time = fix(time*precision)/precision;
       out = time;
     end
     function out = get_iterations(obj)
@@ -2411,6 +2475,90 @@ classdef PIC
 %       out = obj.mass(species)*obj.wpewce^2*(vxx + vyy + vzz)/3;
       out = (obj.vxx(species) + obj.vyy(species) + obj.vzz(species))/3;
     end
+    function out = pDxx(obj,species)
+      % Get dynamical pressure mn(vx^2 + vy^2 + vz^2)/3
+      % Kinetic energy is (3/2)*p_dyn (=mv^2/2)
+      
+      mass_sp = obj.mass; 
+      if numel(unique(mass_sp(species))) > 1
+        error('All species do not have the same mass.'); 
+      else
+        mass_sp = mass_sp(species(1));
+      end
+      charge = obj.get_charge; charge(species);
+      if numel(unique(charge(species))) > 1
+        error('All species do not have the same charge.');         
+      end
+      
+      dfac = obj.get_dfac;
+      % Initialize variables
+      n = zeros(numel(obj.xi),numel(obj.zi),obj.length);
+      vs = zeros(numel(obj.xi),numel(obj.zi),obj.length);
+      
+      % Sum over species
+      for iSpecies = species                
+        n = n + obj.get_field(sprintf('dns/%.0f',iSpecies))*dfac(iSpecies);  % density      
+        vs = vs + obj.get_field(sprintf('vxs/%.0f',iSpecies))*dfac(iSpecies); % flux        
+      end        
+      % p_dyn =  mnvv
+      out = mass_sp*obj.wpewce^2*(vs.*vs)./n/3;
+    end
+    function out = pDyy(obj,species)
+      % Get dynamical pressure mn(vx^2 + vy^2 + vz^2)/3
+      % Kinetic energy is (3/2)*p_dyn (=mv^2/2)
+      
+      mass_sp = obj.mass; 
+      if numel(unique(mass_sp(species))) > 1
+        error('All species do not have the same mass.'); 
+      else
+        mass_sp = mass_sp(species(1));
+      end
+      charge = obj.get_charge; charge(species);
+      if numel(unique(charge(species))) > 1
+        error('All species do not have the same charge.');         
+      end
+      
+      dfac = obj.get_dfac;
+      % Initialize variables
+      n = zeros(numel(obj.xi),numel(obj.zi),obj.length);
+      vs = zeros(numel(obj.xi),numel(obj.zi),obj.length);
+      
+      % Sum over species
+      for iSpecies = species                
+        n = n + obj.get_field(sprintf('dns/%.0f',iSpecies))*dfac(iSpecies);  % density      
+        vs = vs + obj.get_field(sprintf('vxs/%.0f',iSpecies))*dfac(iSpecies); % flux        
+      end        
+      % p_dyn =  mnvv
+      out = mass_sp*obj.wpewce^2*(vs.*vs)./n/3;
+    end
+    function out = pDzz(obj,species)
+      % Get dynamical pressure mn(vx^2 + vy^2 + vz^2)/3
+      % Kinetic energy is (3/2)*p_dyn (=mv^2/2)
+      
+      mass_sp = obj.mass; 
+      if numel(unique(mass_sp(species))) > 1
+        error('All species do not have the same mass.'); 
+      else
+        mass_sp = mass_sp(species(1));
+      end
+      charge = obj.get_charge; charge(species);
+      if numel(unique(charge(species))) > 1
+        error('All species do not have the same charge.');         
+      end
+      
+      dfac = obj.get_dfac;
+      % Initialize variables
+      n = zeros(numel(obj.xi),numel(obj.zi),obj.length);
+      vs = zeros(numel(obj.xi),numel(obj.zi),obj.length);
+      
+      % Sum over species
+      for iSpecies = species                
+        n = n + obj.get_field(sprintf('dns/%.0f',iSpecies))*dfac(iSpecies);  % density      
+        vs = vs + obj.get_field(sprintf('vxs/%.0f',iSpecies))*dfac(iSpecies); % flux        
+      end        
+      % p_dyn =  mnvv
+      out = mass_sp*obj.wpewce^2*(vs.*vs)./n/3;
+    end
     function out = pD(obj,species)
       % Get dynamical pressure mn(vx^2 + vy^2 + vz^2)/3
       % Kinetic energy is (3/2)*p_dyn (=mv^2/2)
@@ -2852,6 +3000,14 @@ classdef PIC
       out.par = t_par;
       out.scal = t_scal;
     end
+    function out = tperp(obj,species)
+      tfac = obj.t_fac(species);
+      out = tfac.perp;       
+    end
+    function out = tpar(obj,species)
+      tfac = obj.t_fac(species);
+      out = tfac.par;       
+    end
     function out = txx(obj,species)
       n = obj.n(species);
       p = obj.pxx(species);
@@ -3150,6 +3306,48 @@ classdef PIC
     function out = ldezz(obj,species)
       out = lde(obj,species,'zz');
     end
+    function out = magmom(obj,species)
+      vtperp = obj.vt(species,'perp');
+      Bx = obj.Bx;
+      By = obj.By;
+      Bz = obj.Bz;
+      B = sqrt(Bx.^2 + By.^2 + Bz.^2);
+      mass = obj.mass(species(1))/obj.mass(1);
+      out = 0.5*mass.*vtperp.^2./B;
+    end
+    function out = gradp(obj,species)
+      pxx = obj.pxx(species);
+      pyy = obj.pyy(species);
+      pzz = obj.pzz(species);
+      p = (pxx+pyy+pzz)/3;
+      T = p;
+            
+      dx = obj.xi(2)-obj.xi(1);
+      dy = Inf;
+      dz = obj.zi(2)-obj.zi(1);
+
+      diff_order = 1; % using diff_order = 2 seems to not work as well
+      if diff_order == 1
+        dxT = [diff(T(1:2,:),1,1); T(2:end,:)-T(1:(end-1),:)];
+        dyT = T*0;
+        %dzT = [diff(T(:,1:2),1,2), diff(T,diff_order,2)];
+        dzT = [diff(T(:,1:2),1,2), T(:,2:end)-T(:,1:(end-1))];
+      else diff_order == 2
+        dxT = [2*diff(T(1:2,:),1,1); diff(T,diff_order,1); 2*diff(T((end-1):end,:),1,1)];
+        dyT = T*0;
+        dzT = [2*diff(T(:,1:2),1,2), diff(T,diff_order,2), 2*diff(T(:,(end-1):end),1,2)];
+      end
+
+      div_x = dxT/dx/diff_order;
+      div_y = dyT/dy/diff_order;
+      div_z = dzT/dz/diff_order;
+
+      out.x = div_x;
+      out.y = div_y;
+      out.z = div_z;
+      out.abs = sqrt(div_x.^2 + div_y.^2 + div_z.^2);
+    end
+    function out 
     % Stored, not implemented for Smilei
     function out = UB(obj)
       % Magnetic energy density 0.5*(Bx^2 + By^2 + Bz^2) summed up
@@ -3440,9 +3638,9 @@ classdef PIC
         a(ixlim,:) = aDF*multiplier(ixlim);
         B(ixlim,:) = Bz_peak;
       end
-    end
-    
-    % Get and set properties    
+    end    
+  end
+  methods % Get and set properties
     function obj = set.fields(obj,value)
       obj.fields_ = value;
     end
@@ -3523,7 +3721,6 @@ classdef PIC
       value = obj.iz_;
     end
   end
-  
   methods (Static) % does not require object as input, but still needs to be called as obj.func (?)
     function out = ind_from_lim(var,value,varargin)
       % method is the same for xlim, zlim ilim, i, twpelim, twcilim
@@ -3748,8 +3945,7 @@ classdef PIC
     end
     function out = curl_vector(x,z,vx,vy,vz)
     end
-  end
-  
+  end  
   methods (Access = protected)
     function out = get_binned_quantity(obj,field,iSpecies)
       % Get binned quantities from Smilei simulation
