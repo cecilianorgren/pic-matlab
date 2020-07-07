@@ -1,23 +1,58 @@
-% figures
-df04 = PIC('/Volumes/Fountain/Data/PIC/df_cold_protons_n04/data_h5/fields.h5');
-df04n = PIC('/Volumes/Fountain/Data/PIC/df_cold_protons_04_new_boundary/data_h5/fields.h5');
-bs = PIC('/Volumes/Fountain/Data/PIC/baselinev4/data_h5/fields.h5');
+%% Figure 1, reconnection rate vs density and temperature
+pic = nobg;
 
-df04n_nxline_z1 = interp(df04n,df04n.x_xline,df04n.z_xline+1,df04n.twci,'ne');
-df04n_nxline_z0 = interp(df04n,df04n.x_xline,df04n.z_xline+0,df04n.twci,'ne');
+zlim = [-0.1 0.1];
+xlim = diff(pic.xi([1 end]))/2 + [-130 130];
+twcilim = [100 300];
+pic_Bz = pic.zlim(zlim).xlim(xlim).twcilim(twcilim); 
+Bz_tx = pic_Bz.Bz; 
+Bz_tx = squeeze(mean(Bz_tx,2));
 
-df04_nxline_z1 = interp(df04,df04.x_xline,df04.z_xline+1,df04.twci,'ne');
-df04_nxline_z0 = interp(df04,df04.x_xline,df04.z_xline+0,df04.twci,'ne');
+n_tx = pic_Bz.ni; 
+n_tx = squeeze(mean(n_tx,2));
 
-bs_nxline_z1 = interp(bs,bs.x_xline,bs.z_xline+1,bs.twci,'ne');
-bs_nxline_z0 = interp(bs,bs.x_xline,bs.z_xline+0,bs.twci,'ne');
+if 0% Calculate density at and above xline
+  % reconnection_rate_vs_density
+  pic_Bxline_z1 = interp(pic,pic.x_xline,pic.z_xline+1,pic.twci,'Bx');
+  pic_nxline_z1 = interp(pic,pic.x_xline,pic.z_xline+1,pic.twci,'ne');
+  pic_nxline_z0 = interp(pic,pic.x_xline,pic.z_xline+0,pic.twci,'ne');
+end
 
-%% Figure
+nrows = 3;
+ncols = 1;
+npanels = nrows*ncols;
+h = setup_subplots(nrows,ncols);
+isub = 1;
+
+if 1 % bz(x,t)
+  hca = h(isub); isub = isub + 1;
+  pcolor(hca,pic_Bz.twci,pic_Bz.xi,Bz_tx)
+  shading(hca,'flat')
+  hb = colorbar('peer',hca);
+  hb.YLabel.String = sprintf('B_z(x,t,%.1f<z<%.1f)',pic_Bz.zi(1),pic_Bz.zi(end));
+  hca.XLabel.String = 't (\omega_{ci}^{-1})';
+  hca.YLabel.String = 'x (d_i)';
+end
+if 1 % n(x,t)
+  hca = h(isub); isub = isub + 1;
+  pcolor(hca,pic_Bz.twci,pic_Bz.xi,n_tx)
+  shading(hca,'flat')
+  hb = colorbar('peer',hca);
+  hb.YLabel.String = sprintf('n(x,t,%.1f<z<%.1f)',pic_Bz.zi(1),pic_Bz.zi(end));
+  hca.XLabel.String = 't (\omega_{ci}^{-1})';
+  hca.YLabel.String = 'x (d_i)';
+end
+%% Figure 1
+pic = nobg;
+% Calculate density at and above xline
+pic_Bxline_z1 = pic.interp(pic.x_xline,pic.z_xline+1,pic.twci,'Bx');
+pic_nxline_z1 = pic.interp(pic.x_xline,pic.z_xline+1,pic.twci,'ne');
+pic_nxline_z0 = pic.interp(pic.x_xline,pic.z_xline+0,pic.twci,'ne');
+pic_tixline_z1 = pic.interp(pic.x_xline,pic.z_xline+1,pic.twci,'ti');
+% Figure
 zlim = [-0.5 0.5];
 xlim = [100 300];
-pic = bs.zlim(zlim).xlim(xlim);
-pic_nxline_z1 = bs_nxline_z1;
-pic_nxline_z0 = bs_nxline_z0;
+pic = pic.zlim(zlim).xlim(xlim);
 
 %pic1 = df04.zlim(zlim).xlim(xlim);
 %pic2 = df04n.zlim(zlim).xlim(xlim);
@@ -25,7 +60,7 @@ pic_nxline_z0 = bs_nxline_z0;
 %A2 = squeeze(mean(pic2.A,2));
 %R1 = reconnection_rate(timesteps/200,'A',A_ts,'E',E_ts(:,:,:,2));
 Alev = -25:1:25;
-doA = 1;
+doA = 0;
 istepA = 3;
 
 nrows = 1;
@@ -248,7 +283,7 @@ end
 
 fig = gcf; h = findobj(fig.Children,'type','axes');
 hlinks = linkprop(h,{'YLim'});
-h(1).YLim = pic.twci([1 end])
+h(1).YLim = pic.twci([1 end]);
 
 for ip = 2:npanels
   h(ip).YTickLabel = [];
@@ -269,3 +304,5 @@ for ip = 1:numel(allh)
   %hb(ip).FontSize = 14;
   
 end
+
+%% Figure 2. Reduced distributions f(x,vx), f(x,vy), f(x,vz) for a few different times

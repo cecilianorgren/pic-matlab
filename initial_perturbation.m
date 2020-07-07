@@ -4,13 +4,13 @@
 
 mass = 25; % not used
 wpewce = 2; % not used
-xmax = 50; % sixe of box
-zmax = 15; % size of box
+xmax = 20; % sixe of box
+zmax = 5; % size of box
 B0 = 1; % harris sheet asymptotic amplitude
 BG = 0*0.5;
 zh = 1; % harris sheet width
-xp = 1*zh; % scale length of perturbation
-zp = 1*zh; % scale length of perturbation
+xp = 2*zh; % scale length of perturbation
+zp = 1.5*zh; % scale length of perturbation
 ah = B0*zh; % amplitude of harris sheet
 ap = ah*0.5; % amplitude of perturbation
 TeTi = 5; % not used, implement to get densities
@@ -37,9 +37,11 @@ doLocal = 0;
 AH = [0; -ah*log(cosh(z/zh)); 0]; 
 % Perturbation
 AP = [0; -ap*exp(-x^2/2/xp^2 -z^2/2/zp^2 + 0.0); 0]; % circular perturbation
+AP = [0; -ap*exp(-x^2/2/xp^2 -z^2/2/zp^2 + 0.0); 0]; % circular perturbation
+%AP = [0; -ap*cos(2*pi*(x)/xmax)*cos(pi*(z)/zmax)*exp(-x^2/2/xp^2 -z^2/2/zp^2 + 0.0); 0]; % circular perturbation
 AG = [BG*z + 1*BG*log(cosh((z-z0_BG)/zL_BG)); 0; 0]; % guide field
 %AP = [0; ah*log(cosh(z/zh))*exp(-x^2/2/xp^2 -z^2/2/zp^2); 0]; 
-%AP = [0 a0*sin(0.5*pi*(1+x/xm))*sin(0.5*pi*(1+z/zm)) 0];
+%AP = [0; ap*sin(0.5*pi*(1+x/10/xp))*sin(0.5*pi*(1+z/zp)); 0];
 %AP = [0 ap*exp(-x^2/2/xp^2 + 0.5)*cos(pi*z/lz) 0];
 %AP = [0 a0*sech(pi*x/xm)*sech(pi*z/zm) 0];
 %AP = [0 0+a0*cos(0.5*pi*(x/xm))*cos(0.5*pi*(z/zm)) 0];

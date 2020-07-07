@@ -49,13 +49,6 @@ ybottom = min(unique_ypos);
 for iax = 1:nax  
   ax(iax).Position(4) = new_yheight;  
   ax(iax).Position(2) = ybottom + (new_yheight + space)*(n_rows-row(iax));
-  if iax == 1 % keep as is
-    
-  else
-    %ax(iax).Position(2) = ax(iax-1).Position(2) + ax(iax-1).Position(4) + space;
-   % ax(iax).Position(4) = new_yheight;
-   
-  end
 end
 
 if doX  
@@ -65,6 +58,8 @@ if doX
   %xhighbound = max([1+space max(xplus)]);
   xlowbound = 0.5*space_x;
   xhighbound = 1-space_x;
+  xlowbound = min(xminus);
+  xhighbound = max(xplus);
   new_xheight = (xhighbound-xlowbound-(n_cols-1)*space_x)/n_cols;
   xbottom = min(unique_xpos);
   xbottom = xlowbound;
@@ -72,13 +67,6 @@ if doX
   for iax = 1:nax  
     ax(iax).Position(3) = new_xheight;  
     ax(iax).Position(1) = xbottom + (new_xheight + space_x)*(n_cols-col(iax));
-    if iax == 1 % keep as is
-
-    else
-      %ax(iax).Position(2) = ax(iax-1).Position(2) + ax(iax-1).Position(4) + space;
-     % ax(iax).Position(4) = new_yheight;
-
-    end
   end
   xshift = 0.0;
   for iax = 1:nax  

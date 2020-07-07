@@ -5,7 +5,7 @@ localuser = datastore('local','user');
 
 it = 2;
 if 1
-  iSpecies = [5];
+  iSpecies = [3 5];
   %ds = ds04(it).xlim([166 169]+[-0.1 0.1]).zlim([-0.1 0.6]);
 %  ds = ds04(it).xlim([190 203]).zlim([-0.1 0.1]); % top row.
 else % electrons
@@ -18,9 +18,11 @@ ds = ds04.twcilim(120).zlim([-0.2 0.2]).dxlim([0 0.25]).xfind([180:1:210]);
 ds = ds04.twcilim(140).zlim([-0.2 0.2]).dxlim([0 0.25]).xfind([177:1:210]);
 ds = ds04.twcilim(160).zlim([-0.2 0.2]).dxlim([0 0.25]).xfind([166:1:205]);
 ds = ds04.twcilim(160).zlim([-0.2 0.2]).dxlim([0 0.25]).xfind([167:0.2:175]);
+ds = ds04.twcilim(160).zlim(2+[-0.2 0.2]).dxlim([0 0.25]).xfind([165:0.2:175]);
+ds = ds04.twcilim(160).zfind(2).dxlim([0 0.25]).xfind([169.8:0.2:170.2]);
 
-nPeaks = 3;
-spacingPeaks = 7; % for ions its 2 equals 0.2 vA
+nPeaks = 7;
+spacingPeaks = 5; % for ions its 2 equals 0.2 vA
 fpeaks = ds.get_peaks(nPeaks,spacingPeaks,iSpecies); % ,'vz',[-0.19 0.19]
 
 nDists = ds.nd;

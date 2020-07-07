@@ -2,8 +2,8 @@
 n0 = 1;
 L0 = 1;
 nL = 0.2;
-LL = 2.0;
-wL = LL*0.2;
+LL = 2;
+wL = LL*0.25;
 n_harris = @(n0,L,z) n0*cosh(z/L).^(-2);
 n_lobe = @(n0,L,z) nL - n_harris(n0,L,z);
 n_lobe1 = @(n0,L,z) 0.5*nL*(1+tanh((z-1*L)/wL));

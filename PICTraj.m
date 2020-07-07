@@ -306,6 +306,44 @@
         out(itr) = sum(W);
       end
     end
+    function out = vB(obj,comp)
+      % any combination of vB
+      % out = vB(obj,'xy')
+      for itr = 1:obj.ntr
+        obj_tmp = obj(itr).rem_duplicates;                  
+        v = obj_tmp.(['v' comp(1)]);
+        B = obj_tmp.(['B' comp(2)]);                  
+        out(itr).vB = v.*B;
+      end
+      
+      if obj.ntr == 1
+        out = out.vB;
+      end
+    end
+    function out = vxBy(obj)
+      % See also PICTraj.vB
+      out = obj.vB('xy');
+    end
+    function out = vyBx(obj)
+      % See also PICTraj.vB
+      out = obj.vB('yx');
+    end
+    function out = vxBz(obj)
+      % See also PICTraj.vB
+      out = obj.vB('xz');
+    end
+    function out = vzBx(obj)
+      % See also PICTraj.vB
+      out = obj.vB('zx');
+    end
+    function out = vyBz(obj)
+      % See also PICTraj.vB
+      out = obj.vB('yz');
+    end
+    function out = vzBy(obj)
+      % See also PICTraj.vB
+      out = obj.vB('zy');
+    end
     % Analysis
     function out = zcross(obj)
       % PICTraj.ZCROSS Locations where the particle crossez z = 0.
@@ -655,7 +693,7 @@
       end
                   
       % setup figure
-      fig = figure;      
+      %fig = figure;      
       [nrows,ncols] = size(varstrs);           
       npanels = nrows*ncols;
       ip = 0;
@@ -666,6 +704,7 @@
         end
       end
       
+      %for itr = 1:obj.ntr
       for ivar = 1:nvars
         hca = h(ivar);
         varstr_split_vars = strsplit(varstrs{ivar},',');
@@ -676,10 +715,13 @@
           varstr = varstr_split{1};
           holdOn = 0;
           switch varstr
-            case {'tU','tU','tU','tUx','tUx','tUx','tUy','tUy','tUy','tUz','tUz','tUz',...
-                'tW','tW','tW','tWx','tWx','tWx','tWy','tWy','tWy','tWz','tWz','tWz',...
-                'tEx','tEx','tEx','tEy','tEy','tEy','tEz','tEz','tEz',...
-                'tvx','tvx','tvx','tvy','tvy','tvy','tvz','tvz','tvz',...
+            case {'tU','tUx','tUy','tUz',...
+                'tW','tWx','tWy','tWz',...
+                'tEx','tEy','tEz',...
+                'tBx','tBy','tBz',...
+                'tEx','tEy','tEz',...
+                'tvxBy','tvyBx','tvxBz','tvzBx','tvyBz','tvzBy',...
+                'tvx','tvy','tvz',...
                 'tx','ty','tz'}
               if numel(varstr_split) > 1 && strcmp(varstr_split{2},'cumsum')
                 plot(hca,obj.(varstr(1)),cumsum(obj.(varstr(2:end)),'omitnan'))
@@ -694,6 +736,7 @@
             case {'xU','yU','zU','xUx','yUx','zUx','xUy','yUy','zUy','xUz','yUz','zUz',...
                 'xW','yW','zW','xWx','yWx','zWx','xWy','yWy','zWy','xWz','yWz','zWz',...
                 'xEx','yEx','zEx','xEy','yEy','zEy','xEz','yEz','zEz',...
+                'xBx','yBx','zBx','xBy','yBy','zBy','xBz','yBz','zBz',...
                 'xvx','yvx','zvx','xvy','yvy','zvy','xvz','yvz','zvz'}
               if numel(varstr_split) > 1 && strcmp(varstr_split{2},'cumsum')
                 plot(hca,obj.(varstr(1)),cumsum(obj.(varstr(2:end)),'omitnan'))
@@ -704,7 +747,7 @@
               hca.YLabel.String = sprintf('%s ()',varstr(2:end)); 
               hca.XGrid = 'on';
               hca.YGrid = 'on';
-            case {'xy','yz','xz','xz','yz','zy'}
+            case {'xy','yz','xz','yx','zy','zx'}
               plot(hca,obj.(varstr(1)),obj.(varstr(2)))
               hca.XLabel.String = sprintf('%s (d_i)',varstr(1));
               hca.YLabel.String = sprintf('%s (d_i)',varstr(2)); 
@@ -738,6 +781,9 @@
         if nvars > 1
           legend(hca,legs,'location','west','interpreter','none')
         end
+      end
+      if obj.ntr == 1
+        h(1).Title.String = sprintf('t_0w_{ci} = %.2f, [x_0,y_0,z_0] = [%.2f,%.2f,%.2f], [v_{x0},v_{y0},v_{z0}] = [%.2f,%.2f,%.2f]',obj.t0,obj.x0,obj.y0,obj.z0,obj.vx0,obj.vy0,obj.vz0);
       end
     end
     function h = plot_all_xz(obj,varargin)

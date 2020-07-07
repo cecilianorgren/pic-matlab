@@ -1,6 +1,8 @@
 %df04 = PIC('/Volumes/Fountain/Data/PIC/df_cold_protons_n04/data_h5/fields.h5');
-
 pic = nobg;
+missingAttr = pic.get_missing_attributes('RE');
+pic = pic.twcilim(pic.twci(missingAttr(1:end-2)),'exact');
+
 %% Energy partitioning, UB, UK, UT
 times = pic.twci;
 for it = 1:pic.nt
@@ -18,13 +20,24 @@ end
 xXlineAll = [];
 zXlineAll = [];
 EyXlineAll = [];
+xXline = [];
+zXline = [];
+Aval = [];
+Aall = nan(pic.nx,pic.nz,pic.nt);
 plot(nan,nan); hold on
 times = pic.twci;
+
 for it = 1:pic.nt
   pic_tmp = pic.twcilim(times(it));
   Bx = pic_tmp.Bx;
   Bz = pic_tmp.Bz;
+  if 1 % also magnetic pressure
+    By = pic_tmp.By;
+    Babs = sqrt(Bx.^2+By.^2+Bz.^2);
+    UB(it) = sum(Babs(:).^2)/2;  
+  end
   A = vector_potential(pic_tmp.xi,pic_tmp.zi,Bx,Bz);
+  Aall(:,:,it) = A;
   %A = pic_tmp.A;
   [Ainds,Avals] = saddle(A,'sort');
   xXline(it) = pic_tmp.xi(Ainds(1,1));
@@ -35,14 +48,14 @@ for it = 1:pic.nt
     xXlineAll = [xXlineAll pic_tmp.xi(Ainds(iX,1))];
     zXlineAll = [zXlineAll pic_tmp.zi(Ainds(iX,2))];
     EyXlineAll = [EyXlineAll mean(mean(pic_tmp.xlim(xXlineAll(end)+[-0.1 0.1]).zlim(zXlineAll(end)+[-0.1 0.1]).Ey))];
-    scatter(pic_tmp.twci,xXlineAll(end),abs(EyXlineAll(end))*100,iX)
+    scatter(pic_tmp.twci,xXlineAll(end),abs(EyXlineAll(end))*100+1,iX)
     drawnow
   end
   disp(sprintf('%g',it))
 end
 
-dA = diff(Aval);
-dt = diff(times);
+dA = diff(Aval(1:pic.nt));
+dt = diff(times(1:pic.nt));
 dAdt_ = dA./dt;
 dAdt = interp1(times(1:end-1)+0.5*dt,dAdt_,times);
 
@@ -52,10 +65,13 @@ dAdt = interp1(times(1:end-1)+0.5*dt,dAdt_,times);
 % end
 
 %% Write attributes
-h5write_attr(pic,times,'RE',EyXline)
-h5write_attr(pic,times,'RA',dAdt)
-h5write_attr(pic,times,'UB',UB)
-h5write_attr(pic,times,'xline_position',[xXline' zXline'])
+indsave = 1:(pic.nt-3);
+indsave = (pic.nt-2):pic.nt;
+%indsave = 1:pic.nt;
+h5write_attr(pic.subset('t',indsave),times(indsave),'RE',EyXline(indsave))
+h5write_attr(pic.subset('t',indsave),times(indsave),'RA',dAdt(indsave))
+h5write_attr(pic.subset('t',indsave),times(indsave),'UB',UB(indsave))
+h5write_attr(pic.subset('t',indsave),times(indsave),'xline_position',[xXline(indsave)' zXline(indsave)'])
 
 %% Write ancillary data (not attributes), for example A
 pic = bs;

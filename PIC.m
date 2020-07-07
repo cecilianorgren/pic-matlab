@@ -14,6 +14,7 @@ classdef PIC
     attributes
     info
     species
+    parent
   end
   
   properties (Access = protected)
@@ -108,8 +109,7 @@ classdef PIC
       obj.file = h5filePath; 
       obj.info = h5info(h5filePath);
       
-      % Check if it's SMILEI or micPIC (mic stands for Michael)
-      obj.attributes = get_attributes(obj);
+      % Check if it's SMILEI or micPIC (mic stands for Michael)      
       obj.software = get_software(obj);
       
       if strcmp(obj.software,'Smilei') 
@@ -201,6 +201,8 @@ classdef PIC
         obj.fields_ = cat(1,obj.fields_(:),unique(namelist.deposited_quantity(:)));
       end
       toc
+      obj.parent = obj;
+      obj.attributes = get_attributes(obj);
     end
     
     function [varargout] = subsref(obj,idx)
@@ -293,48 +295,80 @@ classdef PIC
     function obj = xlim(obj,value,varargin)
       % Get subset of x          
       inds = obj.ind_from_lim(obj.xi_,value,varargin{:});
+      obj = obj.subset('x',inds);
       
       % Update grid and indices
-      obj.xe_ = obj.xe_(inds);
-      obj.xi_ = obj.xi_(inds);      
-      obj.grid_{1} = obj.grid_{1}(inds);
-      obj.ix_ = obj.grid_{1};
-      field_names = fields(obj.xivar);
-      for ifield = 1:numel(field_names)
-        obj.xivar.(field_names{ifield}) = obj.xivar.(field_names{ifield})(inds);
-      end
-      
+%       obj.xe_ = obj.xe_(inds);
+%       obj.xi_ = obj.xi_(inds);      
+%       obj.grid_{1} = obj.grid_{1}(inds);
+%       obj.ix_ = obj.grid_{1};
+%       field_names = fields(obj.xivar);
+%       for ifield = 1:numel(field_names)
+%         obj.xivar.(field_names{ifield}) = obj.xivar.(field_names{ifield})(inds);
+%       end
+%       
     end
     function obj = zlim(obj,value,varargin)
       % Get subset of z
       inds = obj.ind_from_lim(obj.zi_,value,varargin{:});
-
-      obj.ze_ = obj.ze_(inds);
-      obj.zi_ = obj.zi_(inds);      
-      obj.grid_{2} = obj.grid_{2}(inds);
-      obj.iz_ = obj.grid_{2};  
-      field_names = fields(obj.zivar);
-      for ifield = 1:numel(field_names)
-        obj.zivar.(field_names{ifield}) = obj.zivar.(field_names{ifield})(inds);
-      end
+      obj = obj.subset('z',inds);
+%       obj.ze_ = obj.ze_(inds);
+%       obj.zi_ = obj.zi_(inds);      
+%       obj.grid_{2} = obj.grid_{2}(inds);
+%       obj.iz_ = obj.grid_{2};  
+%       field_names = fields(obj.zivar);
+%       for ifield = 1:numel(field_names)
+%         obj.zivar.(field_names{ifield}) = obj.zivar.(field_names{ifield})(inds);
+%       end
     end
     function obj = twpelim(obj,value,varargin)
       % Get subset of twpe
-      inds = obj.ind_from_lim(obj.twpe_,value,varargin{:});
-      obj.twpe_ = obj.twpe_(inds);
-      obj.twci_ = obj.twci_(inds);
-      obj.it_ = obj.it_(inds);
-      obj.indices_ = obj.indices_(inds);
-      obj.iteration_ = obj.iteration_(inds);
+      inds = obj.ind_from_lim(obj.twpe_,value,varargin{:});    
+      obj = obj.subset('t',inds);
+%       obj.twpe_ = obj.twpe_(inds);
+%       obj.twci_ = obj.twci_(inds);
+%       obj.it_ = obj.it_(inds);
+%       obj.indices_ = obj.indices_(inds);
+%       obj.iteration_ = obj.iteration_(inds);
     end
     function obj = twcilim(obj,value,varargin)
       % Get subset of twci
-      inds = obj.ind_from_lim(obj.twci,value,varargin{:});
-      obj.twpe_ = obj.twpe_(inds);
-      obj.twci_ = obj.twci_(inds);
-      obj.it_ = obj.it_(inds);
-      obj.indices_ = obj.indices_(inds);
-      obj.iteration_ = obj.iteration_(inds);
+      inds = obj.ind_from_lim(obj.twci,value,varargin{:});    
+      obj = obj.subset('t',inds);
+%       obj.twpe_ = obj.twpe_(inds);
+%       obj.twci_ = obj.twci_(inds);
+%       obj.it_ = obj.it_(inds);
+%       obj.indices_ = obj.indices_(inds);
+%       obj.iteration_ = obj.iteration_(inds);
+    end
+    function obj = subset(obj,comp,inds)
+      % select subset of indices
+      switch comp
+        case 't'
+          obj.twpe_ = obj.twpe_(inds);
+          obj.twci_ = obj.twci_(inds);
+          obj.it_ = obj.it_(inds);
+          obj.indices_ = obj.indices_(inds);
+          obj.iteration_ = obj.iteration_(inds);
+        case 'x'
+          obj.xe_ = obj.xe_(inds);
+          obj.xi_ = obj.xi_(inds);      
+          obj.grid_{1} = obj.grid_{1}(inds);
+          obj.ix_ = obj.grid_{1};
+          field_names = fields(obj.xivar);
+          for ifield = 1:numel(field_names)
+            obj.xivar.(field_names{ifield}) = obj.xivar.(field_names{ifield})(inds);
+          end
+        case 'z'          
+          obj.ze_ = obj.ze_(inds);
+          obj.zi_ = obj.zi_(inds);      
+          obj.grid_{2} = obj.grid_{2}(inds);
+          obj.iz_ = obj.grid_{2};  
+          field_names = fields(obj.zivar);
+          for ifield = 1:numel(field_names)
+            obj.zivar.(field_names{ifield}) = obj.zivar.(field_names{ifield})(inds);
+          end
+      end
     end
     
     % Plotting routines, for simple diagnostics etc
@@ -709,7 +743,184 @@ classdef PIC
       end
                      
     end
-    function varargout = plotmap(obj,varstrs,varargin)
+    function varargout = movie_line(obj,dim,varstrs_all,varargin)
+      % Plots variables directly loaded from file
+      % h = pic.plotline(dim,{{'Ex','Ey','Ez'},{'Bx','By','Bx'}})
+      % Plot variables as a function of dim: 'x' or 'z'
+      
+      doVideo = 1;
+      doGif = 0;
+      doYLim = 0;
+      fileName = 'movie'; % deafult filenam (including path, mp4 added later)
+      doSmooth = 0;
+     
+      % Which dimension to plot against
+      if strcmp(dim,'x')
+        plot_dep = obj.xi;
+        dep_lim = obj.xi([1 end]);
+        sum_dim = 2;
+        range = obj.zi([1 end]);
+        rangestr = 'z';
+      elseif strcmp(dim,'z')
+        plot_dep = obj.zi;
+        dep_lim = obj.zi([1 end]);
+        sum_dim = 1;
+        range = obj.xi([1 end]);
+        rangestr = 'x';        
+      else
+        error(sprintf('Unknown dependent dimension %s. Must be ''x'' or ''z''.',dim))
+      end
+            
+      % Check additional input      
+      have_options = 0;
+      nargs = numel(varargin);      
+      if nargs > 0, have_options = 1; args = varargin(:); end      
+      while have_options
+        l = 1;
+        switch(lower(args{1}))          
+          case 'ylim'
+            l = 2;
+            doYLim = 1;  
+            ylims = args{2};
+          case {'path','filename'}
+            l = 2;
+            fileName = args{2};
+          case {'smooth'}
+            l = 2;
+            doSmooth = 1;
+            npSmooth = args{2};
+          otherwise 
+            warning(sprintf('Unknown argument %s.',args{1}))
+        end
+        args = args(l+1:end);  
+        if isempty(args), break, end    
+      end
+      
+      [nrows,ncols] = size(varstrs_all);    
+      npanels = nrows*ncols;
+      ip = 0;
+      for irow = 1:nrows
+        for icol = 1:ncols
+          ip = ip + 1;
+          h(irow,icol) = subplot(nrows,ncols,ip);
+        end
+      end
+      
+        
+      if doVideo
+        vidObj = VideoWriter([fileName '.mp4'],'MPEG-4');
+        open(vidObj);
+      end
+      if doGif
+        iframe = 0;
+      end
+      
+      disp('Adjust figure size, then hit any key to continue.')
+      pause
+      
+      for it = 1:obj.nt
+        obj_tmp = obj.subset('t',it);
+        hleg = gobjects(0);
+        ip = 0;
+        for irow = 1:nrows
+          for icol = 1:ncols
+            ip = ip + 1;
+            isHoldOn = 0;
+            %ip = sub2ind([ncols nrows],icol,irow);
+            hca = h(irow,icol);
+            % check if input demand som andditional input, e.g. n(1)
+            varstrs = varstrs_all{ip};
+            nvars = numel(varstrs);
+            for ivar = 1:nvars
+              varstr = varstrs{ivar};
+              if strcmp(varstr(1),'-')
+                varmult = -1;
+                varstr = varstr(2:end);
+              else
+                varmult = 1;
+              end
+              if strfind(varstr,'(')
+                ind1 = strfind(varstr,'(');
+                ind2 = strfind(varstr,')');            
+                indstr = varstr(ind1+1:ind2-1);
+                varstr =  varstr(1:ind1-1);
+                var = varmult*obj_tmp.(varstr)(eval(indstr));
+              else
+                var = varmult*obj_tmp.(varstr);
+              end
+              displayname = [varstrs{ivar}];
+              
+              var = squeeze(mean(var,sum_dim));
+              if doSmooth
+                var = smooth(var,npSmooth);
+              end
+              plot(hca,plot_dep,var,'DisplayName',displayname);
+              if doYLim
+                hca.YLim = ylims{ip};
+              end
+              if not(isHoldOn)
+                hold(hca,'on')
+                isHoldOn = 1;
+              end              
+              hca.XLabel.String = [dim ' (d_i)'];
+            end
+            hold(hca,'off')
+            hca.XGrid = 'on';
+            hca.YGrid = 'on';
+            hleg(ip) = legend(hca,'location','eastoutside'); % this may make the panels of different widths, fix below
+          end
+        end
+        drawnow;
+        leftpos = 1;
+        for ip = 1:npanels, panel_width(ip) = h(ip).Position(3); end      
+        for ip = 1:npanels, h(ip).Position(3) = min(panel_width); end        
+        titlestring = sprintf('twpe = %g, twci = %g, %s = [%.2f %.2f]',obj_tmp.twpe,obj_tmp.twci,rangestr,range(1),range(2));
+        h(1).Title.String = titlestring;
+        compact_panels(0.01)
+        hlinks = linkprop(h,{'XLim'});
+        h(1).XLim = dep_lim;
+        set(gcf,'userdata',{'hlinks',hlinks})
+            
+        % Collect frames
+        pause(1)
+        if doVideo
+          set(gcf,'color','white');
+          currFrame = getframe(gcf);
+          writeVideo(vidObj,currFrame);
+        end
+        if doGif
+          if 1 % collect frames, for making gif
+            iframe = iframe + 1;    
+            nframes = pic0.nt;
+            currentBackgroundColor = get(gcf,'color');
+            set(gcf,'color',[1 1 1]);
+            drawnow      
+            tmp_frame = getframe(gcf);
+            %cell_movies{imovie}(itime) = tmp_frame;
+            if iframe == 1 % initialize animated gif matrix
+              [im_tmp,map] = rgb2ind(tmp_frame.cdata,256,'nodither');
+              %map(end+1,:) = get(gcf,'color');
+              im_tmp(1,1,1,nframes) = 0;                                                
+              all_im = im_tmp;
+            else
+              all_im(:,:,1,iframe) = rgb2ind(tmp_frame.cdata,map,'nodither');
+            end       
+          end    
+        end      
+      end
+      
+      if nargout == 1
+        varargout{1} = h;
+      elseif nargout == 2
+        varargout{1} = h;
+        varargout{2} = hleg;
+      elseif nargout == 2
+        varargout{1} = h;
+        varargout{2} = hleg;
+        varargout{3} = hlinks;
+      end
+    end
+    function varargout = plot_map(obj,varstrs,varargin)
       % Plots variables directly loaded from file
       % h = pic.PLOTMAP({'Ey','Ez'})
       
@@ -828,7 +1039,7 @@ classdef PIC
         varargout{3} = hlinks;
       end
     end
-    function varargout = plottimemap(obj,dim,varstrs,varargin)
+    function varargout = plot_timemap(obj,dim,varstrs,varargin)
       % Plots variables directly loaded from file
       % h = pic.PLOTTIMEMAP('zt',{'Ey','Ez'})
       % h = pic.PLOTTIMEMAP('tx',{'Ey','Ez'},'A')
@@ -937,7 +1148,8 @@ classdef PIC
           contour(hca,plot_depx(iAdepx),plot_depy(iAdepy),A(iAdepy,iAdepx),levA,'k')
           hold(hca,'off')
         end
-        hca.CLim = clim;
+        hca.CLim = clim;   
+        drawnow;
       end
       drawnow;
       h(1).Title.String = sprintf('%s = [%.2f %.2f]',rangestr,range(1),range(2));
@@ -955,10 +1167,12 @@ classdef PIC
         varargout{3} = hlinks;
       end
     end
-    function varargout = plotline(obj,dim,varstrs_all,varargin)
+    function varargout = plot_line(obj,dim,varstrs_all,varargin)
       % Plots variables directly loaded from file
       % h = pic.plotline(dim,{{'Ex','Ey','Ez'},{'Bx','By','Bx'}})
       % Plot variables as a function of dim: 'x' or 'z'
+       
+      doSmooth = 0;
       
       % Which dimension to plot against
       if strcmp(dim,'x')
@@ -984,7 +1198,10 @@ classdef PIC
       while have_options
         l = 1;
         switch(lower(args{1}))
-          case ''
+          case 'smooth'
+            doSmooth = 1;
+            npSmooth = args{2};
+            l = 2;
           otherwise 
             warning(sprintf('Unknown argument %s.',args{1}))
         end
@@ -1014,14 +1231,21 @@ classdef PIC
           varstrs = varstrs_all{ip};
           nvars = numel(varstrs);
           for ivar = 1:nvars
-            if strfind(varstrs{ivar},'(')
-              ind1 = strfind(varstrs{ivar},'(');
-              ind2 = strfind(varstrs{ivar},')');            
-              indstr = varstrs{ivar}(ind1+1:ind2-1);
-              varstr =  varstrs{ivar}(1:ind1-1);
-              var = obj.(varstr)(eval(indstr));
+            varstr = varstrs{ivar};
+            if strcmp(varstr(1),'-')
+              varmult = -1;
+              varstr = varstr(2:end);
             else
-              var = obj.(varstrs{ivar});
+              varmult = 1;
+            end
+            if strfind(varstr,'(')
+              ind1 = strfind(varstr,'(');
+              ind2 = strfind(varstr,')');            
+              indstr = varstr(ind1+1:ind2-1);
+              varstr =  varstr(1:ind1-1);
+              var = varmult*obj.(varstr)(eval(indstr));
+            else
+              var = varmult*obj.(varstr);
             end     
             if ivar == 2
               hold(hca,'on')
@@ -1031,10 +1255,14 @@ classdef PIC
             for itime = 1:ntimes
               displayname = [varstrs{ivar} ' (t\omega_{pe}=' sprintf('%.0f)',obj.twpe(itime))];
               if ntimes == 1
-                plot(hca,plot_dep,var,'DisplayName',displayname);
+                plot_var = var;                              
               else
-                plot(hca,plot_dep,var(:,itime),'DisplayName',displayname);
+                plot_var = var(:,itime);
               end
+              if doSmooth 
+                plot_var = smooth(plot_var,npSmooth);
+              end
+              plot(hca,plot_dep,plot_var,'DisplayName',displayname);
               if not(isHoldOn)
                 hold(hca,'on')
                 isHoldOn = 1;
@@ -1051,16 +1279,98 @@ classdef PIC
       drawnow;
       leftpos = 1;
       for ip = 1:npanels, panel_width(ip) = h(ip).Position(3); end      
-      for ip = 1:npanels, h(ip).Position(3) = min(panel_width); end
-      if obj.nt == 1
-        titlestring = sprintf('twpe = %g, twci = %g, %s = [%g %g]',obj.twpe,obj.twci,rangestr,range(1),range(2));
-      else
-        titlestring = sprintf('twpe = %g-%g, twci = %g-%g, %s = [%.2f %.2f]',obj.twpe(1),obj.twpe(end),obj.twci(1),obj.twci(end),rangestr,range(1),range(2));
-      end
+      for ip = 1:npanels, h(ip).Position(3) = min(panel_width); end      
+      titlestring = sprintf('twpe = %g, twci = %g, %s = [%.2f %.2f]',obj.twpe,obj.twci,rangestr,range(1),range(2));
       h(1).Title.String = titlestring;
       compact_panels(0.01)
       hlinks = linkprop(h,{'XLim'});
       h(1).XLim = dep_lim;
+      set(gcf,'userdata',{'hlinks',hlinks})
+      if nargout == 1
+        varargout{1} = h;
+      elseif nargout == 2
+        varargout{1} = h;
+        varargout{2} = hleg;
+      elseif nargout == 2
+        varargout{1} = h;
+        varargout{2} = hleg;
+        varargout{3} = hlinks;
+      end
+    end
+    function varargout = plottimeseries(obj,varstrs_all,varargin)
+       % Check additional input      
+      have_options = 0;
+      nargs = numel(varargin);      
+      if nargs > 0, have_options = 1; args = varargin(:); end      
+      while have_options
+        l = 1;
+        switch(lower(args{1}))
+          case ''
+          otherwise 
+            warning(sprintf('Unknown argument %s.',args{1}))
+        end
+        args = args(l+1:end);  
+        if isempty(args), break, end    
+      end
+           
+      [nrows,ncols] = size(varstrs_all);    
+      npanels = nrows*ncols;
+      ip = 0;
+      for irow = 1:nrows
+        for icol = 1:ncols
+          ip = ip + 1;
+          h(irow,icol) = subplot(nrows,ncols,ip);
+        end
+      end
+            
+      hleg = gobjects(0);
+      ip = 0;
+      for irow = 1:nrows
+        for icol = 1:ncols
+          ip = ip + 1;
+          isHoldOn = 0;
+          %ip = sub2ind([ncols nrows],icol,irow);
+          hca = h(irow,icol);
+          % check if input demand som andditional input, e.g. n(1)
+          varstrs = varstrs_all{ip};
+          nvars = numel(varstrs);
+          for ivar = 1:nvars
+            if strfind(varstrs{ivar},'(')
+              ind1 = strfind(varstrs{ivar},'(');
+              ind2 = strfind(varstrs{ivar},')');            
+              indstr = varstrs{ivar}(ind1+1:ind2-1);
+              varstr =  varstrs{ivar}(1:ind1-1);
+              var = obj.(varstr)(eval(indstr));
+            else
+              var = obj.(varstrs{ivar});
+            end     
+            if ivar == 2
+              hold(hca,'on')
+            end
+            var = squeeze(mean(mean(var,1),2)); % mean over dimensions 1 and 2            
+            displayname = [varstrs{ivar}];
+            plot(hca,obj.twci,var,'DisplayName',displayname);              
+            if not(isHoldOn)
+              hold(hca,'on')
+              isHoldOn = 1;
+            end            
+            hca.XLabel.String = ['t\omega_{ci}'];
+          end
+          hold(hca,'off')
+          hca.XGrid = 'on';
+          hca.YGrid = 'on';
+          hleg(ip) = legend(hca,'location','eastoutside'); % this may make the panels of different widths, fix below
+        end
+      end
+      drawnow;
+      leftpos = 1;
+      for ip = 1:npanels, panel_width(ip) = h(ip).Position(3); end      
+      for ip = 1:npanels, h(ip).Position(3) = min(panel_width); end      
+      titlestring = sprintf('x/d_i = [%.2f %.2f], z/d_i= [%.2f %.2f],',obj.xi(1),obj.xi(end),obj.zi(1),obj.zi(end));      
+      h(1).Title.String = titlestring;
+      compact_panels(0.01)
+      hlinks = linkprop(h,{'XLim'});
+      h(1).XLim = obj.twci([1 end]);
       set(gcf,'userdata',{'hlinks',hlinks})
       if nargout == 1
         varargout{1} = h;
@@ -1962,11 +2272,17 @@ classdef PIC
       end
     end
     function out = get_attributes(obj)
-      nAttr = numel(obj.info.Attributes);
-      for iAttr = 1:nAttr
-        attributes.(obj.info.Attributes(iAttr).Name) = obj.info.Attributes(iAttr).Value;        
-      end
-      out = attributes;
+      %nAttr = numel(obj.info.Attributes);
+      allAttr = {};
+      nIter = obj.nt;
+      for iIter = 1:nIter
+        nAttr = numel(obj.info.Groups(1).Groups(iIter).Attributes);
+        for iAttr = 1:nAttr
+          allAttr{end+1} = obj.info.Groups(1).Groups(iIter).Attributes(iAttr).Name;
+        end
+          %attributes.(obj.info.Groups(1).Attributes(iAttr).Name) = obj.info.Groups(1).Attributes(iAttr).Value;        
+        end
+      out = unique(allAttr);
     end
     function out = get_timeline_attributes(obj,attr_str)
       fileInfo = obj.info;
@@ -1976,11 +2292,36 @@ classdef PIC
       for iIter = 1:nIter
         % /data/00000xxxxx/ 
         % redo to actually find the 
+        %iIter
         iAtt = find(contains({fileInfo.Groups(iGroup).Groups(iIter).Attributes.Name},attr_str));
-        datasize = fileInfo.Groups(iGroup).Groups(iIter).Attributes(iAtt).Dataspace.Size;
-        attr(iIter,:) = fileInfo.Groups(iGroup).Groups(iIter).Attributes(iAtt).Value;
+        if not(isempty(iAtt))
+          datasize = fileInfo.Groups(iGroup).Groups(iIter).Attributes(iAtt).Dataspace.Size;          
+          attr(iIter,:) = fileInfo.Groups(iGroup).Groups(iIter).Attributes(iAtt).Value;
+        else
+          attr(iIter,:) = NaN;
+        end
+        
       end
       out = attr;
+    end
+    function out = get_missing_attributes(obj,attr_str)
+      fileInfo = obj.info;
+      iGroup = find(contains({fileInfo.Groups.Name},'/data'));
+      nIter = numel(fileInfo.Groups(iGroup).Groups); % number of iterations
+      
+      for iIter = 1:nIter
+        % /data/00000xxxxx/ 
+        % redo to actually find the 
+        %iIter
+        iAtt = find(contains({fileInfo.Groups(iGroup).Groups(iIter).Attributes.Name},attr_str));
+        if isempty(iAtt)
+          isMissing(iIter) = 1;
+        else 
+          isMissing(iIter) = 0;          
+        end
+        
+      end
+      out = find(isMissing);
     end
     function out = get_twpe(obj)
       fileInfo = obj.info;
@@ -2102,7 +2443,7 @@ classdef PIC
     % Convention is to build in the coordinate tranformation when loading
     % the Smilei data: x -> x, -z -> y, y -> z
     function out = A(obj)
-      if any(contains(obj.fields,'A')) % stored as field
+      if 0 %any(contains(obj.fields,'A')) % stored as field
         out = get_field(obj,'A');
       else % calculate it
          if strcmp(obj.software,'micPIC')
@@ -2932,6 +3273,18 @@ classdef PIC
       p = obj.p(species);
       out = p./n;
     end
+    function out = te(obj)
+      species = find(obj.get_charge == -1); % negatively charge particles are electrons      
+      n = obj.n(species);
+      p = obj.p(species);
+      out = p./n;
+    end
+    function out = ti(obj)
+      species = find(obj.get_charge == 1); % negatively charge particles are electrons      
+      n = obj.n(species);
+      p = obj.p(species);
+      out = p./n;
+    end
     function out = t_diag(obj,species)
       n = obj.n(species);
       pxx = obj.pxx(species);
@@ -3195,16 +3548,174 @@ classdef PIC
     end  
     
     % Get derived quantities
-    function out = vExBx(obj)
-      % (EyBz - EzBy)/|B|
+    function out = par(obj,field,species)
+      if exist('species','var')
+        x = obj.([field ,'x'])(species);
+        y = obj.([field ,'y'])(species);
+        z = obj.([field ,'z'])(species);
+      else
+        x = obj.([field ,'x']);
+        y = obj.([field ,'y']);
+        z = obj.([field ,'z']);
+      end
       Bx = obj.Bx;
       By = obj.By;
       Bz = obj.Bz;
+      Babs = sqrt(Bx.^2 + By.^2 + Bz.^2);
+      bx = Bx./Babs;
+      by = By./Babs;
+      bz = Bz./Babs;
+      out = x.*bx + y.*by + z.*bz;
+    end
+    function varargout = perp(obj,field,comp,species)
+      % PIC.PERP Dont know if this one is correct
+      % varargout = perp(obj,field,comp,species)
+      if exist('species','var') && not(isempty(species))
+        x = obj.([field ,'x'])(species);
+        y = obj.([field ,'y'])(species);
+        z = obj.([field ,'z'])(species);
+      else
+        x = obj.([field ,'x']);
+        y = obj.([field ,'y']);
+        z = obj.([field ,'z']);
+      end
+      Bx = obj.Bx;
+      By = obj.By;
+      Bz = obj.Bz;
+      Babs = sqrt(Bx.^2 + By.^2 + Bz.^2);
+      bx = Bx./Babs;
+      by = By./Babs;
+      bz = Bz./Babs;
+      parx = x.*bx; 
+      pary = y.*by;
+      parz = z.*bz;
+      varargout = {};
+      for icomp = 1:numel(comp)
+        switch comp(icomp)
+          case 'x'
+            var = x - parx;
+          case 'y'
+            var = y - pary;
+          case 'z'
+            var = z - parz;
+        end
+        varargout{end+1} = var;
+      end
+    end
+    function out = Epar(obj)
+      out = obj.par('E');
+    end
+    function out = vpar(obj,species)
+      out = obj.par('v',species);
+    end
+    function out = dvdt(obj,comp,species)
+      % How to deal with dt when nt == 1, i added a parent property to the 
+      % PIC class. In that way one can have access to original properties.
+      doFirst = 0;
+      doLast = 0;
       
-      Ey = obj.Ey;
-      Ez = obj.Ez;
+      child_it = obj.it;
+      child_ix = obj.ix;
+      child_iz = obj.iz;
+      parent_it = obj.parent.it;
+      child_it_required = child_it;
+      if not(child_it(1)==1) % add previous timestep
+        child_it_required = [child_it_required(1)-1 child_it_required];
+      else % otherwise do 2 point derivative for first point
+        doFirst = 1;      
+      end
+      if not(child_it(end)==parent_it(end)) % add following timestep
+        child_it_required = [child_it_required child_it_required(end)+1];
+      else % otherwise do 2 point derivative for last point
+        doLast = 1;
+      end
       
-      out = (Ey.*Bz-Ez.*By)./(Bx.^2+By.^2+Bz.^2);
+      new_obj = obj.parent.subset('t',child_it_required).subset('x',child_ix).subset('z',child_iz);
+      
+      switch comp
+        case 'x', v = new_obj.vx(species);
+        case 'y', v = new_obj.vx(species);
+        case 'z', v = new_obj.vx(species);
+      end
+      t = new_obj.twci;     
+      dvdt = zeros(size(v));
+      nt = new_obj.nt;
+      for it = 2:(nt-1)
+        % dt might be variable
+        dvdt_minus = (v(:,:,it)-v(:,:,it-1))/(t(it)-t(it-1));
+        dvdt_plus = (v(:,:,it+1)-v(:,:,it))/(t(it+1)-t(it));
+        dvdt(:,:,it) = (dvdt_minus+dvdt_plus)/2;        
+      end
+      dvdt(:,:,1) = (v(:,:,2)-v(:,:,1))/(t(2)-t(1));
+      dvdt(:,:,nt) = (v(:,:,nt)-v(:,:,nt-1))/(t(nt)-t(nt-1));        
+      out = dvdt;
+      if not(doFirst)
+        out = out(:,:,2:end);
+      end
+      if not(doLast)
+        out = out(:,:,1:(end-1));
+      end
+      
+    end
+    function out = dvxdt(obj,species)
+      out = obj.dvdt('x',species);
+    end
+    function out = dvydt(obj,species)
+      out = obj.dvdt('y',species);
+    end
+    function out = dvzdt(obj,species)
+      out = obj.dvdt('z',species);
+    end
+    function out = vxBx(obj,species)
+      % vxB_x(vyBz - vzBy)
+      % out = vxBx(obj,species)
+      By = obj.By;
+      Bz = obj.Bz;
+      vy = obj.vy(species);
+      vz = obj.vz(species);      
+      out = (vy.*Bz-vz.*By);
+    end
+    function out = vxBy(obj,species)
+      % vxB_y(vzBx - vxBz)
+      % out = vxBx(obj,species)
+      Bx = obj.Bx;
+      Bz = obj.Bz;
+      vx = obj.vx(species);
+      vz = obj.vz(species);      
+      out = (vz.*Bx-vx.*Bz);
+    end
+    function out = vxBz(obj,species)
+      % vxB_z(vxBy - vyBz)
+      % out = vxBx(obj,species)
+      Bx = obj.Bx;
+      By = obj.By;
+      vx = obj.vx(species);
+      vy = obj.vy(species);
+      out = (vx.*By-vy.*Bx);
+    end
+    function out = vixBx(obj)
+      iSpecies = find(obj.get_charge == 1);
+      out = obj.vxBx(iSpecies);
+    end
+    function out = vixBy(obj)
+      iSpecies = find(obj.get_charge == 1);
+      out = obj.vxBy(iSpecies);
+    end
+    function out = vixBz(obj)
+      iSpecies = find(obj.get_charge == 1);
+      out = obj.vxBz(iSpecies);
+    end
+    function out = vexBx(obj)
+      iSpecies = find(obj.get_charge == -1);
+      out = obj.vxBx(iSpecies);
+    end
+    function out = vexBy(obj)
+      iSpecies = find(obj.get_charge == -1);
+      out = obj.vxBy(iSpecies);
+    end
+    function out = vexBz(obj)
+      iSpecies = find(obj.get_charge == -1);
+      out = obj.vxBz(iSpecies);
     end
     function out = vExBy(obj)
       % (EyBz - EzBy)/|B|
@@ -3227,6 +3738,17 @@ classdef PIC
       Ey = obj.Ey;
       
       out = (Ex.*By-Ey.*Bx)./(Bx.^2+By.^2+Bz.^2);
+    end
+    function out = vExBx(obj)
+      % (EyBz - EzBy)/|B|
+      Bx = obj.Bx;
+      By = obj.By;
+      Bz = obj.Bz;
+      
+      Ey = obj.Ey;
+      Ez = obj.Ez;
+      
+      out = (Ey.*Bz-Ez.*By)./(Bx.^2+By.^2+Bz.^2);
     end
     function out = vt(obj,species,mode) % thermal speed
       % PIC.VT Thermal speed (2T/m)^0.5
@@ -3354,17 +3876,126 @@ classdef PIC
     function out = gradpz(obj,species)
       gradp = obj.gradp(species);
       out = gradp.z;
+    end    
+    function varargout = divp(obj,species,varargin)
+      returnComponents = 0;
+      diff_order = 1;
+      np_smooth = 7;
+      doSmooth = 0;
+      nargs = numel(varargin);
+      if nargs > 1
+        if strcmp(varargin{1},'comp')
+          comp = varargin{2};
+        end
+      end
+
+      nx = obj.nx;
+      nz = obj.nz;
+
+      dx = obj.xi(2)-obj.xi(1);
+      dy = Inf;
+      dz = obj.zi(2)-obj.zi(1);
+      varargout = cell(0);
+      for icomp = 1:numel(comp)
+        switch comp{icomp}
+          case {'x',1}
+            pxx = obj.pxx(species);
+            pxy = obj.pxy(species);
+            pxz = obj.pxz(species);
+            dxTxx = [1*diff(pxx(1:2,:),1,1); diff(pxx,diff_order,1)]/dx/diff_order;
+            dyTyx = 0;
+            dzTzx = [1*diff(pxz(:,1:2),1,2), diff(pxz,diff_order,2)]/dz/diff_order;
+            div_x = dxTxx + dyTyx + dzTzx;
+            varargout{end+1} = div_x;
+          case {'y',2}
+            % pyy = obj.pxx(species); % not needed because dy = inf;
+            pxy = obj.pxy(species);
+            pyz = obj.pyz(species);
+            if 0
+              dxTxy = [1*diff(pxy(1:2,:),1,1); diff(pxy,diff_order,1)]/dx/diff_order;
+              dyTyy = 0;
+              dzTzy = [1*diff(pyz(:,1:2),1,2), diff(pyz,diff_order,2)]/dz/diff_order;              
+            else
+%               Note: The first output FX is always the gradient along the 2nd
+%               dimension of F, going across columns.  The second output FY is always
+%               the gradient along the 1st dimension of F, going across rows.  For the
+%               third output FZ and the outputs that follow, the Nth output is the
+%               gradient along the Nth dimension of F.
+%               [dxTxy,dzTxy] = gradient(pxy,dx,dz);
+%               dyTyy = 0;
+%               [dxTzy,dzTzy] = gradient(pyz,dx,dz);
+              [dzTxy,dxTxy] = gradient(pxy,dz,dx);
+              dyTyy = 0;
+              [dzTzy,dxTzy] = gradient(pyz,dz,dx);
+            end
+            div_y = (dxTxy + dyTyy + dzTzy);
+            varargout{end+1} = div_y;
+          case {'z',3}
+            pzz = obj.pzz(species);
+            pxz = obj.pxz(species);
+            pyz = obj.pyz(species);
+            dxTxz = [1*diff(pxz(1:2,:),1,1); diff(pxz,diff_order,1)]/dx/diff_order;
+            dyTyz = 0;
+            dzTzz = [1*diff(pzz(:,1:2),1,2), diff(pzz,diff_order,2)]/dz/diff_order;      
+            div_z = (dxTxz + dyTyz + dzTzz);
+            varargout{end+1} = div_z;
+        end
+      end
+      if doSmooth
+        for ivar = 1:numel(varargout)
+          varargout{ivar} = smooth2(varargout{ivar},np_smooth,np_smooth);
+        end
+      end
+
+      % dxTxx = zeros(nx,nz);
+      % dxTxy = zeros(nx,nz);
+      % dxTxz = zeros(nx,nz);
+      % dyTyx = zeros(nx,nz);
+      % dyTyy = zeros(nx,nz);
+      % dyTyz = zeros(nx,nz);
+      % dzTzx = zeros(nx,nz);
+      % dzTzy = zeros(nx,nz);
+      % dzTzz = zeros(nx,nz);
+
+      %out.x = div_x;
+      %out.y = div_y;
+      %out.z = div_z;
+
+      if 0%returnComponents % is this the correct placements ???
+        out.x_xx = dxTxx;
+        out.x_yy = dyTyx;
+        out.x_zz = dzTzx;
+        out.y_xx = dxTxy;
+        out.y_yy = dyTyy;
+        out.y_zz = dzTzy;
+        out.z_xx = dxTxz;
+        out.z_yy = dyTyz;
+        out.z_zz = dzTzz;
+      end
+    end
+    function out = divpx(obj,species)
+      out = obj.divp(species,'comp',{'x'});
+    end
+    function out = divpy(obj,species)
+      out = obj.divp(species,'comp',{'y'});
+    end
+    function out = divpz(obj,species)
+      out = obj.divp(species,'comp',{'z'});
     end
     % Stored, not implemented for Smilei
-    function out = UB(obj)
+    function out = UB(obj,varargin)
       % Magnetic energy density 0.5*(Bx^2 + By^2 + Bz^2) summed up
       out = obj.get_timeline_attributes('UB');
+      if numel(varargin)>0 && isnumeric(varargin{1})
+        inds = varargin{1};
+        out = out(inds);
+      end
       %out = h5read(obj.file,'/scalar_timeseries/U/B');
       %out = out(obj.indices_);
     end
     function out = dUB(obj)
       % Magnetic energy density 0.5*(Bx^2 + By^2 + Bz^2) summed up 
-      out = h5read(obj.file,'/scalar_timeseries/U/B');
+      out = obj.UB';
       out = abs([0 cumsum(diff(out-out(1)))]);
       out = out(obj.indices_);
     end
@@ -3992,7 +4623,9 @@ classdef PIC
       nIter = obj.length;
       % initialize matrix
       data = nan([obj.get_gridsize,nIter]);
+      %disp(field)
       for iIter = 1:nIter
+        %tt = tic;
         iter = iterations(iIter);
         str_iter = sprintf('%010.0f',iter);
         if strcmp(obj.software,'micPIC')
@@ -4009,57 +4642,9 @@ classdef PIC
           data_tmp = data_tmp';
         end
         data(:,:,iIter) = data_tmp;
+        %toc(tt)
       end
       out = data;
-    end
-    function Ts = changeBasis(obj, flag)
-      % Tranform from one coordinate system to another and return new
-      % TimeSeries.
-      % flag: = 'xyz>rlp' - Cartesian XYZ to spherical latitude
-      %         'rlp>xyz' - Spherical latitude to cartesian XYZ
-      %         'xyz>rpz' - Cartesian XYZ to cylindrical
-      %         'rpz>xyz' - Cylidrical to cartesian XYZ
-      %         'xyz>rtp' - Cartesian XYZ to spherical colatitude
-      %         'rtp>xyz' - Spherical colatitude to cartesian XYZ
-      %         'rtp>rlp' - Spherical colatitude to spherical latitude
-      %         'rlp>rtp' - Spherical latitude to colatitude
-      switch lower(flag)
-        case 'xyz>rlp'
-          [phi, lambda, r] = cart2sph(obj.x.data, obj.y.data, obj.z.data);
-          Ts = TSeries(obj.time, [r, lambda, phi], 'vec_rlp');
-        case 'rlp>xyz'
-          [x, y, z] = sph2cart(obj.phi.data, obj.lambda.data, obj.r.data);
-          Ts = TSeries(obj.time, [x, y, z], 'vec_xyz');
-        case 'xyz>rpz'
-          [phi, r, z] = cart2pol(obj.x.data, obj.y.data, obj.z.data);
-          Ts = TSeries(obj.time, [r, phi, z], 'vec_rpz');
-        case 'rpz>xyz'
-          [x, y, z] = pol2cart(obj.phi.data, obj.r.data, obj.z.data);
-          Ts = TSeries(obj.time, [x, y, z], 'vec_xyz');
-        case 'xyz>rtp'
-          [phi, lambda, r] = cart2sph(obj.x.data, obj.y.data, obj.z.data);
-          theta = pi/2 - lambda;
-          Ts = TSeries(obj.time, [r, theta, phi], 'vec_rtp');
-        case 'rtp>xyz'
-          lambda = pi/2 - obj.theta.data;
-          [x, y, z] = sph2cart(obj.phi.data, lambda, obj.r.data);
-          Ts = TSeries(obj.time, [x, y, z], 'vec_xyz');
-        case 'rtp>rlp'
-          lambda = pi/2 - obj.theta.data;
-          Ts = TSeries(obj.time, [obj.r.data,lambda,obj.phi.data],'vec_rlp');
-        case 'rlp>rtp'
-          theta = pi/2 - obj.lambda.data;
-          Ts = TSeries(obj.time, [obj.r.data,theta,obj.phi.data],'vec_rtp');
-        case 'xy>rp'
-          [phi, r] = cart2pol(obj.x.data, obj.y.data);
-          Ts = TSeries(obj.time, [r, phi], 'vec_rp');
-        case 'rp>xy'
-          [x, y] = pol2cart(obj.phi.data, obj.r.data);
-          Ts = TSeries(obj.time, [x, y], 'vec_xy');
-        otherwise
-          errStr='Invalid transformation'; error(errStr);
-      end
-    end
-  end
-  
+    end    
+  end  
 end

@@ -44,6 +44,10 @@ for itime = 1:numel(timesteps)
   
   
   % read unnormalized data
+  if not(exist(txtfile,'file'))
+    warning(sprintf('File %s does not exist.',txtfile))
+  end
+    
   tic; [varstrs,vars] = read_data_no_normalization(txtfile,nSpecies); toc
   nss = numel(vars{find(contains(varstrs,'mass'))}); % number of species
   nnx = vars{find(contains(varstrs,'nnx'))}; % number of grid points in x

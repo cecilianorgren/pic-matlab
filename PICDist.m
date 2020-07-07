@@ -6,6 +6,9 @@
   %   Bx = pic.Bx; % Bx is a (nt x nx x ny) matrix
   %   B = pic.B; % structure with 3 (nt x nx x ny) matrices  
   
+  properties    
+    nspecies
+  end
   properties (Access = protected)
     % Access = protected – access from class or subclasses
     % Data can be arbitrary size, so the class contains a pointer to the 
@@ -30,7 +33,7 @@
     indices_
     it_
     id_
-    dists_    
+    dists_  
   end
   
   properties (Dependent = true)
@@ -61,6 +64,7 @@
   end
   
   properties (Constant = true)
+    
   end
   
   properties (Constant = true, Hidden = true)
@@ -102,7 +106,7 @@
       
       obj.file = h5filePath; 
       obj.info = h5info(h5filePath);
-            
+      obj.nspecies = h5readatt(obj.file, ['/'],'nSpecies');
       %obj.charge = obj.get_charge;
       %obj.mass = obj.get_mass;
       %uniqueMass = sort(unique(obj.mass));
@@ -119,7 +123,7 @@
       obj.xi1 = xi1;
       obj.xi2 = xi2;
       obj.zi1 = zi1;
-      obj.zi2 = zi2;
+      obj.zi2 = zi2;            
       
       for it = 1:numel(obj.it)
         obj.dxi{1,it} = obj.xi2{it} - obj.xi1{it};
@@ -168,6 +172,8 @@
           obj.dxi_ = builtin('subsref',obj.dxi_,s);
           obj.dzi_ = builtin('subsref',obj.dzi_,s);
           obj.it_ = builtin('subsref',obj.it_,s);
+          obj.twpe_ = builtin('subsref',obj.twpe_,s);
+          obj.twci_ = builtin('subsref',obj.twci_,s);
          
           if numel(idx) > 1
             obj = builtin('subsref',obj,idx(2:end));
@@ -501,9 +507,25 @@
       %   
       %
       
+      doLine = 0;
+      doLineDrift = 0;
+      doDot = 1;
+      strDot = {};
+      doColorbar = 1;
+      doV = 0;
       fontsize = 7;
+      border = 0;
       %doBDir = 1;
+      doLog = 0;
       ticks = -15:1:15;
+      doNumber = 1;
+      
+      % check if input PICDist obj has a single time, otherwise take first
+      % time, and warn
+      if obj.nt > 1        
+        warning('PICDist has more than one times, selecting the first: twpe = %g, twci = %g',obj.twpe(1),obj.twci(1))
+        obj = obj(1);
+      end
       
       have_options = 0;
       if not(isempty(varargin))
@@ -527,17 +549,35 @@
             l = 3;
             line = args{2};
             line_shift = args{3};
+          case 'v'
+            doV = 1;
+            pic = args{2};
+            l = 2;
+          case 'log'
+            doLog = 1;            
+            l = 1;
         end
         args = args((1+l):end);
         if isempty(args); break; end
       end
       
+      if mod(iSpecies,2) == 1 % ions are uneven number
+        ticks = [-20:1:20];
+      else
+        ticks = [-20:1:20];
+      end
+      strspecies = '[';
+      for isp = 1:numel(iSpecies)
+        strspecies = [strspecies num2str(iSpecies(isp)) ','];
+      end
+      strspecies(end) =']';
       
       xlim = [min([obj.xi1_{1}(:)]) max([obj.xi2_{1}(:)])];
       zlim = [min([obj.zi1_{1}(:)]) max([obj.zi2_{1}(:)])];      
       fig_position = get(0,'screensize'); %[1 330 2555 1015]; 
       fig = figure;
       fig.Position = fig_position; 
+      border = [0.05,0.1,0.07,0.05]; % left, bottom, right, top
 
       idist = 0;
       %tic
@@ -554,15 +594,33 @@
         %end
         xloc = (f.x(1)+f.x(2))/2;
         zloc = (f.z(1)+f.z(2))/2;
+        dx = f.x(2)-f.x(1);
+        dz = f.z(2)-f.z(1);
         %disp(sprintf('%.2f ',f.x(1),f.x(2),f.z(1),f.z(2)))
         axes_position = [(f.x(1)-xlim(1))/diff(xlim) ...
                          (f.z(1)-zlim(1))/diff(zlim) ...
                          (f.x(2)-f.x(1))/diff(xlim) ...
                          (f.z(2)-f.z(1))/diff(zlim)];
+        axes_position(1) = axes_position(1)*(1-border(1)-border(3)) + border(1);
+        axes_position(2) = axes_position(2)*(1-border(2)-border(4)) + border(2);
+        axes_position(3) = axes_position(3)*(1-border(1)-border(3));
+        axes_position(4) = axes_position(4)*(1-border(2)-border(4));
+        
 
         pause(0.1)  
+        switch sumdim
+          case 1
+            xaxstr = 'y';
+            yaxstr = 'z';
+          case 2
+            xaxstr = 'x';
+            yaxstr = 'z';
+          case 3
+            xaxstr = 'x';
+            yaxstr = 'y';
+        end
 
-        if 1 % xz plane
+        if 1 % plane
           nrows = 1;
           ncols = 3;
           npanels = nrows*ncols;
@@ -572,9 +630,13 @@
           hca = subplot('Position',axes_position);
           h(end+1) = hca;
           hca = gca;
-          imagesc(hca,f.v,f.v,f.f')
-          hca.XLabel.String = '';
-          hca.YLabel.String = '';
+          if doLog
+            imagesc(hca,f.v,f.v,log10(f.f'))
+          else
+            imagesc(hca,f.v,f.v,f.f')
+          end
+          %hca.XLabel.String = '';
+          %hca.YLabel.String = '';
           hca.YDir = 'normal';        
           %hca.XLim = vlim(ispecies)*[-1 1];
           %hca.YLim = vlim(ispecies)*[-1 1];
@@ -582,13 +644,41 @@
           hca.YGrid = 'on';
           hca.XTick = ticks;
           hca.YTick = ticks;              
-          hca.XTickLabel = [];
-          hca.YTickLabel = [];
+          %hca.XTickLabel = [];
+          %hca.YTickLabel = [];
           hca.Box = 'on';
           colormap(hca,pic_colors('candy'))
           %irf_legend(hca,{sprintf('x=%.1f, z=%.1f',xloc,zloc);sprintf('B=[%.2f,%.2f,%.2f]',Bloc.x,Bloc.y,Bloc.z)},[0.01 0.99],'color',[0 0 0],'fontsize',9)
-          hleg_ = irf_legend(hca,{sprintf('x=%.1f, z=%.1f',xloc,zloc)},[0.01 0.99],'color',[0 0 0],'fontsize',fontsize);
-          hleg(end+1) = hleg_;
+          hleg_ = irf_legend(hca,{sprintf('x=[%.1f,%.1f]',f.x(1),f.x(2));sprintf('z=[%.1f,%.1f]',f.z(1),f.z(2))},[0.01 0.01],'color',[0 0 0],'fontsize',fontsize);
+          hleg(size(hleg,1)+1,:) = hleg_;
+          
+          if axes_position(1) == border(1)
+            hca.YLabel.String = sprintf('v_{%s}',yaxstr);            
+          else
+            hca.YLabel.String = '';
+            hca.YTickLabel = [];
+          end
+          if axes_position(2) == border(2)
+            hca.XLabel.String = sprintf('v_{%s}',xaxstr);
+          else
+            hca.XLabel.String = '';
+            hca.XTickLabel = [];
+          end
+          if axes_position(1) == border(1) && abs(axes_position(2)+axes_position(4) - (1-border(4))) < 1e-5
+            if doLog
+              title_str = sprintf('log_{10}f(v_%s,v_%s,twci=%g), species = %s',xaxstr,yaxstr,obj.twci,strspecies);
+            else
+              title_str = sprintf('f(v_%s,v_%s), species = %s',xaxstr,yaxstr,strspecies);
+            end
+            if doColorbar
+              hb = colorbar('peer',hca);
+              barwidth = 0.01;
+              hb.Position = [1-border(3)+0.5*barwidth border(2) barwidth 1-border(2)-border(4)];
+              hb.YLabel.String = title_str;
+            else
+              hca.Title.String = title_str;
+            end                        
+          end
           if doLine
             pic_tmp = pic.twpelim(obj.twpe,'exact').xlim(f.x).zlim(f.z);
             Bx = mean(mean(pic_tmp.Bx));
@@ -605,13 +695,31 @@
                 line_slope = (bz/by);
               case 3 % xy
                 line_slope = (by/bx);  
-            end
-                        
-            
+            end                                    
             xx = min(hca.XLim(2)*[1 1/abs(line_slope)])*[-1 1];
             hold(hca,'on')                
             hBline = plot(hca,xx,xx*line_slope,'linewidth',0.5,'color',[0.5 0.5 0.5]);
             hold(hca,'off')
+          end
+          if doV
+            pic_tmp = pic.twpelim(obj.twpe,'exact').xlim(f.x).zlim(f.z);
+            switch sumdim
+              case 2 % xz                            
+                v1 = mean(mean(pic_tmp.vx(iSpecies)));                
+                v2 = mean(mean(pic_tmp.vz(iSpecies)));
+              case 1 % yz
+                v1 = mean(mean(pic_tmp.vy(iSpecies)));                
+                v2 = mean(mean(pic_tmp.vz(iSpecies)));
+              case 3 % xy
+                v1 = mean(mean(pic_tmp.vx(iSpecies)));                
+                v2 = mean(mean(pic_tmp.vy(iSpecies)));
+            end
+            hold(hca,'on')                
+            hVDot = plot(hca,v1,v2,'Marker','x','color',[0 0 0]);
+            hold(hca,'off')
+          end
+          if doNumber
+            
           end
 
           %print('-dpng','-r200',[savedir_root sub_dir '/' strprint '.png']);
@@ -859,12 +967,43 @@
           %dataset_name = ['/data/' str_iter '/' num2str(iDist,'%05.0f') '/fxyz'];
           dataset_name = ['/data/' str_iter '/' obj.dists{iIter}{iDist} '/fxyz'];          
           %locs{iIter}{iDist} = [h5readatt(obj.file,dataset_name,'x') h5readatt(obj.file,dataset_name,'z')];          
+          try
           xtmp = h5readatt(obj.file,dataset_name,'x')';          
           ztmp = h5readatt(obj.file,dataset_name,'z')';
+          catch
+           xtmp = [NaN NaN];
+           ztmp = [NaN NaN];
+          end
           x1{1,iIter}(iDist) = xtmp(1);
           x2{1,iIter}(iDist) = xtmp(2);
           z1{1,iIter}(iDist) = ztmp(1);
           z2{1,iIter}(iDist) = ztmp(2);          
+        end
+      end      
+    end  
+    function [v1,v2,nv,dv] = get_v(obj)
+      % Read locations of distributions
+      iterations = obj.iteration;            
+      
+      v1 = cell(1,obj.nt);
+      v2 = cell(1,obj.nt);
+      nv = cell(1,obj.nt);
+      dv = cell(1,obj.nt);
+      
+      for iIter = 1:obj.nt
+        iter = iterations(iIter);
+        str_iter = sprintf('%010.0f',iter);
+        % this gives error if there is a jump in dists
+        % use obj.dists{iIter}{iDist} instead of num2str(iDist,'%05.0f')?
+        for iDist = 1:numel(obj.dists{iIter}) 
+          %dataset_name = ['/data/' str_iter '/' num2str(iDist,'%05.0f') '/fxyz'];
+          dataset_name = ['/data/' str_iter '/' obj.dists{iIter}{iDist} '/fxyz'];          
+          %locs{iIter}{iDist} = [h5readatt(obj.file,dataset_name,'x') h5readatt(obj.file,dataset_name,'z')];          
+          vtmp = h5readatt(obj.file,dataset_name,'axes')';                    
+          v1{1,iIter}(iDist,:) = vtmp(:,1);
+          v2{1,iIter}(iDist,:) = vtmp(:,end);
+          nv{1,iIter}(iDist,:) = size(vtmp,2);
+          dv{1,iIter}(iDist,:) = vtmp(:,2)-vtmp(:,1);
         end
       end      
     end  
@@ -959,17 +1098,24 @@
       newDataSize = [numel(comAxes) numel(comAxes) numel(comAxes)];
       
       dist = zeros(newDataSize);
+      %h = setup_subplots(3,2);
+      ip = 1;
       for iSpeciesTmp = iSpecies
-        data_tmp = h5read(obj.file,dataset,[1 1 1,iSpeciesTmp],[datasize,1]);
+        data_tmp = h5read(obj.file,dataset,[1 1 1,iSpeciesTmp],[datasize,1]);        
         % The phase space volume might be different due to different vaxes
         % or spatial box sizes. Adjust for that here.
-        vAxesTmp = allAxes(:,iSpecies);
+        vAxesTmp = allAxes(:,iSpeciesTmp);
         dv = vAxesTmp(2) - vAxesTmp(1);
+        
+        %hca = h(ip); ip = ip + 1;
+        %imagesc(hca,allAxes(:,iSpeciesTmp),allAxes(:,iSpeciesTmp),squeeze(sum(data_tmp)))
+        %hca.Title.String = sprintf('sum(data_tmp(:)) = %g',sum(data_tmp(:)));
 %         xTmp = h5readatt(obj.file,dataset,'x')';
 %         zTmp = h5readatt(obj.file,dataset,'z')';
 %         dx = diff(xTmp);
 %         dz = diff(zTmp);
 %         volPhaseSpace = dv.^3*dx*dz;
+%dv = 1;
         volVelocitySpace = dv.^3;
         data_tmp = data_tmp/volVelocitySpace;
         
@@ -978,10 +1124,18 @@
           [Vxq,Vyq,Vzq] = meshgrid(comAxes,comAxes,comAxes);
           data_tmp = interp3(Vx,Vy,Vz,data_tmp,Vxq,Vyq,Vzq);
           data_tmp(isnan(data_tmp)) = 0;
-        end                    
+          new_dv = comAxes(2)-comAxes(1);
+          new_dv = 1;
+          data_tmp = data_tmp*new_dv.^3;
+        end       
+        %hca = h(ip); ip = ip + 1;
+        %imagesc(hca,comAxes,comAxes,squeeze(sum(data_tmp)))
+        %hca.Title.String = sprintf('sum(data_tmp(:)) = %g',sum(data_tmp(:)));
         dist = dist + data_tmp;
+        
       end
-            
+%      hlinks = linkprop(h,{'XLim','YLim','CLim'});
+      
       % Reduce distribution
       if exist('sumdim','var') && any(sumdim == [1 2 3])
         for isum = numel(sumdim):-1:1
@@ -1074,9 +1228,8 @@
       x = h5readatt(obj.file,dataset,'x');
       z = h5readatt(obj.file,dataset,'z');
       
-      if doPar        
-        vpar = comAxes;
-        
+      if doPar
+        vpar = comAxes;        
       end
       
       out.f = dist;
@@ -1266,7 +1419,7 @@
       end
     end    
     function varargout = reduce_1d(obj,depvar,x0,z0,vaxes,iSpecies,varargin)
-      % reduce_1d(obj,depvar,x0,z0,iSpecies) Make f(x,vx),f(z,vx), etc...
+      % reduce_1d(obj,depvar,x0,z0,vaxes,iSpecies) Make f(x,vx),f(z,vx), etc...
       %
       % apply time indices and xlim zlim outside before
       % do all vdims, doesnt take much more time anyways
@@ -1445,6 +1598,208 @@
           toc
         end
       end
+      varargout{1} = fout;
+    end
+    function varargout = reduce_1d_new(obj,depvar,iSpecies,vaxes,varargin)
+      % reduce_1d(obj,depvar,x0,z0,vaxes,iSpecies) Make f(x,vx),f(z,vx), etc...
+      %
+      % apply time indices and xlim zlim outside before
+      % do all vdims, doesnt take much more time anyways
+      % return as structure array, arr(t,x_or_z)
+      %
+      %   depvar - 'x' or 'z', variable that is plotted on x-axis, for 
+      %     example if depvar = 'x', the output array has dimensions 
+      %     (nt,nz), and the matrices has dimensions (nv,nx):
+      %     arr(1,1) = f(t=t1,x=xvals,z=zvals(1))      
+      %   vaxes - common velocity axes to interpolate fields to, for
+      %     plotting, if vaxes is empty, just use the axes of the first
+      %     distribution
+            
+      doV2 = 0;
+      doPar = 0;
+      doVabs = 1;
+      
+      % Check for additional input
+      args = varargin;
+      nargs = numel(args);
+      have_options = nargs > 0;
+      while have_options
+        switch(lower(args{1}))
+          case {'v2','vabs'} % calculate v^2 (similar to dEF), do not include by default because it might take extra time
+            l = 1;            
+            doV2 = 1;
+          case {'vpar','par'}
+            l = 2;
+            doPar = 1;
+            B = args{2};
+          otherwise
+            error(sprintf('Can not recognize flag ''%s'' ',args{1}))
+        end
+        args = args((l+1):end);
+        if isempty(args), break, end
+      end
+      
+      % First check all pairs of x and z, if one of them is unique, for
+      % example the z = 0 row, then make 2D matrix, that is prepared for
+      % plotting.
+      
+      %ds = obj.xfind(x0).zfind(z0); % moved this below
+      
+      if isempty(vaxes)
+        [v1,v2,nv,dv] = obj.get_v;
+        v1 = v1{1}(:,iSpecies);
+        v2 = v2{1}(:,iSpecies);
+        nv = nv{1}(:);
+        dv = dv{1}(:,iSpecies);
+        vaxes = min(v1(:)):min(dv(:)):max(v2(:));
+      end
+            
+      %nd = sum([obj.nd{:}]);
+      nv = numel(vaxes);
+      
+      % for vabs distribution
+      vaxes_pos = vaxes(vaxes>=0);
+      nv_pos = numel(vaxes_pos-1); % vaxes_pos are the edges of the bins, so the number of bins is one less
+      
+      % save results in structure array, one structure for each time
+      % also save time, but for now only the iteration is saved
+      %fout = struct('time',{},'iter',{},'x',{},'z',{},'v',{},'fvx',{},'fvy',{},'fvz',{});
+                     
+      
+      for itime = 1:obj.nt % loop through times
+        ds = obj.twcifind(obj.twci(itime));
+        if isempty(ds.xi1), continue; end       
+        ids = ds.indices{1};
+        nd = obj.nd{1};
+        f_vx_arr = zeros(nd,nv);
+        f_vy_arr = zeros(nd,nv);
+        f_vz_arr = zeros(nd,nv);
+        f_vabs_sum_arr = zeros(nd,nv_pos);
+        f_vabs_mean_arr = zeros(nd,nv_pos);
+        t_arr = zeros(nd,1);
+        x_arr = zeros(nd,1);
+        z_arr = zeros(nd,1);
+          
+        id_count = 0;
+          
+        for id = 1:numel(ids) % loop through distributions
+          disp(sprintf('it = %g/%g, id = %g/%g',itime,obj.nt,id,numel(ids)))
+%         t_count = 0; 
+          t_count = itime;
+          %tic           
+          
+          id_count = id_count + 1;
+          f = ds.f(1,id,iSpecies);       
+
+          t_arr(id_count) = ds.twci;
+          x_arr(id_count) = mean(f.x);
+          z_arr(id_count) = mean(f.z);          
+          f_vx_arr(id_count,:) = interp1(f.v,sum(f.fxy,2),vaxes);
+          f_vy_arr(id_count,:) = interp1(f.v,sum(f.fxy,1),vaxes);
+          f_vz_arr(id_count,:) = interp1(f.v,sum(f.fxz,1),vaxes);
+          %f_vabs_arr(id_count,:) = interp1(f_tmp.v,sum(f_tmp.fxz,1),vaxes);
+
+          if doVabs
+            dv = f.v(2)-f.v(1);
+            d3v = dv.^3;
+            [VX,VY,VZ] = ndgrid(f.v,f.v,f.v);            
+            VABS = sqrt(VX.^2 + (VY).^2 + VZ.^2);
+            %[count edges mid loc] = histcn(VABS(:),vgrid);
+%             volume_of_shell = count*d3v;
+            % sum(fd3v)
+            % units: [f][v3] = l-3 v-3 v3 = l-3 (# per volume)
+            % So this is number of particles per volume = density
+            [accum_f edges mid loc] = histcn(VABS(:),vaxes,'AccumData',f.f(:)*d3v);
+            % sum(fvd3v)
+            % units [f][v][v3] = l-3 v-3 v v3 = vl-3 = l s-1 l-1 = s-1 l-2 (# per area and time)
+%             [accum_fv edges mid loc] = histcn(VABS(:),vgrid,'AccumData',f.f(:).*VABS(:)*d3v);            
+            % sum(fvEd3v)
+            % units [f][v][E][v3] = l-3 v-3 v eV v3 = v eV l-3 = l s-1 eV l-1 = eV s-1 l-2 (energy per area and time)
+%            [accum_fvE edges mid loc] = histcn(VABS(:),vgrid,'AccumData',f.f(:).*VABS(:).*ENERGY(:)*d3v);
+            % Since we used equally spaced v's, the new phase space volumes
+            % (which are shells), become increasingly big further out
+            % (larger vabs): d3v = v2*dv*dOmega. Omega is the solid angle
+            % and is the same (4*pi for a sphere) for all new bins since we 
+            % only binned by |v|.z.
+%             fout.volume = volume_of_shell;            
+%             fout.vedges = vgrid;
+%             fout.dv = dv;
+%             fout.Eedges = Egrid;
+%             fout.dE = Edelta;
+%             fout.vcenter = vcenter;
+%             fout.Ecenter = Ecenter;
+%             fout.accum_fd3v = accum_f;
+            % units 
+            % [solid angle] = sr (steradians)
+            % [dv] = l s-1
+            % [E] = eV
+%             fout.dfdv = accum_f/(4*pi)./dv; % m-3/(m/s)= s/m4
+%             fout.dfdE = accum_f/(4*pi)./Edelta; % s/(m^4 sr eV)
+%             fout.dfvdv = accum_fv/(4*pi)./dv; % (s-1 m-2)/(m/s) = 1/m3
+%             fout.dfvdE = accum_fv/(4*pi)./Edelta; % 1/(sr eV) = 1/(s m2 sr eV)
+%             fout.dfvEdv = accum_fvE/(4*pi)./dv; % 1/(m/s)
+%             fout.dfvEdE = accum_fvE/(4*pi)./Edelta; % (eV s-1 m-2)/(sr eV) = eV/(s m2 sr eV)
+            f_vabs_arr(id_count,:) =  accum_f/(4*pi)./dv;
+          end              
+          if doV2
+            [VX,VY,VZ] = ndgrid(f.v,f.v,f.v);
+            VABS = sqrt(VX.^2 + (VY).^2 + VZ.^2);
+            %fvv = f_tmp.f.*VV2; % this is not used..?
+            %ENERGY = VV2/2;
+            [N,EDGES,BIN] = histcounts(VABS(:),vaxes_pos);
+            f_vabs_edges = tocolumn(EDGES);
+            f_dvabs = diff(f_vabs_edges);
+            f_vabs_centers = tocolumn((EDGES(2:end)+EDGES(1:end-1))*0.5);
+            nbins = nv_pos;
+            for ibin = 1:nbins
+              %try
+              %ibin
+              ind_bin = find(BIN==ibin);      
+              f_dist_tmp = f.f(ind_bin);
+              f_mean_tmp = nanmean(f_dist_tmp);
+              f_sum_tmp = nansum(f_dist_tmp);
+              if f_mean_tmp>0
+                1;
+              end
+              if not(isempty(f_mean_tmp))
+                f_vabs_mean_arr(id,ibin) = f_mean_tmp;
+              end
+              if not(isempty(f_sum_tmp))
+                f_vabs_sum_arr(id,ibin) = f_sum_tmp;%/f_dvabs(ibin);
+              end
+              %catch
+                1;
+              %end
+            end
+          end    
+          if doPar
+            [VX,VY,VZ] = ndgrid(f.v,f.v,f.v);
+          end
+        end  
+        [x_arr_sorted,i_sorted] = sort(x_arr);
+        %i_sorted = 1:numel(x_arr);
+
+        fout(itime).t = t_arr(i_sorted);          
+        fout(itime).x = x_arr(i_sorted);
+        fout(itime).z = z_arr(i_sorted);
+        fout(itime).v = vaxes;
+        fout(itime).fvx = f_vx_arr(i_sorted,:);
+        fout(itime).fvy = f_vy_arr(i_sorted,:);
+        fout(itime).fvz = f_vz_arr(i_sorted,:);
+        fout(itime).fvabs = f_vabs_arr(i_sorted,:);
+        if 0
+        fout(itime).vabs_edges = vaxes_pos;
+        [X,V] = meshgrid(fout(t_count,id).x,vaxes_pos);
+        fout(itime).vabs_edges = vaxes_pos;
+        fout(itime).vabs_mat = V; % multiply f_vabs_mean_arr(i_sorted,:) with vabs_mat.^4/2 to get DEF        
+        fout(itime).fvabssum = f_vabs_sum_arr(i_sorted,:);
+        fout(itime).def = f_vabs_mean_arr(i_sorted,:).*V'.^4/2;
+        fout(itime).fvabsmean = f_vabs_mean_arr(i_sorted,:);
+        end
+        %toc        
+      end
+      
+      
       varargout{1} = fout;
     end
     % Density

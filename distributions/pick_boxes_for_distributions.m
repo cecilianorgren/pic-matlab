@@ -394,14 +394,14 @@ end
 hold(hca,'off')   
 
 %% Pattern governed by A, PIC object
-pic = df04.twpelim(3000);
+pic = nobg.twpelim(9000);
 %ind = gf05.twpelim(4000).it;
 ind = pic.it;
 %ind = 26;
 ind = 1;
 A = squeeze(pic(ind).A);
 Bz = squeeze(pic(ind).Bz);
-ni = squeeze(pic(ind).n(4));
+ni = squeeze(pic(ind).ni);
 vex = squeeze(pic(ind).vex);
 viz = squeeze(pic(ind).viz);
 
@@ -409,9 +409,9 @@ viz = squeeze(pic(ind).viz);
 
 [saddle_locations,saddle_values] = saddle(A,'sort');
 
-x_center = (180:1:205);
+x_center = (170:0.5:210);
 %x_center = (90:0.2:170);
-z_center = [0:1:10]; % 0.4 0.8
+z_center = [0:1:5]; % 0.4 0.8
 dx_box = 0.25;
 dz_box = 0.25;
 % x_center = 150:0.5:205;
@@ -439,6 +439,7 @@ Alim = [-25 saddle_values(1)*0.99];
 Alim = [-23.8 0];
 Alim = [-24 -18.5];
 Alim = [-24 0];
+Alim = [-26 0];
 ind_keep = zeros(nboxes,1);
 for ibox = 1:nboxes
   xind = find(abs(pic.xi-XC(ibox))==min(abs(pic.xi-XC(ibox))));
@@ -457,7 +458,7 @@ n_boxes = size(keep_boxes,1);
 
 figure(401)
 hca = subplot(2,1,1);
-imagesc(hca,pic.xi,pic.zi,viz')
+imagesc(hca,pic.xi,pic.zi,ni')
 %imagesc(hca,x,z,pi1.scalar')
 hca.XLim = [140 210];
 hca.YLim = [-15 15];
