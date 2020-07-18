@@ -1,7 +1,7 @@
 %df04 = PIC('/Volumes/Fountain/Data/PIC/df_cold_protons_n04/data_h5/fields.h5');
-pic = nobg;
+pic = no02;
 missingAttr = pic.get_missing_attributes('RE');
-pic = pic.twcilim(pic.twci(missingAttr(1:end-2)),'exact');
+%pic = pic.twcilim(pic.twci(missingAttr(1:end-2)),'exact');
 
 %% Energy partitioning, UB, UK, UT
 times = pic.twci;

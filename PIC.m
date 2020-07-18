@@ -1386,6 +1386,75 @@ classdef PIC
               
     % Data analysis routines, time derivatives, interpolation, etc.
     % Interpolate fields    
+    function out = interpfield(obj,x,z,t,field,varargin)
+      % Interpolates fields to given x,z,t
+      %   out = interpfield(obj,x,z,t,field,varargin)
+      %
+      % x
+       
+      method = 'my_linear';
+      method = 'linear';
+      method = 'spline';
+      
+      nt = numel(t);
+      sizex = size(x,1);
+      sizez = size(z,1);
+      idim_tx = sizex==nt;
+      idim_tz = sizez==nt;
+      nx = sizex(find(not(idim_tx)));
+      nz = sizex(find(not(idim_tz)));
+      
+      
+      
+      nPoints = numel(x);      
+      var = nan(size(x));      
+      
+      method = 2;
+      switch method
+        case 1
+          for it = 1:nt
+            for ix = 1:nx
+              xmin = min(x(ix,it));
+              xmax = max(x(ix,it));
+              zmin = min(z(ix,it));
+              zmax = max(z(ix,it));
+
+              if find(t(it)==obj.twci)
+                tmppic = obj.xlim([xmin xmax]).zlim(z(ix,it),'closest',2).twcilim(t(it),'exact');
+                %data = obj.interpfield3(tmpx,tmpz,tmpt,tmpvar,x(it,:),z(it,:),t(it));
+                tmpvar = tmppic.(field);
+                tmpx   = tmppic.xi;
+                tmpz   = tmppic.zi;
+                new_data = interp1(tmpz,tmpvar',z(ix,it));
+                var(ix,:,it) = new_data;
+              else
+                tmppic = obj.xlim([xmin xmax]).zlim([zmin zmax]).twcilim(t(it),'closest',2);
+
+
+              end
+            end
+          end
+        case 2
+          for itime = 1:nt
+            
+            xmin = min(x(:,itime));
+            xmax = max(x(:,itime));
+            zmin = min(z(:,itime));
+            zmax = max(z(:,itime));
+
+            if find(t(itime)==obj.twci)
+              tmppic = obj.xlim([xmin xmax]).zlim([zmin zmax]).twcilim(t(itime),'exact');
+              %data = obj.interpfield3(tmpx,tmpz,tmpt,tmpvar,x(it,:),z(it,:),t(it));
+              tmpvar = tmppic.(field);
+              tmpx   = tmppic.xi;
+              tmpz   = tmppic.zi;
+              Vq = interp2(tmpx,tmpz,tmpvar',x(:,itime),z(:,itime));
+              var(:,itime) = Vq;
+            end
+          end
+      end          
+      out = var;
+    end
     function out = interp(obj,x,z,t,field,varargin)
       % Interpolates fields to given x,z,t
       %   out = interp(obj,x,z,t,field,varargin)
@@ -1413,8 +1482,17 @@ classdef PIC
         nClosest = 2;
       end
       
-      nPoints = numel(t);      
-      var = nan(nPoints,1);
+      nt = numel(t);
+      sizex = size(x);
+      sizez = size(z);
+      idim_tx = sizex==nt;
+      idim_tz = sizez==nt;
+      nx = sizex(find(not(idim_tx)));
+      nz = sizex(find(not(idim_tz)));
+      
+      
+      nPoints = numel(x);      
+      var = nan(nx,nz,nt,1);
       
       for iP = 1:nPoints
         tmppic = obj.xlim(x(iP),'closest',nClosest).zlim(z(iP),'closest',nClosest).twcilim(t(iP),'closest',nClosest);  
@@ -2093,12 +2171,35 @@ classdef PIC
       out.vz = x_sol(:,6);
     end
     function out = separatrix_location(obj,varargin)
+      % PIC.SEPARATRIX_LOCATION Calculates location of separatrix
+      %   At the moment it's the northern separatrix.
+      %
+      % sep = separatrix_location(pic);
+      %      
+      % sep = 
+      %
+      % struct with fields:
+      %
+      %      twci: [1×58 double]
+      %         x: [58×6400 double]
+      %         z: [58×6400 double]
+      %   xline_x: [1×58 double]
+      %   xline_z: [1×58 double]
+      %
+      % pcolor(sep.x(1,:),sep.twci,sep.z)
+      % shading flat
+      % hold on
+      % plot(sep.xline_x,sep.twci,'k')
+      
+      
       doNorth = 1;
       nTimes = obj.nt;      
       x = obj.xi;
       z = obj.zi;
       %nTimes
       % Calculate separatrix for each time step
+      new_x = nan(obj.nx,obj.nt);
+      new_z = nan(obj.nx,obj.nt);
       for it = 1:nTimes
         
         twci = obj.twci(it);
@@ -2139,10 +2240,18 @@ classdef PIC
           %pause
           % when refining A, the MinPeakProminence needs to be lowered
           n_ref = n_old/n_new;
-          default_minpeakprominence = 1e-2;          
-          [saddle_locations,saddle_values] = saddle(A_new,'sort','minpeakprominence',n_ref*default_minpeakprominence);
-          AX = saddle_values(1);
-                    
+          default_minpeakprominence = 1e-2;
+          foundSaddle = 0;
+          while not(foundSaddle)
+            [saddle_locations,saddle_values] = saddle(A_new,'sort','minpeakprominence',n_ref*default_minpeakprominence);
+            if isempty(saddle_values)
+              default_minpeakprominence = default_minpeakprominence*1e-1;
+              disp(sprintf('Changed MinPeakProminence from %g to %g',default_minpeakprominence*1e1,default_minpeakprominence))
+            else
+              foundSaddle = 1;
+              break;
+            end
+          end
           xX(it) = x_new(saddle_locations(1,1)); % new X line locations
           zX(it) = z_new(saddle_locations(1,2));
         end        
@@ -2194,8 +2303,8 @@ classdef PIC
         end
         
         % Interpolate the chosen line to the simulation x-grid
-        new_x(it,:) = x;
-        new_z(it,:) = interp1(xSep,zSep,x); % only need to do this one ? no      
+        new_x(:,it) = x;
+        new_z(:,it) = interp1(xSep,zSep,x); % only need to do this one ? no      
       end
       out.twci = obj.twci;
       out.x = new_x;
@@ -4583,7 +4692,165 @@ classdef PIC
     end
     function out = curl_vector(x,z,vx,vy,vz)
     end
-  end  
+    function fout = interpfield3(x,y,z,f,xq,yq,zq)
+      % INTERPFIELD3 Linear interpolation of 3D field.
+      %   bout = interpfield(x,z,t,f,xq,yq,zq)
+      %   x, z, t - grid
+      %   f - field to interploate (defined on grid x,z,t)  
+      %   xq, zq, tq - point to interpolate to, can be scalar values or vectors
+      %
+      nq = numel(xq);
+      for iq = 1:nq
+        % find two closest grid points in x and z
+        %   11 ------- 21
+        %    |  o      |      o is point (xq,zq)
+        %    |         |
+        %    |         |
+        %   12---------22  
+
+        % First do two 2D interpolations, then one 1D interpolation
+        ix1 = find(x<xq(iq),1,'last');
+        ix2 = find(x>xq(iq),1,'first');
+        iy1 = find(y<yq(iq),1,'last');
+        iy2 = find(y>yq(iq),1,'first');
+        iz1 = find(z<zq(iq),1,'last');
+        iz2 = find(z>zq(iq),1,'first');
+        % pick out x and z values for these points
+        x1 = x(ix1); % x
+        x2 = x(ix2);
+        y1 = y(iy1); % z
+        y2 = y(iy2); 
+        z1 = z(iz1); % t 
+        z2 = z(iz2);  
+        % pick out field values at the eight corners ()
+        f111 = f(ix1,iy1,iz1);
+        f112 = f(ix1,iy1,iz2);
+        f121 = f(ix1,iy2,iz1);
+        f122 = f(ix1,iy2,iz2);
+        f211 = f(ix2,iy1,iz1);
+        f212 = f(ix2,iy1,iz2);
+        f221 = f(ix2,iy2,iz1);
+        f222 = f(ix2,iy2,iz2);  
+        % distances between point 'o' and edges of box (x1,x2,z1,z2)
+        xx = (xq(iq) - x1)/(x2-x1); %
+        yy = (yq(iq) - y1)/(y2-y1);  
+        zz = (zq(iq) - z1)/(z2-z1);
+        % bilinear interpolation
+        % you can solve for coefficients by matrix operations, but for now I just
+        % used the expression directly: https://en.wikipedia.org/wiki/Bilinear_interpolation
+        % Here are instructions for 3D: https://en.wikipedia.org/wiki/Trilinear_interpolation    
+        % First do two 2D interpolations in yz-plane, then one 1D interpolation
+        % along x (which order you do the planes in doesn't matter)
+        % Bilinear
+        f1 = f111*(1-xx)*(1-yy) + f121*xx*(1-yy) + f112*(1-xx)*yy + f122*xx*yy;
+        f2 = f211*(1-xx)*(1-yy) + f221*xx*(1-yy) + f212*(1-xx)*yy + f222*xx*yy;
+        % Linear
+        f12(iq) = f1*(1-zz) + f2*zz;
+
+        % debug
+        %disp(sprintf('istep = %g, [x1,x1,z1,z1] = [%g,%g,%g,%g],  [b11,b12,b21,b22] = [%g,%g,%g,%g], binterp = %g',istep,x1,x2,z1,z2,b11,b12,b21,b22,bout))
+      end
+      fout = f12;
+    end
+    function fout = interpfield2(x,y,f,xq,yq)
+      % INTERPFIELD3 Linear interpolation of 3D field.
+      %   bout = interpfield(x,z,t,f,xq,yq,zq)
+      %   x, z, t - grid
+      %   f - field to interploate (defined on grid x,z,t)  
+      %   xq, zq, tq - point to interpolate to, can be scalar values or vectors
+      %
+      nq = numel(xq);
+      for iq = 1:nq
+        % find two closest grid points in x and z
+        %   11 ------- 21
+        %    |  o      |      o is point (xq,zq)
+        %    |         |
+        %    |         |
+        %   12---------22  
+
+        % First do two 2D interpolations, then one 1D interpolation
+        ix1 = find(x<xq(iq),1,'last');
+        ix2 = find(x>xq(iq),1,'first');
+        iy1 = find(y<yq(iq),1,'last');
+        iy2 = find(y>yq(iq),1,'first');
+        % pick out x and z values for these points
+        x1 = x(ix1); % x
+        x2 = x(ix2);
+        y1 = y(iy1); % z
+        y2 = y(iy2); 
+        % pick out field values at the eight corners ()
+        f111 = f(ix1,iy1,iz1);
+        f112 = f(ix1,iy1,iz2);
+        f121 = f(ix1,iy2,iz1);
+        f122 = f(ix1,iy2,iz2);
+        % distances between point 'o' and edges of box (x1,x2,z1,z2)
+        xx = (xq(iq) - x1)/(x2-x1); %
+        yy = (yq(iq) - y1)/(y2-y1);  
+        zz = (zq(iq) - z1)/(z2-z1);
+        % bilinear interpolation
+        % you can solve for coefficients by matrix operations, but for now I just
+        % used the expression directly: https://en.wikipedia.org/wiki/Bilinear_interpolation
+        % Here are instructions for 3D: https://en.wikipedia.org/wiki/Trilinear_interpolation    
+        % First do two 2D interpolations in yz-plane, then one 1D interpolation
+        % along x (which order you do the planes in doesn't matter)
+        % Bilinear
+        f1 = f111*(1-xx)*(1-yy) + f121*xx*(1-yy) + f112*(1-xx)*yy + f122*xx*yy;
+
+        % debug
+        %disp(sprintf('istep = %g, [x1,x1,z1,z1] = [%g,%g,%g,%g],  [b11,b12,b21,b22] = [%g,%g,%g,%g], binterp = %g',istep,x1,x2,z1,z2,b11,b12,b21,b22,bout))
+      end
+      fout = f1;
+    end
+    function fout = interpfield1(x,f,xq)
+      % INTERPFIELD3 Linear interpolation of 3D field.
+      %   bout = interpfield(x,z,t,f,xq,yq,zq)
+      %   x, z, t - grid
+      %   f - field to interploate (defined on grid x,z,t)  
+      %   xq, zq, tq - point to interpolate to, can be scalar values or vectors
+      %
+      nq = numel(xq);
+      for iq = 1:nq
+        % find two closest grid points in x and z
+        %   11 ------- 21
+        %    |  o      |      o is point (xq,zq)
+        %    |         |
+        %    |         |
+        %   12---------22  
+
+        % First do two 2D interpolations, then one 1D interpolation
+        ix1 = find(x<xq(iq),1,'last');
+        ix2 = find(x>xq(iq),1,'first');
+        iy1 = find(y<yq(iq),1,'last');
+        iy2 = find(y>yq(iq),1,'first');
+        % pick out x and z values for these points
+        x1 = x(ix1); % x
+        x2 = x(ix2);
+        y1 = y(iy1); % z
+        y2 = y(iy2); 
+        % pick out field values at the eight corners ()
+        f111 = f(ix1,iy1,iz1);
+        f112 = f(ix1,iy1,iz2);
+        f121 = f(ix1,iy2,iz1);
+        f122 = f(ix1,iy2,iz2);
+        % distances between point 'o' and edges of box (x1,x2,z1,z2)
+        xx = (xq(iq) - x1)/(x2-x1); %
+        yy = (yq(iq) - y1)/(y2-y1);  
+        zz = (zq(iq) - z1)/(z2-z1);
+        % bilinear interpolation
+        % you can solve for coefficients by matrix operations, but for now I just
+        % used the expression directly: https://en.wikipedia.org/wiki/Bilinear_interpolation
+        % Here are instructions for 3D: https://en.wikipedia.org/wiki/Trilinear_interpolation    
+        % First do two 2D interpolations in yz-plane, then one 1D interpolation
+        % along x (which order you do the planes in doesn't matter)
+        % Bilinear
+        f1 = f111*(1-xx)*(1-yy) + f121*xx*(1-yy) + f112*(1-xx)*yy + f122*xx*yy;
+
+        % debug
+        %disp(sprintf('istep = %g, [x1,x1,z1,z1] = [%g,%g,%g,%g],  [b11,b12,b21,b22] = [%g,%g,%g,%g], binterp = %g',istep,x1,x2,z1,z2,b11,b12,b21,b22,bout))
+      end
+      fout = f1;
+    end  
+  end
   methods (Access = protected)
     function out = get_binned_quantity(obj,field,iSpecies)
       % Get binned quantities from Smilei simulation

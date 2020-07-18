@@ -394,7 +394,7 @@ end
 hold(hca,'off')   
 
 %% Pattern governed by A, PIC object
-pic = nobg.twpelim(9000);
+pic = nobg.twpelim(10000);
 %ind = gf05.twpelim(4000).it;
 ind = pic.it;
 %ind = 26;
@@ -409,11 +409,11 @@ viz = squeeze(pic(ind).viz);
 
 [saddle_locations,saddle_values] = saddle(A,'sort');
 
-x_center = (170:0.5:210);
+x_center = (140:0.2:199);
 %x_center = (90:0.2:170);
-z_center = [0:1:5]; % 0.4 0.8
-dx_box = 0.25;
-dz_box = 0.25;
+z_center = [4 6]; % 0.4 0.8
+dx_box = 0.10;
+dz_box = 0.10;
 % x_center = 150:0.5:205;
 % z_center = 0:0.5:10;
 % dx_box = 0.25;
@@ -478,7 +478,7 @@ end
 hold(hca,'off')   
 
 hca = subplot(2,1,2);
-imagesc(hca,pic.xi,pic.zi,A')
+imagesc(hca,pic.xi,pic.zi,vex')
 %imagesc(hca,x,z,pi1.scalar')
 hca.XLim = [140 210];
 hca.YLim = [-15 15];
@@ -502,7 +502,7 @@ hold(hca,'off')
 xlim = [150 200];
 zlim = [-1 10];
 twpe = 7000;
-pic = df04.twpelim(7000).xlim(xlim).zlim(zlim);
+pic = nobg.twpelim(10000).xlim(xlim).zlim(zlim);
 %ind = 26;
 A = squeeze(pic.A);
 Bz = squeeze(pic.Bz);
@@ -614,3 +614,130 @@ end
 hold(hca,'off')   
 
 hlinks = linkprop(h,{'XLim','YLim'});
+
+%% Along aline, typically a field line
+pic = nobg.twpelim(10000).xlim([130 170]).zlim([-15 15]);
+% Load data
+x = pic.xi;
+z = pic.zi;
+Bx = pic.Bx;
+By = pic.By;
+Bz = pic.Bz;
+A = pic.A; 
+Epar = pic.Epar;
+
+x0 = 131;
+z0 = 7;
+dx = 0.05;
+dy = 0.05;
+dz = 0.05;
+nsteps = 55.1; % if nsteps is not an even number, integration will stop 
+                % when the fieldline arclength is above nsteps
+                
+if 1 % field line
+  tic;
+  [linearc,linex,liney,linez,linebx,lineby,linebz] = fieldline(x0,z0,x,z,Bx,By,Bz,dx,dy,dz,nsteps);
+  toc;
+  % Interpolate line to desired values
+  linearc_new = linearc(1):0.2:linearc(end);
+  x_center = interp1(linearc,linex,linearc_new);
+  z_center = interp1(linearc,linez,linearc_new);
+else % manual
+  x_center = 154.6;
+  z_center = 4*zeros(numel(x_center));
+end
+dx_box = 0.1;
+dz_box = 0.1;
+
+xlow  = x_center - dx_box;
+xhigh = x_center + dx_box;
+zlow  = z_center - dz_box;
+zhigh = z_center + dz_box;
+
+keep_boxes = [xlow' xhigh' zlow' zhigh'];
+keep_boxes(x_center<x0,:) = [];
+n_boxes = size(keep_boxes,1);
+ 
+% Plot
+figure(402)
+h = setup_subplots(1,1);
+isub = 1;
+doA = 1;
+
+if 1 % Epar
+  hca = h(isub); isub = isub + 1;
+  imagesc(hca,pic.xi,pic.zi,Epar')
+  hca.Title.String = sprintf('twci = %g, twpe = %g, n_boxes = %g',pic.twci,pic.twpe,n_boxes);
+  hca.Title.Interpreter = 'none';
+  hcb = colorbar('peer',hca);
+  colormap(hca,pic_colors('blue_red'))
+  hca.CLim = max(abs(hca.CLim))*[-1 1];
+  hca.YDir = 'normal';
+
+  hold(hca,'on')
+  for ibox = 1:n_boxes      
+    hpatch = patch(hca,keep_boxes(ibox,[1 1 2 2]),keep_boxes(ibox,[3 4 4 3]),'w');
+    hpatch.FaceAlpha = 0;
+    hpatch.LineWidth = 1;   
+  end
+  if doA    
+    hold(hca,'on')
+    clim = hca.CLim;
+    levA = floor(min(A(:))):1:ceil(max(A(:)));
+    iAx = 1:4:pic.nx;
+    iAz = 1:4:pic.nz;
+    contour(hca,pic.xi(iAx),pic.zi(iAz),A(iAx,iAz)',levA,'k');
+    hold(hca,'off')
+    hca.CLim = clim;
+  end
+  hold(hca,'off')   
+end
+
+%% Along a line, interpolated from clicked points
+%% plotmap
+twpe = 9000;
+xlim = [80 210];
+zlim = [0 15];
+pic = nobg.twpelim(twpe).xlim(xlim).zlim(zlim);
+varstrs = {'ni';'Epar'};
+clims = {[0 1],[-1 1]}';
+cmapbr = pic_colors('blue_red');
+cmapwa = pic_colors('waterfall');
+cmaps = {cmapwa,cmapbr}';
+
+h = pic.plot_map(varstrs,'A',1,'clim',clims,'cmap',cmaps);
+
+[x,z] = ginput();
+
+arcline = [0; cumsum(sqrt(diff(x).^2 + diff(z).^2))];
+darc = 0.2;
+arcline_new = arcline(1):darc:arcline(end);
+
+method = 'spline';
+x_center = interp1(arcline,x,arcline_new,method);
+z_center = interp1(arcline,z,arcline_new,method);
+
+%x_center = interp1(linearc,linex,linearc_new);
+%z_center = interp1(linearc,linez,linearc_new);
+dx_box = 0.1;
+dz_box = 0.1;
+
+xlow  = x_center - dx_box;
+xhigh = x_center + dx_box;
+zlow  = z_center - dz_box;
+zhigh = z_center + dz_box;
+
+keep_boxes = [xlow' xhigh' zlow' zhigh'];
+%keep_boxes(x_center<x0,:) = [];
+n_boxes = size(keep_boxes,1);
+
+for ip = 1:numel(h)
+  hca = h(ip);
+  hold(hca,'on')
+  for ibox = 1:n_boxes      
+    hpatch = patch(hca,keep_boxes(ibox,[1 1 2 2]),keep_boxes(ibox,[3 4 4 3]),'w');
+    hpatch.FaceAlpha = 0;
+    hpatch.LineWidth = 1;   
+  end  
+  irf_legend(hca,sprintf('nboxes = %g',n_boxes),[0.98 0.98])
+end

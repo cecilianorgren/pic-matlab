@@ -998,8 +998,12 @@
         for iDist = 1:numel(obj.dists{iIter}) 
           %dataset_name = ['/data/' str_iter '/' num2str(iDist,'%05.0f') '/fxyz'];
           dataset_name = ['/data/' str_iter '/' obj.dists{iIter}{iDist} '/fxyz'];          
-          %locs{iIter}{iDist} = [h5readatt(obj.file,dataset_name,'x') h5readatt(obj.file,dataset_name,'z')];          
-          vtmp = h5readatt(obj.file,dataset_name,'axes')';                    
+          %locs{iIter}{iDist} = [h5readatt(obj.file,dataset_name,'x') h5readatt(obj.file,dataset_name,'z')];
+          try
+          vtmp = h5readatt(obj.file,dataset_name,'axes')';
+          catch
+            vtmp = [NaN NaN];
+          end
           v1{1,iIter}(iDist,:) = vtmp(:,1);
           v2{1,iIter}(iDist,:) = vtmp(:,end);
           nv{1,iIter}(iDist,:) = size(vtmp,2);
@@ -1299,7 +1303,7 @@
                                  % sum(f(:)*d3v)
         
         switch rebin_option
-          case 'vabs'            
+          case 'vabs'
             if isempty(vgrid) % if not supplied, define here based on max(VABS(:))
               nv = 70;
               vgrid = tocolumn(linspace(0,max(VABS(:)),nv));
@@ -1616,6 +1620,7 @@
       %     distribution
             
       doV2 = 0;
+      doE = 1;
       doPar = 0;
       doVabs = 1;
       
@@ -1631,7 +1636,7 @@
           case {'vpar','par'}
             l = 2;
             doPar = 1;
-            B = args{2};
+            B = args{2}; % {Bx,By,Bz} 
           otherwise
             error(sprintf('Can not recognize flag ''%s'' ',args{1}))
         end
@@ -1657,15 +1662,12 @@
       %nd = sum([obj.nd{:}]);
       nv = numel(vaxes);
       
-      % for vabs distribution
-      vaxes_pos = vaxes(vaxes>=0);
-      nv_pos = numel(vaxes_pos-1); % vaxes_pos are the edges of the bins, so the number of bins is one less
-      
+      n_vabs = 50;
+      n_vpar = 120;
       % save results in structure array, one structure for each time
       % also save time, but for now only the iteration is saved
       %fout = struct('time',{},'iter',{},'x',{},'z',{},'v',{},'fvx',{},'fvy',{},'fvz',{});
-                     
-      
+                           
       for itime = 1:obj.nt % loop through times
         ds = obj.twcifind(obj.twci(itime));
         if isempty(ds.xi1), continue; end       
@@ -1674,8 +1676,9 @@
         f_vx_arr = zeros(nd,nv);
         f_vy_arr = zeros(nd,nv);
         f_vz_arr = zeros(nd,nv);
-        f_vabs_sum_arr = zeros(nd,nv_pos);
-        f_vabs_mean_arr = zeros(nd,nv_pos);
+        f_vabs_arr = zeros(nd,n_vabs);        
+        def_E_arr = zeros(nd,n_vabs);
+        dpf_E_arr = zeros(nd,n_vabs);
         t_arr = zeros(nd,1);
         x_arr = zeros(nd,1);
         z_arr = zeros(nd,1);
@@ -1699,23 +1702,41 @@
           f_vz_arr(id_count,:) = interp1(f.v,sum(f.fxz,1),vaxes);
           %f_vabs_arr(id_count,:) = interp1(f_tmp.v,sum(f_tmp.fxz,1),vaxes);
 
-          if doVabs
+
+          % Just do them together
+          if any([doVabs doE]) 
+            % for vabs distribution
             dv = f.v(2)-f.v(1);
             d3v = dv.^3;
-            [VX,VY,VZ] = ndgrid(f.v,f.v,f.v);            
+            [VX,VY,VZ] = ndgrid(f.v,f.v,f.v);
             VABS = sqrt(VX.^2 + (VY).^2 + VZ.^2);
+            v_abs_grid = linspace(0,max(VABS(:)),n_vabs+1);
+            dv_abs = v_abs_grid(2)-v_abs_grid(1);
+            v_abs_center = v_abs_grid(1:(end-1)) + dv_abs;
+            
+            masses = [25 1 25 1 25 1];
+            mass = masses(iSpecies(1))/masses(1);
+            ENERGY = mass*VABS.^2/2;
+            
+            % For givin output in multiple units
+            Egrid = mass*v_abs_grid.^2/2;
+            %Ecenter = mass*vcenter.^2/2;
+            Eminus = mass*v_abs_grid(1:(n_vabs)).^2/2;
+            Eplus = mass*v_abs_grid(2:(n_vabs+1)).^2/2;
+            Ecenter = (Eplus + Eminus)/2;
+            Edelta = Eplus - Eminus;
             %[count edges mid loc] = histcn(VABS(:),vgrid);
 %             volume_of_shell = count*d3v;
             % sum(fd3v)
             % units: [f][v3] = l-3 v-3 v3 = l-3 (# per volume)
             % So this is number of particles per volume = density
-            [accum_f edges mid loc] = histcn(VABS(:),vaxes,'AccumData',f.f(:)*d3v);
+            [accum_f edges mid loc] = histcn(VABS(:),v_abs_grid,'AccumData',f.f(:)*d3v);
             % sum(fvd3v)
             % units [f][v][v3] = l-3 v-3 v v3 = vl-3 = l s-1 l-1 = s-1 l-2 (# per area and time)
-%             [accum_fv edges mid loc] = histcn(VABS(:),vgrid,'AccumData',f.f(:).*VABS(:)*d3v);            
+            [accum_fv edges mid loc] = histcn(VABS(:),v_abs_grid,'AccumData',f.f(:).*VABS(:)*d3v);            
             % sum(fvEd3v)
             % units [f][v][E][v3] = l-3 v-3 v eV v3 = v eV l-3 = l s-1 eV l-1 = eV s-1 l-2 (energy per area and time)
-%            [accum_fvE edges mid loc] = histcn(VABS(:),vgrid,'AccumData',f.f(:).*VABS(:).*ENERGY(:)*d3v);
+            [accum_fvE edges mid loc] = histcn(VABS(:),v_abs_grid,'AccumData',f.f(:).*VABS(:).*ENERGY(:)*d3v);
             % Since we used equally spaced v's, the new phase space volumes
             % (which are shells), become increasingly big further out
             % (larger vabs): d3v = v2*dv*dOmega. Omega is the solid angle
@@ -1739,46 +1760,34 @@
 %             fout.dfvdE = accum_fv/(4*pi)./Edelta; % 1/(sr eV) = 1/(s m2 sr eV)
 %             fout.dfvEdv = accum_fvE/(4*pi)./dv; % 1/(m/s)
 %             fout.dfvEdE = accum_fvE/(4*pi)./Edelta; % (eV s-1 m-2)/(sr eV) = eV/(s m2 sr eV)
-            f_vabs_arr(id_count,:) =  accum_f/(4*pi)./dv;
-          end              
-          if doV2
-            [VX,VY,VZ] = ndgrid(f.v,f.v,f.v);
-            VABS = sqrt(VX.^2 + (VY).^2 + VZ.^2);
-            %fvv = f_tmp.f.*VV2; % this is not used..?
-            %ENERGY = VV2/2;
-            [N,EDGES,BIN] = histcounts(VABS(:),vaxes_pos);
-            f_vabs_edges = tocolumn(EDGES);
-            f_dvabs = diff(f_vabs_edges);
-            f_vabs_centers = tocolumn((EDGES(2:end)+EDGES(1:end-1))*0.5);
-            nbins = nv_pos;
-            for ibin = 1:nbins
-              %try
-              %ibin
-              ind_bin = find(BIN==ibin);      
-              f_dist_tmp = f.f(ind_bin);
-              f_mean_tmp = nanmean(f_dist_tmp);
-              f_sum_tmp = nansum(f_dist_tmp);
-              if f_mean_tmp>0
-                1;
-              end
-              if not(isempty(f_mean_tmp))
-                f_vabs_mean_arr(id,ibin) = f_mean_tmp;
-              end
-              if not(isempty(f_sum_tmp))
-                f_vabs_sum_arr(id,ibin) = f_sum_tmp;%/f_dvabs(ibin);
-              end
-              %catch
-                1;
-              %end
-            end
-          end    
+            f_vabs_arr(id_count,:) = accum_f/(4*pi)./dv_abs; % m-3/(m/s)= s/m4
+            dpf_E_arr(id_count,:) = accum_fv/(4*pi)./Edelta'; % 1/(sr eV) = 1/(s m2 sr eV)
+            def_E_arr(id_count,:) = accum_fvE/(4*pi)./Edelta'; % (eV s-1 m-2)/(sr eV) = eV/(s m2 sr eV)
+          end
           if doPar
+            dv = f.v(2)-f.v(1);
+            d3v = dv.^3;
+            Bx = B{1}; Bx = Bx(id_count);
+            By = B{2}; By = By(id_count);
+            Bz = B{3}; Bz = Bz(id_count);
             [VX,VY,VZ] = ndgrid(f.v,f.v,f.v);
+            Babs = sqrt(Bx.^2 + By.^2 + Bz.^2);
+            bx = Bx./Babs;
+            by = By./Babs;
+            bz = Bz./Babs;
+            
+            VPAR = VX(:).*bx + VY(:).*by + VZ(:).*bz;
+            
+            v_par_grid = linspace(min(VPAR(:)),max(VPAR(:)),n_vpar+1);
+            dv_par = v_par_grid(2)-v_par_grid(1);
+            v_par_center = v_par_grid(1:(end-1)) + dv_par;
+            [accum_fvpar edges mid loc] = histcn(VPAR(:),v_par_grid,'AccumData',f.f(:)*d3v);
+            f_vpar_arr(id_count,:) = accum_fvpar; % m-3/(m/s)= s/m4
           end
         end  
-        [x_arr_sorted,i_sorted] = sort(x_arr);
-        %i_sorted = 1:numel(x_arr);
-
+        %[x_arr_sorted,i_sorted] = sort(x_arr);
+        i_sorted = 1:numel(x_arr);
+        
         fout(itime).t = t_arr(i_sorted);          
         fout(itime).x = x_arr(i_sorted);
         fout(itime).z = z_arr(i_sorted);
@@ -1786,7 +1795,18 @@
         fout(itime).fvx = f_vx_arr(i_sorted,:);
         fout(itime).fvy = f_vy_arr(i_sorted,:);
         fout(itime).fvz = f_vz_arr(i_sorted,:);
-        fout(itime).fvabs = f_vabs_arr(i_sorted,:);
+        if any([doVabs doE]) 
+          fout(itime).vabs_center = v_abs_center;
+          fout(itime).vabs_edges = v_abs_grid;
+          fout(itime).fvabs = f_vabs_arr(i_sorted,:);
+          fout(itime).fdpfE = dpf_E_arr(i_sorted,:);
+          fout(itime).fdefE = def_E_arr(i_sorted,:);
+        end
+        if doPar
+          fout(itime).vpar_center = v_par_center;
+          fout(itime).vpar_edges = v_par_grid;
+          fout(itime).fvpar = f_vpar_arr(i_sorted,:);
+        end
         if 0
         fout(itime).vabs_edges = vaxes_pos;
         [X,V] = meshgrid(fout(t_count,id).x,vaxes_pos);
@@ -1798,8 +1818,7 @@
         end
         %toc        
       end
-      
-      
+       
       varargout{1} = fout;
     end
     % Density

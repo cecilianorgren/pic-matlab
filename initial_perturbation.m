@@ -1,20 +1,42 @@
 %
-%
-%
+wpewce = 2;
+mime = 100;
+% de, sixe of box
+xemin = 0; 
+xemax = 2048; 
+zemin = -128; 
+zemax = 128;
+% di/de = (c/wpi)/(c/wpe) = wpe/wpi = sqrt(mi/me) 
+ximin = xemin/sqrt(mime);
+ximax = xemax/sqrt(mime);
+zimin = zemin/sqrt(mime);
+zimax = zemax/sqrt(mime);
 
-mass = 25; % not used
-wpewce = 2; % not used
-xmax = 20; % sixe of box
-zmax = 5; % size of box
+xmin = ximin;
+xmax = ximax;
+zmin = zimin;
+zmax = zimax;
+
+Lhe = 20; % Harris sheet width in de
+Lhi = Lhe/sqrt(mime); % Harris sheet width in di
+l = Lhi; % harris sheet width
+zh = l;
 B0 = 1; % harris sheet asymptotic amplitude
-BG = 0*0.5;
-zh = 1; % harris sheet width
-xp = 2*zh; % scale length of perturbation
-zp = 1.5*zh; % scale length of perturbation
-ah = B0*zh; % amplitude of harris sheet
+BG = 0*0.25;
+ah = B0*l; %, rot(A) = B -> A0/l = B0 ....... rot(B) = J -> B0/l = Jy0
+xp = 2*l; % scale length of perturbation
+zp = 1*l; % scale length of perturbation
 ap = ah*0.5; % amplitude of perturbation
+
 TeTi = 5; % not used, implement to get densities
 Ttot = 0.5; % not used, implement to get densities
+
+nx = 640;
+nz = 160;
+x0 = 0.5*(xmax-xmin);
+xvec = linspace(-xmin,xmax,nx)-x0;
+zvec = linspace(-zmax,zmax,nz);
+[X,Z] = meshgrid(xvec,zvec);
 
 % If you want to get the expressions in terms of all parameters (zh,zp,xp,
 % ah,ap, etc), you need to add these as syms here.
@@ -40,6 +62,7 @@ AP = [0; -ap*exp(-x^2/2/xp^2 -z^2/2/zp^2 + 0.0); 0]; % circular perturbation
 AP = [0; -ap*exp(-x^2/2/xp^2 -z^2/2/zp^2 + 0.0); 0]; % circular perturbation
 %AP = [0; -ap*cos(2*pi*(x)/xmax)*cos(pi*(z)/zmax)*exp(-x^2/2/xp^2 -z^2/2/zp^2 + 0.0); 0]; % circular perturbation
 AG = [BG*z + 1*BG*log(cosh((z-z0_BG)/zL_BG)); 0; 0]; % guide field
+
 %AP = [0; ah*log(cosh(z/zh))*exp(-x^2/2/xp^2 -z^2/2/zp^2); 0]; 
 %AP = [0; ap*sin(0.5*pi*(1+x/10/xp))*sin(0.5*pi*(1+z/zp)); 0];
 %AP = [0 ap*exp(-x^2/2/xp^2 + 0.5)*cos(pi*z/lz) 0];
@@ -65,11 +88,6 @@ Jx = J(1);
 Jy = J(2);
 Jz = J(3);
 
-nx = 250;
-nz = 300;
-xvec = linspace(-xmax,xmax,nx);
-zvec = linspace(-zmax,zmax,nz);
-[X,Z] = meshgrid(xvec,zvec);
 
 fA = symfun(A,[x y z]);
 fAx = symfun(Ax,[x y z]);
@@ -127,15 +145,16 @@ switch velocities
 end
 
 % Plot
-nrows = 3;
-ncols = 3;
+nrows = 4;
+ncols = 1;
 npanels = nrows*ncols;
-for ipanel = 1:npanels
-  h(ipanel) = subplot(nrows,ncols,ipanel);  
-end
+%for ipanel = 1:npanels
+%  h(ipanel) = subplot(nrows,ncols,ipanel);  
+%end
+h = setup_subplots(nrows,ncols);
 isub = 1;
 
-if 1 % Ax
+if 0 % Ax
   hca = h(isub); isub = isub + 1;
   pcolor(hca,X,Z,matAx);
   shading(hca,'flat')
@@ -151,9 +170,9 @@ if 1 % Ay
   colorbar('peer',hca)
   hca.Title.String = 'Ay';
 end
-if 1 % Az
+if 0 % Az
   hca = h(isub); isub = isub + 1;
-  pcolor(hca,X,Z,matAy);
+  pcolor(hca,X,Z,matAz);
   shading(hca,'flat')
   hca.CLim = max(abs(hca.CLim))*[-1 1];
   colorbar('peer',hca)
@@ -167,7 +186,7 @@ if 1 % Bx
   colorbar('peer',hca)
   hca.Title.String = 'Bx';
 end
-if 1 % By
+if 0 % By
   hca = h(isub); isub = isub + 1;
   pcolor(hca,X,Z,matBy);
   shading(hca,'flat')
@@ -183,7 +202,7 @@ if 1 % Bz
   colorbar('peer',hca)
   hca.Title.String = 'Bz';
 end
-if 1 % Jx
+if 0 % Jx
   hca = h(isub); isub = isub + 1;
   pcolor(hca,X,Z,matJx);
   shading(hca,'flat')
@@ -199,7 +218,7 @@ if 1 % Jy
   colorbar('peer',hca)
   hca.Title.String = 'Jy';
 end
-if 1 % Jz
+if 0 % Jz
   hca = h(isub); isub = isub + 1;
   pcolor(hca,X,Z,matJz);
   shading(hca,'flat')
@@ -217,11 +236,11 @@ if 0
   hca.Title.String = 'Jz';
 end
 colormap(cn.cmap('blue_red'))
+compact_panels(0.03,0.08)
 
 hlinks = linkprop(h,{'XLim','YLim'});
 %hlinks.Targets(1).XLim = [-10 10];
 %hlinks.Targets(1).YLim = [-10 10];
-compact_panels(0.03,0.08)
 
 %% Old
 if 0

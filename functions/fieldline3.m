@@ -1,4 +1,4 @@
-function varargout = fieldline(x0,z0,x,z,Bx,By,Bz,dx,dy,dz,nsteps)
+function varargout = fieldline3(x0,y0,z0,x,y,z,Bx,By,Bz,dx,dy,dz,nsteps)
 % FIELDLINE Integrates field in direction of flow vector
 %   Example: 
 %   x0 = 150;
@@ -33,12 +33,12 @@ function varargout = fieldline(x0,z0,x,z,Bx,By,Bz,dx,dy,dz,nsteps)
   % Define starting point
   arcline = 0;
   xline = x0;  
-  yline = 0;
+  yline = y0;
   zline = z0;  
   % Interploate the magnetic field to starting point
-  bxline = interpfield(x,z,bx,xline(end),zline(end));
-  byline = interpfield(x,z,by,xline(end),zline(end));
-  bzline = interpfield(x,z,bz,xline(end),zline(end));
+  bxline = interpfield3(x,y,z,bx,xline(end),yline(end),zline(end));
+  byline = interpfield3(x,y,z,by,xline(end),yline(end),zline(end));
+  bzline = interpfield3(x,y,z,bz,xline(end),yline(end),zline(end));
   
   if doPlot % Plot starting point
     plot(xline(end),zline(end),'.')
@@ -48,6 +48,9 @@ function varargout = fieldline(x0,z0,x,z,Bx,By,Bz,dx,dy,dz,nsteps)
 
   istep = 0;
   while 1
+    % for debugging
+    %disp(sprintf('[bx,by,bz]=[%g,%g,%g]',bxline(end),byline(end),bzline(end)))
+  
     istep = istep + 1;
     % Calculate step, magnetic field direction times the predefined stepsize
     xstep = bxline(istep)*dx;
@@ -60,7 +63,9 @@ function varargout = fieldline(x0,z0,x,z,Bx,By,Bz,dx,dy,dz,nsteps)
     arcline(istep+1) = arcline(istep) + sqrt(xstep^2+ystep^2+zstep^2);
     
     % Break if we end up outside of box
-    if or(xline(end)<x(1),xline(end)>x(end))
+    if xline(end)<x(1) || xline(end)>x(end) ||...
+       yline(end)<y(1) || yline(end)>y(end) ||...
+       zline(end)<z(1) || zline(end)>z(end)
       xline(end) = [];
       yline(end) = [];
       zline(end) = [];
@@ -68,9 +73,10 @@ function varargout = fieldline(x0,z0,x,z,Bx,By,Bz,dx,dy,dz,nsteps)
       break;
     end
     % Get field at new point    
-    bxline(istep+1) = interpfield(x,z,bx,xline(end),zline(end));
-    byline(istep+1) = interpfield(x,z,by,xline(end),zline(end));
-    bzline(istep+1) = interpfield(x,z,bz,xline(end),zline(end));
+    
+    bxline(istep+1) = interpfield3(x,y,z,bx,xline(end),yline(end),zline(end));
+    byline(istep+1) = interpfield3(x,y,z,by,xline(end),yline(end),zline(end));
+    bzline(istep+1) = interpfield3(x,y,z,bz,xline(end),yline(end),zline(end));
       
     if doPlot
       plot(xline(end),zline(end),'.')
