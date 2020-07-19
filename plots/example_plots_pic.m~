@@ -87,7 +87,7 @@ h = pic.plotmap(varstrs,'A',1,'clim',clims,'cmap',cmaps);
 
 %% plotmap, magnetic curvature
 twpe = 9000;
-xlim = [160 210];
+xlim = [140 210];
 zlim = [-15 15];
 pic = nobg.twpelim(twpe).xlim(xlim).zlim(zlim);
 cmapbr = pic_colors('blue_red');
@@ -98,8 +98,8 @@ clims = {[-1 1];[-1 1];[-1 1];[-1 1];[0 1];[0 1];[0 2]};
 cmaps = {cmapbr;cmapbr;cmapbr;cmapbr;cmapbr;cmapwa};
 
 varstrs = {'curvbabs';'curvbrad';'rc([3 5])'};
-clims = {[-1 1];[0 5];[0 5];[0 2]};
-cmaps = {cmapbr;cmapwa;cmapwa};
+clims = {[-1 1];[-1 1];[-1 1];[-1 1];[0 1];[0 1];[0 2]};
+cmaps = {cmapbr;cmapbr;cmapbr;cmapbr;cmapbr;cmapwa};
 
 
 h = pic.plot_map(varstrs,'A',1,'clim',clims,'cmap',cmaps);

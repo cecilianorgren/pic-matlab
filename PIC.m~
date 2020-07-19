@@ -3663,10 +3663,6 @@ classdef PIC
     end  
     
     % Get derived quantities
-    function out = minusBx(obj)
-      % just for testing obj.get_str('Bx.*Bz');
-      out  = obj.get_exp('-Bx');
-    end
     function out = par(obj,field,species)
       if exist('species','var')
         x = obj.([field ,'x'])(species);
@@ -5006,18 +5002,14 @@ classdef PIC
 %         data_recycle.(field).data = out;
 %       end      
     end
-    function out = get_exp(obj,str_exp)
-      % Loads data in expression and returns evaluated expression 
-      % Example:
-      % out  = obj.get_exp('log10(abs(Bx.*Bz))');
-      list_methods = methods(obj);
-      list_fields = list_methods(cellfun(@(s) contains(str_exp,s),list_methods));
+    function out = parse_and_get_field(obj,field)
+      list_methods = methods(pic);
+      list_fields = list_methods(cellfun(@(s) contains(str,s),list_methods));
       nfields = numel(list_fields);
       for ifield = 1:nfields
-        varstr = list_fields{ifield};
-        eval([varstr ' = obj.' varstr ';']);
+        varstr = list_field{ifield};
+        eval([varstr ' = ' obj.(varstr)])
       end
-      out = eval(str_exp);
     end  
   end
 end

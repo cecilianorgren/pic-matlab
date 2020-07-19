@@ -1,0 +1,7 @@
+
+str = 'log10(Bx./Bz)';
+str = 'Bx./Bz';
+operators = split(str,methods(pic));
+operators(find(cellfun(@(s) isempty(s),operators))) = []; % remove empr
+
+strfind(str,spl)
