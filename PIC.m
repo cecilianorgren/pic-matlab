@@ -623,16 +623,17 @@ classdef PIC
               plot(hca,NaN,NaN)
               doA = 1;
             else              
-              if strfind(varstrs{ivar},'(')
-                ind1 = strfind(varstrs{ivar},'(');
-                ind2 = strfind(varstrs{ivar},')');
-                %varsplit = regexp(varstrs{ivar}, '(?<var>\w+)\W+(?<ind>\d)\W+','names');
-                indstr = varstrs{ivar}(ind1+1:ind2-1);
-                varstr =  varstrs{ivar}(1:ind1-1);
-                var = tmp_obj.(varstr)(eval(indstr));
-              else
-                var = tmp_obj.(varstrs{ivar});
-              end        
+%               if strfind(varstrs{ivar},'(')
+%                 ind1 = strfind(varstrs{ivar},'(');
+%                 ind2 = strfind(varstrs{ivar},')');
+%                 %varsplit = regexp(varstrs{ivar}, '(?<var>\w+)\W+(?<ind>\d)\W+','names');
+%                 indstr = varstrs{ivar}(ind1+1:ind2-1);
+%                 varstr =  varstrs{ivar}(1:ind1-1);
+%                 var = tmp_obj.(varstr)(eval(indstr));
+%               else
+%                 var = tmp_obj.(varstrs{ivar});
+%               end        
+              var = tmp_obj.get_exp(varstrs{ivar});
               imagesc(hca,tmp_obj.xi,tmp_obj.zi,var');
               hb(ivar) = colorbar('peer',hca);
               hb(ivar).YLabel.String = varstrs{ivar};
@@ -985,16 +986,17 @@ classdef PIC
         
           % check if input demand som andditional input, e.g. n(1)
 
-          if strfind(varstrs{ivar},'(')
-            ind1 = strfind(varstrs{ivar},'(');
-            ind2 = strfind(varstrs{ivar},')');
-            %varsplit = regexp(varstrs{ivar}, '(?<var>\w+)\W+(?<ind>\d)\W+','names');
-            indstr = varstrs{ivar}(ind1+1:ind2-1);
-            varstr =  varstrs{ivar}(1:ind1-1);
-            var = obj.(varstr)(eval(indstr));
-          else
-            var = obj.(varstrs{ivar});
-          end        
+%           if strfind(varstrs{ivar},'(')
+%             ind1 = strfind(varstrs{ivar},'(');
+%             ind2 = strfind(varstrs{ivar},')');
+%             %varsplit = regexp(varstrs{ivar}, '(?<var>\w+)\W+(?<ind>\d)\W+','names');
+%             indstr = varstrs{ivar}(ind1+1:ind2-1);
+%             varstr =  varstrs{ivar}(1:ind1-1);
+%             var = obj.(varstr)(eval(indstr));
+%           else
+%             var = obj.(varstrs{ivar});
+%           end  
+          var = obj.get_exp(varstrs{ivar});      
           imagesc(hca,obj.xi,obj.zi,var');
           hb(ivar) = colorbar('peer',hca);
           hb(ivar).YLabel.String = varstrs{ivar};
@@ -1232,21 +1234,7 @@ classdef PIC
           nvars = numel(varstrs);
           for ivar = 1:nvars
             varstr = varstrs{ivar};
-            if strcmp(varstr(1),'-')
-              varmult = -1;
-              varstr = varstr(2:end);
-            else
-              varmult = 1;
-            end
-            if strfind(varstr,'(')
-              ind1 = strfind(varstr,'(');
-              ind2 = strfind(varstr,')');            
-              indstr = varstr(ind1+1:ind2-1);
-              varstr =  varstr(1:ind1-1);
-              var = varmult*obj.(varstr)(eval(indstr));
-            else
-              var = varmult*obj.(varstr);
-            end     
+            var = obj.get_exp(varstr);
             if ivar == 2
               hold(hca,'on')
             end
@@ -1279,8 +1267,15 @@ classdef PIC
       drawnow;
       leftpos = 1;
       for ip = 1:npanels, panel_width(ip) = h(ip).Position(3); end      
-      for ip = 1:npanels, h(ip).Position(3) = min(panel_width); end      
-      titlestring = sprintf('twpe = %g, twci = %g, %s = [%.2f %.2f]',obj.twpe,obj.twci,rangestr,range(1),range(2));
+      for ip = 1:npanels, h(ip).Position(3) = min(panel_width); end  
+      if ntimes == 1        
+        titlestring = sprintf('twpe = %g, twci = %g, %s = [%.2f %.2f]',obj.twpe,obj.twci,rangestr,range(1),range(2));
+      else
+        titlestring = sprintf('twpe = %g-%g, twci = %g-%g, %s = [%.2f %.2f]',obj.twpe(1),obj.twpe(end),obj.twci(1),obj.twci(end),rangestr,range(1),range(2));
+      end
+      if doSmooth
+        titlestring = [titlestring ', n_p^{smooth} = ' num2str(npSmooth)];
+      end
       h(1).Title.String = titlestring;
       compact_panels(0.01)
       hlinks = linkprop(h,{'XLim'});
@@ -1437,10 +1432,10 @@ classdef PIC
         case 2
           for itime = 1:nt
             
-            xmin = min(x(:,itime));
-            xmax = max(x(:,itime));
-            zmin = min(z(:,itime));
-            zmax = max(z(:,itime));
+            xmin = min(x(:,itime))-1;
+            xmax = max(x(:,itime))+1;
+            zmin = min(z(:,itime))-1;
+            zmax = max(z(:,itime))+1;
 
             if find(t(itime)==obj.twci)
               tmppic = obj.xlim([xmin xmax]).zlim([zmin zmax]).twcilim(t(itime),'exact');
@@ -3377,6 +3372,76 @@ classdef PIC
       % p = (pxx+pyy+pzz)/3
       out = (obj.pxx(species) + obj.pyy(species) + obj.pzz(species))/3;
     end
+    function out = pi(obj,species)
+      % p = (pxx+pyy+pzz)/3
+      species = find(obj.get_charge == 1); % negatively charge particles are electrons      
+      out = (obj.pxx(species) + obj.pyy(species) + obj.pzz(species))/3;
+    end
+    function out = pe(obj,species)
+      % p = (pxx+pyy+pzz)/3
+      species = find(obj.get_charge == -1); % negatively charge particles are electrons      
+      out = (obj.pxx(species) + obj.pyy(species) + obj.pzz(species))/3;
+    end
+    function out = pixx(obj)
+      % p = (pxx+pyy+pzz)/3
+      species = find(obj.get_charge == 1); % negatively charge particles are electrons      
+      out = obj.pxx(species);
+    end
+    function out = pixy(obj)
+      % p = (pxx+pyy+pzz)/3
+      species = find(obj.get_charge == 1); % negatively charge particles are electrons      
+      out = obj.pxy(species);
+    end
+    function out = pixz(obj)
+      % p = (pxx+pyy+pzz)/3
+      species = find(obj.get_charge == 1); % negatively charge particles are electrons      
+      out = obj.pxz(species);
+    end
+    function out = piyy(obj)
+      % p = (pxx+pyy+pzz)/3
+      species = find(obj.get_charge == 1); % negatively charge particles are electrons      
+      out = obj.pyy(species);
+    end
+    function out = piyz(obj)
+      % p = (pxx+pyy+pzz)/3
+      species = find(obj.get_charge == 1); % negatively charge particles are electrons      
+      out = obj.pyz(species);
+    end
+    function out = pizz(obj)
+      % p = (pxx+pyy+pzz)/3
+      species = find(obj.get_charge == 1); % negatively charge particles are electrons      
+      out = obj.pzz(species);
+    end
+    function out = pexx(obj)
+      % p = (pxx+pyy+pzz)/3
+      species = find(obj.get_charge == -1); % negatively charge particles are electrons      
+      out = obj.pxx(species);
+    end
+    function out = pexy(obj)
+      % p = (pxx+pyy+pzz)/3
+      species = find(obj.get_charge == -1); % negatively charge particles are electrons      
+      out = obj.pxy(species);
+    end
+    function out = pexz(obj)
+      % p = (pxx+pyy+pzz)/3
+      species = find(obj.get_charge == -1); % negatively charge particles are electrons      
+      out = obj.pxz(species);
+    end
+    function out = peyy(obj)
+      % p = (pxx+pyy+pzz)/3
+      species = find(obj.get_charge == -1); % negatively charge particles are electrons      
+      out = obj.pyy(species);
+    end
+    function out = peyz(obj)
+      % p = (pxx+pyy+pzz)/3
+      species = find(obj.get_charge == -1); % negatively charge particles are electrons      
+      out = obj.pyz(species);
+    end
+    function out = pezz(obj)
+      % p = (pxx+pyy+pzz)/3
+      species = find(obj.get_charge == -1); % negatively charge particles are electrons      
+      out = obj.pzz(species);
+    end
     % Temperature, not implemented for Smilei
     function out = t12(obj,species,comp)
       p = obj.p12(species,comp);
@@ -3686,6 +3751,63 @@ classdef PIC
       bz = Bz./Babs;
       out = x.*bx + y.*by + z.*bz;
     end
+    function out = parx(obj,field,species)
+      if exist('species','var')
+        x = obj.([field ,'x'])(species);
+        y = obj.([field ,'y'])(species);
+        z = obj.([field ,'z'])(species);
+      else
+        x = obj.([field ,'x']);
+        y = obj.([field ,'y']);
+        z = obj.([field ,'z']);
+      end
+      Bx = obj.Bx;
+      By = obj.By;
+      Bz = obj.Bz;
+      Babs = sqrt(Bx.^2 + By.^2 + Bz.^2);
+      bx = Bx./Babs;
+      by = By./Babs;
+      bz = Bz./Babs;
+      out = x.*bx;
+    end
+    function out = pary(obj,field,species)
+      if exist('species','var')
+        x = obj.([field ,'x'])(species);
+        y = obj.([field ,'y'])(species);
+        z = obj.([field ,'z'])(species);
+      else
+        x = obj.([field ,'x']);
+        y = obj.([field ,'y']);
+        z = obj.([field ,'z']);
+      end
+      Bx = obj.Bx;
+      By = obj.By;
+      Bz = obj.Bz;
+      Babs = sqrt(Bx.^2 + By.^2 + Bz.^2);
+      bx = Bx./Babs;
+      by = By./Babs;
+      bz = Bz./Babs;
+      out = y.*by;
+    end
+    function out = parz(obj,field,species)
+      if exist('species','var')
+        x = obj.([field ,'x'])(species);
+        y = obj.([field ,'y'])(species);
+        z = obj.([field ,'z'])(species);
+      else
+        x = obj.([field ,'x']);
+        y = obj.([field ,'y']);
+        z = obj.([field ,'z']);
+      end
+      Bx = obj.Bx;
+      By = obj.By;
+      Bz = obj.Bz;
+      Babs = sqrt(Bx.^2 + By.^2 + Bz.^2);
+      bx = Bx./Babs;
+      by = By./Babs;
+      bz = Bz./Babs;
+      out = z.*bz;
+    end
     function varargout = perp(obj,field,comp,species)
       % PIC.PERP Dont know if this one is correct
       % varargout = perp(obj,field,comp,species)
@@ -3724,6 +3846,18 @@ classdef PIC
     function out = Epar(obj)
       out = obj.par('E');
     end
+    function out = Eparx(obj)
+      out = obj.parx('E');
+    end
+    function out = Epary(obj)
+      out = obj.pary('E');
+    end
+    function out = Eparz(obj)
+      out = obj.parz('E');
+    end
+    function out = Experp(obj)
+      out = obj.par('E');
+    end
     function out = vpar(obj,species)
       out = obj.par('v',species);
     end
@@ -3753,8 +3887,8 @@ classdef PIC
       
       switch comp
         case 'x', v = new_obj.vx(species);
-        case 'y', v = new_obj.vx(species);
-        case 'z', v = new_obj.vx(species);
+        case 'y', v = new_obj.vy(species);
+        case 'z', v = new_obj.vz(species);
       end
       t = new_obj.twci;     
       dvdt = zeros(size(v));
@@ -3785,6 +3919,116 @@ classdef PIC
     function out = dvzdt(obj,species)
       out = obj.dvdt('z',species);
     end
+    function out = dvixdt(obj)
+      species = find(obj.get_charge == 1);
+      out = obj.dvdt('x',species);
+    end
+    function out = dviydt(obj)
+      species = find(obj.get_charge == 1);
+      out = obj.dvdt('y',species);
+    end
+    function out = dvizdt(obj)
+      species = find(obj.get_charge == 1);
+      out = obj.dvdt('z',species);
+    end
+    function out = dvexdt(obj)
+      species = find(obj.get_charge == -1);
+      out = obj.dvdt('x',species);
+    end
+    function out = dveydt(obj)
+      species = find(obj.get_charge == -1);
+      out = obj.dvdt('y',species);
+    end
+    function out = dvezdt(obj)
+      species = find(obj.get_charge == -1);
+      out = obj.dvdt('z',species);
+    end
+    function out = vdv(obj,comp,species)
+      % 
+      % vdivv_x = vx*dvxdx + vy*dvydx + vz*dvzdx
+      %         = vx*dvxdx + 0        + vz*dvzdx
+                  
+      dx = obj.xi(2) - obj.xi(1);
+      dz = obj.zi(2) - obj.zi(1);
+      vx = obj.vx(species);
+      vy = obj.vy(species);
+      vz = obj.vz(species);
+      
+      switch comp
+        case 'x', v = vx;
+        case 'y', v = vy;
+        case 'z', v = vz;
+      end
+      
+
+      [dzV,dxV] = gradient(v,dz,dx);
+      dyV = 0;
+                   
+      vdivv = (dxV + dyV + dzV).*v;
+      out = vdivv;
+      
+    end
+    function out = vdvx(obj,species)
+      out = obj.vdv('x',species);
+    end
+    function out = vdvy(obj,species)
+      out = obj.vdv('y',species);
+    end
+    function out = vdvz(obj,species)
+      out = obj.vdv('z',species);
+    end
+    function out = vdvex(obj)
+      species = find(obj.get_charge == 1);
+      out = obj.vdv('x',species);
+    end
+    function out = vdvey(obj)
+      species = find(obj.get_charge == 1);
+      out = obj.vdv('y',species);
+    end
+    function out = vdvez(obj)
+      species = find(obj.get_charge == 1);
+      out = obj.vdv('z',species);
+    end
+    function out = vdvix(obj)
+      species = find(obj.get_charge == 1);
+      out = obj.vdv('x',species);
+    end
+    function out = vdviy(obj)
+      species = find(obj.get_charge == 1);
+      out = obj.vdv('y',species);
+    end
+    function out = vdviz(obj)
+      species = find(obj.get_charge == 1);
+      out = obj.vdv('z',species);
+    end
+    function out = JxBx(obj)
+      % vxB_x(vyBz - vzBy)
+      % out = vxBx(obj,species)
+      By = obj.By;
+      Bz = obj.Bz;
+      Jy = obj.Jy;
+      Jz = obj.Jz;
+      out = (Jy.*Bz-Jz.*By);
+    end
+    function out = JxBy(obj)
+      % vxB_y(vzBx - vxBz)
+      % out = vxBx(obj,species)
+      Bx = obj.Bx;
+      Bz = obj.Bz;
+      Jx = obj.Jx;
+      Jz = obj.Jz;   
+      out = (Jz.*Bx-Jx.*Bz);
+    end
+    function out = JxBz(obj)
+      % vxB_z(vxBy - vyBz)
+      % out = vxBx(obj,species)
+      Bx = obj.Bx;
+      By = obj.By;
+      Jx = obj.Jx;
+      Jy = obj.Jy;
+      out = (Jx.*By-Jy.*Bx);
+    end
+    
     function out = vxBx(obj,species)
       % vxB_x(vyBz - vzBy)
       % out = vxBx(obj,species)
@@ -3836,8 +4080,19 @@ classdef PIC
       iSpecies = find(obj.get_charge == -1);
       out = obj.vxBz(iSpecies);
     end
+    function out = vExBx(obj)
+      % (EyBz - EzBy)/|B|^2
+      Bx = obj.Bx;
+      By = obj.By;
+      Bz = obj.Bz;
+      
+      Ey = obj.Ey;
+      Ez = obj.Ez;
+      
+      out = (Ey.*Bz-Ez.*By)./(Bx.^2+By.^2+Bz.^2);
+    end
     function out = vExBy(obj)
-      % (EyBz - EzBy)/|B|
+      % (EyBz - EzBy)/|B|^2
       Bx = obj.Bx;
       By = obj.By;
       Bz = obj.Bz;
@@ -3848,7 +4103,7 @@ classdef PIC
       out = (Ez.*Bx-Ex.*Bz)./(Bx.^2+By.^2+Bz.^2);
     end
     function out = vExBz(obj)
-      % (EyBz - EzBy)/|B|
+      % (EyBz - EzBy)/|B|^2
       Bx = obj.Bx;
       By = obj.By;
       Bz = obj.Bz;
@@ -3857,17 +4112,6 @@ classdef PIC
       Ey = obj.Ey;
       
       out = (Ex.*By-Ey.*Bx)./(Bx.^2+By.^2+Bz.^2);
-    end
-    function out = vExBx(obj)
-      % (EyBz - EzBy)/|B|
-      Bx = obj.Bx;
-      By = obj.By;
-      Bz = obj.Bz;
-      
-      Ey = obj.Ey;
-      Ez = obj.Ez;
-      
-      out = (Ey.*Bz-Ez.*By)./(Bx.^2+By.^2+Bz.^2);
     end
     function out = vt(obj,species,mode) % thermal speed
       % PIC.VT Thermal speed (2T/m)^0.5
@@ -3899,6 +4143,12 @@ classdef PIC
       mass = obj.mass(species(1))/obj.mass(1);
       vt = sqrt(2*t/mass);
       out = vt;
+    end
+    function out = vtpar(obj,species)
+      out = vt(obj,species,'par');
+    end
+    function out = vtperp(obj,species)
+      out = vt(obj,species,'perp');
     end
     function out = vtxx(obj,species)
       out = vt(obj,species,'xx');
@@ -4122,6 +4372,30 @@ classdef PIC
       out = obj.divp(species,'comp',{'y'});
     end
     function out = divpz(obj,species)
+      out = obj.divp(species,'comp',{'z'});
+    end
+    function out = divpix(obj)
+      species = find(obj.get_charge == 1);
+      out = obj.divp(species,'comp',{'x'});
+    end
+    function out = divpiy(obj)
+      species = find(obj.get_charge == 1);
+      out = obj.divp(species,'comp',{'y'});
+    end
+    function out = divpiz(obj)
+      species = find(obj.get_charge == 1);
+      out = obj.divp(species,'comp',{'z'});
+    end
+    function out = divpex(obj)
+      species = find(obj.get_charge == -1);
+      out = obj.divp(species,'comp',{'x'});
+    end
+    function out = divpey(obj)
+      species = find(obj.get_charge == -1);
+      out = obj.divp(species,'comp',{'y'});
+    end
+    function out = divpez(obj)
+      species = find(obj.get_charge == -1);
       out = obj.divp(species,'comp',{'z'});
     end
     % Stored, not implemented for Smilei
@@ -5010,14 +5284,35 @@ classdef PIC
       % Loads data in expression and returns evaluated expression 
       % Example:
       % out  = obj.get_exp('log10(abs(Bx.*Bz))');
+      eval_str = str_exp;
       list_methods = methods(obj);
-      list_fields = list_methods(cellfun(@(s) contains(str_exp,s),list_methods));
-      nfields = numel(list_fields);
-      for ifield = 1:nfields
-        varstr = list_fields{ifield};
-        eval([varstr ' = obj.' varstr ';']);
+      %list_fields = list_methods(cellfun(@(s) contains(str_exp,s),list_methods));
+      list_fields = regexpi(str_exp,{'[a-z_A-Z]*'},'match');
+      list_fields = intersect(list_fields{1},list_methods);
+
+      varcount = 0;
+      for ifield = 1:numel(list_fields)
+        nchar = numel(list_fields{ifield});
+        str_loc = strfind(str_exp,list_fields{ifield});
+        for istr_ = 1:numel(str_loc)
+          istr = str_loc(istr_);
+          varcount = varcount + 1; 
+          
+          if numel(str_exp)>istr+nchar && not(isempty(strfind(str_exp(istr+nchar),'('))) && strfind(str_exp(istr+nchar),'(')
+            ind1 = strfind(str_exp(istr+nchar:end),'(');
+            ind2 = strfind(str_exp(istr+nchar:end),')');           
+            indstr = str_exp(istr + nchar-1 + (ind1(1)+1:ind2(1)-1));            
+            tmp_str = [list_fields{ifield} '(' indstr ')'];
+            var = obj.(list_fields{ifield})(eval(indstr));
+          else
+            var = obj.(list_fields{ifield});
+            tmp_str = list_fields{ifield};
+          end 
+          eval_str = strrep(eval_str,tmp_str,['allvars{' num2str(varcount) '}']);
+          allvars{varcount} = var;
+        end
       end
-      out = eval(str_exp);
+      out = eval(eval_str);           
     end  
   end
 end

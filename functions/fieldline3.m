@@ -1,4 +1,4 @@
-function varargout = fieldline3(x0,y0,z0,x,y,z,Bx,By,Bz,dx,dy,dz,nsteps)
+function varargout = fieldline3(x0,y0,z0,x,y,z,Bx,By,Bz,ds,nsteps)
 % FIELDLINE Integrates field in direction of flow vector
 %   Example: 
 %   x0 = 150;
@@ -24,9 +24,7 @@ function varargout = fieldline3(x0,y0,z0,x,y,z,Bx,By,Bz,dx,dy,dz,nsteps)
   bz = Bz./babs;
   
   % Set default values if not given in input
-  if isempty(dx); dx = 0.2; end
-  if isempty(dy); dy = 0.2; end
-  if isempty(dz); dz = 0.2; end
+  if isempty(ds); ds = 0.1; end
   if isempty(nsteps); nsteps = 100; end
   if not(mod(nsteps,1)==0); doArclengthLimit = 1; end
   
@@ -53,9 +51,9 @@ function varargout = fieldline3(x0,y0,z0,x,y,z,Bx,By,Bz,dx,dy,dz,nsteps)
   
     istep = istep + 1;
     % Calculate step, magnetic field direction times the predefined stepsize
-    xstep = bxline(istep)*dx;
-    ystep = byline(istep)*dy;
-    zstep = bzline(istep)*dz;    
+    xstep = bxline(istep)*ds;
+    ystep = byline(istep)*ds;
+    zstep = bzline(istep)*ds;    
     % Advance line
     xline(istep+1) = xline(istep) + xstep;
     yline(istep+1) = yline(istep) + ystep;

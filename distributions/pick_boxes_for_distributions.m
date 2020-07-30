@@ -394,7 +394,7 @@ end
 hold(hca,'off')   
 
 %% Pattern governed by A, PIC object
-pic = nobg.twpelim(10000);
+pic = df04n.twpelim(5000);
 %ind = gf05.twpelim(4000).it;
 ind = pic.it;
 %ind = 26;
@@ -408,10 +408,13 @@ viz = squeeze(pic(ind).viz);
 
 
 [saddle_locations,saddle_values] = saddle(A,'sort');
-
+xx = pic(pic.nt).x_xline;
+%%
 x_center = (140:0.2:199);
+x_center = fix(xx) + [0 1];
 %x_center = (90:0.2:170);
 z_center = [4 6]; % 0.4 0.8
+z_center = [-5:0.2:5];
 dx_box = 0.10;
 dz_box = 0.10;
 % x_center = 150:0.5:205;
@@ -616,22 +619,38 @@ hold(hca,'off')
 hlinks = linkprop(h,{'XLim','YLim'});
 
 %% Along aline, typically a field line
-pic = nobg.twpelim(10000).xlim([130 170]).zlim([-15 15]);
+pic = nobg.twpelim(10000).xlim([129 210]).zlim([-15 20]);
 % Load data
 x = pic.xi;
 z = pic.zi;
-Bx = pic.Bx;
-By = pic.By;
-Bz = pic.Bz;
+%Bx = pic.Bx;
+%By = pic.By;
+%Bz = pic.Bz;
 A = pic.A; 
-Epar = pic.Epar;
+%Epar = pic.Epar;
+%Ez = pic.Ez;
 
-x0 = 131;
-z0 = 7;
+
+x0 = 150;
+z0 = 14.5;
+nsteps = 50.01;
+
+x0 = 150;
+z0 = 13.0;
+nsteps = 50.01;
+
+%x0 = 140;
+%z0 = 12;
+
+%x0 = 150;
+%z0 = 10;
+%nsteps = 40.99; % if nsteps is not an even number, integration will stop 
+                % when the fieldline arclength is above nsteps
+                
 dx = 0.05;
 dy = 0.05;
 dz = 0.05;
-nsteps = 55.1; % if nsteps is not an even number, integration will stop 
+%nsteps = 40.99; % if nsteps is not an even number, integration will stop 
                 % when the fieldline arclength is above nsteps
                 
 if 1 % field line
@@ -660,13 +679,13 @@ n_boxes = size(keep_boxes,1);
  
 % Plot
 figure(402)
-h = setup_subplots(1,1);
+h = setup_subplots(3,1);
 isub = 1;
 doA = 1;
 
 if 1 % Epar
   hca = h(isub); isub = isub + 1;
-  imagesc(hca,pic.xi,pic.zi,Epar')
+  imagesc(hca,pic.xi,pic.zi,pic.Ez')
   hca.Title.String = sprintf('twci = %g, twpe = %g, n_boxes = %g',pic.twci,pic.twpe,n_boxes);
   hca.Title.Interpreter = 'none';
   hcb = colorbar('peer',hca);
@@ -675,7 +694,63 @@ if 1 % Epar
   hca.YDir = 'normal';
 
   hold(hca,'on')
-  for ibox = 1:n_boxes      
+  for ibox = 1:n_boxes
+    hpatch = patch(hca,keep_boxes(ibox,[1 1 2 2]),keep_boxes(ibox,[3 4 4 3]),'w');
+    hpatch.FaceAlpha = 0;
+    hpatch.LineWidth = 1;   
+  end
+  if doA    
+    hold(hca,'on')
+    clim = hca.CLim;
+    levA = floor(min(A(:))):1:ceil(max(A(:)));
+    iAx = 1:4:pic.nx;
+    iAz = 1:4:pic.nz;
+    contour(hca,pic.xi(iAx),pic.zi(iAz),A(iAx,iAz)',levA,'k');
+    hold(hca,'off')
+    hca.CLim = clim;
+  end
+  hold(hca,'off')   
+end
+if 1 % viy
+  hca = h(isub); isub = isub + 1;
+  imagesc(hca,pic.xi,pic.zi,pic.viy')
+  hca.Title.String = sprintf('twci = %g, twpe = %g, n_boxes = %g',pic.twci,pic.twpe,n_boxes);
+  hca.Title.Interpreter = 'none';
+  hcb = colorbar('peer',hca);
+  colormap(hca,pic_colors('blue_red'))
+  hca.CLim = max(abs(hca.CLim))*[-1 1];
+  hca.YDir = 'normal';
+
+  hold(hca,'on')
+  for ibox = 1:n_boxes
+    hpatch = patch(hca,keep_boxes(ibox,[1 1 2 2]),keep_boxes(ibox,[3 4 4 3]),'w');
+    hpatch.FaceAlpha = 0;
+    hpatch.LineWidth = 1;   
+  end
+  if doA    
+    hold(hca,'on')
+    clim = hca.CLim;
+    levA = floor(min(A(:))):1:ceil(max(A(:)));
+    iAx = 1:4:pic.nx;
+    iAz = 1:4:pic.nz;
+    contour(hca,pic.xi(iAx),pic.zi(iAz),A(iAx,iAz)',levA,'k');
+    hold(hca,'off')
+    hca.CLim = clim;
+  end
+  hold(hca,'off')   
+end
+if 1 % ni
+  hca = h(isub); isub = isub + 1;
+  imagesc(hca,pic.xi,pic.zi,pic.ni')
+  hca.Title.String = sprintf('twci = %g, twpe = %g, n_boxes = %g',pic.twci,pic.twpe,n_boxes);
+  hca.Title.Interpreter = 'none';
+  hcb = colorbar('peer',hca);
+  colormap(hca,pic_colors('waterfall'))
+  hca.CLim = [0 0.2];
+  hca.YDir = 'normal';
+
+  hold(hca,'on')
+  for ibox = 1:n_boxes
     hpatch = patch(hca,keep_boxes(ibox,[1 1 2 2]),keep_boxes(ibox,[3 4 4 3]),'w');
     hpatch.FaceAlpha = 0;
     hpatch.LineWidth = 1;   

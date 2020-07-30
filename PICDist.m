@@ -519,10 +519,14 @@
       doLog = 0;
       ticks = -15:1:15;
       doNumber = 1;
+      doDiff = 0;
+      doFrac = 0;
+      doRatio = 0;
+      cmap = pic_colors('candy');
       
       % check if input PICDist obj has a single time, otherwise take first
       % time, and warn
-      if obj.nt > 1        
+      if obj.nt > 1
         warning('PICDist has more than one times, selecting the first: twpe = %g, twci = %g',obj.twpe(1),obj.twci(1))
         obj = obj(1);
       end
@@ -556,6 +560,18 @@
           case 'log'
             doLog = 1;            
             l = 1;
+          case 'diff' %
+            doDiff = 1;
+            iSpeciesDiff = args{2};
+            l = 2;
+          case 'frac' %
+            doFrac = 1;
+            iSpeciesDiff = args{2};
+            l = 2;
+          case 'ratio' %
+            doRatio = 1;
+            iSpeciesDiff = args{2};
+            l = 2;
         end
         args = args((1+l):end);
         if isempty(args); break; end
@@ -586,8 +602,30 @@
       for id = obj.indices{1}
         idist = idist + 1;      
 
-        % Load data          
+        % Load data                  
         f = obj.fxyz(1,idist,iSpecies,sumdim); % sum over 3rd dim
+        if doDiff
+          fdiff = obj.fxyz(1,idist,iSpeciesDiff,sumdim); % sum over 3rd dim
+          %f.f = f.f./fdiff.f;
+          f.f = f.f - fdiff.f;
+          if doLog
+            f.f = sign(f.f).*log10(abs(f.f));
+          end
+          cmap = pic_colors('blue_red');
+        end
+        if doRatio
+          fdiff = obj.fxyz(1,idist,iSpeciesDiff,sumdim); % sum over 3rd dim
+          %f.f = f.f./fdiff.f;
+          f.f = f.f./fdiff.f;
+        end
+        if doFrac
+          fdiff = obj.fxyz(1,idist,iSpeciesDiff,sumdim); % sum over 3rd dim
+          %f.f = f.f./fdiff.f;
+          if doLog            
+            f.f = log10(f.f) - log10(fdiff.f);            
+          end
+        end
+        
         %if not(all(xlo>xlim(1) && xhi<xlim(2) && zlo>zlim(1) && zhi<zlim(2)))
         %  disp([sprintf('%.2f %.2f %.2f %.2f outside of box',xlo,xhi,zlo,zhi)])
         %  continue
@@ -630,7 +668,11 @@
           hca = subplot('Position',axes_position);
           h(end+1) = hca;
           hca = gca;
-          if doLog
+          if doLog && any([doFrac doRatio])
+            imagesc(hca,f.v,f.v,f.f')
+          elseif doLog && doDiff    
+            imagesc(hca,f.v,f.v,sign(f.f)'.*log10(abs(f.f))')            
+          elseif doLog
             imagesc(hca,f.v,f.v,log10(f.f'))
           else
             imagesc(hca,f.v,f.v,f.f')
@@ -647,7 +689,7 @@
           %hca.XTickLabel = [];
           %hca.YTickLabel = [];
           hca.Box = 'on';
-          colormap(hca,pic_colors('candy'))
+          colormap(hca,cmap)
           %irf_legend(hca,{sprintf('x=%.1f, z=%.1f',xloc,zloc);sprintf('B=[%.2f,%.2f,%.2f]',Bloc.x,Bloc.y,Bloc.z)},[0.01 0.99],'color',[0 0 0],'fontsize',9)
           hleg_ = irf_legend(hca,{sprintf('x=[%.1f,%.1f]',f.x(1),f.x(2));sprintf('z=[%.1f,%.1f]',f.z(1),f.z(2))},[0.01 0.01],'color',[0 0 0],'fontsize',fontsize);
           hleg(size(hleg,1)+1,:) = hleg_;
