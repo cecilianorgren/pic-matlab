@@ -522,6 +522,7 @@
       doDiff = 0;
       doFrac = 0;
       doRatio = 0;
+      doForce = 1;
       cmap = pic_colors('candy');
       
       % check if input PICDist obj has a single time, otherwise take first
@@ -572,6 +573,11 @@
             doRatio = 1;
             iSpeciesDiff = args{2};
             l = 2;
+          case 'forces'
+            doForce = 1;
+            force_exp = args{2};
+            pic = args{3};            
+            l = 3;
         end
         args = args((1+l):end);
         if isempty(args); break; end
@@ -608,9 +614,12 @@
           fdiff = obj.fxyz(1,idist,iSpeciesDiff,sumdim); % sum over 3rd dim
           %f.f = f.f./fdiff.f;
           f.f = f.f - fdiff.f;
-          if doLog
-            f.f = sign(f.f).*log10(abs(f.f));
-          end
+          f.f(f.f==0) = NaN;
+          % This becomes wrong because log10 of something positive can be
+          % negative
+          %if doLog
+          %  f.f = sign(f.f).*log10(abs(f.f));
+          %end
           cmap = pic_colors('blue_red');
         end
         if doRatio
@@ -621,9 +630,15 @@
         if doFrac
           fdiff = obj.fxyz(1,idist,iSpeciesDiff,sumdim); % sum over 3rd dim
           %f.f = f.f./fdiff.f;
-          if doLog            
+          if doLog
             f.f = log10(f.f) - log10(fdiff.f);            
           end
+        end
+        if doForce
+%           switch force_exp
+%             case 'EvBy'
+%               Ey = pic.get_exp('Ey');
+%           end
         end
         
         %if not(all(xlo>xlim(1) && xhi<xlim(2) && zlo>zlim(1) && zhi<zlim(2)))
@@ -668,8 +683,49 @@
           hca = subplot('Position',axes_position);
           h(end+1) = hca;
           hca = gca;
+          %if doForce
+%             switch force_exp
+%               case 'EvBx', if not(sumdim == 1), continue, end
+%                 pic_tmp = pic.twpelim(obj.twpe,'exact').xlim(f.x).zlim(f.z);
+%                 Ex = squeeze(mean(mean(pic_tmp.get_exp('Ey'))));
+%                 By = squeeze(mean(mean(pic_tmp.get_exp('Bx'))));
+%                 Bz = squeeze(mean(mean(pic_tmp.get_exp('Bz'))));
+%                 [VY,VZ] = meshgrid(f.v,f.v);
+%                 force = Ex + VZ*By - VY*Bz;
+%               case 'EvBy', if not(sumdim == 2), continue, end
+%                 pic_tmp = pic.twpelim(obj.twpe,'exact').xlim(f.x).zlim(f.z);
+%                 Ey = squeeze(mean(mean(pic_tmp.get_exp('Ey'))));
+%                 Bx = squeeze(mean(mean(pic_tmp.get_exp('Bx'))));
+%                 Bz = squeeze(mean(mean(pic_tmp.get_exp('Bz'))));
+%                 [VX,VZ] = meshgrid(f.v,f.v);
+%                 force = Ey + VZ*Bx - VX*Bz;
+%               case 'EvBz', if not(sumdim == 3), continue, end
+%                 pic_tmp = pic.twpelim(obj.twpe,'exact').xlim(f.x).zlim(f.z);
+%                 Ez = squeeze(mean(mean(pic_tmp.get_exp('Ey'))));
+%                 Bx = squeeze(mean(mean(pic_tmp.get_exp('Bx'))));
+%                 By = squeeze(mean(mean(pic_tmp.get_exp('By'))));
+%                 [VX,VY] = meshgrid(f.v,f.v);
+%                 force = Ez + VX*By - VY*Bx;
+%               case 'vBy', if not(sumdim == 2), continue, end
+%                 pic_tmp = pic.twpelim(obj.twpe,'exact').xlim(f.x).zlim(f.z);               
+%                 Bx = squeeze(mean(mean(pic_tmp.get_exp('Bx'))));
+%                 Bz = squeeze(mean(mean(pic_tmp.get_exp('Bz'))));
+%                 [VX,VZ] = meshgrid(f.v,f.v);
+%                 force = VZ*Bx - VX*Bz;
+%               case 'Ey'
+%                 pic_tmp = pic.twpelim(obj.twpe,'exact').xlim(f.x).zlim(f.z);
+%                 Ey = squeeze(mean(mean(pic_tmp.get_exp('Ey'))));
+%                 [VX,VZ] = meshgrid(f.v,f.v);
+%                 force = Ey;
+%               otherwise
+%                 [VX,VZ] = meshgrid(f.v,f.v);
+%                 force = VX*0;
+%             end
+%             force(f.f==0) = nan;
+%             imagesc(hca,f.v,f.v,force')
           if doLog && any([doFrac doRatio])
-            imagesc(hca,f.v,f.v,f.f')
+            imagesc(hca,f.v,f.v,log10(f.f'))
+            cmap = pic_colors('blue_red');
           elseif doLog && doDiff    
             imagesc(hca,f.v,f.v,sign(f.f)'.*log10(abs(f.f))')            
           elseif doLog
@@ -762,6 +818,51 @@
           end
           if doNumber
             
+          end
+          if doForce
+            clim = hca.CLim;
+            hold(hca,'on')
+            switch force_exp
+              case 'EvBx', if not(sumdim == 1), continue, end
+                pic_tmp = pic.twpelim(obj.twpe,'exact').xlim(f.x).zlim(f.z);
+                Ex = squeeze(mean(mean(pic_tmp.get_exp('Ey'))));
+                By = squeeze(mean(mean(pic_tmp.get_exp('Bx'))));
+                Bz = squeeze(mean(mean(pic_tmp.get_exp('Bz'))));
+                [VY,VZ] = meshgrid(f.v,f.v);
+                force = Ex + VZ*By - VY*Bz;
+              case 'EvBy', if not(sumdim == 2), continue, end
+                pic_tmp = pic.twpelim(obj.twpe,'exact').xlim(f.x).zlim(f.z);
+                Ey = squeeze(mean(mean(pic_tmp.get_exp('Ey'))));
+                Bx = squeeze(mean(mean(pic_tmp.get_exp('Bx'))));
+                Bz = squeeze(mean(mean(pic_tmp.get_exp('Bz'))));
+                [VX,VZ] = meshgrid(f.v,f.v);
+                force = Ey + VZ*Bx - VX*Bz;
+              case 'EvBz', if not(sumdim == 3), continue, end
+                pic_tmp = pic.twpelim(obj.twpe,'exact').xlim(f.x).zlim(f.z);
+                Ez = squeeze(mean(mean(pic_tmp.get_exp('Ey'))));
+                Bx = squeeze(mean(mean(pic_tmp.get_exp('Bx'))));
+                By = squeeze(mean(mean(pic_tmp.get_exp('By'))));
+                [VX,VY] = meshgrid(f.v,f.v);
+                force = Ez + VX*By - VY*Bx;
+              case 'vBy', if not(sumdim == 2), continue, end
+                pic_tmp = pic.twpelim(obj.twpe,'exact').xlim(f.x).zlim(f.z);               
+                Bx = squeeze(mean(mean(pic_tmp.get_exp('Bx'))));
+                Bz = squeeze(mean(mean(pic_tmp.get_exp('Bz'))));
+                [VX,VZ] = meshgrid(f.v,f.v);
+                force = VZ*Bx - VX*Bz;
+              case 'Ey'
+                pic_tmp = pic.twpelim(obj.twpe,'exact').xlim(f.x).zlim(f.z);
+                Ey = squeeze(mean(mean(pic_tmp.get_exp('Ey'))));
+                [VX,VZ] = meshgrid(f.v,f.v);
+                force = Ey;
+              otherwise
+                [VX,VZ] = meshgrid(f.v,f.v);
+                force = VX*0*nan;
+            end
+            %force(f.f==0) = nan;
+            contour(hca,f.v,f.v,force',[0 0],'k')
+            hold(hca,'off')
+            hca.CLim = clim;
           end
 
           %print('-dpng','-r200',[savedir_root sub_dir '/' strprint '.png']);

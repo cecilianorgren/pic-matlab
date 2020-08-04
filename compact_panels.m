@@ -1,24 +1,29 @@
 function compact_panels(varargin)
 
+[ax,args,nargs] = irf.axescheck(varargin{:});
+nargin = nargs;
+if isempty(ax)
+  fig = gcf;
+  ax = findobj(fig.Children,'Type','Axes');  
+end
+nax = numel(ax);
+  for iax = 1:nax
+    positions(iax,:) = ax(iax).Position;
+  end
+
 doY = 1;
 doX = 0;
 if nargin == 0
   space = 0.01;
 elseif nargin == 1
-  space = varargin{1};
+  space = args{1};
 elseif nargin == 2
-  space = varargin{1};
-  space_x = varargin{2};
+  space = args{1};
+  space_x = args{2};
   doX = 1;
 end
 
 
-fig = gcf;
-ax = findobj(fig.Children,'Type','Axes');
-nax = numel(ax);
-for iax = 1:nax
-  positions(iax,:) = ax(iax).Position;
-end
 % find unique y-positions
 
 unique_xpos = sort(unique(positions(:,1)),'descend');

@@ -76,7 +76,7 @@ classdef PIC
     teti
     mass
     charge
-  end  
+  end
       
   properties
     userData = []; % anything can be added here
@@ -255,7 +255,7 @@ classdef PIC
           error('SMILEI:subsref',...
             'Not a supported subscripted reference.')
       end
-    end  
+    end
     
     function value = length(obj)
       value = numel(obj.iteration);
@@ -2306,6 +2306,74 @@ classdef PIC
       out.z = new_z;
       out.xline_x = xX;
       out.xline_z = zX;
+    end
+    function out = intEpar(obj)
+      % int(Epar)dlpar
+      
+      % Outer edge of box is zero, this might result in discrete jumps
+      % where they meet. Start at upper half edge of box.
+      pic = obj.zlim([0 obj.zi(end)]);
+      intEpar = zeros(pic.nx,pic.nz);
+      Epar = pic.Epar;
+      Bx = pic.Bx;
+      By = pic.By;
+      Bz = pic.Bz;
+      Babs = sqrt(Bx.^2 + By.^2 + Bz.^2);
+      bx = Bx./Babs;
+      by = By./Babs;
+      bz = Bz./Babs;
+      dx = (pic.xi(2)-pic.xi(1));
+      dz = (pic.zi(2)-pic.zi(1));
+      
+      for ix = 2:pic.nx  
+        1;
+        disp(sprintf('ix = %g/%g',ix,pic.nx))
+        for iz = 1:pic.nz          
+          try
+          % interpolate back to previous x
+          % This is not precise if the magnetic field turns a lot. Better
+          % decide ds, and interpolate between adjacent x's.
+          bx_ = bx(ix,iz);%*sign(bx(ix,iz));
+          by_ = by(ix,iz);%*sign(bx(ix,iz));
+          bz_ = bz(ix,iz);%*sign(bx(ix,iz));
+          dang_xz = atan(bz_/bx_);
+          dang_xy = atan(by_/bx_);
+          dxz = dx/cos(dang_xz);          
+          dz = dxz*sin(dang_xz)*sign(bz_);
+          dxy = dx/cos(dang_xy);
+          dy = dxy*sin(dang_xy)*sign(by_);
+          ds = sqrt(dx.^2 + dy.^2 + dz.^2);
+          % make interpolation in z-plane
+          znew = pic.zi(iz)+dz;
+          if znew > pic.zi(end) || znew < pic.zi(1)
+            continue
+          end
+          iz1 = find(pic.zi<znew,1,'last');
+          iz2 = find(pic.zi>znew,1,'first');
+          
+          % distance to points
+          dz1 = (pic.zi(iz1)-znew)/dz;
+          dz2 = (pic.zi(iz2)-znew)/dz;
+          % Values at the bounding pounts
+%           Bx1 = Bx(ix,iz1); Bx2 = Bx(ix,iz2);
+%           By1 = By(ix,iz1); By2 = By(ix,iz2);
+%           Bz1 = Bz(ix,iz1); Bz2 = Bz(ix,iz2);
+          Epar1 = Epar(ix,iz1); Epar2 = Epar(ix,iz2);
+          intEpar1 = intEpar(ix,iz1); intEpar2 = intEpar(ix,iz2);
+          
+%           Bxprev = dz2 * Bx1 + dz1 * Bx2;
+%           Bxprev = dz2 * By1 + dz1 * By2;
+%           Bxprev = dz2 * Bz1 + dz1 * Bz2;
+          Eparprev = dz2 * Epar1 + dz1 * Epar2;
+          intEparprev = dz2 * intEpar1 + dz1 * intEpar2;
+          intEpar(ix,iz) = intEparprev-Eparprev*ds;
+          catch
+            1;
+          end
+        end
+      end
+      out = intEpar;
+      
     end
     
     % Get simulation meta data and parameters 

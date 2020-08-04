@@ -404,6 +404,8 @@ Bz = squeeze(pic(ind).Bz);
 ni = squeeze(pic(ind).ni);
 vex = squeeze(pic(ind).vex);
 viz = squeeze(pic(ind).viz);
+viycold = squeeze(pic(ind).vy([3 5]));
+Ez = squeeze(pic(ind).Ez);
 
 
 
@@ -411,12 +413,12 @@ viz = squeeze(pic(ind).viz);
 xx = pic(pic.nt).x_xline;
 %%
 x_center = (140:0.2:199);
-x_center = fix(xx) + [0 1];
+x_center = fix(xx) + [-8 -4 0];
 %x_center = (90:0.2:170);
 z_center = [4 6]; % 0.4 0.8
-z_center = [-5:0.2:5];
-dx_box = 0.10;
-dz_box = 0.10;
+z_center = [-4:0.1:4];
+dx_box = 0.05;
+dz_box = 0.05;
 % x_center = 150:0.5:205;
 % z_center = 0:0.5:10;
 % dx_box = 0.25;
@@ -461,7 +463,7 @@ n_boxes = size(keep_boxes,1);
 
 figure(401)
 hca = subplot(2,1,1);
-imagesc(hca,pic.xi,pic.zi,ni')
+imagesc(hca,pic.xi,pic.zi,viycold')
 %imagesc(hca,x,z,pi1.scalar')
 hca.XLim = [140 210];
 hca.YLim = [-15 15];
@@ -481,7 +483,7 @@ end
 hold(hca,'off')   
 
 hca = subplot(2,1,2);
-imagesc(hca,pic.xi,pic.zi,vex')
+imagesc(hca,pic.xi,pic.zi,Ez')
 %imagesc(hca,x,z,pi1.scalar')
 hca.XLim = [140 210];
 hca.YLim = [-15 15];
