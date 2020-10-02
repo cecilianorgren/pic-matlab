@@ -33,7 +33,11 @@ for itime = 1:numel(timesteps)
         
   dataset_name = ['/data/' str_iteration '/' varstr];
   disp(dataset_name)
-  h5create(pic_tmp.file, dataset_name, size(data));
+  try
+    h5create(pic_tmp.file, dataset_name, size(data));
+  catch
+    disp('Dataset already exists, overwriting.')
+  end
   h5write( pic_tmp.file, dataset_name, data);
        
 end

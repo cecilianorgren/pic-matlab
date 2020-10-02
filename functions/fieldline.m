@@ -1,4 +1,4 @@
-function varargout = fieldline(x0,z0,x,z,Bx,By,Bz,dx,dy,dz,nsteps)
+function varargout = fieldline(x0,z0,x,z,Bx,By,Bz,ds,nsteps)
 % FIELDLINE Integrates field in direction of flow vector
 %   Example: 
 %   x0 = 150;
@@ -10,7 +10,7 @@ function varargout = fieldline(x0,z0,x,z,Bx,By,Bz,dx,dy,dz,nsteps)
 %                 % when the fieldline arclength is above lwngth defined by
 %                 % nsteps (it's a bit ugly)
 %   nsteps = 100.1;
-%   [linearclength,linex,liney,linez,linebx,lineby,linebz] = fieldline(x0,z0,x,z,Bx,By,Bz,dx,dy,dz,nsteps);
+%   [linearclength,linex,liney,linez,linebx,lineby,linebz] = fieldline(x0,z0,x,z,Bx,By,Bz,ds,nsteps);
 
   % If nsteps is an uneven function (checked below), process is stopped
   % when line arclength is above nsteps
@@ -24,9 +24,7 @@ function varargout = fieldline(x0,z0,x,z,Bx,By,Bz,dx,dy,dz,nsteps)
   bz = Bz./babs;
   
   % Set default values if not given in input
-  if isempty(dx); dx = 0.2; end
-  if isempty(dy); dy = 0.2; end
-  if isempty(dz); dz = 0.2; end
+  if isempty(ds); ds = 0.02; end
   if isempty(nsteps); nsteps = 100; end
   if not(mod(nsteps,1)==0); doArclengthLimit = 1; end
   
@@ -50,9 +48,9 @@ function varargout = fieldline(x0,z0,x,z,Bx,By,Bz,dx,dy,dz,nsteps)
   while 1
     istep = istep + 1;
     % Calculate step, magnetic field direction times the predefined stepsize
-    xstep = bxline(istep)*dx;
-    ystep = byline(istep)*dy;
-    zstep = bzline(istep)*dz;    
+    xstep = bxline(istep)*ds;
+    ystep = byline(istep)*ds;
+    zstep = bzline(istep)*ds;    
     % Advance line
     xline(istep+1) = xline(istep) + xstep;
     yline(istep+1) = yline(istep) + ystep;
@@ -60,7 +58,10 @@ function varargout = fieldline(x0,z0,x,z,Bx,By,Bz,dx,dy,dz,nsteps)
     arcline(istep+1) = arcline(istep) + sqrt(xstep^2+ystep^2+zstep^2);
     
     % Break if we end up outside of box
-    if or(xline(end)<x(1),xline(end)>x(end))
+    if xline(end)<x(1) ||...
+        xline(end)>x(end) ||...
+        zline(end)<z(1) ||...
+        zline(end)>z(end) 
       xline(end) = [];
       yline(end) = [];
       zline(end) = [];

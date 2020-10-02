@@ -1,7 +1,12 @@
 %df04 = PIC('/Volumes/Fountain/Data/PIC/df_cold_protons_n04/data_h5/fields.h5');
-pic = no02;
+pic = no02m;
 missingAttr = pic.get_missing_attributes('RE');
 %pic = pic.twcilim(pic.twci(missingAttr(1:end-2)),'exact');
+%pic = pic.twcilim(pic.twci(missingAttr),'exact');
+pic = pic.twcilim(pic.twci([missingAttr(1)-2:missingAttr(1)+2]),'exact');
+%pic = no02m;
+%pic = pic.twpelim(200:200:6000);
+%pic = turb.twcilim(1:1:30,'exact');
 
 %% Energy partitioning, UB, UK, UT
 times = pic.twci;
@@ -12,7 +17,7 @@ for it = 1:pic.nt
   Bz = pic_tmp.Bz;
   Babs = sqrt(Bx.^2+By.^2+Bz.^2);
   UB(it) = sum(Babs(:).^2)/2;  
-  disp(sprintf('%g',it))
+  disp(sprintf('%g/%g',it,pic.nt))
 end
 
 %% X line position, Ey at X line, A at X line
@@ -29,16 +34,25 @@ times = pic.twci;
 
 for it = 1:pic.nt
   pic_tmp = pic.twcilim(times(it));
-  Bx = pic_tmp.Bx;
-  Bz = pic_tmp.Bz;
-  if 1 % also magnetic pressure
-    By = pic_tmp.By;
-    Babs = sqrt(Bx.^2+By.^2+Bz.^2);
-    UB(it) = sum(Babs(:).^2)/2;  
+  if 0
+    Bx = pic_tmp.Bx;
+    Bz = pic_tmp.Bz;
+    if 1 % also magnetic pressure
+      By = pic_tmp.By;
+      Babs = sqrt(Bx.^2+By.^2+Bz.^2);
+      UB(it) = sum(Babs(:).^2)/2;  
+    end
+    A = vector_potential(pic_tmp.xi,pic_tmp.zi,Bx,Bz);
+    try
+    h5write_fields_ancillary(pic_tmp,pic_tmp.twpe,'A',A)  
+    catch
+      disp('Could not write A.')
+    end
+  else
+    A = pic_tmp.A;
   end
-  A = vector_potential(pic_tmp.xi,pic_tmp.zi,Bx,Bz);
   Aall(:,:,it) = A;
-  %A = pic_tmp.A;
+  
   [Ainds,Avals] = saddle(A,'sort');
   xXline(it) = pic_tmp.xi(Ainds(1,1));
   zXline(it) = pic_tmp.zi(Ainds(1,2));  
@@ -64,24 +78,41 @@ dAdt = interp1(times(1:end-1)+0.5*dt,dAdt_,times);
 %   EyXline05(it) = mean(mean(pic_tmp.xlim(xXline(it)+0.5*[-1 1]).zlim(zXline(it)+0.5*[-1 1]).Ey));
 % end
 
+%% UB
+times = pic.twci;
+clear UB
+for it = 1:pic.nt
+  pic_tmp = pic.twcilim(times(it));
+
+  Bx = pic_tmp.Bx;
+  Bz = pic_tmp.Bz;
+  By = pic_tmp.By;
+  Babs = sqrt(Bx.^2+By.^2+Bz.^2);
+  UB(it) = sum(Babs(:).^2)/2;  
+  disp(sprintf('%g',it))
+end
+
+
 %% Write attributes
 indsave = 1:(pic.nt-3);
 indsave = (pic.nt-2):pic.nt;
+indsave = 1:pic.nt;
+indsave = 2:(pic.nt-1);
 %indsave = 1:pic.nt;
 h5write_attr(pic.subset('t',indsave),times(indsave),'RE',EyXline(indsave))
-h5write_attr(pic.subset('t',indsave),times(indsave),'RA',dAdt(indsave))
+%h5write_attr(pic.subset('t',indsave),times(indsave),'RA',dAdt(indsave))
 h5write_attr(pic.subset('t',indsave),times(indsave),'UB',UB(indsave))
 h5write_attr(pic.subset('t',indsave),times(indsave),'xline_position',[xXline(indsave)' zXline(indsave)'])
 
 %% Write ancillary data (not attributes), for example A
-pic = bs;
+%pic = no02m;
 timesteps = pic.twpe;
-for time = timesteps(2:end)
+
+for time = timesteps
   pic_tmp = pic.twpelim(time);
   Bx = pic_tmp.Bx;
   Bz = pic_tmp.Bz;
   A = vector_potential(pic_tmp.xi,pic_tmp.zi,Bx,Bz);
   imagesc(A'); colorbar; pause(0.1)
-  h5write_fields_ancillary(pic_tmp,pic_tmp.twpe,'A',A)
-  
+  h5write_fields_ancillary(pic_tmp,pic_tmp.twpe,'A',A)  
 end

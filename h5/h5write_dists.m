@@ -128,8 +128,13 @@ function h5write_dists_single(datFilePath,h5FilePath,distnumber,nSpecies,iterati
     h5writeatt(h5FilePath, dataset_name,'vya', vya);
     h5writeatt(h5FilePath, dataset_name,'vza', vza);
     h5writeatt(h5FilePath, dataset_name,'axes', axes);
-    h5writeatt(h5FilePath, dataset_name,'tag', tag);
-
+    h5writeatt(h5FilePath, dataset_name,'mass', mass);
+    h5writeatt(h5FilePath, dataset_name,'charge', charge);
+    if iscell(tag)
+      h5writeatt(h5FilePath, dataset_name,'tag', tag{id});
+    else
+      h5writeatt(h5FilePath, dataset_name,'tag', tag);
+    end
     h5writeatt(h5FilePath, ['/data/' str_iteration],'twpe', timestep);    
     h5writeatt(h5FilePath, ['/data/' str_iteration],'twci', timestep/50);
   

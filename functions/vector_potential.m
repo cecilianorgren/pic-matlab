@@ -22,11 +22,11 @@ if ndims(bx) == 3 % time series, with [time,x,z]
     % Dont put zero right at the edge 
     ixm = 10;    
     % Advance up
-    A_tmp(ixm,:) = cumsum(bx_tmp(ixm,:),2)*dz;
+    A_tmp(ixm,:) = cumsum(-bx_tmp(ixm,:),2)*dz;
     % Advance to the right
-    A_tmp((ixm+1):end,:) = repmat(A_tmp(ixm,:),nx-ixm,1) + cumsum(-bz_tmp((ixm+1):end,:),1)*dx;
+    A_tmp((ixm+1):end,:) = repmat(A_tmp(ixm,:),nx-ixm,1) + cumsum(bz_tmp((ixm+1):end,:),1)*dx;
     % Advance to the left
-    A_tmp((ixm-1):-1:1,:) = repmat(A_tmp(ixm,:),ixm-1,1) + cumsum(-bz_tmp((ixm-1):-1:1,:),1)*dx;
+    A_tmp((ixm-1):-1:1,:) = repmat(A_tmp(ixm,:),ixm-1,1) + cumsum(bz_tmp((ixm-1):-1:1,:),1)*dx;
     A(itime,:,:) = A_tmp;
     1;
   end
@@ -35,9 +35,9 @@ else
   ixm = 10;
   A = zeros(nx,nz);
   % Advance up
-  A(ixm,:) = cumsum(bx(ixm,:),2)*dz;
+  A(ixm,:) = cumsum(-bx(ixm,:),2)*dz;
   % Advance to the right
-  A((ixm+1):end,:) = repmat(A(ixm,:),nx-ixm,1) + cumsum(-bz((ixm+1):end,:),1)*dx;
+  A((ixm+1):end,:) = repmat(A(ixm,:),nx-ixm,1) + cumsum(bz((ixm+1):end,:),1)*dx;
   % Advance to the left
-  A((ixm-1):-1:1,:) = repmat(A(ixm,:),ixm-1,1) + cumsum(-bz((ixm-1):-1:1,:),1)*dx;
+  A((ixm-1):-1:1,:) = repmat(A(ixm,:),ixm-1,1) + cumsum(bz((ixm-1):-1:1,:),1)*dx;
 end

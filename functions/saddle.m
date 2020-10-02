@@ -69,15 +69,17 @@ end
 
 indices = nan(nx,1);
 vals = nan(nx,1);
+if A(1,1) > 0
+end
 
 for ix = 1:nx
-  [val,ind] = min(A(ix,:));
-  y_indices_of_min_A(ix) = ind;
-  vals_of_min_A(ix) = val;
+  [val,ind] = max(A(ix,:));
+  y_indices_of_max_A(ix) = ind;
+  vals_of_max_A(ix) = val;
 end
 %[pks,locs,W,P] = findpeaks(vals_of_min_A,'MinPeakProminence',MinPeakProminence);
-[pks,locs,W,P] = findpeaks(vals_of_min_A,findpeaks_varargin{:});
-A_saddle = pks;
+[pks,locs,W,P] = findpeaks(-vals_of_max_A,findpeaks_varargin{:});
+A_saddle = -pks;
 if isempty(A_saddle)
   warning('No saddle points found, consider changing ''MinPeakProminence''.')  
 end
@@ -86,10 +88,10 @@ end
 
 if numel(locs) == 1
   ix_saddle = locs;
-  iy_saddle = y_indices_of_min_A(locs);
+  iy_saddle = y_indices_of_max_A(locs);
 else
   ix_saddle = tocolumn(locs);
-  iy_saddle = tocolumn(y_indices_of_min_A(locs));
+  iy_saddle = tocolumn(y_indices_of_max_A(locs));
 end
 
 if doSort % not used, insert arguments directly into findpeaks
@@ -100,13 +102,13 @@ if doSort % not used, insert arguments directly into findpeaks
 end
 if doPlot % plot for diagnostics
   hca = subplot(2,1,1);
-  ax = plotyy(hca,1:nx,vals_of_min_A,1:nx,y_indices_of_min_A);  
+  ax = plotyy(hca,1:nx,vals_of_max_A,1:nx,y_indices_of_max_A);  
   hold(hca,'on')
   h_saddle = plot(hca,ix_saddle,A_saddle,'cx');
   h_prominence = errorbar(ix_saddle,A_saddle,P,'m.');
   h_min_prominence = errorbar(ix_saddle,A_saddle,ones(size(A_saddle))*MinPeakProminence,'k.');
   hold(hca,'off')
-  ax(1).YLim = [floor(min(vals_of_min_A(:))-MinPeakProminence) ceil(max(vals_of_min_A(:))+MinPeakProminence)];
+  ax(1).YLim = [floor(min(vals_of_max_A(:))-MinPeakProminence) ceil(max(vals_of_max_A(:))+MinPeakProminence)];
   ax(1).XLabel.String = 'x index';
   ax(1).YLabel.String = 'minimum A';
   ax(2).YLabel.String = 'y index where A is minimum';
@@ -119,7 +121,7 @@ if doPlot % plot for diagnostics
   imagesc(hca,A')
   hca.YDir = 'normal';
   hold(hca,'on')
-  h_all = plot(hca,1:nx,y_indices_of_min_A,'k-');
+  h_all = plot(hca,1:nx,y_indices_of_max_A,'k-');
   h_saddle = plot(hca,ix_saddle,iy_saddle,'cx');
   if 0 % plot corresponding contours
     if numel(A_saddle) == 1
@@ -140,14 +142,14 @@ if nargout == 1
   varargout(1) = {[ix_saddle,iy_saddle]};
 elseif nargout == 2
   varargout(1) = {[ix_saddle,iy_saddle]};
-  varargout(2) = {vals_of_min_A(locs)};
+  varargout(2) = {vals_of_max_A(locs)};
 elseif nargout == 3
   varargout(1) = {[ix_saddle,iy_saddle]};
-  varargout(2) = {vals_of_min_A(locs)};
+  varargout(2) = {vals_of_max_A(locs)};
   varargout(3) = {W};
 elseif nargout == 4
   varargout(1) = {[ix_saddle,iy_saddle]};
-  varargout(2) = {vals_of_min_A(locs)};
+  varargout(2) = {vals_of_max_A(locs)};
   varargout(3) = {W};
   varargout(4) = {P};
 end

@@ -22,7 +22,7 @@
     xe1_
     xe2_
     ze1_
-    ze2_    
+    ze2_
     xi1_
     xi2_
     zi1_
@@ -33,7 +33,8 @@
     indices_
     it_
     id_
-    dists_  
+    dists_
+    tags_
   end
   
   properties (Dependent = true)
@@ -61,6 +62,7 @@
     it
     id
     dists
+    tags
   end
   
   properties (Constant = true)
@@ -119,7 +121,8 @@
       obj.twci = get_twci(obj);
       obj.it = 1:numel(obj.iteration);
       obj.dists_ = obj.get_distlist;
-      [xi1,xi2,zi1,zi2] = obj.get_locs;      
+      obj.tags_ = obj.get_tags;
+      [xi1,xi2,zi1,zi2] = obj.get_locs;
       obj.xi1 = xi1;
       obj.xi2 = xi2;
       obj.zi1 = zi1;
@@ -299,6 +302,22 @@
       end      
       obj = obj.update_inds(inds);
     end
+    function obj = findx(obj,value)
+      obj = xfind(obj,value);
+    end
+    function obj = findz(obj,value)
+      obj = zfind(obj,value);
+    end
+    function obj = findtag(obj,value)
+      % Finds and picks special tags
+      tags = obj.tags;
+      iVals = numel(value);
+      for it = 1:obj.nt
+        isTag = strcmp(tags{it},value);
+        inds{it} = find(isTag);
+      end      
+      obj = obj.update_inds(inds);
+    end
     function obj = dxlim(obj,value)
       % Get subset of dx (box size)
       nt = obj.nt;
@@ -362,6 +381,7 @@
                 
         obj.dists_{it} = obj.dists_{it}(inds{it});
         obj.indices_{it} = obj.indices_{it}(inds{it});
+        obj.tags_{it} = obj.tags_{it}(inds{it});        
       end
       % run through and update time inds if any time is empty: empty times
       % are removed
@@ -381,7 +401,8 @@
       obj.zi2 = obj.zi2(inds);
       obj.dxi = obj.dxi(inds);
       obj.dzi = obj.dzi(inds);
-      obj.dists = obj.dists(inds);      
+      obj.dists = obj.dists(inds); 
+      obj.tags = obj.tags(inds);      
     end
     
     % Plotting routines, for simple diagnostics etc
@@ -522,9 +543,9 @@
       doDiff = 0;
       doFrac = 0;
       doRatio = 0;
-      doForce = 1;
+      doForce = 0;
       cmap = pic_colors('candy');
-      
+      doSmooth = 0;
       % check if input PICDist obj has a single time, otherwise take first
       % time, and warn
       if obj.nt > 1
@@ -573,11 +594,15 @@
             doRatio = 1;
             iSpeciesDiff = args{2};
             l = 2;
-          case 'forces'
+          case 'force'
             doForce = 1;
             force_exp = args{2};
             pic = args{3};            
             l = 3;
+          case 'smooth'
+            doSmooth = 1;
+            npSmooth = args{2};
+            l = 2;
         end
         args = args((1+l):end);
         if isempty(args); break; end
@@ -631,7 +656,9 @@
           fdiff = obj.fxyz(1,idist,iSpeciesDiff,sumdim); % sum over 3rd dim
           %f.f = f.f./fdiff.f;
           if doLog
-            f.f = log10(f.f) - log10(fdiff.f);            
+            f.f = log10(f.f) - log10(fdiff.f);
+          else
+            f.f = f.f./fdiff.f;
           end
         end
         if doForce
@@ -680,7 +707,7 @@
           
           figure(fig);
           
-          hca = subplot('Position',axes_position);
+          hca = axes('Position',axes_position);
           h(end+1) = hca;
           hca = gca;
           %if doForce
@@ -723,16 +750,27 @@
 %             end
 %             force(f.f==0) = nan;
 %             imagesc(hca,f.v,f.v,force')
-          if doLog && any([doFrac doRatio])
-            imagesc(hca,f.v,f.v,log10(f.f'))
-            cmap = pic_colors('blue_red');
-          elseif doLog && doDiff    
-            imagesc(hca,f.v,f.v,sign(f.f)'.*log10(abs(f.f))')            
-          elseif doLog
-            imagesc(hca,f.v,f.v,log10(f.f'))
+          if doLog
+            title_str = sprintf('log_{10}f(v_%s,v_%s,twci=%g), species = %s',xaxstr,yaxstr,obj.twci,strspecies);
           else
-            imagesc(hca,f.v,f.v,f.f')
+            title_str = sprintf('f(v_%s,v_%s), species = %s',xaxstr,yaxstr,strspecies);
           end
+            
+          if doLog && any([doFrac doRatio])
+            fplot = log10(f.f);            
+            cmap = pic_colors('blue_red');
+            %vsr_str = 
+          elseif doLog && doDiff    
+            fplot = sign(f.f).*log10(abs(f.f));
+          elseif doLog
+            fplot = log10(f.f);
+          else
+            fplot = f.f;
+          end
+          if doSmooth
+            fplot = smooth2(fplot,npSmooth);
+          end
+          imagesc(hca,f.v,f.v,fplot')
           %hca.XLabel.String = '';
           %hca.YLabel.String = '';
           hca.YDir = 'normal';        
@@ -762,13 +800,9 @@
             hca.XLabel.String = '';
             hca.XTickLabel = [];
           end
-          if axes_position(1) == border(1) && abs(axes_position(2)+axes_position(4) - (1-border(4))) < 1e-5
-            if doLog
-              title_str = sprintf('log_{10}f(v_%s,v_%s,twci=%g), species = %s',xaxstr,yaxstr,obj.twci,strspecies);
-            else
-              title_str = sprintf('f(v_%s,v_%s), species = %s',xaxstr,yaxstr,strspecies);
-            end
+          if axes_position(1) == border(1) && abs(axes_position(2)+axes_position(4) - (1-border(4))) < 1e-5            
             if doColorbar
+              doColorbar = 0; 
               hb = colorbar('peer',hca);
               barwidth = 0.01;
               hb.Position = [1-border(3)+0.5*barwidth border(2) barwidth 1-border(2)-border(4)];
@@ -870,11 +904,40 @@
           %pause(1)
         end
       end
+      if doColorbar
+        hb = colorbar('peer',hca);
+        barwidth = 0.01;
+        hb.Position = [1-border(3)+0.5*barwidth border(2) barwidth 1-border(2)-border(4)];
+        hb.YLabel.String = title_str;
+      end
         %toc      
       hlinks = linkprop(h,{'XLim','YLim','XTick','YTick'});
       varargout{1}.ax = h;
       varargout{1}.leg = hleg;
       varargout{1}.links = hlinks;
+      
+    end
+    function varargout = plot_map_pitch(obj,iSpecies,pic,varargin)
+      
+      doSmooth = 0;
+      
+      have_options = 0;
+      if not(isempty(varargin))
+        args = varargin;
+        have_options = 1;
+      end
+      while have_options
+        l = 1;
+        switch lower(args{1})
+          case 'smooth'
+            doSmooth = 1;
+            npSmooth = args{2};
+            l = 2;
+        end
+        args = args((1+l):end);        
+        if isempty(args); break; end
+      end
+      
       
     end
     function varargout = plot_boxes(obj,varargin)
@@ -1091,6 +1154,61 @@
       end
       out = dists;
     end
+    function out = get_tags(obj)
+      % Get tags, all distributions does not have tags
+      fileInfo = obj.info_;
+      iGroup = find(contains({fileInfo.Groups.Name},'/data'));
+      nIter = numel(fileInfo.Groups(iGroup).Groups); % number of iterations
+      all_tags = cell(1,nIter);
+      for iIter = 1:nIter
+        % /data/00000xxxxx/ 
+        % redo to actually find the         
+        nDists = numel(fileInfo.Groups(iGroup).Groups(iIter).Groups);
+        for iDist = 1:nDists
+          iAtt = find(contains({fileInfo.Groups(iGroup).Groups(iIter).Groups(iDist).Datasets(1).Attributes.Name},'tag')); 
+          if isempty(iAtt)
+            all_tags{iIter}{iDist} = '';
+          else
+            all_tags{iIter}{iDist} = fileInfo.Groups(iGroup).Groups(iIter).Groups(iDist).Datasets(1).Attributes(iAtt).Value;
+          end
+        end        
+      end
+      out = all_tags;
+      
+    end
+    function out = get_gridsize(obj)
+      out = [numel(obj.xe) numel(obj.ze)];
+    end
+    function out = get_mass(obj)
+      fileInfo = obj.info;
+      iGroup = find(contains({fileInfo.Groups.Name},'/data'));
+      iAtt = find(contains({fileInfo.Groups(iGroup).Groups(1).Groups(1).Datasets(1).Attributes.Name},'mass'));
+      nSpecies = numel(fileInfo.Groups(iGroup).Groups(1).Groups(1).Datasets);
+      for iSpecies = 1:nSpecies
+        mass(iSpecies) = fileInfo.Groups(iGroup).Groups(1).Groups(1).Datasets(iSpecies).Attributes(iAtt).Value;
+      end
+      out = mass;
+    end
+    function out = get_charge(obj)
+      fileInfo = obj.info;
+      iGroup = find(contains({fileInfo.Groups.Name},'/data'));
+      iAtt = find(contains({fileInfo.Groups(iGroup).Groups(1).Groups(1).Datasets(1).Attributes.Name},'charge'));
+      nSpecies = numel(fileInfo.Groups(iGroup).Groups(1).Groups(1).Datasets);
+      for iSpecies = 1:nSpecies
+        charge(iSpecies) = fileInfo.Groups(iGroup).Groups(1).Groups(1).Datasets(iSpecies).Attributes(iAtt).Value;
+      end
+      out = charge;
+    end
+    function out = get_dfac(obj)
+      fileInfo = obj.info;
+      iGroup = find(contains({fileInfo.Groups.Name},'/data'));
+      iAtt = find(contains({fileInfo.Groups(iGroup).Groups(1).Groups(1).Datasets(1).Attributes.Name},'dfac'));
+      nSpecies = numel(fileInfo.Groups(iGroup).Groups(1).Groups(1).Datasets);
+      for iSpecies = 1:nSpecies
+        dfac(iSpecies) = fileInfo.Groups(iGroup).Groups(1).Groups(1).Datasets(iSpecies).Attributes(iAtt).Value;
+      end
+      out = dfac;
+    end
     
     function [x1,x2,z1,z2] = get_locs(obj)
       % Read locations of distributions
@@ -1154,39 +1272,6 @@
         end
       end      
     end  
-    function out = get_gridsize(obj)
-      out = [numel(obj.xe) numel(obj.ze)];
-    end
-    function out = get_mass(obj)
-      fileInfo = obj.info;
-      iGroup = find(contains({fileInfo.Groups.Name},'/data'));
-      iAtt = find(contains({fileInfo.Groups(iGroup).Groups(1).Groups(1).Datasets(1).Attributes.Name},'mass'));
-      nSpecies = numel(fileInfo.Groups(iGroup).Groups(1).Groups(1).Datasets);
-      for iSpecies = 1:nSpecies
-        mass(iSpecies) = fileInfo.Groups(iGroup).Groups(1).Groups(1).Datasets(iSpecies).Attributes(iAtt).Value;
-      end
-      out = mass;
-    end
-    function out = get_charge(obj)
-      fileInfo = obj.info;
-      iGroup = find(contains({fileInfo.Groups.Name},'/data'));
-      iAtt = find(contains({fileInfo.Groups(iGroup).Groups(1).Groups(1).Datasets(1).Attributes.Name},'charge'));
-      nSpecies = numel(fileInfo.Groups(iGroup).Groups(1).Groups(1).Datasets);
-      for iSpecies = 1:nSpecies
-        charge(iSpecies) = fileInfo.Groups(iGroup).Groups(1).Groups(1).Datasets(iSpecies).Attributes(iAtt).Value;
-      end
-      out = charge;
-    end
-    function out = get_dfac(obj)
-      fileInfo = obj.info;
-      iGroup = find(contains({fileInfo.Groups.Name},'/data'));
-      iAtt = find(contains({fileInfo.Groups(iGroup).Groups(1).Groups(1).Datasets(1).Attributes.Name},'dfac'));
-      nSpecies = numel(fileInfo.Groups(iGroup).Groups(1).Groups(1).Datasets);
-      for iSpecies = 1:nSpecies
-        dfac(iSpecies) = fileInfo.Groups(iGroup).Groups(1).Groups(1).Datasets(iSpecies).Attributes(iAtt).Value;
-      end
-      out = dfac;
-    end
     function out = nd(obj)
       nd = cellfun(@(x) numel(x),obj.dists,'UniformOutput',false);
       out = nd;
@@ -1201,6 +1286,10 @@
     end
     function out = nt(obj)
       out = numel(obj.iteration);
+    end
+    function out = xi(obj)
+    end
+    function out = zi(obj)
     end
     
     % Phase space distribution
@@ -1766,6 +1855,7 @@
       doE = 1;
       doPar = 0;
       doVabs = 1;
+      doPitch = 0;
       
       % Check for additional input
       args = varargin;
@@ -1780,6 +1870,10 @@
             l = 2;
             doPar = 1;
             B = args{2}; % {Bx,By,Bz} 
+          case {'pitch'}
+            l = 2;
+            doPitch = 1;
+            B = args{2};
           otherwise
             error(sprintf('Can not recognize flag ''%s'' ',args{1}))
         end
@@ -1807,6 +1901,9 @@
       
       n_vabs = 50;
       n_vpar = 120;
+      n_pitch = 18;
+      n_v_pitch = 20;
+      n_E_pitch = 20;
       % save results in structure array, one structure for each time
       % also save time, but for now only the iteration is saved
       %fout = struct('time',{},'iter',{},'x',{},'z',{},'v',{},'fvx',{},'fvy',{},'fvz',{});
@@ -1819,7 +1916,10 @@
         f_vx_arr = zeros(nd,nv);
         f_vy_arr = zeros(nd,nv);
         f_vz_arr = zeros(nd,nv);
-        f_vabs_arr = zeros(nd,n_vabs);        
+        f_vabs_arr = zeros(nd,n_vabs);
+        f_vpar_arr = zeros(nd,n_vpar);
+        f_pitch_arr = zeros(nd,n_v_pitch,n_pitch);
+        f_pitchE_arr = zeros(nd,n_E_pitch,n_pitch);
         def_E_arr = zeros(nd,n_vabs);
         dpf_E_arr = zeros(nd,n_vabs);
         t_arr = zeros(nd,1);
@@ -1844,10 +1944,11 @@
           f_vy_arr(id_count,:) = interp1(f.v,sum(f.fxy,1),vaxes);
           f_vz_arr(id_count,:) = interp1(f.v,sum(f.fxz,1),vaxes);
           %f_vabs_arr(id_count,:) = interp1(f_tmp.v,sum(f_tmp.fxz,1),vaxes);
+          
 
 
           % Just do them together
-          if any([doVabs doE]) 
+          if any([doVabs doE])
             % for vabs distribution
             dv = f.v(2)-f.v(1);
             d3v = dv.^3;
@@ -1907,7 +2008,7 @@
             dpf_E_arr(id_count,:) = accum_fv/(4*pi)./Edelta'; % 1/(sr eV) = 1/(s m2 sr eV)
             def_E_arr(id_count,:) = accum_fvE/(4*pi)./Edelta'; % (eV s-1 m-2)/(sr eV) = eV/(s m2 sr eV)
           end
-          if doPar
+          if any([doPar doPitch])
             dv = f.v(2)-f.v(1);
             d3v = dv.^3;
             Bx = B{1}; Bx = Bx(id_count);
@@ -1920,14 +2021,51 @@
             bz = Bz./Babs;
             
             VPAR = VX(:).*bx + VY(:).*by + VZ(:).*bz;
+            VABS = sqrt(VX(:).^2 + VY(:).^2 + VZ(:).^2);
+            E = VABS.^2/2; % include mass later
+            PITCH = acosd(VPAR./VABS);
             
             v_par_grid = linspace(min(VPAR(:)),max(VPAR(:)),n_vpar+1);
             dv_par = v_par_grid(2)-v_par_grid(1);
             v_par_center = v_par_grid(1:(end-1)) + dv_par;
             [accum_fvpar edges mid loc] = histcn(VPAR(:),v_par_grid,'AccumData',f.f(:)*d3v);
             f_vpar_arr(id_count,:) = accum_fvpar; % m-3/(m/s)= s/m4
+            
+            % Pitch angle distributions
+            % Pitch angle grid
+            pitch_grid = linspace(0,180,n_pitch+1);
+            d_pitch = pitch_grid(2)-pitch_grid(1);
+            pitch_center = pitch_grid(1:(end-1)) + d_pitch;
+            % Velocity grid
+            v_pitch_grid = linspace(min(VABS(:)),max(VABS(:)),n_v_pitch+1);
+            dv_pitch = v_pitch_grid(2)-v_pitch_grid(1);
+            v_pitch_center = v_pitch_grid(1:(end-1)) + dv_pitch;            
+            % Distribution of (vabs,pitch)
+            [accum_fpitch edges mid loc] = histcn([VABS(:), PITCH(:)],v_pitch_grid,pitch_grid,'AccumData',f.f(:)*d3v);            
+            
+            % Energy grid            
+            E_grid = logspace(log10(min(E(:))),log10(max(E(:))),n_E_pitch+1);
+            dE = diff(E_grid);
+            E_center = E_grid(1:(end-1)) + dE;
+            % Distribution of (E,pitch)
+            [accum_fEpitch edges mid loc] = histcn([E(:), PITCH(:)],E_grid,pitch_grid,'AccumData',f.f(:)*d3v); % 1/vol 
+            
+            % need to divide this by the opening solid angle/volume
+            solang = -(cosd(pitch_grid(2:end)) - cosd(pitch_grid(1:end-1)))*2*pi;
+            % velocity
+            dvel = v_pitch_grid(2:end).^3/3 - v_pitch_grid(1:end-1).^3/3;
+            [SA,DVEL] = meshgrid(solang,dvel);
+            DVOL = SA.*DVEL;
+            % energy
+            dvel = sqrt(2*E_grid(2:end)).^3/3 - sqrt(2*E_grid(1:end-1)).^3/3;
+            [SA,DE] = meshgrid(solang,dE);
+            DVOLE = SA.*DE;
+            
+            f_pitch_arr(id_count,:,:) = accum_fpitch./DVOL; % m-3/(sa m / s)= s/m4
+            f_pitchE_arr(id_count,:,:) = accum_fEpitch./DVOLE; % m-3/(sr*E)= s/m4
           end
-        end  
+        end 
+        
         %[x_arr_sorted,i_sorted] = sort(x_arr);
         i_sorted = 1:numel(x_arr);
         
@@ -1945,10 +2083,15 @@
           fout(itime).fdpfE = dpf_E_arr(i_sorted,:);
           fout(itime).fdefE = def_E_arr(i_sorted,:);
         end
-        if doPar
+        if any([doPar doPitch])
           fout(itime).vpar_center = v_par_center;
           fout(itime).vpar_edges = v_par_grid;
           fout(itime).fvpar = f_vpar_arr(i_sorted,:);
+          fout(itime).vpitch = v_pitch_grid;
+          fout(itime).pitch = pitch_grid;
+          fout(itime).fpitch = f_pitch_arr(i_sorted,:,:);
+          fout(itime).Epitch = E_grid;          
+          fout(itime).fpitchE = f_pitchE_arr(i_sorted,:,:);
         end
         if 0
         fout(itime).vabs_edges = vaxes_pos;
@@ -1992,7 +2135,9 @@
     end
     
     % Ge derived quantities      
-    
+  end
+  
+  methods % set and get
     % Get and set properties    
     function obj = set.info(obj,value)
       obj.info_ = value;
@@ -2057,6 +2202,9 @@
     function obj = set.dists(obj,value)
       obj.dists_ = value;
     end
+    function obj = set.tags(obj,value)
+      obj.tags_ = value;
+    end
     
     function value = get.info(obj)
       value = obj.info_;
@@ -2120,6 +2268,9 @@
     end
     function value = get.dists(obj)
       value = obj.dists_;
+    end
+    function value = get.tags(obj)
+      value = obj.tags_;
     end
   end
   

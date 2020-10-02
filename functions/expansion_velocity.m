@@ -58,7 +58,7 @@ for itime = 1:ntimes
   for ix_ind = 1:nx_ind
     [max_val_tmp,max_ind_tmp] = max(abs(data(x_ind{ix_ind},itime)));
     max_val{ix_ind}(itime) = max_val_tmp;      
-    max_ind{ix_ind}(itime) = max_ind_tmp + min(x_ind{ix_ind});
+    max_ind{ix_ind}(itime) = max_ind_tmp;% + min(x_ind{ix_ind});
     x_vals{ix_ind}(itime) = x(max_ind{ix_ind}(itime));
   end
 end

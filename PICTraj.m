@@ -529,7 +529,7 @@
           lim = args{2};
           args = args(3:end);
           
-          if isfield(obj,field)    % is field
+          if isfield(obj,field) % is field
             data = obj(itr).(field);            
           else % is expression
             % excepted expressions

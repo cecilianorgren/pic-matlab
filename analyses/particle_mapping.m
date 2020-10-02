@@ -102,10 +102,12 @@ if doPlot
 end
 
 %% Get r0,v0 from moments, suitable for inflow at early times
-pic = df04.twpelim(3000);
+pic = no02m.twpelim(16000);
 A = squeeze(pic.A);
-x_center = [202.2:0.2:202.9 203.2:0.2:203.9];
-z_center = (3:1:10);
+x_center = [202.2:0.2:202.9 203.2:0.2:203.9]-100;
+z_center = (3:1:7);
+x_center = [90:115];
+z_center = (0:0.2:4);
 [ZC,XC] = meshgrid(z_center,x_center);
 XC = reshape(XC,prod(size(XC)),1);
 ZC = reshape(ZC,prod(size(ZC)),1);
@@ -129,10 +131,16 @@ if 0 % A
   x0 = XC(find(ind_keep));
   z0 = ZC(find(ind_keep));
 else % n
+  Alim = [0 8.2];
+  vlim = [0 1];
+  tlim = [0 0.0005];
+  A = pic.A;
+  t = pic.t(3);
   n = pic.n(3);
   vx = pic.vx(3);
   vy = pic.vy(3);
   vz = pic.vz(3);
+  vabs = sqrt(vx.^2+vy.^2+vz.^2);
   nlim = 0.02;
   ind_keep = zeros(nboxes,1);
   for ibox = 1:nboxes
@@ -146,8 +154,18 @@ else % n
     vy0(ibox) = vy(xind,zind);
     vz0(ibox) = vz(xind,zind);
     
-    if n(xind,zind)>nlim(1) % keep
+%     if n(xind,zind)>nlim(1) % keep
+%       ind_keep(ibox) = 1;
+%     else
+%       ind_keep(ibox) = 0;
+%     end
+    if A(xind,zind)>Alim(1) && A(xind,zind)<Alim(2) % keep
       ind_keep(ibox) = 1;
+%       if t(xind,zind)>tlim(2) % too fast discard
+%         ind_keep(ibox) = 0;
+%       else
+%         ind_keep(ibox) = 1;
+%       end
     else
       ind_keep(ibox) = 0;
     end
@@ -169,10 +187,13 @@ else % n
     fpeaks(ii).vz = vz0(ii);
   end
   hca = subplot(1,1,1);
-  imagesc(hca,pic.xi,pic.zi,n');
+  imagesc(hca,pic.xi,pic.zi,vx');
+  colormap(hca,pic_colors('blue_red'))
+  colorbar('peer',hca)
   hca.YDir = 'normal';
+  hca.Title.String = sprintf('number of position = %g',numel(fpeaks));
   hold(hca,'on')
-  plot(hca,[fpeaks.x],[fpeaks.z],'.')
+  plot(hca,[fpeaks.x],[fpeaks.z],'.k')
   hold(hca,'off')
 end
 

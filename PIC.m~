@@ -440,7 +440,6 @@ classdef PIC
           hca = h(ifield);
           S(1).type='()'; S(1).subs = {itime};
           data = get_field(obj.subsref(S),fields{ifield});
-          %contourf(hca,obj.xi,obj.zi,squeeze(data)',0:0.5:25)
           imagesc(hca,obj.xi,obj.zi,squeeze(data)')
           hb = colorbar('peer',hca);
           hb.YLabel.String = fields{ifield};
@@ -635,8 +634,7 @@ classdef PIC
 %                 var = tmp_obj.(varstrs{ivar});
 %               end        
               var = tmp_obj.get_exp(varstrs{ivar});
-              %imagesc(hca,tmp_obj.xi,tmp_obj.zi,var');
-              contourf(hca,tmp_obj.xi,tmp_obj.zi,var',0:0.5:25);
+              imagesc(hca,tmp_obj.xi,tmp_obj.zi,var');
               hb(ivar) = colorbar('peer',hca);
               hb(ivar).YLabel.String = varstrs{ivar};
               if doAdjustCLim
@@ -879,7 +877,7 @@ classdef PIC
         leftpos = 1;
         for ip = 1:npanels, panel_width(ip) = h(ip).Position(3); end      
         for ip = 1:npanels, h(ip).Position(3) = min(panel_width); end        
-        titlestring = sprintf('twpe = %g, twci = %.1f, %s = [%.2f %.2f]',obj_tmp.twpe,obj_tmp.twci,rangestr,range(1),range(2));
+        titlestring = sprintf('twpe = %g, twci = %g, %s = [%.2f %.2f]',obj_tmp.twpe,obj_tmp.twci,rangestr,range(1),range(2));
         h(1).Title.String = titlestring;
         compact_panels(0.01)
         hlinks = linkprop(h,{'XLim'});
@@ -1199,7 +1197,6 @@ classdef PIC
       % Plot variables as a function of dim: 'x' or 'z'
        
       doSmooth = 0;
-      doVertical = 0;
       plotInAxes = 0;
                   
       % Check additional input     
@@ -1219,9 +1216,6 @@ classdef PIC
             doSmooth = 1;
             npSmooth = args{2};
             l = 2;
-          case {'vertical','vert'}
-            doVertical = 1;
-            l = 1;
           otherwise 
             warning(sprintf('Unknown argument %s.',args{1}))
         end
@@ -1290,39 +1284,24 @@ classdef PIC
               if doSmooth 
                 plot_var = smooth(plot_var,npSmooth);
               end
-              if doVertical
-                plot(hca,plot_var,plot_dep,'DisplayName',displayname);
-                hca.YLabel.String = [dim ' (d_i)'];
-              else
-                plot(hca,plot_dep,plot_var,'DisplayName',displayname);
-                hca.XLabel.String = [dim ' (d_i)'];
-              end
+              plot(hca,plot_dep,plot_var,'DisplayName',displayname);
               if not(isHoldOn)
                 hold(hca,'on')
                 isHoldOn = 1;
               end
             end
-            
+            hca.XLabel.String = [dim ' (d_i)'];
           end
           hold(hca,'off')
           hca.XGrid = 'on';
           hca.YGrid = 'on';
-          if doVertical
-            hleg(ip) = legend(hca,'location','northoutside'); % this may make the panels of different widths, fix below
-          else
-            hleg(ip) = legend(hca,'location','eastoutside'); % this may make the panels of different widths, fix below
-          end
+          hleg(ip) = legend(hca,'location','eastoutside'); % this may make the panels of different widths, fix below
         end
       end
-      drawnow;      
+      drawnow;
       leftpos = 1;
-      if doVertical
-        for ip = 1:npanels, panel_width(ip) = h(ip).Position(4); end      
-        for ip = 1:npanels, h(ip).Position(4) = min(panel_width); end        
-      else
-        for ip = 1:npanels, panel_width(ip) = h(ip).Position(3); end      
-        for ip = 1:npanels, h(ip).Position(3) = min(panel_width); end
-      end
+      for ip = 1:npanels, panel_width(ip) = h(ip).Position(3); end      
+      for ip = 1:npanels, h(ip).Position(3) = min(panel_width); end  
       if ntimes == 1
         titlestring = sprintf('twpe = %g, twci = %g, %s = [%.2f %.2f]',obj.twpe,obj.twci,rangestr,range(1),range(2));
       else
@@ -1332,19 +1311,9 @@ classdef PIC
         titlestring = [titlestring ', n_p^{smooth} = ' num2str(npSmooth)];
       end
       h(1).Title.String = titlestring;
-      compact_panels(0.01,0.01)
-      if doVertical
-        hlinks = linkprop(h,{'YLim'});
-        h(1).YLim = dep_lim;
-        for ip = 2:npanels
-          h(ip).YLabel.String = ''; 
-          h(ip).YTickLabels = []; 
-        end
-      else
-        hlinks = linkprop(h,{'XLim'});
-        h(1).XLim = dep_lim;
-      end
-      
+      compact_panels(0.01)
+      hlinks = linkprop(h,{'XLim'});
+      h(1).XLim = dep_lim;
       set(gcf,'userdata',{'hlinks',hlinks})
       if nargout == 1
         varargout{1} = h;
@@ -1725,40 +1694,6 @@ classdef PIC
       
       for iP = 1:nPoints
         if any(obj.twci==t(iP)) % exact match in time, do only 2D interp
-          tmppic = obj.xlim(x(iP),'closest',nClosestXZ).zlim(z(iP),'closest',nClosestXZ).twcilim(t(iP),'exact');
-
-          tmpt =  tmppic.twci;
-          tmpx =  tmppic.xi;
-          tmpz =  tmppic.zi;
-          tmpEx = tmppic.Ex; %tmpEx(:,:,1) = smooth2(tmpEx(:,:,1),2,2); tmpEx(:,:,2) = smooth2(tmpEx(:,:,2),2,2);
-          tmpEy = tmppic.Ey; 
-          tmpEz = tmppic.Ez;
-          tmpBx = tmppic.Bx;
-          tmpBy = tmppic.By;
-          tmpBz = tmppic.Bz;
-
-          % Interpolate to particle position
-          % Vq = interp3(V,Xq,Yq,Zq) assumes X=1:N, Y=1:M, Z=1:P where [M,N,P]=SIZE(V).      
-          % The variables has their individual grids, so interpolate from these
-          % individual grids to the common grid (Ey, and moments).
-          [X_EX,Z_EX] = meshgrid(tmppic.xivar.Ex,tmppic.zivar.Ex);
-          [X_EY,Z_EY] = meshgrid(tmppic.xivar.Ey,tmppic.zivar.Ey);
-          [X_EZ,Z_EZ] = meshgrid(tmppic.xivar.Ez,tmppic.zivar.Ez);
-          [X_BX,Z_BX] = meshgrid(tmppic.xivar.Bx,tmppic.zivar.Bx);
-          [X_BY,Z_BY] = meshgrid(tmppic.xivar.By,tmppic.zivar.By);
-          [X_BZ,Z_BZ] = meshgrid(tmppic.xivar.Bz,tmppic.zivar.Bz);
-
-          try
-          Ex(iP) = interp2(X_EX,Z_EX,permute(tmpEx,[2 1]),x(iP),z(iP),method);
-          Ey(iP) = interp2(X_EY,Z_EY,permute(tmpEy,[2 1]),x(iP),z(iP),method);
-          Ez(iP) = interp2(X_EZ,Z_EZ,permute(tmpEz,[2 1]),x(iP),z(iP),method);
-          Bx(iP) = interp2(X_BX,Z_BX,permute(tmpBx,[2 1]),x(iP),z(iP),method);
-          By(iP) = interp2(X_BY,Z_BY,permute(tmpBy,[2 1]),x(iP),z(iP),method);
-          Bz(iP) = interp2(X_BZ,Z_BZ,permute(tmpBz,[2 1]),x(iP),z(iP),method);
-          catch
-
-            1;
-          end          
         else
           tmppic = obj.xlim(x(iP),'closest',nClosestXZ).zlim(z(iP),'closest',nClosestXZ).twcilim(t(iP),'bounding',nBoundingT);          
 

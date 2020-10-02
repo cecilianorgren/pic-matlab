@@ -394,7 +394,7 @@ end
 hold(hca,'off')   
 
 %% Pattern governed by A, PIC object
-pic = df04n.twpelim(5000);
+pic = no02m.twpelim(24000);
 %ind = gf05.twpelim(4000).it;
 ind = pic.it;
 %ind = 26;
@@ -411,13 +411,15 @@ Ez = squeeze(pic(ind).Ez);
 
 [saddle_locations,saddle_values] = saddle(A,'sort');
 xx = pic(pic.nt).x_xline;
-%%
-x_center = (140:0.2:199);
-x_center = fix(xx) + [-8 -4 0];
+%
+x_center = (75:5:95);
+%x_center = (70:0.5:135);
+%x_center = fix(xx) + [-8 -4 0];
 %x_center = (90:0.2:170);
 z_center = [4 6]; % 0.4 0.8
-z_center = [-4:0.1:4];
-dx_box = 0.05;
+z_center = [0 2 4];
+z_center = [-1:0.1:8];
+dx_box = 0.25;
 dz_box = 0.05;
 % x_center = 150:0.5:205;
 % z_center = 0:0.5:10;
@@ -444,7 +446,7 @@ Alim = [-25 saddle_values(1)*0.99];
 Alim = [-23.8 0];
 Alim = [-24 -18.5];
 Alim = [-24 0];
-Alim = [-26 0];
+Alim = [0 25];
 ind_keep = zeros(nboxes,1);
 for ibox = 1:nboxes
   xind = find(abs(pic.xi-XC(ibox))==min(abs(pic.xi-XC(ibox))));
@@ -455,105 +457,136 @@ for ibox = 1:nboxes
   else
     ind_keep(ibox) = 0;
   end
+  %ind_keep(ibox) = 1;
 end
+
 
 all_boxes = [XC-dx_box XC+dx_box ZC-dz_box ZC+dz_box];
 keep_boxes = all_boxes(find(ind_keep==1),:);
 n_boxes = size(keep_boxes,1);
 
+doA = 1;
+levA = -25:1:0;
+
+xlim = [40 160];
+ylim = [-2 10];
 figure(401)
-hca = subplot(2,1,1);
-imagesc(hca,pic.xi,pic.zi,viycold')
-%imagesc(hca,x,z,pi1.scalar')
-hca.XLim = [140 210];
-hca.YLim = [-15 15];
-hca.Title.String = sprintf('twci = %g, twpe = %g, n_boxes = %g',pic.twci(ind),pic.twpe(ind),n_boxes);
-hca.Title.Interpreter = 'none';
-hcb = colorbar('peer',hca);
-
-hold(hca,'on')
-for ibox = 1:n_boxes
-  %hstar = plot(hca,[xlo xlo xhi xhi],[zlo zhi zhi zlo],'*k');
-  %hpatch = patch(hca,[keep_boxes(ibox,1) keep_boxes(ibox,1) keep_boxes(ibox,2) keep_boxes(ibox,2)],[keep_boxes(ibox,1) keep_boxes(ibox,2) keep_boxes(ibox,2) keep_boxes(ibox,1)],'w');
-  hpatch = patch(hca,keep_boxes(ibox,[1 1 2 2]),keep_boxes(ibox,[3 4 4 3]),'w');
-  hpatch.FaceAlpha = 0;
-  hpatch.LineWidth = 1;   
-  
+nrows = 2;
+ncols = 1;
+h = setup_subplots(nrows,ncols);
+npanels = nrows*ncols;
+isub = 1;
+if 1 % viycold
+  hca = h(isub); isub = isub+1;
+  imagesc(hca,pic.xi,pic.zi,viycold')
+  hca.CLim = [-1 1];
+  hcb = colorbar('peer',hca);
+  colormap(hca,pic_colors('blue_red'))
 end
-hold(hca,'off')   
-
-hca = subplot(2,1,2);
-imagesc(hca,pic.xi,pic.zi,Ez')
-%imagesc(hca,x,z,pi1.scalar')
-hca.XLim = [140 210];
-hca.YLim = [-15 15];
-hca.Title.String = sprintf('twci = %g, twpe = %g, n_boxes = %g',pic.twci(ind),pic.twpe(ind),n_boxes);
-hca.Title.Interpreter = 'none';
-hcb = colorbar('peer',hca);
-
-
-hold(hca,'on')
-for ibox = 1:n_boxes
-  %hstar = plot(hca,[xlo xlo xhi xhi],[zlo zhi zhi zlo],'*k');
-  %hpatch = patch(hca,[keep_boxes(ibox,1) keep_boxes(ibox,1) keep_boxes(ibox,2) keep_boxes(ibox,2)],[keep_boxes(ibox,1) keep_boxes(ibox,2) keep_boxes(ibox,2) keep_boxes(ibox,1)],'w');
-  hpatch = patch(hca,keep_boxes(ibox,[1 1 2 2]),keep_boxes(ibox,[3 4 4 3]),'w');
-  hpatch.FaceAlpha = 0;
-  hpatch.LineWidth = 1;   
-  
+if 1 % Ez
+  hca = h(isub); isub = isub+1;
+  imagesc(hca,pic.xi,pic.zi,Ez')
+  hca.CLim = [-1 1];
+  hcb = colorbar('peer',hca);
+  colormap(hca,pic_colors('blue_red'))
 end
-hold(hca,'off')
 
+h(1).Title.String = sprintf('twci = %g, twpe = %g, n_boxes = %g',pic.twci(ind),pic.twpe(ind),n_boxes);
+h(1).Title.Interpreter = 'none';
+  
+for ip = 1:npanels
+  hca = h(ip);
+  hold(hca,'on')
+  for ibox = 1:n_boxes
+    %hstar = plot(hca,[xlo xlo xhi xhi],[zlo zhi zhi zlo],'*k');
+    %hpatch = patch(hca,[keep_boxes(ibox,1) keep_boxes(ibox,1) keep_boxes(ibox,2) keep_boxes(ibox,2)],[keep_boxes(ibox,1) keep_boxes(ibox,2) keep_boxes(ibox,2) keep_boxes(ibox,1)],'w');
+    hpatch = patch(hca,keep_boxes(ibox,[1 1 2 2]),keep_boxes(ibox,[3 4 4 3]),'w');
+    hpatch.FaceAlpha = 0;
+    hpatch.LineWidth = 1;
+  end
+  hold(hca,'off')
+  if doA
+    hold(hca,'on')
+    iAx = 1:4:pic.nx;
+    iAz = 1:4:pic.nz;
+    contour(hca,pic.xi(iAx),pic.zi(iAz),A(iAx,iAz)',levA,'k');
+    hold(hca,'off')
+  end
+  hca.YDir = 'normal';
+  hca.XLim = xlim;
+  hca.YLim = ylim;
+  hca.XLabel.String = 'x';
+  hca.YLabel.String = 'z';
+end
+
+compact_panels(0.01)
 %% Pattern governed by A, distributions along a field line, PIC object
-xlim = [150 200];
-zlim = [-1 10];
+xlim = [075 105]; zlim = [0 10]; Avals = 3:0.5:6.5;
+xlim = [105 130]; zlim = [0 10]; Avals = -10:0.5:1;
+xlim = [075 129]; zlim = [0 10]; %Avals = 2:0.5:6.5;
+xlim = [075 129]; zlim = [-10 10]; Avals = -10.0:0.5:-4.5;
+xlim = [075 105]; zlim = [-0 10]; Avals = -10.0:0.5:-4.5; % 21000
+%xlim = [060 105]; zlim = [-0 10]; Avals = -10.0:0.5:-4.0; % 24000
+xlim = [080 105]; zlim = [-0 10]; Avals = -7.0:0.25:-4.75; % 20000
+xlim = [061 105]; zlim = [-10 10]; Avals = 7.5; % 24000
+
 twpe = 7000;
-pic = nobg.twpelim(10000).xlim(xlim).zlim(zlim);
+pic = no02m.twpelim(24000).xlim(xlim).zlim(zlim);
 %ind = 26;
 A = squeeze(pic.A);
 Bz = squeeze(pic.Bz);
-ni = squeeze(pic.ni);
+ni = squeeze(pic.n([1 3 5]));
 vex = squeeze(pic.vex);
 viz = squeeze(pic.viz);
+viy = squeeze(pic.viy);
+Ez = squeeze(pic.Epar);
+all_boxes = [];
+all_tags = [];
 
-Avals = -20;
-if numel(Avals) == 1  
+if numel(Avals) == 1
   S = contourcs(pic.xi,pic.zi,A',Avals*[1 1]);
 else
   S = contourcs(pic.xi,pic.zi,A',Avals);
 end
 
 % interpolate/downpolate to fewer point
-nq = 200;
-d_arc_x = diff(S.X);
-d_arc_y = diff(S.Y);
-d_arc_distance = sqrt(d_arc_x.^2 + d_arc_y.^2);
-arc_distance = [0 cumsum(d_arc_distance)];
-d_arcdist = 0.1;
-new_arc_distance = arc_distance(1):d_arcdist:arc_distance(end); % try to get atleast one box at start
-%rel_arc_distance = arc_distance/arc_distance(end);
-%new_rel_arc_distance = linspace(rel_arc_distance(1),rel_arc_distance(end),nq);
-% First resample new_arc_distance so that one instance of it appears at z =
-% 0 (so that it's top-bot symmetrical).
-%
+nS = numel(S);
+for iS = 1:nS
+  nq = 200;
+  d_arc_x = diff(S(iS).X);
+  d_arc_y = diff(S(iS).Y);
+  d_arc_distance = sqrt(d_arc_x.^2 + d_arc_y.^2);
+  arc_distance = [0 cumsum(d_arc_distance)];
+  d_arcdist = 0.1;
+  new_arc_distance = arc_distance(1):d_arcdist:arc_distance(end); % try to get atleast one box at start
+  %rel_arc_distance = arc_distance/arc_distance(end);
+  %new_rel_arc_distance = linspace(rel_arc_distance(1),rel_arc_distance(end),nq);
+  % First resample new_arc_distance so that one instance of it appears at z =
+  % 0 (so that it's top-bot symmetrical).
+  %
 
-x_new = interp1(rel_arc_distance,S.X,new_rel_arc_distance);
-z_new = interp1(rel_arc_distance,S.Y,new_rel_arc_distance);
-    
-
-x_center = x_new;
-z_center = z_new;
-
-dx_box = 0.1;
-dz_box = 0.1;
-
-xlow = x_center-dx_box;
-xhigh = x_center+dx_box;
-zlow = z_center-dz_box;
-zhigh = z_center+dz_box;
+  x_new = interp1(arc_distance,S(iS).X,new_arc_distance);
+  z_new = interp1(arc_distance,S(iS).Y,new_arc_distance);
 
 
-n_boxes = numel(x_center);
-ind_keep = ones(nboxes,1);
+  x_center = x_new;
+  z_center = z_new;
+
+  dx_box = 0.1;
+  dz_box = 0.1;
+
+  xlow = x_center'-dx_box;
+  xhigh = x_center'+dx_box;
+  zlow = z_center'-dz_box;
+  zhigh = z_center'+dz_box;
+  
+  all_boxes = [all_boxes; xlow, xhigh, zlow, zhigh];
+  all_tags = [all_tags; xlow*0+S(iS).Level];
+
+
+  n_boxes = numel(x_center);
+  ind_keep = ones(n_boxes,1);
+end
 %
 if 0
 for ibox = 1:nboxes
@@ -568,60 +601,117 @@ for ibox = 1:nboxes
 end
 end
 
-all_boxes = [tocolumn(x_center)-dx_box tocolumn(x_center)+dx_box tocolumn(z_center)-dz_box tocolumn(z_center)+dz_box];
+
 %keep_boxes = all_boxes(find(ind_keep==1),:);
 keep_boxes = all_boxes;
 n_boxes = size(keep_boxes,1);%size(keep_boxes,1);
-%
+
+% Plot
 figure(401)
-h = setup_subplots(2,1);
+h = setup_subplots(4,1);
 isub = 1;
 
-hca = h(isub); isub = isub + 1;
-imagesc(hca,pic.xi,pic.zi,ni')
-%imagesc(hca,x,z,pi1.scalar')
-%hca.XLim = [60 240];
-%hca.YLim = [-10 10];
-hca.Title.String = sprintf('twci = %g, twpe = %g, n_boxes = %g',pic.twci,pic.twpe,n_boxes);
-hca.Title.Interpreter = 'none';
-hcb = colorbar('peer',hca);
+if 1 % ni
+  hca = h(isub); isub = isub + 1;
+  imagesc(hca,pic.xi,pic.zi,log10(abs(ni))')
+    hca.YDir = 'normal';
+  %imagesc(hca,x,z,pi1.scalar')
+  %hca.XLim = [60 240];
+  %hca.YLim = [-10 10];
+  hca.Title.String = sprintf('twci = %g, twpe = %g, n_boxes = %g',pic.twci,pic.twpe,n_boxes);
+  hca.Title.Interpreter = 'none';
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'log_{10}n_{i}';
+  colormap(hca,'jet')
+  %colormap(hca,pic_colors('blue_red'))
 
-hold(hca,'on')
-for ibox = 1:n_boxes      
-  %hstar = plot(hca,[xlo xlo xhi xhi],[zlo zhi zhi zlo],'*k');
-  %hpatch = patch(hca,[keep_boxes(ibox,1) keep_boxes(ibox,1) keep_boxes(ibox,2) keep_boxes(ibox,2)],[keep_boxes(ibox,1) keep_boxes(ibox,2) keep_boxes(ibox,2) keep_boxes(ibox,1)],'w');
-  hpatch = patch(hca,keep_boxes(ibox,[1 1 2 2]),keep_boxes(ibox,[3 4 4 3]),'w');
-  hpatch.FaceAlpha = 0;
-  hpatch.LineWidth = 1;   
-  
+  hold(hca,'on')
+  for ibox = 1:n_boxes
+    %hstar = plot(hca,[xlo xlo xhi xhi],[zlo zhi zhi zlo],'*k');
+    %hpatch = patch(hca,[keep_boxes(ibox,1) keep_boxes(ibox,1) keep_boxes(ibox,2) keep_boxes(ibox,2)],[keep_boxes(ibox,1) keep_boxes(ibox,2) keep_boxes(ibox,2) keep_boxes(ibox,1)],'w');
+    hpatch = patch(hca,keep_boxes(ibox,[1 1 2 2]),keep_boxes(ibox,[3 4 4 3]),'w');
+    hpatch.FaceAlpha = 0;
+    hpatch.LineWidth = 1;   
+  end
+  hold(hca,'off')
 end
-hold(hca,'off')   
-
-hca = h(isub); isub = isub + 1;
-imagesc(hca,pic.xi,pic.zi,vex')
-%imagesc(hca,x,z,pi1.scalar')
-%hca.XLim = [60 240];
-%hca.YLim = [-10 10];
-hca.Title.String = sprintf('twci = %g, twpe = %g, n_boxes = %g',pic.twci,pic.twpe,n_boxes);
-hca.Title.Interpreter = 'none';
-hcb = colorbar('peer',hca);
-
-
-hold(hca,'on')
-for ibox = 1:n_boxes      
-  %hstar = plot(hca,[xlo xlo xhi xhi],[zlo zhi zhi zlo],'*k');
-  %hpatch = patch(hca,[keep_boxes(ibox,1) keep_boxes(ibox,1) keep_boxes(ibox,2) keep_boxes(ibox,2)],[keep_boxes(ibox,1) keep_boxes(ibox,2) keep_boxes(ibox,2) keep_boxes(ibox,1)],'w');
-  hpatch = patch(hca,keep_boxes(ibox,[1 1 2 2]),keep_boxes(ibox,[3 4 4 3]),'w');
-  hpatch.FaceAlpha = 0;
-  hpatch.LineWidth = 1;   
+if 1 % viy
+  hca = h(isub); isub = isub + 1;
+  imagesc(hca,pic.xi,pic.zi,Ez')
+  hca.YDir = 'normal';
+  %imagesc(hca,x,z,pi1.scalar')
+  %hca.XLim = [60 240];
+  %hca.YLim = [-10 10];
+  hca.Title.String = sprintf('twci = %g, twpe = %g, n_boxes = %g',pic.twci,pic.twpe,n_boxes);
+  hca.Title.Interpreter = 'none';
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'E_{z}';
+  colormap(hca,pic_colors('blue_red'))
+  hca.CLim = max(abs(Ez(:)))*[-1 1];
   
+  hold(hca,'on')
+  for ibox = 1:n_boxes      
+    %hstar = plot(hca,[xlo xlo xhi xhi],[zlo zhi zhi zlo],'*k');
+    %hpatch = patch(hca,[keep_boxes(ibox,1) keep_boxes(ibox,1) keep_boxes(ibox,2) keep_boxes(ibox,2)],[keep_boxes(ibox,1) keep_boxes(ibox,2) keep_boxes(ibox,2) keep_boxes(ibox,1)],'w');
+    hpatch = patch(hca,keep_boxes(ibox,[1 1 2 2]),keep_boxes(ibox,[3 4 4 3]),'w');
+    hpatch.FaceAlpha = 0;
+    hpatch.LineWidth = 1;
+  end
+  hold(hca,'off')   
 end
-hold(hca,'off')   
-
+if 1 % viy
+  hca = h(isub); isub = isub + 1;
+  imagesc(hca,pic.xi,pic.zi,viy')
+  hca.YDir = 'normal';
+  %imagesc(hca,x,z,pi1.scalar')
+  %hca.XLim = [60 240];
+  %hca.YLim = [-10 10];
+  hca.Title.String = sprintf('twci = %g, twpe = %g, n_boxes = %g',pic.twci,pic.twpe,n_boxes);
+  hca.Title.Interpreter = 'none';
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'v_{iy}';
+  colormap(hca,pic_colors('blue_red'))
+  hca.CLim = max(abs(viy(:)))*[-1 1];
+  
+  hold(hca,'on')
+  for ibox = 1:n_boxes      
+    %hstar = plot(hca,[xlo xlo xhi xhi],[zlo zhi zhi zlo],'*k');
+    %hpatch = patch(hca,[keep_boxes(ibox,1) keep_boxes(ibox,1) keep_boxes(ibox,2) keep_boxes(ibox,2)],[keep_boxes(ibox,1) keep_boxes(ibox,2) keep_boxes(ibox,2) keep_boxes(ibox,1)],'w');
+    hpatch = patch(hca,keep_boxes(ibox,[1 1 2 2]),keep_boxes(ibox,[3 4 4 3]),'w');
+    hpatch.FaceAlpha = 0;
+    hpatch.LineWidth = 1;
+  end
+  hold(hca,'off')   
+end
+if 1 % vex
+  hca = h(isub); isub = isub + 1;
+  imagesc(hca,pic.xi,pic.zi,vex')
+  hca.YDir = 'normal';
+  %imagesc(hca,x,z,pi1.scalar')
+  %hca.XLim = [60 240];
+  %hca.YLim = [-10 10];
+  hca.Title.String = sprintf('twci = %g, twpe = %g, n_boxes = %g',pic.twci,pic.twpe,n_boxes);
+  hca.Title.Interpreter = 'none';
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'v_{ex}';
+  colormap(hca,pic_colors('blue_red'))
+  hca.CLim = max(abs(vex(:)))*[-1 1];
+  
+  hold(hca,'on')
+  for ibox = 1:n_boxes      
+    %hstar = plot(hca,[xlo xlo xhi xhi],[zlo zhi zhi zlo],'*k');
+    %hpatch = patch(hca,[keep_boxes(ibox,1) keep_boxes(ibox,1) keep_boxes(ibox,2) keep_boxes(ibox,2)],[keep_boxes(ibox,1) keep_boxes(ibox,2) keep_boxes(ibox,2) keep_boxes(ibox,1)],'w');
+    hpatch = patch(hca,keep_boxes(ibox,[1 1 2 2]),keep_boxes(ibox,[3 4 4 3]),'w');
+    hpatch.FaceAlpha = 0;
+    hpatch.LineWidth = 1;
+  end
+  hold(hca,'off')   
+end
 hlinks = linkprop(h,{'XLim','YLim'});
 
 %% Along aline, typically a field line
-pic = nobg.twpelim(10000).xlim([129 210]).zlim([-15 20]);
+%pic = nobg.twpelim(10000).xlim([129 210]).zlim([-15 20]);
+pic = no02m.twpelim(20000).xlim([040 110]).zlim([-12 12]);
 % Load data
 x = pic.xi;
 z = pic.zi;
@@ -648,16 +738,19 @@ nsteps = 50.01;
 %z0 = 10;
 %nsteps = 40.99; % if nsteps is not an even number, integration will stop 
                 % when the fieldline arclength is above nsteps
-                
+x0 = 50;
+z0 = 5;
+
 dx = 0.05;
 dy = 0.05;
 dz = 0.05;
+ds = 0.05;
 %nsteps = 40.99; % if nsteps is not an even number, integration will stop 
                 % when the fieldline arclength is above nsteps
                 
 if 1 % field line
   tic;
-  [linearc,linex,liney,linez,linebx,lineby,linebz] = fieldline(x0,z0,x,z,Bx,By,Bz,dx,dy,dz,nsteps);
+  [linearc,linex,liney,linez,linebx,lineby,linebz] = fieldline(x0,z0,x,z,Bx,By,Bz,ds,nsteps);
   toc;
   % Interpolate line to desired values
   linearc_new = linearc(1):0.2:linearc(end);
