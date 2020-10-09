@@ -76,7 +76,7 @@ h = pic.plot_map(varstrs,'A',1,'clim',clims,'cmap',cmaps,'smooth',5);
 %% Reduced distributions, make
 twpe = 24000; xlim = [50 155]; zlim = [-15 15];
 
-for zpick = [2 4]
+for zpick = [4]
   ds = ds100.twpelim(twpe).zfind(zpick).xlim(xlim).findtag({'line horizontal'});
   xdist = (ds.xi1{1}+ds.xi2{1})/2;
   zdist = (ds.zi1{1}+ds.zi2{1})/2;
@@ -554,6 +554,148 @@ h(1).Position(4) = 0.8;
 
 hlines = findobj(gcf,'type','line');
 c_eval('hlines(?).LineWidth = 1.5;',1:numel(hlines))
+
+%% Reduced distribution, horizontal, with some overview plots
+% What to include
+% - overview of where boxes are
+fi_clim = [0 0.13];
+fe_clim = [0 0.02];
+fe_clim = [-4 log10(0.02)];
+
+nrows = 5;
+ncols = 1;
+npanels  = nrows*ncols;
+h = setup_subplots(nrows,ncols,'horizontal');
+isub = 1;
+doE = 1; colorE = [0 0.8 0.8];
+doV = 1; colorV = 0*[1 1 1];
+doN = 1; colorN = [0 0 0];
+doExB = 1; colorExB = 0*[1 1 1]+0.5;
+doPhi = 1; colorPhi = [0.5 0.5 0];
+
+cmap_dist = pic_colors('waterfall');
+
+%freds = {fred35_z4,fred35_z4,fred35_z4,fred35_z2,fred35_z2,fred35_z2,fred35_z0,fred35_z0,fred35_z0};
+freds = {fred35_z0,fred35_z0,fred35_z0};
+freds = {fred3_z4,fred3_z4,fred3_z4};
+freds = {fred5_z4,fred5_z4,fred5_z4};
+%freds = {fred5_z2,fred5_z2,fred5_z2};
+%freds = {fred3_z4,fred3_z4,fred3_z4,fred3_z2,fred3_z2,fred3_z2,fred3_z0,fred3_z0,fred3_z0};
+labstrs = {'x','y','z','x','y','z','x','y','z'};
+
+xlim = [64 140];
+zlim = [-10 10]*0.99;
+pic = no02m.twpelim(24000).xlim(xlim).zlim(zlim);
+A = pic.A;
+[Ainds,Avals] = saddle(A,'sort');
+if 1 % log10(ni)
+  hca = h(isub); isub = isub + 1;
+  ni = smooth2(pic.ni,3);
+  imagesc(hca,pic.xi,pic.zi,log10(ni)')
+  colormap(hca,pic_colors('blue_red'))
+  hca.XLabel.String = 'x (d_i)';
+  hca.YLabel.String = 'z (d_i)';
+  hca.CLim = [-2 0.2];
+  hca.YDir = 'normal';
+  hcb = colorbar(hca,'peer',hca);
+  hcb.YLabel.String = 'log_{10} n_i';
+  if 1
+    hold(hca,'on')
+    contour(hca,pic.xi,pic.zi,A',0:0.5:25,'k')    
+    %hsep = contour(hca,pic.xi,pic.zi,A',Avals(1)*[1 1],'color',[0 0 0],'linewidth',1,'linestyle','-');
+    hold(hca,'off')
+  end
+end
+if 1 % |K_B|
+  hca = h(isub); isub = isub + 1;
+  KB = smooth2(pic.curvbabs,3);
+  imagesc(hca,pic.xi,pic.zi,log10(KB)')
+  colormap(hca,pic_colors('blue_red'))
+  hca.XLabel.String = 'x (d_i)';
+  hca.YLabel.String = 'z (d_i)';
+  hca.CLim = [-2 1];
+  hca.YDir = 'normal';
+  hcb = colorbar(hca,'peer',hca);
+  hcb.YLabel.String = 'log_{10}|K_B|';
+  if 1
+    hold(hca,'on')
+    contour(hca,pic.xi,pic.zi,A',0:0.5:25,'k')
+    hold(hca,'off')
+  end
+end
+
+for ifred = 1:numel(freds)
+  if 1 % fi(v_) z_
+    hca = h(isub); isub = isub + 1;
+    fred = freds{ifred};
+    labstr = labstrs{ifred};
+    fredplot = eval(['fred.fv' labstr]);
+    pcolor(hca,fred.x,fred.v,log10(fredplot)')
+    shading(hca,'flat')
+    hca.XLabel.String = 'x (d_i)';
+    hca.YLabel.String = sprintf('v_{%s}',labstr);
+    colormap(hca,pic_colors('candy4')) 
+    %irf_legend(hca,{sprintf('f_{cold}(x,v_%s)',labstr)},[0.02 0.98],'color',[0 0 0],'fontsize',14)
+    irf_legend(hca,{sprintf('z = %g',unique(fred.z))},[0.02 0.98],'color',[0 0 0],'fontsize',14)
+    hcb = colorbar('peer',hca);  
+    hcb.YLabel.String = sprintf('f_{i,cold}(x,v_{%s})',labstr);
+    %hca.CLim(2) = prctile(fred.fvx(:),99);
+    hca.XGrid = 'on';
+    hca.YGrid = 'on';
+    hca.Layer = 'top';
+    if 0*doE
+      hold(hca,'on')
+      plot(hca,arclength,Ey*max(abs(hca.YLim))/max(abs(Ey)),'color',colorE)
+      hold(hca,'off')
+    end
+    if 0*doV
+      hold(hca,'on')
+      plot(hca,arclength,viy,'color',colorV,'linewidth',1.5)
+      hold(hca,'off')
+    end
+    if 0 % doExB
+      hold(hca,'on')
+      xx = eval(['x_z' num2str(unique(fred.z))]);
+      vv = eval(['vExB' labstr '_z' num2str(unique(fred.z))]);
+      plot(hca,xx,vv,'color',colorExB,'linewidth',1.5)
+      %plot(hca,pic_sm.zi,mean(pic_sm.vExBy,1),'color',colorExB,'linewidth',1.5)
+      hold(hca,'off')
+    end
+  end
+end
+drawnow
+compact_panels(h(1:end),0.01,0.05)
+%h(1).Title.String = ['nobg, t\omega_{pe} = ' num2str(twpe,'%05.0f')];
+fig = gcf; h_ = findobj(fig.Children,'type','axes');
+hlinks_fred = linkprop(h(3:end),{'YLim','CLim'});
+hlinks = linkprop(h,{'XLim'});
+%hlinks.Targets(1).XLim = arclength([1 end]);
+%irf_plot_axis_align
+h(3).CLim = 0.99*[-4 2];
+h(3).YLim = 0.99*3.5*[-1 1];
+
+hb = findobj(gcf,'type','colorbar');
+
+for ip = 1:npanels
+  h(ip).FontSize = 13;
+  h(ip).Position(3) = 0.7;
+  hb(ip).FontSize = 13;
+end
+
+if 1 % add boxes
+  %%
+  ds = ds100.twpelim(twpe).zfind(4).xlim(xlim).findtag({'line horizontal'});
+  ds.plot_boxes(h(1))
+  ds.plot_boxes(h(2))
+%   ds = ds100.twpelim(twpe).xfind(75).findtag({'line vertical'});
+%   ds.plot_boxes(h(1))
+%   ds.plot_boxes(h(2))
+%   ds = ds100.twpelim(twpe).xfind(85).findtag({'line vertical'});
+%   ds.plot_boxes(h(1))
+%   ds.plot_boxes(h(2))
+  
+end
+h(1).XLim = [65 138];
 
 %% Reduced distributions, make vertical
 twpe = 24000; xlim = [50 155]; zlim = [-15 15];
@@ -1223,11 +1365,11 @@ varstrs = {'ni','ti'}';
 clims = {[0 1],[0 0.6],[-2 0.5],[-1 1],[-1 1],[-1 1]};
 varstrs = {'n([3 5])./n([1 3 5])'}';
 clims = {[0 1]};
-varstrs = {'n([3 5])','t([3 5])'}';
-clims = {[0 0.5],[0 0.5]};
-cmaps = {cmapbr,cmapbr,cmapbr,cmapbr,cmapbr,cmapbr};
+% varstrs = {'n([3 5])','t([3 5])'}';
+% clims = {[0 0.5],[0 0.5]};
+cmaps = {flipdim(cmapbr,1),cmapbr,cmapbr,cmapbr,cmapbr,cmapbr};
 
-filename = [printpath 'no02m_ncold_tcold_pcold'];
+filename = [printpath 'no02m_ncold_blue'];
 pic.movie(varstrs,'A',1,'cmap',cmaps,'clim',clims,'filename',filename);
 
 %% Reconnection rate vs alfven speed
@@ -1828,4 +1970,47 @@ for ip = 1:numel(h)
   h(ip).XLim = 0.37*[-1 1];
   h(ip).XLabel.String = 'E_z (v_{A}B_0)';
 end
+
+%% Find some nice trajectories
+tr = tr100;
+trs = tr.find([tr.z0]==4);
+trs = tr100(2:10);
+trs = tr100.find([tr100.ncross]<2,[tr100.Ustart]<1,tr100.xstart>95);
+trs = tr100.find([tr100.ncross]<2,[tr100.ncross]>0,[tr100.Ustart]<1,[tr100.z0]<1);
+%trs.plot_all_xz
+
+nrows = 2;
+ncols = 1;
+npanels = nrows*ncols;
+h = setup_subplots(nrows,ncols);
+holdon = 0;
+
+for itr = 1:trs.ntr
+  isub = 1;
+  tr = trs(itr);
+  if 1
+    hca = h(isub); isub = isub + 1;
+    plot(hca,tr.t,tr.Ex)
+  end
+  if 1
+    hca = h(isub); isub = isub + 1;
+    Erms = sqrt(sum(tr.Ex.^2));
+    Erms = rms(tr.Ex.^2);
+    plot(hca,abs(tr.zstart),Erms,'o')
+  end
+  if not(holdon)
+    for ip = 1:npanels
+      hold(h(ip),'on')
+    end
+    holdon = 1; 
+  end
+end
+if holdon
+  for ip = 1:npanels
+    hold(h(ip),'off')
+  end
+  holdon = 0; 
+end
+  
+
 

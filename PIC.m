@@ -2414,10 +2414,13 @@ classdef PIC
       new_x = nan(obj.nx,obj.nt);
       new_z = nan(obj.nx,obj.nt);
       for it = 1:nTimes
-        
+        %it
         twci = obj.twci(it);
         %twci
         A_tmp = squeeze(obj.twcilim(twci).A); % get A for this time step
+        if mean(A_tmp(:)) < 0 % fix because I had wrong sign of A before
+          A_tmp = -A_tmp;
+        end
         [saddle_locations,saddle_values] = saddle(A_tmp,'sort'); % get saddle locations
         AX = saddle_values(1); % A-value of outermost X line
         
@@ -2511,7 +2514,11 @@ classdef PIC
         %zSep = zSep(keep_ind);
         
         if 1 % Diagnostic plotting
-          plot(S(indS).X,S(indS).Y,xSep,zSep)
+          hca = subplot(2,1,1);
+          plot(hca,S(indS).X,S(indS).Y,xSep,zSep)
+          hca = subplot(2,1,2);
+          plot(hca,S(indS).X,atand(zSep./zSep))
+          
           pause(0.1)
         end
         
