@@ -786,6 +786,22 @@
         h(1).Title.String = sprintf('t_0w_{ci} = %.2f, [x_0,y_0,z_0] = [%.2f,%.2f,%.2f], [v_{x0},v_{y0},v_{z0}] = [%.2f,%.2f,%.2f]',obj.t0,obj.x0,obj.y0,obj.z0,obj.vx0,obj.vy0,obj.vz0);
       end
     end
+    function h = plot_all(obj,xstr,ystr,varargin)
+      % PICTRAJ.PLOT_ALL_XY Plots all trajectories in xy plane.
+      
+      for itr = 1:obj.ntr
+        plot(obj(itr).(xstr),obj(itr).(ystr));
+        if itr == 1
+          hold(gca,'on')
+        end
+      end
+      hold(gca,'off')
+      h=gca;      
+      h.XGrid = 'on';
+      h.YGrid = 'on';
+      h.XLabel.String = sprintf('%s (d_i)',xstr);
+      h.YLabel.String = sprintf('%s (d_i)',ystr);
+    end
     function h = plot_all_xz(obj,varargin)
       % PICTRAJ.PLOT_ALL_XZ Plots all trajectories in xz plane.
       
@@ -850,19 +866,15 @@
     end
     function h = plot_all_xy(obj,varargin)
       % PICTRAJ.PLOT_ALL_XY Plots all trajectories in xy plane.
-      
-      for itr = 1:obj.ntr
-        plot(obj(itr).x,obj(itr).y);
-        if itr == 1
-          hold(gca,'on')
-        end
-      end
-      hold(gca,'off')
-      h=gca;      
-      h.XGrid = 'on';
-      h.YGrid = 'on';
-      h.XLabel.String = 'x (d_i)';
-      h.YLabel.String = 'y (d_i)';
+      h = obj.plot_all('x','y',varargin{:});
+    end
+    function h = plot_all_yz(obj,varargin)
+      % PICTRAJ.PLOT_ALL_YZ Plots all trajectories in xy plane.      
+      h = obj.plot_all('y','z',varargin{:});
+    end
+    function h = plot_all_zy(obj,varargin)
+      % PICTRAJ.PLOT_ALL_YZ Plots all trajectories in xy plane.      
+      h = obj.plot_all('z','y',varargin{:});
     end
     function h = plot_all_xyz(obj,varargin)
       % PICTRAJ.PLOT_ALL_XZZ Plots all trajectories in xyz plane.
