@@ -18,6 +18,7 @@
     Bx
     By
     Bz
+    A
     t0
     x0
     y0
@@ -69,6 +70,7 @@
           obj(itraj_).Bx = read_trajectories(itraj,1,'Bx');
           obj(itraj_).By = read_trajectories(itraj,1,'By');
           obj(itraj_).Bz = read_trajectories(itraj,1,'Bz');
+          obj(itraj_).A = read_trajectories(itraj,1,'Ay');
 
           
           obj(itraj_).t0 = read_attributes(itraj,1,'t0');
@@ -343,6 +345,10 @@
     function out = vzBy(obj)
       % See also PICTraj.vB
       out = obj.vB('zy');
+    end
+    function out = py(obj)
+      %Ay = obj.A;
+      
     end
     % Analysis
     function out = zcross(obj)

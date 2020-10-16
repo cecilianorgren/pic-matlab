@@ -8,5 +8,6 @@ function h5write_trajs_add(filePath,tr_id,field,data)
 
 iTr_str = sprintf('%06.0f',tr_id);
 group_name = ['/traj/' iTr_str '/'];   
+h5create(filePath, [group_name field], size(data));
 h5write(filePath, [group_name field], data)
     
