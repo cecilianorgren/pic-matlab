@@ -476,9 +476,9 @@ h = pic.plot_line(comp,varstrs);
 %% plotline, vertical, Ez balance
 comp = 'z';
 twpe = [1000];
-xlim = 104.1+0.2*[-1 1];
-zlim = [-4 4];
-pic = df04n.twpelim(twpe,'exact').xlim(xlim).zlim(zlim);
+xlim = 50+0.2*[-1 1];
+zlim = [-10 10];
+pic = nobg.twpelim(twpe,'exact').xlim(xlim).zlim(zlim);
 
 % twpe = 10000;
 % xlim = 160+1*[-1 1];
@@ -488,6 +488,7 @@ pic = df04n.twpelim(twpe,'exact').xlim(xlim).zlim(zlim);
 varstrs = {{'Bx','Bz','Ey'};{'Ez','-vxBz([1 3 5])','divpz([1 3 5])','dvzdt([1 3 5])'};{'Ez','-vxBz([2 4 6])','-divpz([2 4 6])'};{'Ey','-vxBy([2 4 6])','divpy([2 4 6])','divpy([1 3 5])'};{'pxx([1 3 5])','pyy([1 3 5])','pzz([1 3 5])','pxy([1 3 5])','pxz([1 3 5])','pyz([1 3 5])'}};
 varstrs = {{'n(1)','n([3 5])','n(2)','n([4 6])'};{'Ez','-vxBz([1 3 5])','-vxBz([3 5])','-vxBz([2])','-vxBz([4 6])'};{'Ez','-vxBz([1 3 5])','divpz([1 3 5])','dvzdt([1 3 5])','vdvz([1 3 5])','-vxBz([1 3 5])+divpz([1 3 5])+dvzdt([1 3 5])+vdvz([1 3 5])'};{'Ez','-vxBz([2 4 6])','-divpz([2 4 6])'}};
 varstrs = {{'PB','pi','pe','PB+pi+pe'};{'n(1)','n([3 5])','n(2)','n([4 6])'};{'Ez','-vxBz([1 3 5])','-vxBz([3 5])','-vxBz([2])','-vxBz([4 6])'};{'Ez','-vxBz([1])','divpz([1])','dvzdt([1])','vdvz([1])','-vxBz([1])+divpz([1])+dvzdt([1])+vdvz([1])'};{'Ez','-vxBz([3 5])','divpz([3 5])','dvzdt([3 5])','vdvz([3 5])','-vxBz([3 5])+divpz([3 5])+dvzdt([3 5])+vdvz([3 5])'};{'Ez','-vxBz([2 4 6])','-divpz([2 4 6])'}};
+varstrs = {{'n(1)','n([3 5])','n([1 3 5])'};{'t(1)','t([3 5])'}};
 
 h = pic.plot_line(comp,varstrs,'smooth',10);
 
