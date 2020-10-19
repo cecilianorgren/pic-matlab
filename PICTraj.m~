@@ -840,16 +840,7 @@
             % plot should be a scatter plot with the value as color at each
             % time
             tmpColor = obj(itr).(color);
-            if numel(tmpColor) == 1 % only a single value, and the colorscale should reflect all these values
-              if itr == 1 % set crange
-                all_colors = [obj.(color)];
-                crange = [min(all_colors) max(all_colors)];
-                if crange(1) == crange(2)
-                  crange = crange+crange(1)*0.1*[-1 1];
-                end
-                cmap = colormap;
-              end  
-              tmpColor = cmap2color(cmap,crange,tmpColor);              
+            if numel(tmpColor) == 1
             end
             scatter(obj(itr).(xstr),obj(itr).(ystr),5,tmpColor);
           elseif isnumeric(color)
@@ -869,7 +860,6 @@
             end        
             plot(obj(itr).(xstr),obj(itr).(ystr),'color',tmpColor);
           end
-          hcb = colorbar('peer',gca);
         else % Just let Matlab cycle through the colors.
           plot(obj(itr).(xstr),obj(itr).(ystr));
         end
