@@ -15,12 +15,12 @@ syms x y z % l lin z1 z2 a
 % >> Jy
 %  
 % Jy =
-%  
+%  1
 % ((tanh(2*z - 6)^2/2 - tanh(2*z - 12)^2/2)*(tanh(2*z - 6)/4 - tanh(2*z - 12)/4))/(1 - (tanh(2*z - 6)/4 - tanh(2*z - 12)/4)^2)^(1/2)
 
 % Specify some variables
 zvec = linspace(-25,25,500);
-a = 0.15;
+a = 0.15/2;
 z1 = 5;
 z2 = 8;
 z3 = 12;
@@ -33,7 +33,7 @@ R = [x; y; z];
 % You can also try it with a constant B0, and later add the tangent field.
 %Btot = B0*tanh(z/l);
 BH = B0*tanh(z/l);
-%Btot = B0;
+Btot = B0;
 f1 = -a*(1 + tanh((z-z1)/lin));
 f2 = +a*(1 + tanh((z-z2)/lin));
 f3 = -a*(1 + tanh((z-z3)/lin));
@@ -42,7 +42,7 @@ f = f1+f2+f3+f4;
 Bx = BH+B0*f;
 % If I add the sign(Btot) here, the Jy looks better but gets even more 
 % complicted (with some dirac function)
-By = sqrt(Btot^2 - Bx^2);%*sign(Btot);
+By = sqrt(B0^2 - Bx^2);%*sign(Btot);x
 Bz = 0;
 B = [Bx;By;Bz];
 J = curl(B,R);
@@ -67,7 +67,7 @@ mfJy = matlabFunction(fJy);
 mfJx = matlabFunction(fJx);
 
 % Plot
-nrows = 3;
+nrows = 4;
 for irow = 1:nrows
   h(irow) = subplot(nrows,1,irow);
 end
@@ -86,6 +86,11 @@ if 1
                     zvec,sqrt(mfBx(zvec).^2+mfBy(zvec).^2));
   hlines(4).LineStyle = '--';
   legend(hca,{'|B|','B_x','B_y','(B_x^2+B_y^2)^{1/2}'},'location','best')
+end
+if 1
+  hca = h(isub); isub = isub + 1;
+  hlines = plotyy(hca,zvec,mfBx(zvec)./mfBy(zvec),zvec,mfBy(zvec)./mfBx(zvec));  
+  legend(hca,{'B_x/B_y','B_y/B_x'},'location','best')
 end
 if 1
   hca = h(isub); isub = isub + 1;

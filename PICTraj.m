@@ -124,11 +124,11 @@
     
     % Dervied quantities
     function out = Ugen(obj,comp,ind)
-      % PICTRAJ.U Kinetic energy of particle.
+      % PICTRAJ.U Kinetic energy of particle, generalized function.
       % out = Ugen(obj,comp,ind)
       %
         
-      if or(not(exist('ind','var')),isempty(ind))       
+      if or(not(exist('ind','var')),isempty(ind))
         istart = repmat(1,obj.ntr,1);
         istop = [obj.length];
       elseif numel(ind) == 1
@@ -212,6 +212,12 @@
     function out = dU(obj)
       out = obj.Ustop-obj.Ustart;
     end
+    function out = dUx(obj)
+      out = obj.Uxstop-obj.Uxstart;
+    end
+    function out = dUy(obj)
+      out = obj.Uystop-obj.Uystart;
+    end
     function out = dUz(obj)
       out = obj.Uzstop-obj.Uzstart;
     end
@@ -279,7 +285,7 @@
       if obj.ntr == 1
         out = out.W;
       end
-    end 
+    end   
     function out = Wsum(obj)
       for itr = 1:obj.ntr
         obj_tmp = obj(itr).rem_duplicates;        
@@ -306,6 +312,55 @@
         obj_tmp = obj(itr).rem_duplicates;        
         W = obj_tmp.Wz;
         out(itr) = sum(W);
+      end
+    end
+    function out = Wcumsum(obj)
+      for itr = 1:obj.ntr
+        obj_tmp = obj(itr).rem_duplicates;        
+        W = obj_tmp.W;
+        out(itr).W = cumsum(W);
+      end
+         
+      if obj.ntr == 1
+        out = out.W;
+      elseif istart == istop
+        out = [out.W];
+      end
+    end
+    function out = Wxcumsum(obj)
+      for itr = 1:obj.ntr
+        obj_tmp = obj(itr).rem_duplicates;        
+        W = obj_tmp.Wx;
+        out(itr).W = cumsum(W);
+      end
+      if obj.ntr == 1
+        out = out.W;
+      elseif istart == istop
+        out = [out.W];
+      end
+    end
+    function out = Wycumsum(obj)
+      for itr = 1:obj.ntr
+        obj_tmp = obj(itr).rem_duplicates;        
+        W = obj_tmp.Wy;
+        out(itr).W = cumsum(W);
+      end
+      if obj.ntr == 1
+        out = out.W;
+      elseif istart == istop
+        out = [out.W];
+      end
+    end
+    function out = Wzcumsum(obj)
+      for itr = 1:obj.ntr
+        obj_tmp = obj(itr).rem_duplicates;        
+        W = obj_tmp.Wz;
+        out(itr).W = cumsum(W);
+      end
+      if obj.ntr == 1
+        out = out.W;
+      elseif istart == istop
+        out = [out.W];
       end
     end
     function out = vB(obj,comp)
@@ -356,6 +411,28 @@
         out = out.p;
       end      
     end
+    function out = Hstart(obj)
+      % PICTRAJ.H Hamiltonian of particle at beginning of trajectory. 
+      % The potential is 0     
+      out = obj.Ustart;
+    end
+    function out = Hstop(obj)
+      % PICTRAJ.H Hamiltonian of particle at end of trajectory. 
+      % The potential is assumed to be 0 at the start. The change in
+      % potential is the same aas the work done by the electric field.
+      Ukin = obj.Ustop;
+      Upot = -obj.Wsum; % negative work done, corresponding to the lift up the potential
+      out = Ukin + Upot;
+    end
+    function out = H(obj)
+      % PICTRAJ.H Hamiltonian of particle at end of trajectory. 
+      % The potential is assumed to be 0 at the start. The change in
+      % potential is the same aas the work done by the electric field.
+      Ukin = obj.U; % kinetic energy
+      Upot = -obj.Wcumsum; % negative work done, corresponding to the lift up the potential
+      out = Ukin + Upot;
+    end
+    
     % Analysis
     function out = zcross(obj)
       % PICTraj.ZCROSS Locations where the particle crossez z = 0.
@@ -834,7 +911,7 @@
       end
       
       % Loop through trajectories, and plot
-      for itr = 1:obj.ntr        
+      for itr = 1:obj.ntr
         if doColor % Check if there is color input, and what type it is.
           if ischar(color) % input is a field of PICTraj object, and the 
             % plot should be a scatter plot with the value as color at each
@@ -871,12 +948,18 @@
           end
           hcb = colorbar('peer',gca);
         else % Just let Matlab cycle through the colors.
-          plot(obj(itr).(xstr),obj(itr).(ystr));
+          plx = obj(itr).(xstr);
+          ply = obj(itr).(ystr);
+          if numel(plx) == 1 && numel(ply) == 1
+            plot(plx,ply,'.');
+          elseif numel(plx) == numel(ply)
+            plot(plx,ply);
+          else
+            error(sprintf('Quantities %s, and %s, do not have the same dimensions.',xstr,ystr))
+          end
         end
         
-        if itr == 1
-          hold(gca,'on')
-        end
+        if itr == 1, hold(gca,'on'); end
       end
       hold(gca,'off')
       h=gca;      
