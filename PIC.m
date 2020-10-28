@@ -2403,8 +2403,7 @@ classdef PIC
       % shading flat
       % hold on
       % plot(sep.xline_x,sep.twci,'k')
-      
-      
+            
       doNorth = 1;
       nTimes = obj.nt;      
       x = obj.xi;
@@ -3903,7 +3902,28 @@ classdef PIC
       n = obj.n(species);
       p = obj.pzz(species);
       out = p./n;      
-    end    
+    end
+    function out = tepar(obj)
+      species = find(obj.get_charge == -1); % negatively charge particles are electrons 
+      tfac = obj.t_fac(species);
+      out = tfac.par;       
+    end
+    function out = teperp(obj)
+      species = find(obj.get_charge == -1); % negatively charge particles are electrons 
+      tfac = obj.t_fac(species);
+      out = tfac.perp;       
+    end
+    function out = tipar(obj)
+      species = find(obj.get_charge == 1); % negatively charge particles are electrons 
+      tfac = obj.t_fac(species);
+      out = tfac.par;       
+    end
+    function out = tiperp(obj)
+      species = find(obj.get_charge == 1); % negatively charge particles are electrons 
+      tfac = obj.t_fac(species);
+      out = tfac.perp;       
+    end
+    
     % Sets of moments, not implemented for Smilei
     function [vxx,vxy,vxz,vyy,vyz,vzz] = vv(obj,iSpecies_orig)
       % [vxx,vxy,vxz,vyy,vyz,vzz] = vv(obj,iSpecies_orig)
@@ -4809,7 +4829,7 @@ classdef PIC
     function out = xline_position(obj)
       % X line position
       xz_xline = obj.get_timeline_attributes('xline_position');
-      out = out(obj.indices_);
+      out = xz_xline(obj.indices,:);
     end
     function out = x_xline(obj)
       % X line position

@@ -713,15 +713,20 @@ for xpick = 75:10:95
   By = interpfield(pic.xi,pic.zi,By_,xdist,zdist); 
   Bz = interpfield(pic.xi,pic.zi,Bz_,xdist,zdist); 
   %fred1_tmp = ds.reduce_1d_new('x',[1],[],'vpar',{Bx,By,Bz},'pitch',{Bx,By,Bz}); eval(sprintf('fred1_x%g = fred1_tmp;',xpick))  
-  fred5_tmp = ds.reduce_1d_new('x',[5],[],'vpar',{Bx,By,Bz},'pitch',{Bx,By,Bz}); eval(sprintf('fred5_x%g = fred5_tmp;',xpick))
-  fred3_tmp = ds.reduce_1d_new('x',[3],[],'vpar',{Bx,By,Bz},'pitch',{Bx,By,Bz}); eval(sprintf('fred3_x%g = fred3_tmp;',xpick))
-  %fred35_tmp = ds.reduce_1d_new('x',[3 5],[],'vpar',{Bx,By,Bz},'pitch',{Bx,By,Bz}); eval(sprintf('fred35_x%g = fred35_tmp;',xpick))
+%   fred3_tmp = ds.reduce_1d_new('x',[3],[]); eval(sprintf('fred3_x%g = fred3_tmp;',xpick))
+%   fred5_tmp = ds.reduce_1d_new('x',[5],[]); eval(sprintf('fred5_x%g = fred5_tmp;',xpick))
+%   fred35_tmp = ds.reduce_1d_new('x',[3 5],[]); eval(sprintf('fred35_x%g = fred35_tmp;',xpick))
+%   fred3_tmp = ds.reduce_1d_new('x',[3],[],'vpar',{Bx,By,Bz},'pitch',{Bx,By,Bz}); eval(sprintf('fred3_x%g = fred3_tmp;',xpick))
+%   fred5_tmp = ds.reduce_1d_new('x',[5],[],'vpar',{Bx,By,Bz},'pitch',{Bx,By,Bz}); eval(sprintf('fred5_x%g = fred5_tmp;',xpick))
+%   fred35_tmp = ds.reduce_1d_new('x',[3 5],[],'vpar',{Bx,By,Bz},'pitch',{Bx,By,Bz}); eval(sprintf('fred35_x%g = fred35_tmp;',xpick))
+  
+  fred46_tmp = ds.reduce_1d_new('x',[4 6],[]); eval(sprintf('fred46_x%g = fred46_tmp;',xpick))    
   %fred46_tmp = ds.reduce_1d_new('x',[4 6],[],'vpar',{Bx,By,Bz},'pitch',{Bx,By,Bz}); eval(sprintf('fred46_x%g = fred46_tmp;',xpick))    
 end
 
 %% Reduced distributions, vertical plot 1
 %xpick = ;
-for xpick = 75:5:95
+for xpick = 75:10:95
   eval(sprintf('zlim_fred = [min(fred35_x%g.z) max(fred35_x%g.z)];',xpick,xpick))
   eval(sprintf('xlim_fred = min(fred35_x%g.x) + 0.25*[-1 1];',xpick,xpick))
   eval(sprintf('z_x%g = pic.xlim(xlim_fred).zlim(zlim_fred).zi;',xpick))
@@ -734,9 +739,12 @@ for xpick = 75:5:95
 %   eval(sprintf('vex_x%g = squeeze(mean(pic.xlim(xlim_fred).zlim(zlim_fred).vx([4 6]),1));',xpick))
 %   eval(sprintf('vey_x%g = squeeze(mean(pic.xlim(xlim_fred).zlim(zlim_fred).vy([4 6]),1));',xpick))
 %   eval(sprintf('vez_x%g = squeeze(mean(pic.xlim(xlim_fred).zlim(zlim_fred).vz([4 6]),1));',xpick))
+  eval(sprintf('Ex_x%g = squeeze(mean(pic.xlim(xlim_fred).zlim(zlim_fred).Ex,1));',xpick))
+  eval(sprintf('Ey_x%g = squeeze(mean(pic.xlim(xlim_fred).zlim(zlim_fred).Ey,1));',xpick))
   eval(sprintf('Ez_x%g = squeeze(mean(pic.xlim(xlim_fred).zlim(zlim_fred).Ez,1));',xpick))
   eval(sprintf('phiz_x%g = -cumtrapz(z_x%g,Ez_x%g);',xpick,xpick,xpick))
 end
+sep = no02m.twpelim(twpe).separatrix_location;
 disp('Done.')
 %%
 % What to include
@@ -745,32 +753,40 @@ fi_clim = [0 0.13];
 fe_clim = [0 0.02];
 fe_clim = [-4 log10(0.02)];
 
-nrows = 1;
+nrows = 3;
 ncols = 3;
 npanels = nrows*ncols;
 h = setup_subplots(nrows,ncols,'horizontal');
 isub = 1; 
-doE = 1; colorE = [0 0.8 0.8];
+doE = 0; colorE = [0 0.8 0.8];
 doV = 0; colorV = 0*[1 1 1];
 doVe = 0; colorV = 0*[1 1 1];
 doN = 1; colorN = [0 0 0];
-doExB = 0; colorExB = 0*[1 1 1]+0.5;
-doPhi = 0; colorPhi = [0.5 0.5 0];
+doExB = 1; colorExB = 0*[1 1 1]+0.5;
+doPhi = 1; colorPhi = [0.5 0.5 0];
+doSep = 1;
+% if doSep
+%   xline_pos = no02m.twpelim(twpe).xline_position;
+%   sep = no02m.twpelim(twpe).separatrix_location;
+% end
 hleg = gobjects(0);
 
 cmap_dist = pic_colors('waterfall');
 
 %freds = {fred35_z4,fred35_z4,fred35_z4,fred35_z2,fred35_z2,fred35_z2,fred35_z0,fred35_z0,fred35_z0};
-freds = {fred35_x75,fred35_x80,fred35_x85,fred35_x90,fred35_x95};
-freds = {fred35_x75,fred35_x85,fred35_x95};
+%freds = {fred35_x75,fred35_x80,fred35_x85,fred35_x90,fred35_x95};
+freds = {fred35_x75,fred35_x85,fred35_x95,fred35_x75,fred35_x85,fred35_x95,fred35_x75,fred35_x85,fred35_x95};
 %freds = {fred3_x75,fred3_x85,fred3_x95};
 %freds = {fred3_x85};
 %freds = {fred5_x75,fred5_x85,fred5_x95};
+%freds = {fred46_x75,fred46_x85,fred46_x95};
+%freds = {fred46_x75,fred46_x85,fred46_x95,fred46_x75,fred46_x85,fred46_x95,fred46_x75,fred46_x85,fred46_x95};
 %freds = {fred46_x75,fred46_x80,fred46_x85,fred46_x90,fred46_x95};
 %freds = {fred3_z4,fred3_z4,fred3_z4,fred3_z2,fred3_z2,fred3_z2,fred3_z0,fred3_z0,fred3_z0};
 labstrs = {'x','x','x','x','x','x','x','x','x'};
-%labstrs = {'y','y','y','y','y','y','y','y','y'};
-%labstrs = {'z','z','z','z','z','z','z','z','z'};
+labstrs = {'y','y','y','y','y','y','y','y','y'};
+labstrs = {'z','z','z','z','z','z','z','z','z'};
+labstrs = {'z','z','z','y','y','y','x','x','x'};
 
 for ifred = 1:numel(freds)
   if 1 % fi(v_) z_
@@ -792,10 +808,22 @@ for ifred = 1:numel(freds)
     hca.YGrid = 'on';
     hca.Layer = 'top';
     hca.FontSize = 12;
-    if 0*doE
+    if 1*doE
       hold(hca,'on')
-      plot(hca,arclength,Ey*max(abs(hca.YLim))/max(abs(Ey)),'color',colorE)
+      %plot(hca,arclength,Ey*max(abs(hca.YLim))/max(abs(Ey)),'color',colorE)
+      zz = eval(['z_x' num2str(unique(fred.x))]);
+      vv = eval(['E' labstr '_x' num2str(unique(fred.x))]);
+      hE = plot(hca,smooth(vv,50),zz,'color',0*colorE,'linewidth',1,'linestyle',':');      
       hold(hca,'off')
+    end
+    if doSep
+      hold(hca,'on')      
+      xx = unique(fred.x);
+      [~,ix] = min(abs(sep.x-xx));
+      zz = sep.z(ix);
+      hSep = plot(hca,hca.XLim,zz*[1 1],'color',0*colorExB,'linewidth',1,'linestyle',':');      
+      hold(hca,'off')
+      
     end
     if doV
       hold(hca,'on')
@@ -815,24 +843,27 @@ for ifred = 1:numel(freds)
     end
     if doExB
       hold(hca,'on')
-      unique(fred.x)
+      unique(fred.x);
       zz = eval(['z_x' num2str(unique(fred.x))]);
       vv = eval(['vExB' labstr '_x' num2str(unique(fred.x))]);
-      hExB = plot(hca,smooth(vv,10),zz,'color',0*colorExB,'linewidth',1,'linestyle','--');
+      hExB = plot(hca,smooth(vv,50),zz,'color',0*colorExB,'linewidth',1,'linestyle','--');
       %plot(hca,pic_sm.zi,mean(pic_sm.vExBy,1),'color',colorExB,'linewidth',1.5)
       hold(hca,'off')
     end  
     if doPhi
       hold(hca,'on')
-      unique(fred.x)
+      unique(fred.x);
+      %if 1
+      try
       zz = eval(['z_x' num2str(unique(fred.x))]);
       pp = eval(['phi' labstr '_x' num2str(unique(fred.x))]);
       vv0 = eval(['vExB' labstr '_x' num2str(unique(fred.x))]);
       vv0 = vv0(end);
-      vv_phi = -sqrt(2*(abs(pp-pp(end-150))));
+      vv_phi = sqrt(2*(abs(pp-pp(end-150)))).*sign(pp-pp(end-150));
       %(smooth(vv,10)+vv0-vv(end));
-      hphi = plot(hca,vv_phi,zz,'color',0*[1 1 1],'linewidth',0.5,'linestyle','-');
+      hphi = plot(hca,vv_phi,zz,'color',0*[1 1 1],'linewidth',1,'linestyle','-');
       %plot(hca,pic_sm.zi,mean(pic_sm.vExBy,1),'color',colorExB,'linewidth',1.5)
+      end
       hold(hca,'off')
     end   
   end
@@ -842,7 +873,9 @@ compact_panels(h(1:end),0.01,0.05)
 %h(1).Title.String = ['nobg, t\omega_{pe} = ' num2str(twpe,'%05.0f')];
 fig = gcf; h_ = findobj(fig.Children,'type','axes');
 hlinks = linkprop(h(1:end),{'XLim','YLim','CLim'});
+position_hcb_peer = h(end).Position;
 hcb = colorbar('peer',h(end));
+h(end).Position = position_hcb_peer;
 hcb.YLabel.String = sprintf('f_{i,cold}(z,v_{%s})',labstr);
 hcb.YLabel.FontSize = 14;
 if all([doV doExB])
@@ -854,18 +887,18 @@ elseif doExB
 end
 %hlinks.Targets(1).XLim = arclength([1 end]);
 %irf_plot_axis_align
-compact_panels(0.005,0.01)
+%compact_panels(0.005,0.01)
 h(1).CLim = 0.99*[-4 2];
 h(1).CLim = [-3.5 1.8];
 %h(1).CLim = 0.99*[-6 0]; % electrons
-h(1).XLim = 0.99*3*[-1 1];
+%h(1).XLim = 0.99*3*[-1 1];
 for ip = 2:npanels
   h(ip).YTickLabels = '';
   h(ip).YLabel.String = '';  
 end
 for ip = 1:npanels
   h(ip).FontSize = 14;
-  h(ip).Position(2) = 0.17;
+  %h(ip).Position(2) = 0.17;
 end
 
 %% Comparison of density structure

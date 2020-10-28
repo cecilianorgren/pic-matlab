@@ -1852,9 +1852,9 @@
       %     distribution
             
       doV2 = 0;
-      doE = 1;
+      doE = 0;
       doPar = 0;
-      doVabs = 1;
+      doVabs = 0;
       doPitch = 0;
       
       % Check for additional input
@@ -1926,10 +1926,11 @@
         x_arr = zeros(nd,1);
         z_arr = zeros(nd,1);
           
-        id_count = 0;
-          
+        id_count = 0;        
+        fprintf('id = %4.0f/%4.0f\n',0,numel(ids)) % display progress              
         for id = 1:numel(ids) % loop through distributions
-          disp(sprintf('it = %g/%g, id = %g/%g',itime,obj.nt,id,numel(ids)))
+          if mod(id,1) == 0, fprintf([repmat('\b', 1, 10) '%4.0f/%4.0f\n'],id,numel(ids)); end % display progress
+          %disp(sprintf('it = %g/%g, id = %g/%g',itime,obj.nt,id,numel(ids)))
 %         t_count = 0; 
           t_count = itime;
           %tic           

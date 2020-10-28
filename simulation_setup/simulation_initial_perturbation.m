@@ -1,7 +1,7 @@
 %
 nSimp = 50;
 wpewce = 2;
-mime = 100;
+mime = 25;
 % de, sixe of box
 xemin = 0; 
 xemax = 0.25*2048; 
@@ -20,7 +20,7 @@ xmax = ximax;
 zmin = zimin;
 zmax = zimax;
 
-Lhe = 20; % Harris sheet width in de
+Lhe = 5; % Harris sheet width in de
 Lhi = Lhe/sqrt(mime); % Harris sheet width in di
 l = Lhi; % harris sheet width
 zh = l;
@@ -29,25 +29,25 @@ BG = 0*0.25;
 ah = B0*l; % rot(A) = B -> A0/l = B0 ....... rot(B) = J -> B0/l = Jy0
 
 % no_hot_ng_n02, very violent, but quick
-xp = 3*l; % scale length of perturbation
-zp = 1.5*l; % scale length of perturbation
+xp = 1*3*l; % scale length of perturbation
+zp = 1*1.5*l; % scale length of perturbation
 ap = ah*1; % amplitude of perturbation
 
 
 % no_hot_bg_n02_m100, calm start, also slow
 xp = 2*l; % scale length of perturbation
 zp = 1*l; % scale length of perturbation
-ap = 0.5*ah; % amplitude of perturbation
+ap = 1.0*ah; % amplitude of perturbation
 
 % no_hot_bg_test, calm start, but kind of slow
-xp = 1*l; % scale length of perturbation
-zp = 1*l; % scale length of perturbation
-ap = 0.25*ah; % amplitude of perturbation
-
-%
-xp = 1.5*l; % scale length of perturbation
-zp = 1.5*l; % scale length of perturbation
-ap = 0.6*ah; % amplitude of perturbation
+% xp = 1*l; % scale length of perturbation
+% zp = 1*l; % scale length of perturbation
+% ap = 0.25*ah; % amplitude of perturbation
+% 
+% %
+% xp = 1.5*l; % scale length of perturbation
+% zp = 1.5*l; % scale length of perturbation
+% ap = 0.6*ah; % amplitude of perturbation
 
 TeTi = 1/5; % not used, implement to get densities
 Ttot = 0.5; % not used, implement to get densities
@@ -68,7 +68,7 @@ zvec = linspace(zmin,zmax,nz);
 % -->
 % fA = symfun(A,[x y z zh xp zp ah ap]);
 % Otherwise they are mulitplied together as numbers
-syms x y z% xp zp ah ap
+syms x y z %xp zp ah ap
 
 R = [x y z];
 

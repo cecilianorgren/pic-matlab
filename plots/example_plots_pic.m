@@ -507,19 +507,19 @@ h = pic.plot_line(comp,varstrs);
 
 %% plot_line
 comp = 'x';
-twpe = [8000];
-xlim = [130 207];
+twpe = [24000];
+xlim = [50 150];
 zlim = 0+0.5*[-1 1];
 
-pic = df04.twpelim(twpe,'exact').xlim(xlim).zlim(zlim);
+pic = no02m.twpelim(twpe,'exact').xlim(xlim).zlim(zlim);
 varstrs = {{'Bz','Jx'};{'vix','vex','vExBx'};{'Ey','-vexBy','-vixBy'};{'divpy([1 3 5])','divpy([2 4 6])'};{'divpx([1 3 5])','divpx([2 4 6])'};{'PB','pDxx([1 3 5])','pDxx([2 4 6])','pxx([1 3 5])','pxx([2 4 6])'}};
 %ylim = {[-1 1]*0.99;[-2 0]*0.99;[-0.1 0.5]*0.99;[-0.1 0.1]*0.99;[-0.1 0.1]*0.99;[0 0.4]*0.99};
 
 varstrs = {{'Bz','Jx'};{'vix','vex','vExBx'};{'Ey','-vixBy','divpy([1 3 5])'};{'Ey','-vexBy','-divpy([2 4 6])'};{'pxy([1 3 5])','pyz([1 3 5])','pxy([2 4 6])','pyz([2 4 6])'}};
 %ylim = {[-1 1]*0.99;[-2 0]*0.99;[-0.1 0.4]*0.99;[-0.05 0.4]*0.99;[-0.1 0.1]*0.99};
+varstrs = {{'n(1)','n([3 5])'};{'p(1)','p([3 5])'};{'n(1)./n([1 3 5])'};{'p(1)./p([1 3 5])'};{'t(1)','t([1 3 5])'};{'p(1)+p([3 5])','p([1 3 5])'};{'t(1)+t([3 5])','t([1 3 5])'}};
 
-
-h = pic.plot_line(comp,varstrs,'smooth',20);
+h = pic.plot_line(comp,varstrs,'smooth',10);
 
 %% plot_map
 twpe = 8000;
@@ -554,14 +554,17 @@ twpe = [7000 12000];
 xlim = [130 207];
 xlim = [140 280];
 zlim = 0+0.5*[-1 1];
+twpe = 24000;
 
-pic = nobg.twpelim(twpe).xlim(xlim).zlim(zlim);
+pic = no02m.twpelim(twpe).zlim(zlim);
+%pic = no02m.twpelim(twpe).xlim(xlim).zlim(zlim);
 varstrs = {{'ni','ne'};{'Ex'};{'Ez'};{'txx([4 6])','tyy([4 6])','tzz([4 6])'};{'txx([3 5])','tyy([3 5])','tzz([3 5])'}};
 varstrs = {{'ni','ne','n([1])','n([3 5])','n([4 6])','n([4 6])'};{'Ey'};{'Ez'};{'txx([2 4 6])','tyy([2 4 6])','tzz([2 4 6])'};{'txx([1 3 5])','tyy([1 3 5])','tzz([1 3 5])'}};
 varstrs = {{'Bz','By'};{'vix','vex','vExBx'};{'Jx','Jz'};{'Ex','Ez'}};
 varstrs = {{'Bz','By'};{'vix','vex','vExBx'};{'Jx','Jz'};{'viy','vey'}};
 varstrs = {{'Bx','By','Bz'};{'vix','viy','viz'};{'vex','vey','vez'}};
-ylim = {[-1 1]*0.99;[-2 2]*0.99;[-5 5]*0.99};
+varstrs = {{'n(1)','n([3 5])'};{'p(1)','p([3 5])'}};
+%ylim = {[-1 1]*0.99;[-2 2]*0.99;[-5 5]*0.99};
 
 h = pic.movie_line(comp,varstrs,'ylim',ylim,'filename',[printpath 'B_vi_ve_z=0']);
 
@@ -610,8 +613,13 @@ varstrs = {'jepar','vepar','log10(ne)','Eparx','Epary','Eparz'}';
 clims = {[-2 2],[-7 7],[-2 0.5],[-1 1],[-1 1],[-1 1]};
 cmaps = {cmapbr,cmapbr,cmapbr,cmapbr,cmapbr,cmapbr};
 
+varstrs = {'Ez'}';
+clims = {[-1 1]};
+cmaps = {cmapbr,cmapbr,cmapbr,cmapbr,cmapbr,cmapbr};
+
 filename = [printpath 'no02m_jepar_vepar_log10ne_Eparxyz'];
 pic.movie(varstrs,'A',1,'cmap',cmaps,'clim',clims,'filename',filename);
+%pic.twpelim([17000 25000]).movie({'Ez'},'A',1,'clim',{[-1 1]},'cmap',{pic_colors('blue_red')},'filename',[printpath 'no02m_Ez']);
 
 %% movie
 twpe = [7000 10000];
