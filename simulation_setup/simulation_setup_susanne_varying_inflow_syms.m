@@ -20,13 +20,13 @@ syms x y z % l lin z1 z2 a
 
 % Specify some variables
 zvec = linspace(-25,25,500);
-a = 0.15/2;
+a = 0.15;
 z1 = 5;
 z2 = 8;
 z3 = 12;
 z4 = 15;
 lin = 0.25;
-l = 1;
+l = 0.5;
 
 B0 = 1;
 R = [x; y; z];

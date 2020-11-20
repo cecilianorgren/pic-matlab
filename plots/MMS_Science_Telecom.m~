@@ -78,22 +78,28 @@ twpe = 24000; xlim = [50 155]; zlim = [-15 15];
 
 for zpick = [0 2 4]
   ds = ds100.twpelim(twpe).zfind(zpick).xlim(xlim).findtag({'line horizontal'});
-  for id = 1:ds.nd{1}
-    xlim_ = [ds.xi1{1}(id) ds.xi2{1}(id)];
-    zlim_ = [ds.zi1{1}(id) ds.zi2{1}(id)];    
-    pic_lim = no02m.xlim(xlim_).zlim(zlim_).twpelim(twpe);
-    %pic = no02m.twpelim(twpe);
-    %Bx_ = pic.Bx;
-    %By_ = pic.By;
-    %Bz_ = pic.Bz;
-    eval(sprintf('x_z%g(id) = mean(xlim_);',zpick))
-    eval(sprintf('z_z%g(id) = mean(zlim_);',zpick))
-%     eval(sprintf('vExBx_z%g(id) = mean(mean(pic_lim.vExBx));',zpick))
-%     eval(sprintf('vExBy_z%g(id) = mean(mean(pic_lim.vExBy));',zpick))
-%     eval(sprintf('vExBz_z%g(id) = mean(mean(pic_lim.vExBz));',zpick))
-    eval(sprintf('Ex_z%g(id) = mean(mean(pic_lim.Ex));',zpick))
-    eval(sprintf('Ey_z%g(id) = mean(mean(pic_lim.Ey));',zpick))
-    eval(sprintf('Ez_z%g(id) = mean(mean(pic_lim.Ez));',zpick))
+  for id = 1:ds.nd
+    xdist = (ds.xi1{1}(id)+ds.xi2{1}(id))/2;
+    zdist = (ds.zi1{1}+ds.zi2{1})/2;
+    pic_lim = no02m.xlim(xlim).zlim(zlim).twpelim(twpe);
+    pic = no02m.twpelim(twpe);
+    Bx_ = pic.Bx;
+    By_ = pic.By;
+    Bz_ = pic.Bz;
+    Bx = interpfield(pic.xi,pic.zi,Bx_,xdist,zdist); 
+    By = interpfield(pic.xi,pic.zi,By_,xdist,zdist); 
+    Bz = interpfield(pic.xi,pic.zi,Bz_,xdist,zdist); 
+    %fred3_tmp = ds.reduce_1d_new('x',[3],[],'vpar',{Bx,By,Bz},'pitch',{Bx,By,Bz}); eval(sprintf('fred3_z%g = fred3_tmp;',zpick))
+    %fred5_tmp = ds.reduce_1d_new('x',[5],[],'vpar',{Bx,By,Bz},'pitch',{Bx,By,Bz}); eval(sprintf('fred5_z%g = fred5_tmp;',zpick))
+    %fred3_tmp = ds.reduce_1d_new('x',[3],[],'vpar',{Bx,By,Bz},'pitch',{Bx,By,Bz}); eval(sprintf('fred3_z%g = fred3_tmp;',zpick))
+    %fred35_tmp = ds.reduce_1d_new('x',[3 5],[],'vpar',{Bx,By,Bz},'pitch',{Bx,By,Bz}); eval(sprintf('fred35_z%g = fred35_tmp;',zpick))
+    %fred46_tmp = ds.reduce_1d_new('x',[4 6],[],'vpar',{Bx,By,Bz},'pitch',{Bx,By,Bz}); eval(sprintf('fred46_z%g = fred46_tmp;',zpick))    
+    eval(sprintf('xlim_fred = [min(fred35_z%g.x) max(fred35_z%g.x)];',zpick,zpick))
+    eval(sprintf('zlim_fred = min(fred35_z%g.z) + 0.25*[-1 1];',zpick,zpick))
+    eval(sprintf('x_z%g = pic.xlim(xlim_fred).zlim(zlim_fred).xi;',zpick))
+    eval(sprintf('vExBx_z%g = squeeze(mean(pic.xlim(xlim_fred).zlim(zlim_fred).vExBx,1));',zpick))
+    eval(sprintf('vExBy_z%g = squeeze(mean(pic.xlim(xlim_fred).zlim(zlim_fred).vExBy,1));',zpick))
+    eval(sprintf('vExBz_z%g = squeeze(mean(pic.xlim(xlim_fred).zlim(zlim_fred).vExBz,1));',zpick))
   end
 end
 

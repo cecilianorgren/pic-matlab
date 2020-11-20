@@ -208,7 +208,7 @@ cmaps = {cmapcan,cmapcan,cmapcan,cmapcan,cmapbr,cmapbr,cmapbr}';
 pic = no02m.twpelim(24000).xlim(xlim).zlim(zlim);
 h = pic.plot_map(varstrs,'A',1,'sep','clim',clims,'cmap',cmaps);
 
-%h = no02m.twpelim(17000).xlim([50 150]).zlim([0 15]).plot_map({'vz(3)','vt(3)'}','A',1,'sep','clim',{[-1 1],[-1 1]},'cmap',{cmapbr,cmapbr});
+h = pic.plot_map({'vz(3)','vt(3)'}','A',1,'sep','clim',{[-1 1],[-1 1]},'cmap',cmaps);
 
 
 %% plot_map/movie, simulation box sizing
@@ -607,8 +607,8 @@ h = pic.movie_line(comp,varstrs,'ylim',ylim,'smooth',7,'filename',[printpath 'Ey
 twpe = 7000:1000:12000;
 %twpe = 24000;
 twpe = 10000:1000:24000;
-twpe = [17000 25000];
-xlim = no02m.xi([1 end])+[60 -60]';
+twpe = [18000 20000];
+xlim = no02m.xi([1 end])+[40 -40]';
 zlim = [0 8];
 cmapbr = pic_colors('blue_red');
 cmapwa = pic_colors('waterfall');
@@ -636,13 +636,8 @@ varstrs = {'Ez'}';
 clims = {[-1 1]};
 cmaps = {cmapbr,cmapbr,cmapbr,cmapbr,cmapbr,cmapbr};
 
-varstrs = {'Epar'}';
-clims = {[-1 1]};
-cmaps = {cmapbr};
-
-
-filename = [printpath 'no02m_Epar'];
-pic.movie(varstrs,'A',1,'cmap',cmaps,'sep','clim',clims,'filename',filename);
+filename = [printpath 'no02m_jepar_vepar_log10ne_Eparxyz'];
+pic.movie(varstrs,'A',1,'cmap',cmaps,'clim',clims,'filename',filename);
 %pic.twpelim([17000 25000]).movie({'Ez'},'A',1,'clim',{[-1 1]},'cmap',{pic_colors('blue_red')},'filename',[printpath 'no02m_Ez']);
 
 %% movie

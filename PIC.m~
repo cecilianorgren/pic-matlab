@@ -522,7 +522,6 @@ classdef PIC
       ntTail = 4;
       stepA = 0.5;
       trajargs = {};
-      print_flag = 1;
       colorMapTraj = pic_colors('waterfall');
       
       ntimes = obj.length;
@@ -579,15 +578,7 @@ classdef PIC
         if isempty(args), break, end    
       end
          
-      if exist([fileName '.mp4'],'file')
-        question = 'File already exists, do you want to overwrite it? [1/0] >';
-        print_flag = irf_ask(question,[],1); 
-      end
-      if print_flag == 0
-        disp('Not making movie.')
-        return;
-      end
-
+      
       if doColorTrajDot % is this needed here?
         if ischar(cTrajDot)
           colorTrajDot = cTrajDot; % color will be assigned further down, when trajectory is loaded
@@ -627,8 +618,7 @@ classdef PIC
       
       if doVideo
         vidObj = VideoWriter([fileName '.mp4'],'MPEG-4');
-        vidObj.FrameRate = 10;
-        open(vidObj);        
+        open(vidObj);
       end
       if doGif
         iframe = 0;
@@ -713,13 +703,9 @@ classdef PIC
                 if tmp_obj.twci == tt(1)
                   xnow = xx(1);
                   znow = zz(1); 
-                  xtail = NaN;
-                  ztail = NaN;
                 elseif tmp_obj.twci == tt(end)
                   xnow = xx(end);
                   znow = zz(end);
-                  xtail = NaN;
-                  ztail = NaN;
                 else
                   if 1
                     xnow = interp1(tt,xx,tmp_obj.twci);
@@ -1007,7 +993,6 @@ classdef PIC
       % h = pic.PLOTMAP({'Ey','Ez'})
       
       % Defaults
-      doCBarLabels = 0;
       doSep = 0;
       doA = 0;
       doAdjustCLim = 0;
@@ -1015,13 +1000,11 @@ classdef PIC
       doAdjustCMap = 0;
       doSmooth = 0;
       plotInAxes = 0;
-      doCompact = 1;
       
       % Check input
       % Check for axes
       [ax,args,nargs] = irf.axescheck(varargin{:}); 
-      if not(isempty(ax)); plotInAxes = 1; doCompact = 0; end
-      
+      if not(isempty(ax)); plotInAxes = 1; end
       varstrs = args{1};
       args = args(2:end);
       nargs = nargs-1;
@@ -1050,10 +1033,6 @@ classdef PIC
           case 'sep'
             doSep = 1;
             l = 1;
-          case 'cbarlabels'
-            doCBarLabels = 1;
-            cBarLabels = args{2};
-            l = 2;
           otherwise 
             warning(sprintf('Unknown argument %s.',args{1}))
         end
@@ -1149,19 +1128,12 @@ classdef PIC
           end
           %colormap(cmap)
         end
-          if doCBarLabels
-            hb(ivar).YLabel.String = cBarLabels{ivar};
-          else
-            hb(ivar).YLabel.String = varstrs{ivar};                
-          end
-          %hb(ivar).FontSize = 14;
          % drawnow;
         end
       end 
       %drawnow;
       h(1).Title.String = sprintf('twpe = %g, twci = %g',obj.twpe,obj.twci);
-      %doCompact
-      if doCompact, compact_panels(0.01); end
+      compact_panels(0.01)
       hlinks = linkprop(h(:),{'XLim','YLim'});
       set(gcf,'userdata',{'hlinks',hlinks})
       if nargout == 1
@@ -1796,14 +1768,7 @@ classdef PIC
           tmpvar = tmppic.get_exp(field); 
           [X,Z,T] = meshgrid(tmpx,tmpz,tmpt);
           var(iP) = interp3(X,Z,T,permute(tmpvar,[2 1 3]),x(iP),z(iP),t(iP),method);
-         elseif any(abs(obj.zi - z(iP)) < 1e-5) % end up very close to grid point, do 3 closest
-          tmppic = obj.xlim(x(iP),'closest',nClosest).zlim(z(iP),'closest',3).twcilim(t(iP),'bounding',nBounding);
-          tmpt =  tmppic.twci;
-          tmpx =  tmppic.xi;
-          tmpz =  tmppic.zi;          
-          tmpvar = tmppic.get_exp(field); 
-          [X,Z,T] = meshgrid(tmpx,tmpz,tmpt);
-          var(iP) = interp3(X,Z,T,permute(tmpvar,[2 1 3]),x(iP),z(iP),t(iP),method);
+          %var(iP) = interp2(X,Z,tmpvar,x(iP),z(iP),method);
         else
           tmppic = obj.xlim(x(iP),'closest',nClosest).zlim(z(iP),'closest',nClosest).twcilim(t(iP),'bounding',nBounding);  
           tmpt =  tmppic.twci;

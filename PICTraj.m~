@@ -1325,14 +1325,13 @@
 %       end
 %       % remaining args are varargin for obj.plot_all      
       
-      nrows = 5;
+      nrows = 3;
       ncols = 1;
       npanels = nrows*ncols;
       h = setup_subplots(nrows,ncols,'vertical');
       isub = 1;                 
       
       colors = pic_colors('matlab');
-      gray = [0.7 0.7 0.7];
       
       if 1 % x,y,z
         hca = h(isub); isub = isub + 1;
@@ -1341,7 +1340,7 @@
           if itr == 1, hold(hca,'on'); end
           hy = plot(hca,obj(itr).t,obj(itr).y,'displayname','y','color',colors(2,:));
           hz = plot(hca,obj(itr).t,obj(itr).z,'displayname','z','color',colors(3,:));          
-          legend([hx,hy,hz],{'x','y','z'},'location','eastoutside')
+          legend([hx,hy,hz],{'x','y','z'})
         end
         hold(hca,'on')
       end
@@ -1352,130 +1351,60 @@
           if itr == 1, hold(hca,'on'); end
           hy = plot(hca,obj(itr).t,obj(itr).vy,'displayname','y','color',colors(2,:));
           hz = plot(hca,obj(itr).t,obj(itr).vz,'displayname','z','color',colors(3,:));          
-          legend([hx,hy,hz],{'v_x','v_y','v_z'},'location','eastoutside')
+          legend([hx,hy,hz],{'v_x','v_y','v_z'})
         end
         hold(hca,'on')
       end
       if 1 % Ex, vyBz, -vzBy
         hca = h(isub); isub = isub + 1;
         for itr = 1:obj.ntr
-          hx = plot(hca,obj(itr).t,obj(itr).Ex,'displayname','E_x','color',colors(1,:));
+          hx = plot(hca,obj(itr).t,obj(itr).Ex,'displayname','x','color',colors(1,:));
           if itr == 1, hold(hca,'on'); end
-          hy = plot(hca,obj(itr).t,obj(itr).vyBz,'displayname','v_yB_z','color',colors(2,:));
-          hz = plot(hca,obj(itr).t,-obj(itr).vzBy,'displayname','-v_zB_y','color',colors(3,:));  
-          hsum = plot(hca,obj(itr).t,obj(itr).Ex+obj(itr).vyBz-obj(itr).vzBy,'displayname','z','color',gray);          
-          legend([hx,hy,hz,hsum],{'E_x','v_yB_z','-v_zB_y','E_x+v_yB_z-v_zB_y'},'location','eastoutside')
+          hy = plot(hca,obj(itr).t,obj(itr).vyBz,'displayname','y','color',colors(2,:));
+          hz = plot(hca,obj(itr).t,-obj(itr).vzBy,'displayname','z','color',colors(3,:));          
+          legend([hx,hy,hz],{'E_x','v_y','v_z'})
         end
         hold(hca,'on')
       end
-      if 1 % Ey, vzBx, -vxBz
+      if 0 % Ey
         hca = h(isub); isub = isub + 1;
-        for itr = 1:obj.ntr
-          hx = plot(hca,obj(itr).t,obj(itr).Ey,'displayname','x','color',colors(1,:));
-          if itr == 1, hold(hca,'on'); end
-          hy = plot(hca,obj(itr).t,obj(itr).vzBx,'displayname','y','color',colors(2,:));
-          hz = plot(hca,obj(itr).t,-obj(itr).vxBz,'displayname','z','color',colors(3,:));  
-          hsum = plot(hca,obj(itr).t,obj(itr).Ey+obj(itr).vzBx-obj(itr).vxBz,'displayname','z','color',gray);          
-          legend([hx,hy,hz,hsum],{'E_y','v_zB_x','-v_xB_z','E_y+v_zB_x-v_xB_z'},'location','eastoutside')
-        end
-        hold(hca,'on')
+        obj.plot_all('t','Ey',hca,varargin{:});
       end
-      if 1 % Ez, vxBy, -vyBx
+      if 0 % Ez
         hca = h(isub); isub = isub + 1;
-        for itr = 1:obj.ntr
-          hx = plot(hca,obj(itr).t,obj(itr).Ez,'displayname','x','color',colors(1,:));
-          if itr == 1, hold(hca,'on'); end
-          hy = plot(hca,obj(itr).t,obj(itr).vxBy,'displayname','y','color',colors(2,:));
-          hz = plot(hca,obj(itr).t,-obj(itr).vyBx,'displayname','z','color',colors(3,:));          
-          hsum = plot(hca,obj(itr).t,obj(itr).Ez+obj(itr).vxBy-obj(itr).vyBx,'displayname','z','color',gray);          
-          legend([hx,hy,hz,hsum],{'E_z','v_xB_y','-v_yB_x','E_z+v_xB_y-v_yB_x'},'location','eastoutside')
-        end
-        hold(hca,'on')
+        obj.plot_all('t','Ez',hca,varargin{:});
+      end
+      if 0 % vyBz
+        hca = h(isub); isub = isub + 1;
+        obj.plot_all('t','vyBz',hca,varargin{:});
+      end
+      if 0 % vzBx
+        hca = h(isub); isub = isub + 1;
+        obj.plot_all('t','vzBx',hca,varargin{:});
+      end
+      if 0 % vxBy
+        hca = h(isub); isub = isub + 1;
+        obj.plot_all('t','vxBy',hca,varargin{:});
+      end
+      if 0 % vzBy
+        hca = h(isub); isub = isub + 1;
+        obj.plot_all('t','vzBy',hca,varargin{:});
+      end
+      if 0 % vxBz
+        hca = h(isub); isub = isub + 1;
+        obj.plot_all('t','vxBz',hca,varargin{:});
+      end
+      if 0 % vyBx
+        hca = h(isub); isub = isub + 1;
+        obj.plot_all('t','vyBx',hca,varargin{:});
       end
       
       for ip = 1:npanels        
         h(ip).XGrid = 'on';
         h(ip).YGrid = 'on';
-        ax_width(ip) = h(ip).Position(3);
       end
       hlinks = linkprop(h,{'XLim'});      
       set(gcf,'userdata',{'hlinks',hlinks})
-      compact_panels(h,0.01)
-      for ip = 1:npanels        
-        h(ip).Position(3) = min(ax_width);
-      end
-    end
-    function h = plot_forces_compact_y(obj,varargin)
-      % Standard plots of forces
-      % 
-      
-     
-      
-%       have_input = 0;      
-%       % Check if axises are given
-%       [hca,args,nargs] = axescheck(varargin{:});
-%       if isempty(hca)
-%         hca = gca; % current or new axes
-%       end
-%       
-%       % Check input
-%       if nargs > 0; have_input = 1; args = args; end
-%       while have_input
-%         l = 2;
-%         switch lower(args{1})
-%           case {'group'}
-%             doGroup = 1;
-%             iGroup = args{2};
-%             l = 2;
-%           otherwise
-%             warning(sprintf('Unknown input %s.',args{1}))
-%         end
-%         args = args(l+1:end);
-%         if isempty(args), break, end
-%       end
-%       % remaining args are varargin for obj.plot_all      
-      
-      nrows = 2;
-      ncols = 1;
-      npanels = nrows*ncols;
-      h = setup_subplots(nrows,ncols,'vertical');
-      isub = 1;                 
-      
-      colors = pic_colors('matlab');
-      gray = [0.7 0.7 0.7];
-      
-      if 1 % Ey, vzBx, -vxBz
-        hca = h(isub); isub = isub + 1;
-        for itr = 1:obj.ntr
-          hx = plot(hca,obj(itr).t,obj(itr).Ey,'displayname','x','color',colors(1,:));
-          if itr == 1, hold(hca,'on'); end
-          hy = plot(hca,obj(itr).t,obj(itr).vzBx,'displayname','y','color',colors(2,:));
-          hz = plot(hca,obj(itr).t,-obj(itr).vxBz,'displayname','z','color',colors(3,:));            
-          legend([hx,hy,hz],{'E_y','v_zB_x','-v_xB_z'},'location','eastoutside')
-        end
-        hold(hca,'on')
-      end
-      if 1 % Ey, vzBx, -vxBz
-        hca = h(isub); isub = isub + 1;
-        for itr = 1:obj.ntr
-          hsum = plot(hca,obj(itr).t,obj(itr).Ey+obj(itr).vzBx-obj(itr).vxBz,'displayname','z','color',gray);          
-          if itr == 1, hold(hca,'on'); end          
-          legend([hsum],{'E_y+v_zB_x-v_xB_z'},'location','eastoutside')
-        end
-        hold(hca,'on')
-      end
-      
-      for ip = 1:npanels        
-        h(ip).XGrid = 'on';
-        h(ip).YGrid = 'on';
-        ax_width(ip) = h(ip).Position(3);
-      end
-      hlinks = linkprop(h,{'XLim'});      
-      set(gcf,'userdata',{'hlinks',hlinks})
-      compact_panels(h,0.01)
-      for ip = 1:npanels        
-        h(ip).Position(3) = 0.7;%min(ax_width);
-      end
     end
     function h = plot_forces_comp(obj,varargin)
       % Plots of forces in a comparative way

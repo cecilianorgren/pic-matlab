@@ -1044,13 +1044,17 @@
           if doVzlim, vzind = union(find(v<vzlim(1)),find(v>vzlim(2)));
           else, vzind = []; end
           
-          ftmp(vxind,vyind,vzind) = NaN;
+          %ftmp(vxind,vyind,vzind) = NaN;
+          ftmp(vxind,:,:) = NaN;
+          ftmp(:,vyind,:) = NaN;
+          ftmp(:,:,vzind) = NaN;
           
           for iPeak = 1:nPeaks
             [val,ind] = max(ftmp(:));
            % iPeak
            % val 
            % ind
+           
             if val == 0
               continue
             end
@@ -1063,6 +1067,9 @@
             catch
               1;
             end
+%             if f.v(iz)<0
+%               1;
+%             end
             fpeaks(iPeak,id,it).vx = f.v(ix);
             fpeaks(iPeak,id,it).vy = f.v(iy);
             fpeaks(iPeak,id,it).vz = f.v(iz);

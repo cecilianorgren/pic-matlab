@@ -80,6 +80,7 @@ for iTr = 1:numel(tr_arr)
   Bx = tr.Bx;
   By = tr.By;
   Bz = tr.Bz;
+  Ay = tr.Ay;
   %vxB = cross_product(tr.vx,tr.vy,tr.vz,Bx,By,Bz,'components',1); % calculate force
   
   if doFPeaks % Information about how initial r0, v0 were chosen  
@@ -101,25 +102,24 @@ for iTr = 1:numel(tr_arr)
   
   %continue
   %
-  
-  h5create(filePath, [group_name 't'], size(tr.t));
+  %try 
+    h5create(filePath, [group_name 't'], size(tr.t));      
+    h5create(filePath, [group_name 'x'], size(tr.t));  
+    h5create(filePath, [group_name 'y'], size(tr.t));
+    h5create(filePath, [group_name 'z'], size(tr.t));
+    h5create(filePath, [group_name 'vx'], size(tr.t));
+    h5create(filePath, [group_name 'vy'], size(tr.t));
+    h5create(filePath, [group_name 'vz'], size(tr.t));
+    h5create(filePath, [group_name 'Ex'], size(tr.t));  
+    h5create(filePath, [group_name 'Ey'], size(tr.t));
+    h5create(filePath, [group_name 'Ez'], size(tr.t));
+    h5create(filePath, [group_name 'Bx'], size(tr.t));
+    h5create(filePath, [group_name 'By'], size(tr.t));
+    h5create(filePath, [group_name 'Bz'], size(tr.t));
+    h5create(filePath, [group_name 'Ay'], size(tr.t));
   %catch
-  %warning('h5 structure %s already exists',[group_name 't'])      
+  %  warning('h5 structure %s already exists, overwriting.',[group_name 't'])      
   %end
-  
-  
-  h5create(filePath, [group_name 'x'], size(tr.t));  
-  h5create(filePath, [group_name 'y'], size(tr.t));
-  h5create(filePath, [group_name 'z'], size(tr.t));
-  h5create(filePath, [group_name 'vx'], size(tr.t));
-  h5create(filePath, [group_name 'vy'], size(tr.t));
-  h5create(filePath, [group_name 'vz'], size(tr.t));
-  h5create(filePath, [group_name 'Ex'], size(tr.t));  
-  h5create(filePath, [group_name 'Ey'], size(tr.t));
-  h5create(filePath, [group_name 'Ez'], size(tr.t));
-  h5create(filePath, [group_name 'Bx'], size(tr.t));
-  h5create(filePath, [group_name 'By'], size(tr.t));
-  h5create(filePath, [group_name 'Bz'], size(tr.t));
   
   h5write(filePath, [group_name 't'], tr.t);
   h5write(filePath, [group_name 'x'], tr.x);
@@ -134,6 +134,7 @@ for iTr = 1:numel(tr_arr)
   h5write(filePath, [group_name 'Bx'], Bx);
   h5write(filePath, [group_name 'By'], By);
   h5write(filePath, [group_name 'Bz'], Bz);
+  h5write(filePath, [group_name 'Ay'], Ay);
     
   h5writeatt(filePath, group_name,'t0', tr.t0); % tr.t0
   h5writeatt(filePath, group_name,'x0', tr.x0);

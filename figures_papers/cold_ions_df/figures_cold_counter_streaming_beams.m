@@ -634,8 +634,8 @@ isP = [];
 for itime = 1:ntimes
   col = 0;
   %itime
-  pic = nobg.twcilim(twci(itime),'exact').xlim(xlim).zlim(zlim);  
-  picA = nobg.twcilim(twci(itime),'exact').xlim(xlim+[-1 1]).zlim(zlim+[-1 1]);  
+  pic = no02m.twcilim(twci(itime),'exact').xlim(xlim).zlim(zlim);  
+  picA = no02m.twcilim(twci(itime),'exact').xlim(xlim+[-1 1]).zlim(zlim+[-1 1]);  
   if doA
     plA = picA.A;
   end
