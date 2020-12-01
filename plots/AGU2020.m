@@ -6,16 +6,17 @@ xlim = 53+0.5*[-1 1];
 zlim = pic.zi([1 end]);
 pic = pic.xlim(xlim).zlim(zlim).twpelim(twpe,'exact');
 
-varstrs = {{'n([1])','n([3 5])'}};
+varstrs = {{'n([1])','n([3 5])','n([1 3 5])'}};
 
 colors = pic_colors('matlab');
 
 h = pic.plot_line(comp,varstrs,'smooth',20);
 
-h.Children(1).Color = colors(1,:);
-h.Children(2).Color = colors(2,:);
+h.Children(1).Color = colors(3,:);
+h.Children(2).Color = colors(1,:);
+h.Children(3).Color = colors(2,:);
 h.XLim = 10*[-1 1];
-legend(h,{'Hot','Cold'},'location','best')
+legend(h,{'Hot','Cold','Total'},'location','best')
 h.Position = [0.10 0.2 0.8 0.7];
 h.YLabel.String = 'n (n_0)';
 h.FontSize = 14;
@@ -26,7 +27,7 @@ twpe = 17000:100:24000;
 xlim = no02m.xi([1 end])+[40 -40]';
 zlim = [-8 8];
 pic = no02m.xlim(xlim).zlim(zlim).twpelim(twpe,'exact');
-
+tr
 cmapbr = pic_colors('blue_red');
 cmapwa = pic_colors('waterfall');
 
@@ -37,6 +38,24 @@ cbarlabels = {'n_{cold}/n_{tot}'};
 filename = [printpath 'no02m_ncold_blue'];
 
 pic.movie(varstrs,'A',1,'cmap',cmaps,'clim',clims,'cbarlabels',cbarlabels,'filename',filename);
+
+%% Movie, ncold, Tcold
+twpe = 17000;%:100:24000;
+xlim = no02m.xi([1 end])+[40 -40]';
+zlim = [-8 8];
+pic = no02m.xlim(xlim).zlim(zlim).twpelim(twpe,'exact');
+cmapbr = pic_colors('blue_red');
+cmapwa = pic_colors('waterfall');
+cmapth = pic_colors('thermal');
+
+varstrs = {'n([3 5])','t([3 5])'}';
+clims = {[0 0.5]*0.99,[0 0.5]*0.99};
+cmaps = {cmapth,cmapth};
+cbarlabels = {'n_{i,cold}','T_{i,cold}'};
+filename = [printpath 'no02m_ncold_tcold_'];
+
+pic.movie(varstrs,'A',1,'cmap',cmaps,'clim',clims,'cbarlabels',cbarlabels,'filename',filename);
+
 
 %% Some overview
 xlim = no02m.xi([1 end])+[40 -40]';
@@ -598,6 +617,7 @@ for xpick = [75 85 95]
     eval(sprintf('phiz_x%g = -cumtrapz(z_x%g,Ez_x%g);',xpick,xpick,xpick))
   end
 end
+
 %% Reduced distribution plot, vertical
 % What to include
 % - overview of where boxes are
@@ -762,4 +782,4 @@ for ip = 1:npanels
   h(ip).Position(2) = 0.17;
 end
 
-%% Reduced distributions f(x,vy) with py
+%% Reduced distributions f(x,vy) with pyr

@@ -508,7 +508,8 @@ classdef PIC
       % Default options, values
       doCBarLabels = 0;
       doVideo = 1;
-      doGif = 0;
+      doGif = 1;
+      doGifBackLoop = 1;
       doAdjustCLim = 0;
       cmap = pic_colors('blue_red');
       doA = 0;
@@ -794,7 +795,7 @@ classdef PIC
         if doGif
           if 1 % collect frames, for making gif
             iframe = iframe + 1;    
-            nframes = pic0.nt;
+            nframes = obj.nt;
             currentBackgroundColor = get(gcf,'color');
             set(gcf,'color',[1 1 1]);
             drawnow      
@@ -804,13 +805,22 @@ classdef PIC
               [im_tmp,map] = rgb2ind(tmp_frame.cdata,256,'nodither');
               %map(end+1,:) = get(gcf,'color');
               im_tmp(1,1,1,nframes) = 0;                                                
-              all_im = im_tmp;
+              all_im = im_tmp;             
             else
               all_im(:,:,1,iframe) = rgb2ind(tmp_frame.cdata,map,'nodither');
             end       
           end    
         end
       end
+      
+      % Write gif
+      if doGif
+        imwrite(all_im,map,[fileName,'.gif'],'DelayTime',0,'LoopCount',inf)
+      end
+      if doGif && doGifBackLoop
+        imwrite(cat(4,all_im,all_im(:,:,:,end:-1:1)),map,[fileName,'_loopback.gif'],'DelayTime',0,'LoopCount',inf)              
+      end
+      
       %hlinks = linkprop(h,{'XLim','YLim'});
       %set(gcf,'userdata',{'hlinks',hlinks})
       if nargout == 1

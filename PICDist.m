@@ -979,7 +979,7 @@
         for idist = 1:numel(obj.xi1{it})
           xplot = [obj.xi1{it}(idist) obj.xi2{it}(idist) obj.xi2{it}(idist) obj.xi1{it}(idist) obj.xi1{it}(idist)];
           zplot = [obj.zi1{it}(idist) obj.zi1{it}(idist) obj.zi2{it}(idist) obj.zi2{it}(idist) obj.zi1{it}(idist)];
-          plot(hca,xplot,zplot,'k')
+          plot(hca,xplot,zplot,'k','linewidth',1)
           if idist == 1; hold(hca,'on'); end
         end
         hold(hca,'off');

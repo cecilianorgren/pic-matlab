@@ -393,10 +393,32 @@ tr = tr.find([tr.Ustart]<0.25,[tr.zstart]>0,[tr.vy0]>0,[tr.x0]>85);
 tr = tr100(783:917);
 tr = tr.find([tr.Ustart]<0.25,[tr.zstart]>0,[tr.vy0]<0);
 
+tr = tr100(783:917);
+tr1 = tr.find([tr.Ustart]<0.25,[tr.zstart]>0,[tr.vy0]>0,[tr.x0]>85);
+tr = tr100(783:917);
+tr2 = tr.find([tr.Ustart]<0.25,[tr.zstart]>0,[tr.vy0]<0);
+tr = tr100(783:917);
+tr3 = tr.find([tr.Ustart]<0.25,[tr.zstart]>0,[tr.vy0]>0,[tr.x0]<=75);
+tr = tr100(783:917);
+tr4 = tr.find([tr.Ustart]<0.25,[tr.zstart]>0,[tr.vy0]>0,[tr.x0]>75,[tr.x0]<=85);
+
+tr = tr100(783:917);
+tr = tr.find([tr.Ustart]<0.25,[tr.zstart]>0);
+
+colors = pic_colors('matlab');
+colors_tr = [colors_matlab(5,:); 1 1 1;colors_matlab(3,:); 0.1 0.1 0.1];
+trajcolordot = nan(tr100.ntr,3);
+trajcolordot([tr1.id],:) = repmat(colors_tr(1,:),tr1.ntr,1);
+trajcolordot([tr2.id],:) = repmat(colors_tr(2,:),tr2.ntr,1);
+trajcolordot([tr3.id],:) = repmat(colors_tr(3,:),tr3.ntr,1);
+trajcolordot([tr4.id],:) = repmat(colors_tr(4,:),tr4.ntr,1);
+trajcolordot(isnan(trajcolordot)) = [];
+trajcolordot = reshape(trajcolordot,numel(trajcolordot)/3,3);
+
 
 twpe = [25000];
-%twpe = [23000 24000];
-xlim = no02m.xi([1 end])+[50 -50]';
+twpe = [18000 25000];%25000];
+xlim = no02m.xi([1 end])+[55 -55]';
 zlim = [-8 8];
 cmapth = pic_colors('thermal');
 cmapbr = pic_colors('blue_red');
@@ -408,11 +430,11 @@ clims = {[0 0.5],[-1 1],[-2 1]};
 cmaps = {cmapth,cmapbr,cmapbr};
 trajargs = {};{'Marker','.'};
 cbarlabels = {'Ion density from top','E_z','Magnetic curvature'};
-trajcolordot = zeros(tr.ntr,3);
-trajcolordot([tr.vy0]>0,:) = 1;
-trajcolordot(and([tr.vy0]>0,[tr.x0]>85),:) = 0.5;
+% trajcolordot = zeros(tr.ntr,3);
+% trajcolordot([tr.vy0]>0,:) = 1;
+% trajcolordot(and([tr.vy0]>0,[tr.x0]>85),:) = 0.5;
 
-filename = [printpath 'no02m_ni_Ez_KB_t0_120_z0=0_manyx_startlim__'];
+filename = [printpath 'no02m_ni_Ez_KB_t0_120_trajcolors4_'];
 pic.movie(varstrs,'A',1,'colA',[1 1 1]*0.5,'cmap',cmaps,'clim',clims,...
   'filename',filename,'cbarlabels',cbarlabels,...
   'traj',tr,'trajargs',trajargs,'trajcolordot',trajcolordot);
