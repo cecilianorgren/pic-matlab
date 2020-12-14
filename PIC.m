@@ -499,9 +499,28 @@ classdef PIC
       
     end
     function [all_im, map] = movie(obj,varstrs,varargin)
-      % [all_im, map] = MOVIE(obj,fields,nrows,ncols)
+      % pic.MOVIE(obj,varstrs,varargin) Makes movie and gif.
+      %   pic.MOVIE(varstrs,'inp1',arg1,'inp2',arg2,...)
+      %   
+      %   Miinum input:
+      %     varstrs - NxM cell array with variables or expressions with variables (see pic.get_exp)
+      %   Additional input:
+      %     'A' - plots A contours with given interval/step in A
+      %     'cmap' - NxM cell array of colormaps
+      %     'clim' - NxM cell array of clims
+      %     'filename' - filename and path (excluding suffix/extension)
+      %     'cbarlabels' - NxM cell array with colorbar labels (default is varstrs text)
+      %     'traj' - PICTraj object, adds trajectories of object in each frame
+      %     'trajcolordot' - color of trajectories/dots, can be:
+      %       1x3 numeric array
+      %       Ntrajx3 numeric array      
+      %       string with PICTraj quantity as color (only implemented for scalars I think, e.g. 'x0')
+      %
       % Examples:
-      % nobg.zlim([0 25]*0.99).movie({'tzz(4)'},'A',1,'cmap',pic_colors('waterfall'),'clim',{[0 0.015]},'filename','tzz(4)');
+      %   pic.MOVIE({'Ey'})
+      %   pic.zlim([0 25]*0.99).MOVIE({'tzz(4)'},'A',1,'cmap',pic_colors('waterfall'),'clim',{[0 0.015]},'filename',filename);
+      %
+      % See also: PIC.GET_EXP
       
       % Subsref error: Does not accept two outputs
       
@@ -5372,7 +5391,7 @@ classdef PIC
     function out = ind_from_lim(var,value,varargin)
       % method is the same for xlim, zlim ilim, i, twpelim, twcilim
       
-      % Defaults
+      % Defaults      
       doExact = 0; % find all exact matches, can be any number
       doBounding = 0; % find a given number of values bounding the given value
       doBoundingOld = 0;
@@ -5382,6 +5401,9 @@ classdef PIC
       
       if numel(value) == 1
         doClosest = 1;        
+      end      
+      if numel(value) > 2
+        doExact = 1;        
       end
       
       % Check input

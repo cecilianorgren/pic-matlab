@@ -210,7 +210,6 @@ h = pic.plot_map(varstrs,'A',1,'sep','clim',clims,'cmap',cmaps);
 
 %h = no02m.twpelim(17000).xlim([50 150]).zlim([0 15]).plot_map({'vz(3)','vt(3)'}','A',1,'sep','clim',{[-1 1],[-1 1]},'cmap',{cmapbr,cmapbr});
 
-
 %% plot_map/movie, simulation box sizing
 twpe = [7000:200:11000];
 twpe = [7000:1000:24000];
