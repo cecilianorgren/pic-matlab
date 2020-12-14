@@ -665,8 +665,9 @@ classdef PIC
 %                 var = tmp_obj.(varstrs{ivar});
 %               end        
               var = tmp_obj.get_exp(varstrs{ivar});
-              imagesc(hca,tmp_obj.xi,tmp_obj.zi,var');
-              %contourf(hca,tmp_obj.xi,tmp_obj.zi,var',0:0.5:25);
+              %imagesc(hca,tmp_obj.xi,tmp_obj.zi,var');
+              %contourf(hca,tmp_obj.xi,tmp_obj.zi,var',0:0.25:25);
+              contourf(hca,tmp_obj.xi,tmp_obj.zi,var',2:0.2:8);
               hb(ivar) = colorbar('peer',hca);
               if doCBarLabels
                 hb(ivar).YLabel.String = cBarLabels{ivar};

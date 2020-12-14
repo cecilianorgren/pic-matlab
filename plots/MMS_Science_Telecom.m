@@ -1383,10 +1383,20 @@ tr = tr100;
 trs = tr.find([tr.z0]==4);
 trs = tr100(2:10);
 trs = tr100.find([tr100.ncross]>5,[tr100.Ustart]<1,tr100.xstart>95);
+trs = tr1;
 
 twpe = [18000 24000];
 xlim = [70 110];
 zlim = [-4 4];
+
+twpe = [18000 20000];
+xlim = [95 105];
+zlim = [-3 3];
+
+twpe = [18000 25000];
+xlim = [75 95];
+zlim = [-4 8];
+
 pic = no02m.twpelim(twpe).xlim(xlim).zlim(zlim);
 varstrs = {'A'}';
 clims = {[-1 1];[-1 1]};
@@ -1398,7 +1408,7 @@ cmaps = {cmapbr,cmapbr};
 cmaps = {cmapwa,cmapbr};
 
 clims = {[2 8]};
-filename = [printpath 'no02m_Ay_3traj_pm4'];
+filename = [printpath 'no02m_Ay_3traj_pm4_compact_tr1'];
 %pic.movie(varstrs,'A',1,'cmap',cmaps,'clim',clims,'filename',filename,'tr',trs,'trajcolordot',[trs.x0]);
 pic.movie(varstrs,'A',1,'cmap',cmaps,'clim',clims,'filename',filename,'tr',trs);
 
@@ -2137,4 +2147,5 @@ hlinks = linkprop(h(1:end),{'XLim','YLim','CLim'});
 %irf_plot_axis_align
 h(1).CLim = 0.99*[-4 2];
 h(1).YLim = 0.99*4*[-1 1];
+
 

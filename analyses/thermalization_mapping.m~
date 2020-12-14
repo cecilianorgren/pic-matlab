@@ -45,6 +45,7 @@ twpe = 24000;
 pic = no02m.twpelim(twpe);
 fred = fred35_z0;
 twpe = 24000;
+fontsize = 12;
 % What to include
 % - overview of whxx  ere boxes are
 fi_clim = [0 0.13];
@@ -63,11 +64,12 @@ xmax = [80 85 87 93 95 100];
 
 py0 = [8.5 8.1 7.7 7.4 6.9 6.3 5.8 5.2 4.6];
 xmin = [71 71 71 71 71 71.5 73 80 83];
-xmax = [74 77 79 81 84 87 93 95 98]+00;
+xmax = [74 77 79 81 84 87 92 96 97]+00;
 npy = numel(py0);
 
 nrows = 1;
 ncols = 1;
+npanels = nrows*ncols;
 h = setup_subplots(nrows,ncols,'horizontal');
 isub = 1;
 doE = 1; colorE = [0 0.8 0.8];
@@ -122,12 +124,14 @@ if 1 % fi(v_y)
     A = squeeze(mean(pic_tmp.A,2));    
     xx = pic_tmp.xi;
     yy = f_vy_A(py0(ipy),A);
-    plot(hca,xx,yy,'--k')
+    plot(hca,xx,yy,':k','linewidth',0.5)
     hold(hca,'off')
-    ht = text(hca,xx(end),yy(end),sprintf(' %.1f',py0(ipy)));
+    ht = text(hca,xx(end),yy(end),sprintf(' %.1f',py0(ipy)),'fontsize',fontsize);
     ht.HorizontalAlignment = 'left';
-    dy = (yy(end)-yy(end-1))./hca.YLim;
-    ht.Rotation = atand(./(xx(end)-xx(end-1)));
+    dy = (yy(end)-yy(end-1))./diff(hca.YLim);
+    dx = (xx(end)-xx(end-1))./diff(hca.XLim);
+    ht.Rotation = atand(dy/dx);
+    
   end
   if 0*doE
     hold(hca,'on')
@@ -249,7 +253,7 @@ if 0 % A0(v_y,A)
     yy = f_vy_A(py0(ipy),A);
     plot(hca,xx,yy,'--k')
     hold(hca,'off')
-    text(hca,xx(end),yy(end),sprintf('p_y = %.1f',py0(ipy)))
+    ht = text(hca,xx(end),yy(end),sprintf('p_y = %.1f',py0(ipy)),'fontsize',fontsize);
   end
   if 0*doE
     hold(hca,'on')
@@ -304,6 +308,7 @@ hlinks = linkprop(h(1:end),{'XLim'});
 %irf_plot_axis_align
 for ip = 1:nrows*ncols
   axwidth(ip) = h(ip).Position(3);
+  h(ip).FontSize = 14;
 end
 for ip = 1:nrows*ncols
   h(ip).Position(3) = 0.7;%min(axwidth);
@@ -326,7 +331,7 @@ for itr = 1:trs.ntr
   toc
 end
 %trsAall=trsA;
-%trsA = trsAall([trs.id]);
+%trsA = trsAall([trs.id]);op
 
 %% Plot A along trajectory
 nrows = 3; ncols = 3;
@@ -825,3 +830,13 @@ varstrs = {{'Bz','sqrt(Ey)','-sqrt(Ey)'},{'abs(Bz./Ey)'}}';
 h = pic.plot_line(comp,varstrs,'smooth',1);
 h(2).YLim = [0 2]; 
 h(1).XLim = [60 140];
+
+%% Original position of particle, based on py
+py0 = [8.5 8.1 7.7 7.4 6.9 6.3 5.8 5.2 4.6];
+np = numel(py0);
+pic = no02m(1).xlim([10 11]).zlim([0 15]);
+A = mean(pic.A,1);
+for ip = 1:np
+  [a,ind] = min(abs(A-py0(ip)));
+  z0(ip) = pic.zi(ind);
+end

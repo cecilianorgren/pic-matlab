@@ -830,3 +830,13 @@ varstrs = {{'Bz','sqrt(Ey)','-sqrt(Ey)'},{'abs(Bz./Ey)'}}';
 h = pic.plot_line(comp,varstrs,'smooth',1);
 h(2).YLim = [0 2]; 
 h(1).XLim = [60 140];
+
+%% Original position of particle, based on py
+py0 = [8.5 8.1 7.7 7.4 6.9 6.3 5.8 5.2 4.6];
+np = numel(py0);
+pic = no02m(1).xlim([10 11]).zlim([0 15]);
+A = mean(pic.A,1);
+for ip = 1:np
+  [a,ind] = min(abs(A-py0(ip)));
+  z0(ip) = pic.zi(ind);
+end

@@ -78,28 +78,22 @@ twpe = 24000; xlim = [50 155]; zlim = [-15 15];
 
 for zpick = [0 2 4]
   ds = ds100.twpelim(twpe).zfind(zpick).xlim(xlim).findtag({'line horizontal'});
-  for id = 1:ds.nd
-    xdist = (ds.xi1{1}(id)+ds.xi2{1}(id))/2;
-    zdist = (ds.zi1{1}+ds.zi2{1})/2;
-    pic_lim = no02m.xlim(xlim).zlim(zlim).twpelim(twpe);
-    pic = no02m.twpelim(twpe);
-    Bx_ = pic.Bx;
-    By_ = pic.By;
-    Bz_ = pic.Bz;
-    Bx = interpfield(pic.xi,pic.zi,Bx_,xdist,zdist); 
-    By = interpfield(pic.xi,pic.zi,By_,xdist,zdist); 
-    Bz = interpfield(pic.xi,pic.zi,Bz_,xdist,zdist); 
-    %fred3_tmp = ds.reduce_1d_new('x',[3],[],'vpar',{Bx,By,Bz},'pitch',{Bx,By,Bz}); eval(sprintf('fred3_z%g = fred3_tmp;',zpick))
-    %fred5_tmp = ds.reduce_1d_new('x',[5],[],'vpar',{Bx,By,Bz},'pitch',{Bx,By,Bz}); eval(sprintf('fred5_z%g = fred5_tmp;',zpick))
-    %fred3_tmp = ds.reduce_1d_new('x',[3],[],'vpar',{Bx,By,Bz},'pitch',{Bx,By,Bz}); eval(sprintf('fred3_z%g = fred3_tmp;',zpick))
-    %fred35_tmp = ds.reduce_1d_new('x',[3 5],[],'vpar',{Bx,By,Bz},'pitch',{Bx,By,Bz}); eval(sprintf('fred35_z%g = fred35_tmp;',zpick))
-    %fred46_tmp = ds.reduce_1d_new('x',[4 6],[],'vpar',{Bx,By,Bz},'pitch',{Bx,By,Bz}); eval(sprintf('fred46_z%g = fred46_tmp;',zpick))    
-    eval(sprintf('xlim_fred = [min(fred35_z%g.x) max(fred35_z%g.x)];',zpick,zpick))
-    eval(sprintf('zlim_fred = min(fred35_z%g.z) + 0.25*[-1 1];',zpick,zpick))
-    eval(sprintf('x_z%g = pic.xlim(xlim_fred).zlim(zlim_fred).xi;',zpick))
-    eval(sprintf('vExBx_z%g = squeeze(mean(pic.xlim(xlim_fred).zlim(zlim_fred).vExBx,1));',zpick))
-    eval(sprintf('vExBy_z%g = squeeze(mean(pic.xlim(xlim_fred).zlim(zlim_fred).vExBy,1));',zpick))
-    eval(sprintf('vExBz_z%g = squeeze(mean(pic.xlim(xlim_fred).zlim(zlim_fred).vExBz,1));',zpick))
+  for id = 1:ds.nd{1}
+    xlim_ = [ds.xi1{1}(id) ds.xi2{1}(id)];
+    zlim_ = [ds.zi1{1}(id) ds.zi2{1}(id)];    
+    pic_lim = no02m.xlim(xlim_).zlim(zlim_).twpelim(twpe);
+    %pic = no02m.twpelim(twpe);
+    %Bx_ = pic.Bx;
+    %By_ = pic.By;
+    %Bz_ = pic.Bz;
+    eval(sprintf('x_z%g(id) = mean(xlim_);',zpick))
+    eval(sprintf('z_z%g(id) = mean(zlim_);',zpick))
+%     eval(sprintf('vExBx_z%g(id) = mean(mean(pic_lim.vExBx));',zpick))
+%     eval(sprintf('vExBy_z%g(id) = mean(mean(pic_lim.vExBy));',zpick))
+%     eval(sprintf('vExBz_z%g(id) = mean(mean(pic_lim.vExBz));',zpick))
+    eval(sprintf('Ex_z%g(id) = mean(mean(pic_lim.Ex));',zpick))
+    eval(sprintf('Ey_z%g(id) = mean(mean(pic_lim.Ey));',zpick))
+    eval(sprintf('Ez_z%g(id) = mean(mean(pic_lim.Ez));',zpick))
   end
 end
 
@@ -1389,10 +1383,20 @@ tr = tr100;
 trs = tr.find([tr.z0]==4);
 trs = tr100(2:10);
 trs = tr100.find([tr100.ncross]>5,[tr100.Ustart]<1,tr100.xstart>95);
+trs = tr1;
 
 twpe = [18000 24000];
 xlim = [70 110];
 zlim = [-4 4];
+
+twpe = [18000 20000];
+xlim = [95 105];
+zlim = [-3 3];
+
+twpe = [18000 25000];
+xlim = [75 95];
+zlim = [-4 8];
+
 pic = no02m.twpelim(twpe).xlim(xlim).zlim(zlim);
 varstrs = {'A'}';
 clims = {[-1 1];[-1 1]};
@@ -1404,7 +1408,7 @@ cmaps = {cmapbr,cmapbr};
 cmaps = {cmapwa,cmapbr};
 
 clims = {[2 8]};
-filename = [printpath 'no02m_Ay_3traj_pm4'];
+filename = [printpath 'no02m_Ay_3traj_pm4_compact_tr1'];
 %pic.movie(varstrs,'A',1,'cmap',cmaps,'clim',clims,'filename',filename,'tr',trs,'trajcolordot',[trs.x0]);
 pic.movie(varstrs,'A',1,'cmap',cmaps,'clim',clims,'filename',filename,'tr',trs);
 
@@ -2143,4 +2147,5 @@ hlinks = linkprop(h(1:end),{'XLim','YLim','CLim'});
 %irf_plot_axis_align
 h(1).CLim = 0.99*[-4 2];
 h(1).YLim = 0.99*4*[-1 1];
+
 
