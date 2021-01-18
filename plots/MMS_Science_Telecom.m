@@ -148,20 +148,21 @@ fi_clim = [0 0.13];
 fe_clim = [0 0.02];
 fe_clim = [-4 log10(0.02)];
 
-nrows = 3;
-ncols = 1;
+nrows = 2;
+ncols = 3;
 h = setup_subplots(nrows,ncols,'horizontal');
 isub = 1;
-doE = 1; colorE = [0 0.8 0.8];
-doV = 1; colorV = 0*[1 1 1];
-doN = 1; colorN = [0 0 0];
-doExB = 1; colorExB = 0*[1 1 1]+0.5;
-doPhi = 1; colorPhi = [0.5 0.5 0];
+doE = 0; colorE = [0 0.8 0.8];
+doV = 0; colorV = 0*[1 1 1];
+doN = 0; colorN = [0 0 0];
+doExB = 0; colorExB = 0*[1 1 1]+0.5;
+doPhi = 0; colorPhi = [0.5 0.5 0];
 
 cmap_dist = pic_colors('waterfall');
 
 %freds = {fred35_z4,fred35_z4,fred35_z4,fred35_z2,fred35_z2,fred35_z2,fred35_z0,fred35_z0,fred35_z0};
-freds = {fred35_z0,fred35_z0,fred35_z0};
+freds = {fred35_z2,fred35_z2,fred35_z2};
+freds = {fred5_z2,fred5_z2,fred5_z2;fred5_z0,fred5_z0,fred5_z0}';
 %freds = {fred3_z4,fred3_z4,fred3_z4,fred3_z2,fred3_z2,fred3_z2,fred3_z0,fred3_z0,fred3_z0};
 labstrs = {'x','y','z','x','y','z','x','y','z'};
 

@@ -293,36 +293,42 @@ classdef PIC
       end          
     end
     function obj = xlim(obj,value,varargin)
-      % Get subset of x          
+      % pic.XLIM Get subset of xi (x/di).
+      %   pic.XLIM(100) - gives closest index
+      %   pic.XLIM([100 110]) - gives all indiced within range
+      %   pic.XLIM(10:1:110) - gives all indices that matches exactly 
+      %
+      % See also: PIC.ZLIM, PIC.TWPELIM, PIC.TWCILIM
       inds = obj.ind_from_lim(obj.xi_,value,varargin{:});
-      obj = obj.subset('x',inds);
-      
-      % Update grid and indices
-%       obj.xe_ = obj.xe_(inds);
-%       obj.xi_ = obj.xi_(inds);      
-%       obj.grid_{1} = obj.grid_{1}(inds);
-%       obj.ix_ = obj.grid_{1};
-%       field_names = fields(obj.xivar);
-%       for ifield = 1:numel(field_names)
-%         obj.xivar.(field_names{ifield}) = obj.xivar.(field_names{ifield})(inds);
-%       end
-%       
+      obj = obj.subset('x',inds);      
     end
     function obj = zlim(obj,value,varargin)
-      % Get subset of z
+      % pic.ZLIM Get subset of zi (z/di).
+      %   pic.ZLIM(100) - gives closest index
+      %   pic.ZLIM([100 110]) - gives all indiced within range
+      %   pic.ZLIM(10:1:110) - gives all indices that matches exactly 
+      %
+      % See also: PIC.XLIM, PIC.TWPELIM, PIC.TWCILIM 
       inds = obj.ind_from_lim(obj.zi_,value,varargin{:});
       obj = obj.subset('z',inds);
-%       obj.ze_ = obj.ze_(inds);
-%       obj.zi_ = obj.zi_(inds);      
-%       obj.grid_{2} = obj.grid_{2}(inds);
-%       obj.iz_ = obj.grid_{2};  
-%       field_names = fields(obj.zivar);
-%       for ifield = 1:numel(field_names)
-%         obj.zivar.(field_names{ifield}) = obj.zivar.(field_names{ifield})(inds);
-%       end
+    end
+    function obj = tlim(obj,value,varargin)
+      % pic.TLIM Get subset of t (twci). Same as pic.TWCILIM.
+      %   pic.TLIM(100) - gives closest index
+      %   pic.TLIM([100 110]) - gives all indiced within range
+      %   pic.TLIM(10:1:110) - gives all indices that matches exactly 
+      %
+      % See also: PIC.XLIM, PIC.ZLIM, PIC.TWCILIM, PIC.TWPELIM 
+      inds = obj.ind_from_lim(obj.twci,value,varargin{:});    
+      obj = obj.subset('t',inds);     
     end
     function obj = twpelim(obj,value,varargin)
-      % Get subset of twpe
+      % pic.TWPELIM Get subset of t (twpe).
+      %   pic.TWPELIM(1000) - gives closest index
+      %   pic.TWPELIM([1000 10000]) - gives all indiced within range
+      %   pic.TWPELIM(1000:200:10000) - gives all indices that matches exactly 
+      %
+      % See also: PIC.XLIM, PIC.ZLIM, PIC.TWCILIM 
       inds = obj.ind_from_lim(obj.twpe_,value,varargin{:});    
       obj = obj.subset('t',inds);
 %       obj.twpe_ = obj.twpe_(inds);
@@ -332,14 +338,14 @@ classdef PIC
 %       obj.iteration_ = obj.iteration_(inds);
     end
     function obj = twcilim(obj,value,varargin)
-      % Get subset of twci
+      % pic.TWCILIM Get subset of t (twci).
+      %   pic.TWCILIM(100) - gives closest index
+      %   pic.TWCILIM([100 110]) - gives all indiced within range
+      %   pic.TWCILIM(10:1:110) - gives all indices that matches exactly 
+      %
+      % See also: PIC.XLIM, PIC.ZLIM, PIC.TWPELIM 
       inds = obj.ind_from_lim(obj.twci,value,varargin{:});    
       obj = obj.subset('t',inds);
-%       obj.twpe_ = obj.twpe_(inds);
-%       obj.twci_ = obj.twci_(inds);
-%       obj.it_ = obj.it_(inds);
-%       obj.indices_ = obj.indices_(inds);
-%       obj.iteration_ = obj.iteration_(inds);
     end
     function obj = subset(obj,comp,inds)
       % select subset of indices
@@ -1033,8 +1039,17 @@ classdef PIC
       end
     end
     function varargout = plot_map(obj,varargin)
-      % Plots variables directly loaded from file
-      % h = pic.PLOTMAP({'Ey','Ez'})
+      % pic.PLOTMAP Plots variables in (x,z) map
+      %   h = pic.PLOTMAP(varstrs,'inp1','arg1',...);
+      %   [h,hb] = pic.PLOTMAP(varstrs,'inp1','arg1',...);
+      %   [h,hb,hlinks] = pic.PLOTMAP(varstrs,'inp1','arg1',...);
+      %
+      % Output:
+      %   h - handle to axes
+      %   hb - handle to colorbars
+      %   hlinks - handle to linked stuff, see linkprop.
+      
+     
       
       % Defaults
       doCBarLabels = 0;
@@ -1247,6 +1262,15 @@ classdef PIC
       lim_depx = plot_depx([1 end]);
       lim_depy = plot_depy([1 end]);
       
+%       [ax,args,nargs] = irf.axescheck(varargin{:}); 
+%       if not(isempty(ax)); plotInAxes = 1; doCompact = 0; end
+%       
+%       varstrs = args{1};
+%       args = args(2:end);
+%       nargs = nargs-1;
+%       have_options = 0;      
+%       if nargs > 0, have_options = 1; end
+      
       % Check input
       have_options = 0;
       nargs = numel(varargin);      
@@ -1342,10 +1366,11 @@ classdef PIC
       doSmooth = 0;
       doVertical = 0;
       plotInAxes = 0;
+      doCompact = 1;
                   
       % Check additional input     
-      [ax,args,nargs] = irf.axescheck(varargin{:}); 
-      if not(isempty(ax)); plotInAxes = 1; end
+      [ax,args,nargs] = irf.axescheck(varargin{:});       
+      if not(isempty(ax)); plotInAxes = 1; doCompact = 0; end
       dim = args{1}; % required input
       varstrs_all = args{2}; % required input
       args = args(3:end);
@@ -1473,7 +1498,9 @@ classdef PIC
         titlestring = [titlestring ', n_p^{smooth} = ' num2str(npSmooth)];
       end
       h(1).Title.String = titlestring;
-      compact_panels(0.01,0.01)
+      if doCompact
+        compact_panels(0.01,0.01)
+      end
       if doVertical
         hlinks = linkprop(h,{'YLim'});
         h(1).YLim = dep_lim;
@@ -3016,8 +3043,9 @@ classdef PIC
     % Convention is to build in the coordinate tranformation when loading
     % the Smilei data: x -> x, -z -> y, y -> z
     function out = A(obj)
+      % pic.A Magnetic vector potential Ay.
       if 1 %any(contains(obj.fields,'A')) % stored as field
-        out = get_field(obj,'A');
+       	out = get_field(obj,'A');
       else % calculate it
          if strcmp(obj.software,'micPIC')
           Bx =  obj.Bx;
@@ -3178,7 +3206,11 @@ classdef PIC
     end
     % Density
     function out = n(obj,species)
-      % Get density n of selected populations
+      % pic.N Density of selected populations defined by indices.
+      %   iSpecies = [2 4]; n = pic.N(iSpecies);
+      %   n = pic.N(1);
+      %   n = pic.N([1 3]);
+      % See also PIC.NI, PIC.NE
       
       % Check that only a single species is given (unique charge)
       % Different masses are ok (for example protons and oxygen)
@@ -3203,18 +3235,29 @@ classdef PIC
       out = n;
     end
     function out = ne(obj)
-      % Get total electron density
+      % pic.NE Total electron density.      
+      %   ne = pic.NE;      
+      % See also PIC.N, PIC.NI
       iSpecies = find(obj.get_charge == -1); % negatively charge particles are electrons
       out = obj.n(iSpecies);
     end
     function out = ni(obj)
-      % Get total ion density
+      % pic.NI Total ion density.
+      %   ni = pic.NI;      
+      % See also PIC.N, PIC.NE
       iSpecies = find(obj.get_charge == 1); % negatively charge particles are electrons
       out = obj.n(iSpecies);
     end
     % Flux
     function out = jx(obj,species)
-      % Get flux: jx
+      % pic.JX Particle flux jx = n*vx of selected populations.      
+      %     iSpecies = [2 4]; jx = pic.JX(iSpecies);
+      %     jx = pic.JX(1);
+      %     jx = pic.JX([1 3]);
+      %   To get partial current, you need to multiply with charge (1,-1).      
+      %   Jx = pic.JIX - pic.JEX;
+      % See also: PIC.JY, PIC.JZ, PIC.JEX, PIC.JEY, PIC.JEZ, PIC.JIX,
+      %   PIC.JIY, PIC.JIZ
       
       % Check that only a single species of a given charge is given
       if not(numel(unique(obj.charge(species))) == 1)
@@ -3311,19 +3354,22 @@ classdef PIC
     end
     % Velocity
     function out = vx(obj,species)
-      % Get velocity vx            
+      % pic.VX Velocity vx of selected populations.
+      %     iSpecies = [2 4]; vx = pic.VX(iSpecies);
+      %     vx = pic.VX(1);
+      %     vx = pic.VX([1 3]);     
       n = obj.n(species);
       jx = obj.jx(species);      
       out = jx./n;      
     end
     function out = vy(obj,species)
-      % Get velocity vx            
+      % Get velocity vy          
       n = obj.n(species);
       jy = obj.jy(species);      
       out = jy./n;      
     end
     function out = vz(obj,species)
-      % Get velocity vx            
+      % Get velocity vz            
       n = obj.n(species);
       jz = obj.jz(species);      
       out = jz./n;      
@@ -3347,15 +3393,15 @@ classdef PIC
       out = obj.jez./obj.ne;
     end
     function out = vix(obj)
-      % Get electron velocity, x
+      % Get ion velocity, x
       out = obj.jix./obj.ni;
     end
     function out = viy(obj)
-      % Get electron velocity, y
+      % Get ion velocity, y
       out = obj.jiy./obj.ni;
     end
     function out = viz(obj)
-      % Get electron velocity, z
+      % Get ion velocity, z
       out = obj.jiz./obj.ni;
     end   
     % Current
@@ -4285,11 +4331,11 @@ classdef PIC
       out  = obj.get_exp('-Bx');
     end
     function out = par(obj,field,species)
-      if exist('species','var')
+      if exist('species','var') % 
         x = obj.([field ,'x'])(species);
         y = obj.([field ,'y'])(species);
         z = obj.([field ,'z'])(species);
-      else
+      else % E, B, J
         x = obj.([field ,'x']);
         y = obj.([field ,'y']);
         z = obj.([field ,'z']);
@@ -5006,9 +5052,25 @@ classdef PIC
     end
     function out = RA(obj)
       % Reconnection rate from vector potential dA/dt at X line
-      %out = h5read(obj.file,'/scalar_timeseries/R/A');
-      out = obj.get_timeline_attributes('RA');
+      % out = h5read(obj.file,'/scalar_timeseries/R/A');      
+      out = obj.get_timeline_attributes('RA');        
+      if all(isnan(out))
+        disp('''out = obj.get_timeline_attributes(''RA'');'' did not work.')
+        disp('Trying: ''out = obj.get_timeline_attributes(''Axline'');''')      
+        Aval = obj.get_timeline_attributes('Axline');
+        dA = diff(Aval);
+        dt = diff(obj.twci);
+        times = obj.twci;
+        dAdt_ = dA./dt;
+        dAdt = interp1(times(1:end-1)+0.5*dt,dAdt_,times);
+        out  = -dAdt;
+      end
       out = out(obj.indices_);
+    end
+    function out = Axline(obj)
+      % A value at X line position
+      A_xline = obj.get_timeline_attributes('Axline');
+      out = A_xline(obj.indices,:);
     end
     function out = xline_position(obj)
       % X line position
@@ -5096,7 +5158,27 @@ classdef PIC
       %
       %   KB = PIC.MAGNETIC_CURVATURE;
       %     KB is centered on "basic grid": pic.xi/pic.zi, pic.xe/pic.ze.
-
+      doParent = 0;
+      % Interpolating (I think) makes some end points nan (z end points i think).
+      % So use the parent to in
+      if obj.iz(1) > 2 && obj.iz(end) < obj.parent.nz-1 && obj.ix(1) > 2 && obj.ix(end) < obj.parent.nx-1
+        doParent = 1;
+      end
+      if doParent
+        obj_orig = obj;
+        obj = obj_orig.parent;
+        obj = obj.twpelim(obj_orig.twpe);
+        old_inds_x = obj_orig.ix;
+        old_inds_z = obj_orig.iz;
+        new_inds_x = obj_orig.ix; new_inds_x = [new_inds_x(1)+[-2 -1] new_inds_x new_inds_x(end)+[1 2]];
+        new_inds_z = obj_orig.iz; new_inds_z = [new_inds_z(1)+[-2 -1] new_inds_z new_inds_z(end)+[1 2]];
+        new_inds_x = intersect(obj.ix,new_inds_x); % remove if any are outside max
+        new_inds_z = intersect(obj.iz,new_inds_z); % remove if any are outside max      
+        obj = obj.subset('x',new_inds_x).subset('z',new_inds_z);
+        diff_ind_x = setdiff(new_inds_x,old_inds_x);
+        diff_ind_z = setdiff(new_inds_z,old_inds_z);
+      end
+      
       % Load B, consider loading one extra point
       Bx = obj.Bx;
       By = obj.By;
@@ -5127,7 +5209,7 @@ classdef PIC
       % cell... But choose the cell based on grid. No, just do interpolate
       % instead.
       
-      if 1
+%       if 1
       % 2D mesh of grid points, for interpolating
       [XI_EY,ZI_EY] = meshgrid(obj.xivar.Ey,obj.zivar.Ey);
       [XI_BY,ZI_BY] = meshgrid(obj.xivar.By,obj.zivar.By);
@@ -5146,7 +5228,7 @@ classdef PIC
       dzbz = interp2(XI_BY(1:end-1,:),ZI_BY(1:end-1,:),dzbz_',XI_EY,ZI_EY)';
       
       dzbx = zeros(obj.nx,obj.nz);
-      dzbx(:,1) = (bx(:,2)-bx(:,1))/(dz); % just the same as the pount inside
+      dzbx(:,1) = (bx(:,2)-bx(:,1))/(dz); % just the same as the point inside
       dzbx(:,2:end) = diff(bx,1,2)/dz;
       dybx = 0;
       dxbx_ = diff(bx,1,2); % this ends up on By part of grid
@@ -5164,32 +5246,58 @@ classdef PIC
       by_at_ey = interp2(XI_BY,ZI_BY,by',XI_EY,ZI_EY)';
       bz_at_ey = interp2(XI_BZ,ZI_BZ,bz',XI_EY,ZI_EY)';
       
+      % quick fix for nan endpoints due to interp2, assign closest value
+      bx_at_ey(:,1) = bx_at_ey(:,2); bx_at_ey(:,end) = bx_at_ey(:,end-1);
+      by_at_ey(:,1) = by_at_ey(:,2); by_at_ey(:,end) = by_at_ey(:,end-1);      
+      bz_at_ey(:,1) = bz_at_ey(:,2); bz_at_ey(:,end) = bz_at_ey(:,end-1);
+      bx_at_ey(1,:) = bx_at_ey(2,:); bx_at_ey(end,:) = bx_at_ey(end-1,:);
+      by_at_ey(1,:) = by_at_ey(2,:); by_at_ey(end,:) = by_at_ey(end-1,:);
+      bz_at_ey(1,:) = bz_at_ey(2,:); bz_at_ey(end,:) = bz_at_ey(end-1,:);
+      dxbx(:,1) = dxbx(:,2); dxbx(:,end) = dxbx(:,end-1);
+      dxbx(1,:) = dxbx(2,:); dxbx(end,:) = dxbx(end-1,:);
+      dzbz(:,1) = dzbz(:,2); dzbz(:,end) = dzbz(:,end-1);
+      dzbz(1,:) = dzbz(2,:); dzbz(end,:) = dzbz(end-1,:);
+      dxby(:,1) = dxby(:,2); dxby(:,end) = dxby(:,end-1);
+      dxby(1,:) = dxby(2,:);
+      dzby(:,1) = dzby(:,2); dzby(:,end) = dzby(:,end-1);
+      dzby(:,2) = dzby(:,3);
+      dzby(:,1) = dzby(:,2); dzby(:,end) = dzby(:,end-1);
+      dzby(1,:) = dzby(2,:); dzby(end,:) = dzby(end-1,:);
+      
       bcurv_x = bx_at_ey.*dxbx + by_at_ey.*dybx + bz_at_ey.*dzbx;
       bcurv_y = bx_at_ey.*dxby + by_at_ey.*dyby + bz_at_ey.*dzby;
       bcurv_z = bx_at_ey.*dxbz + by_at_ey.*dybz + bz_at_ey.*dzbz;
       
-      
-      else % -- old
-      dxbx = diff(bx,1,1)/dx; dxbx(end+1,:) = dxbx(end,:);
-      dybx = 0;
-      dzbx = diff(bx,1,2); dzbx(:,end+1) = dzbx(:,end);
-      dxby = diff(by,1,1); dxby(end+1,:) = dxby(end,:);
-      dyby = 0;
-      dzby = diff(by,1,2); dzby(:,end+1) = dzby(:,end);
-      dxbz = diff(bz,1,1); dxbz(end+1,:) = dxbz(end,:);
-      dybz = 0;
-      dzbz = diff(bz,1,2); dzbz(:,end+1) = dzbz(:,end);
-      bcurv_x = bx.*dxbx/dx + by.*dybx/dy + bz.*dzbx/dz;
-      bcurv_y = bx.*dxby/dx + by.*dyby/dy + bz.*dzby/dz;
-      bcurv_z = bx.*dxbz/dx + by.*dybz/dy + bz.*dzbz/dz;
-      end
+      1;
+%       else % -- old
+%       dxbx = diff(bx,1,1)/dx; dxbx(end+1,:) = dxbx(end,:);
+%       dybx = 0;
+%       dzbx = diff(bx,1,2); dzbx(:,end+1) = dzbx(:,end);
+%       dxby = diff(by,1,1); dxby(end+1,:) = dxby(end,:);
+%       dyby = 0;
+%       dzby = diff(by,1,2); dzby(:,end+1) = dzby(:,end);
+%       dxbz = diff(bz,1,1); dxbz(end+1,:) = dxbz(end,:);
+%       dybz = 0;
+%       dzbz = diff(bz,1,2); dzbz(:,end+1) = dzbz(:,end);
+%       bcurv_x = bx.*dxbx/dx + by.*dybx/dy + bz.*dzbx/dz;
+%       bcurv_y = bx.*dxby/dx + by.*dyby/dy + bz.*dzby/dz;
+%       bcurv_z = bx.*dxbz/dx + by.*dybz/dy + bz.*dzbz/dz;
+%       end
 
+      if doParent
+        bcurv_x = bcurv_x(3:end-2,3:end-2);
+        bcurv_y = bcurv_y(3:end-2,3:end-2);
+        bcurv_z = bcurv_z(3:end-2,3:end-2);
+      end
+      
+      
       bcurv.units = 'wpi/c';
       bcurv.x = bcurv_x;
       bcurv.y = bcurv_y;
       bcurv.z = bcurv_z;
       bcurv.abs = sqrt(bcurv_x.^2 + bcurv_y.^2 + bcurv_z.^2);
       out = bcurv;
+      
     end
     function out = curvb(obj)
       %
@@ -5296,6 +5404,9 @@ classdef PIC
         B(ixlim,:) = Bz_peak;
       end
     end  
+    function out = fft(obj,dim)
+      
+    end
     
     function out = xmesh(obj)
       x = obj.xi;

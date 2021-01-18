@@ -2477,3 +2477,227 @@ h(7).CLim = 5*[-1 1];
 h(8).CLim = 5*[-1 1];
 h(9).CLim = 5*[-1 1];
 h(10).CLim = [0 0.1];
+%% PICDist.plot_map, with something with curvature
+twpe = 24000;
+%ds = ds01.twpelim(twpe).zfind([0 1 2 3]).xfind(140:3:210);
+%ds = ds100.twpelim(twpe).xlim([80 90]).zlim([2 7]);
+xpos = [70:2:80];
+%Bz = no02m.twpelim(twpe).zlim(0).xlim(xpos).Bz;
+mi = 1; qi = 1;
+%fciz = Bz*qi/mi;
+vvec = 1:1:3;
+%rciz = vvec/fciz;
+
+ds = ds100.twpelim(twpe).xlim([60 100]).zlim([0 1]);
+ds = ds100.twpelim(twpe).findtag({'A=-6'}).xlim([65 100]);
+ds = ds100.twpelim(twpe).findtag({'A=-7'}).xlim([70 90]).zlim([-1 4]);
+ds = ds100.twpelim(twpe).findtag({'line horizontal'}).xlim([70 80]).zfind(0).xfind(xpos);
+pic = no02m.twpelim(twpe).xlim([40 110]).zlim([-1 10]);
+
+sumdim = 3;
+%ds = ds04.dxlim([0.3 1]).twpelim([8000]).zfind(2).xfind(170);
+clim = [-4 1];
+xlim = 4*0.99*[-1 1];
+ylim = 4*0.99*[-1 1];
+fontsize = 16;
+%h = ds.plot_map([1],sumdim,'bline',no02m,'v',no02m,'frac',[1 3 5]); % ,'log'
+%h = ds.plot_map([4],sumdim,'bline',no02m,'v',no02m,'frac',[4 6]); % ,'log'
+%h = ds.plot_map([3],sumdim,'bline',nobg,'v',nobg,'diff',[5]); % ,'log'
+%h = ds.plot_map([3 5],sumdim,'bline',df04n,'v',df04n); % ,'log'
+h = ds.plot_map([3 5],sumdim,'v',no02m,'log','curv',{no02m,1}); % 
+%h = ds.plot_map([3],sumdim,'bline',nobg,'v',nobg,'diff',[5],'log'); %
+%h = ds.plot_map([3],sumdim,'bline',nobg,'v',nobg,'frac',[5],'log'); % 
+hlinks = linkprop(h.ax,{'XLim','YLim','CLim','XTick','YTick'});
+compact_panels(0.00,0.00)
+[hax,hlab] = label_panels(h.ax);
+h.ax(1).CLim = clim;
+%h.ax(1).CLim = [0 1];
+h.ax(1).XLim = xlim;
+h.ax(1).YLim = ylim;
+%c_eval('hlab(?).FontSize = 12;',1:18)
+%c_eval('h.ax(?).FontSize = 14;',1:numel(h.ax))
+%c_eval('h.leg(?).FontSize = 12;',1:numel(h.leg))
+%colormap([1 1 1; pic_colors('blue_red')])
+%colormap([1 1 1; pic_colors('blue_red'); 1 1 1])
+
+%% plotline, curvature
+comp = 'x';
+twpe = 24000;
+xlim = [10 190];
+%xlim = [160 260];
+zlim = 0.0+0.25*[-1 1];
+pic = no02m.twpelim(twpe,'exact').xlim(xlim).zlim(zlim);
+varstrs = {{'Bz','By','Bx','Babs'};{'curvbx','curvby','curvbz','curvbabs'};{'curvbrad'};{'1./(curvbrad.*Babs)'};{'curvbrad.*Babs'}};
+
+h = pic.plot_line(comp,varstrs);
+
+%% Curvature plot, combined
+clear h;
+nrows = 4;
+ncols = 3;
+h(1) = subplot(nrows,ncols,1:3);
+h1pos = h(1).Position;
+h(2) = subplot(nrows,ncols,4:6);
+h2pos = h(2).Position;
+c_eval('h(?+2) = subplot(nrows,ncols,?+6);',1:6);
+twpe = 24000;
+xpos = [70:2:80];
+fontsize = 14;
+xlim = [40 110];
+
+ds = ds100.twpelim(twpe).findtag({'line horizontal'}).xlim([70 80]).zfind(0).xfind(xpos);
+pic = no02m.twpelim(twpe).xlim(xlim).zlim([-7 7]);
+
+hca = h(1);
+hmap = pic.plot_map(hca,{'log10(curvbrad)'},'A',1,'cmap',pic_colors('blue_red'),'cbarlabels',{'log_{10}r_B'},'smooth',2);
+hmap.CLim = [-1 3];
+hca.Position = h1pos;
+hold(hca,'on')
+ds.plot_boxes(hca);
+hold(hca,'off')
+
+hca = h(2);
+comp = 'x';
+hline = pic.xlim([63 xlim(2)]).zlim([-0.25 0.25]).plot_line(hca,comp,{{'Babs','curvbrad','curvbrad.*Babs'}},'smooth',10);
+hca.Position = h2pos;
+hca.YLim = [0 5];
+legend(hca,{'|B|','r_B','r_B\omega_{ci}'},'location','west')
+hca.Title.String = [];
+hca.XLim = xlim;
+hca.Position(2) = hca.Position(2) + 0.08;
+compact_panels(h(1:2),0)
+c_eval('h(?).Position(2) = h(?).Position(2) + 0.03;',1:2)
+irf_legend(hca,{'z=0\pm0.25'},[0.98 0.98],'color',[0 0 0],'fontsize',fontsize)
+
+ih0 = 2;
+sumdim = 3;
+clim = [-4 1];
+xlim = 4*0.99*[-1 1];
+ylim = 4*0.99*[-1 1];
+hds = ds.plot_map(h(ih0+(1:6)),[3 5],sumdim,'v',no02m,'log','curv',{no02m,1},'nolabel'); % 
+hlinks = linkprop(hds.ax,{'XLim','YLim','CLim','XTick','YTick'});
+c_eval('hds.ax(?).Position(2) = hds.ax(?).Position(2) + 0.10;',1:3)
+compact_panels(hds.ax,0.00,0.00)
+%[hax,hlab] = label_panels(hds.ax);
+hds.ax(1).CLim = clim;
+%h.ax(1).CLim = [0 1];
+hds.ax(1).XLim = xlim;
+hds.ax(1).YLim = ylim;
+c_eval('hds.ax(?).XLabel.String = []; hds.ax(?).XTickLabels = [];',[1 2 3]);
+c_eval('hds.ax(?).YLabel.String = []; hds.ax(?).YTickLabels = [];',[2 3 5 6]);
+
+legends = {'a)','b)','c)','d)','e)','f)','g)','h)'};
+x0 = (ds.xi1{1}+ds.xi2{1})/2;
+c_eval('irf_legend(hds.ax(?),sprintf(''%s x = %g'',legends{?+ih0},x0(?)),[0.02 0.98],''color'',[0 0 0],''fontsize'',fontsize);',1:6);
+%c_eval('hlab(?).FontSize = 12;',1:18)
+%c_eval('h.ax(?).FontSize = 14;',1:numel(h.ax))
+%c_eval('h.leg(?).FontSize = 12;',1:numel(h.leg))
+%colormap([1 1 1; pic_colors('blue_red')])
+%colormap([1 1 1; pic_colors('blue_red'); 1 1 1])
+
+irf_legend(hmap,{'a)'},[0.02 0.98],'color',[0 0 0],'fontsize',fontsize)
+irf_legend(h(2),{'b)'},[0.02 0.98],'color',[0 0 0],'fontsize',fontsize)
+
+c_eval('h(?).FontSize = fontsize;',1:numel(h));
+c_eval('h(?).Position(1) = h(?).Position(1)-0.04;',1:numel(h));
+
+hlines = findobj(hds.ax(6).Children,'type','line');
+hscat = findobj(hds.ax(6).Children,'type','scatter');
+hleg=legend([hlines;hscat],{'r_B','v_{ExB}','v_{bulk}'},'location','southeast');
+
+hpos = hds.ax(3).Position;
+hcb = colorbar('peer',hds.ax(3));
+hds.ax(3).Position = hpos;
+hcb.Position(2) = hds.ax(6).Position(2);
+hcb.Position(4) = 2*hcb.Position(4);
+hcb.YLabel.String = 'log_{10}f(v_x,v_y)';
+%% Curvature plot, combined, also including f(vx,vz) at z=2 to illustrate inward vs outward beam temperature
+clear h;
+nrows = 4;
+ncols = 6;
+h(1) = subplot(nrows,ncols,1:ncols);
+h1pos = h(1).Position;
+h(2) = subplot(nrows,ncols,ncols+(1:6));
+h2pos = h(2).Position;
+c_eval('h(?+2) = subplot(nrows,ncols,?+2*ncols);',1:12);
+twpe = 24000;
+xpos = [70:2:80];
+fontsize = 14;
+xlim = [40 110];
+
+ds = ds100.twpelim(twpe).findtag({'line horizontal'}).xlim([70 80]).zfind(0).xfind(xpos);
+ds2 = ds100.twpelim(twpe).findtag({'line horizontal'}).xlim([70 80]).zfind(2).xfind(xpos);
+pic = no02m.twpelim(twpe).xlim(xlim).zlim([-7 7]);
+
+hca = h(1);
+hmap = pic.plot_map(hca,{'log10(curvbrad)'},'A',1,'cmap',pic_colors('blue_red'),'cbarlabels',{'log_{10}r_B'},'smooth',2);
+hmap.CLim = [-1 3];
+hca.Position = h1pos;
+hold(hca,'on')
+ds.plot_boxes(hca,'color',[1 1 1]);
+ds2.plot_boxes(hca,'color',[0 0 0]);
+hold(hca,'off')
+
+hca = h(2);
+comp = 'x';
+hline = pic.xlim([63 xlim(2)]).zlim([-0.25 0.25]).plot_line(hca,comp,{{'Babs','curvbrad','curvbrad.*Babs'}},'smooth',10);
+hca.Position = h2pos;
+hca.YLim = [0 3.99];
+legend(hca,{'|B|','r_B','r_B\omega_{ci}'},'location','west')
+hca.Title.String = [];
+hca.XLim = xlim;
+hca.Position(2) = hca.Position(2) + 0.08;
+compact_panels(h(1:2),0)
+c_eval('h(?).Position(2) = h(?).Position(2) + 0.03;',1:2)
+irf_legend(hca,{'z=0\pm0.25'},[0.98 0.98],'color',[0 0 0],'fontsize',fontsize)
+
+ih0 = 2;
+sumdim = 3;
+clim = [-4 1];
+xlim = 3.5*0.99*[-1 1];
+ylim = 3.5*0.99*[-1 1];
+hds = ds.plot_map(h(ih0+(1:6)),[3 5],sumdim,'v',no02m,'log','curv',{no02m,1},'nolabel'); % 
+hlinks = linkprop(hds.ax,{'XLim','YLim','CLim','XTick','YTick'});
+c_eval('hds.ax(?).Position(2) = hds.ax(?).Position(2) + 0.10;',1:6)
+hds.ax(1).Position(1) = h(1).Position(1);
+compact_panels(hds.ax,0.00,0.00)
+c_eval('irf_legend(hds.ax(?),sprintf(''%s x = %g, z = 0'',legends{?+ih0},x0(?)),[0.02 0.98],''color'',[0 0 0],''fontsize'',fontsize);',1:6);
+%[hax,hlab] = label_panels(hds.ax);
+hds.ax(1).CLim = clim;
+%h.ax(1).CLim = [0 1];
+hds.ax(1).XLim = xlim;
+hds.ax(1).YLim = ylim;
+%c_eval('hds.ax(?).XLabel.String = []; hds.ax(?).XTickLabels = [];',[1 2 3]);
+c_eval('hds.ax(?).YLabel.String = []; hds.ax(?).YTickLabels = [];',2:6);
+%
+
+ih0 = 8;
+hds2 = ds2.plot_map(h(ih0+(1:6)),[3 5],2,'v',no02m,'bline',no02m,'log','nolabel'); % 
+legends = {'a)','b)','c)','d)','e)','f)','g)','h)','i)','k)','l)','m)','n)','o)'};
+x0 = (ds2.xi1{1}+ds2.xi2{1})/2;
+c_eval('irf_legend(hds2.ax(?),sprintf(''%s x = %g, z = 2'',legends{?+ih0},x0(?)),[0.02 0.98],''color'',[0 0 0],''fontsize'',fontsize);',1:6);
+hds2.ax(1).Position(1) = h(1).Position(1);
+%c_eval('hds2.ax(?).Position(2) = hds2.ax(?).Position(2) + 0.10;',1:3)
+compact_panels(hds2.ax,0.00,0.00)
+c_eval('hds2.ax(?).YLabel.String = []; hds2.ax(?).YTickLabels = [];',2:6);
+hds2.ax(1).CLim = clim;
+%h.ax(1).CLim = [0 1];
+hds2.ax(1).XLim = xlim;
+hds2.ax(1).YLim = ylim;
+
+irf_legend(hmap,{'a)'},[0.02 0.98],'color',[0 0 0],'fontsize',fontsize)
+irf_legend(h(2),{'b)'},[0.02 0.98],'color',[0 0 0],'fontsize',fontsize)
+
+c_eval('h(?).FontSize = fontsize;',1:numel(h));
+c_eval('h(?).Position(1) = h(?).Position(1)-0.04;',1:numel(h));
+%%
+hlines = findobj(hds.ax(6).Children,'type','line');
+hscat = findobj(hds.ax(6).Children,'type','scatter');
+hleg=legend([hlines;hscat],{'r_B','v_{ExB}','v_{bulk}'},'location','southeast');
+
+hpos = hds.ax(3).Position;
+hcb = colorbar('peer',hds.ax(3));
+hds.ax(3).Position = hpos;
+hcb.Position(2) = hds.ax(6).Position(2);
+hcb.Position(4) = 2*hcb.Position(4);
+hcb.YLabel.String = 'log_{10}f(v_x,v_y)';

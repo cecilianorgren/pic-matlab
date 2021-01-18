@@ -22,7 +22,7 @@ h = pic.plot_line(comp,varstrs);
 
 twpe = 24000; xlim = [50 155]; zlim = [-15 15];
 
-for zpick = [0]
+for zpick = [0 2]
   ds = ds100.twpelim(twpe).zfind(zpick).xlim(xlim).findtag({'line horizontal'});
   xdist = (ds.xi1{1}+ds.xi2{1})/2;
   zdist = (ds.zi1{1}+ds.zi2{1})/2;

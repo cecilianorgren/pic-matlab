@@ -29,7 +29,7 @@ for it = 1:pic_orig.nt
   
   % Write data to file
   h5write_fields_ancillary(pic_tmp,pic_tmp.twpe,'A',A)
-  h5write_fields_ancillary(pic_tmp,pic_tmp.twpe,'Axline',AXline)
+  h5write_attr(pic_tmp,pic_tmp.twci,'Axline',AXline)
   h5write_attr(pic_tmp,pic_tmp.twci,'xline_position',[xXline' zXline'])
   h5write_attr(pic_tmp,pic_tmp.twci,'RE',EyXline)  
   h5write_attr(pic_tmp,pic_tmp.twci,'UB',UB)

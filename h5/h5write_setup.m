@@ -21,16 +21,16 @@ h5write_fields(datapath,h5filepath,15000:1000:16000,nSpecies)
 %     Ey_xline - Ey at main X line (reconnection electric field)
 
 % First read object
-pic = PIC(h5filepath); % If you have many times saved, this can take up to a miute
+pic = PIC(h5filepath); % If you have many times saved, this can take up to a minute
 h5write_fields_complement(pic)
 
 % To work with the new data, the PIC object needs to be reloaded. Susanne, 
 % if you use this hdf5 format, stop to use clear all (otherwise you need to 
 % reload the object every time).
 
-%% Add affitional times
+%% Add additional times
 timesteps = 17000:1000:18000;
 h5write_fields(datapath,h5filepath,timesteps,nSpecies)
-pic = PIC(h5filepath); % If you have may times saved, this ca take up to a miute
+pic = PIC(h5filepath); % If you have may times saved, this can take up to a minute
 h5write_fields_complement(pic.twpelim(timesteps,'exact'))
 

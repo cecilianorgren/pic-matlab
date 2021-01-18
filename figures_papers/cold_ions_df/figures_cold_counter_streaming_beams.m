@@ -1,5 +1,5 @@
 %% Figure 1, reconnection rate vs density and temperature
-pic = nobg;
+pic = no02m;
 
 zlim = [-0.1 0.1];
 xlim = diff(pic.xi([1 end]))/2 + [-130 130];
