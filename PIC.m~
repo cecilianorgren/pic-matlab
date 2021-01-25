@@ -549,6 +549,8 @@ classdef PIC
       stepA = 0.5;
       trajargs = {};
       print_flag = 1;
+      doSmooth = 0;
+      npSmooth = 1;
       colorMapTraj = pic_colors('waterfall');
       
       ntimes = obj.length;
@@ -575,6 +577,10 @@ classdef PIC
             l = 2;
           case {'cola'}
             colorA = args{2};
+            l = 2;
+          case 'smooth'
+            doSmooth = 1;
+            npSmooth = args{2};
             l = 2;
           case {'trajargs','trarg','argtraj','argtr'}
             trajargs = args{2};
@@ -689,10 +695,13 @@ classdef PIC
 %               else
 %                 var = tmp_obj.(varstrs{ivar});
 %               end        
-              var = tmp_obj.get_exp(varstrs{ivar});
-              %imagesc(hca,tmp_obj.xi,tmp_obj.zi,var');
+              var = tmp_obj.get_exp(varstrs{ivar});              
+              if doSmooth
+                var = smooth2(var,npSmooth);
+              end
+              imagesc(hca,tmp_obj.xi,tmp_obj.zi,var');
               %contourf(hca,tmp_obj.xi,tmp_obj.zi,var',0:0.25:25);
-              contourf(hca,tmp_obj.xi,tmp_obj.zi,var',2:0.2:8);
+              %contourf(hca,tmp_obj.xi,tmp_obj.zi,var',2:0.2:8);
               hb(ivar) = colorbar('peer',hca);
               if doCBarLabels
                 hb(ivar).YLabel.String = cBarLabels{ivar};
@@ -811,6 +820,7 @@ classdef PIC
         %drawnow;
         h(1).Title.String = sprintf('twpe = %.0f, twci = %.1f',tmp_obj.twpe,tmp_obj.twci);
         compact_panels(0.01)
+%        h(3).Position(3) = h(2).Position(3);
         % Collect frames
         pause(1)
         if doVideo
@@ -871,6 +881,8 @@ classdef PIC
       doYLim = 0;
       fileName = 'movie'; % deafult filenam (including path, mp4 added later)
       doSmooth = 0;
+      doColor = 0;
+      doVarLabels = 0;
      
       % Which dimension to plot against
       if strcmp(dim,'x')
@@ -895,8 +907,12 @@ classdef PIC
       if nargs > 0, have_options = 1; args = varargin(:); end      
       while have_options
         l = 1;
-        switch(lower(args{1}))          
+        switch(lower(args{1}))
           case 'ylim'
+            l = 2;
+            doYLim = 1;  
+            ylims = args{2};
+          case 'color'
             l = 2;
             doYLim = 1;  
             ylims = args{2};
@@ -1227,7 +1243,7 @@ classdef PIC
       
       % Defaults
       doA = 0;
-      
+      doXline = 0;
       
       % Which dimension to plot against
       if strfind(dim,'x')
@@ -1262,6 +1278,15 @@ classdef PIC
       lim_depx = plot_depx([1 end]);
       lim_depy = plot_depy([1 end]);
       
+%       [ax,args,nargs] = irf.axescheck(varargin{:}); 
+%       if not(isempty(ax)); plotInAxes = 1; doCompact = 0; end
+%       
+%       varstrs = args{1};
+%       args = args(2:end);
+%       nargs = nargs-1;
+%       have_options = 0;      
+%       if nargs > 0, have_options = 1; end
+      
       % Check input
       have_options = 0;
       nargs = numel(varargin);      
@@ -1273,6 +1298,9 @@ classdef PIC
             doA = 1;
             stepA = args{2};
             l = 2;
+          case 'xline'
+            doXline = 1;
+            l = 1;
           otherwise 
             warning(sprintf('Unknown argument %s.',args{1}))
         end
@@ -1294,7 +1322,14 @@ classdef PIC
           iAdepy = 1:1:numel(plot_depy);
         end
       end
-      
+      if doXline
+        if sum_dim == 1 % z
+          depx_xline = pic.z_xline;
+          depy_xline = 
+        elseif sum_dim == 2 % x
+          pos_xline = pic.x_xline;
+        end
+      end
       [nrows,ncols] = size(varstrs);      
       for ip = 1:nrows*ncols
         h(ip) = subplot(nrows,ncols,ip);
@@ -1329,6 +1364,11 @@ classdef PIC
           contour(hca,plot_depx(iAdepx),plot_depy(iAdepy),A(iAdepy,iAdepx),levA,'k')
           hold(hca,'off')
         end
+        if doXline
+          hold(hca,'on')
+          plot(hca,,1)
+          hold(hca,'off')
+        end
         hca.CLim = clim;   
         drawnow;
       end
@@ -1357,10 +1397,11 @@ classdef PIC
       doSmooth = 0;
       doVertical = 0;
       plotInAxes = 0;
+      doCompact = 1;
                   
       % Check additional input     
-      [ax,args,nargs] = irf.axescheck(varargin{:}); 
-      if not(isempty(ax)); plotInAxes = 1; end
+      [ax,args,nargs] = irf.axescheck(varargin{:});       
+      if not(isempty(ax)); plotInAxes = 1; doCompact = 0; end
       dim = args{1}; % required input
       varstrs_all = args{2}; % required input
       args = args(3:end);
@@ -1488,7 +1529,9 @@ classdef PIC
         titlestring = [titlestring ', n_p^{smooth} = ' num2str(npSmooth)];
       end
       h(1).Title.String = titlestring;
-      compact_panels(0.01,0.01)
+      if doCompact
+        compact_panels(0.01,0.01)
+      end
       if doVertical
         hlinks = linkprop(h,{'YLim'});
         h(1).YLim = dep_lim;
@@ -3033,7 +3076,7 @@ classdef PIC
     function out = A(obj)
       % pic.A Magnetic vector potential Ay.
       if 1 %any(contains(obj.fields,'A')) % stored as field
-       	
+       	out = get_field(obj,'A');
       else % calculate it
          if strcmp(obj.software,'micPIC')
           Bx =  obj.Bx;
@@ -5146,20 +5189,26 @@ classdef PIC
       %
       %   KB = PIC.MAGNETIC_CURVATURE;
       %     KB is centered on "basic grid": pic.xi/pic.zi, pic.xe/pic.ze.
-
+      doParent = 0;
       % Interpolating (I think) makes some end points nan (z end points i think).
       % So use the parent to in
-      if obj.iz(1) > 2
-      obj_orig = obj;
-      obj = obj_orig.parent;
-      obj = obj.twpelim(obj_orig.twpe);
-      new_inds_x = obj_orig.ix; new_inds_x = [new_inds_x(1)+[-1 -2] new_inds_x new_inds_x(end)+[1 2]];
-      new_inds_z = obj_orig.iz; new_inds_z = [new_inds_z(1)+[-1 -2] new_inds_z new_inds_z(end)+[1 2]];
-      new_indz_x = intersect(obj.ix,new_inds_x); % remove if any are outside max
-      new_indz_z = intersect(obj.iz,new_inds_z); % remove if any are outside max      
-      obj = obj.subset('x',new_indz_x).subset('z',new_indz_z);
-      diff_ind_x = setdiff(obj.ix,new_inds_x);
-      diff_ind_z = setdiff(obj.iz,new_inds_z);
+      if obj.iz(1) > 2 && obj.iz(end) < obj.parent.nz-1 && obj.ix(1) > 2 && obj.ix(end) < obj.parent.nx-1
+        doParent = 1;
+      end
+      if doParent
+        obj_orig = obj;
+        obj = obj_orig.parent;
+        obj = obj.twpelim(obj_orig.twpe);
+        old_inds_x = obj_orig.ix;
+        old_inds_z = obj_orig.iz;
+        new_inds_x = obj_orig.ix; new_inds_x = [new_inds_x(1)+[-2 -1] new_inds_x new_inds_x(end)+[1 2]];
+        new_inds_z = obj_orig.iz; new_inds_z = [new_inds_z(1)+[-2 -1] new_inds_z new_inds_z(end)+[1 2]];
+        new_inds_x = intersect(obj.ix,new_inds_x); % remove if any are outside max
+        new_inds_z = intersect(obj.iz,new_inds_z); % remove if any are outside max      
+        obj = obj.subset('x',new_inds_x).subset('z',new_inds_z);
+        diff_ind_x = setdiff(new_inds_x,old_inds_x);
+        diff_ind_z = setdiff(new_inds_z,old_inds_z);
+      end
       
       % Load B, consider loading one extra point
       Bx = obj.Bx;
@@ -5266,9 +5315,11 @@ classdef PIC
 %       bcurv_z = bx.*dxbz/dx + by.*dybz/dy + bz.*dzbz/dz;
 %       end
 
-%       bcurv_x(diff_ind_x,diff_ind_z) = [];
-%       bcurv_y(diff_ind_x,diff_ind_z) = [];
-%       bcurv_z(diff_ind_x,diff_ind_z) = [];
+      if doParent
+        bcurv_x = bcurv_x(3:end-2,3:end-2);
+        bcurv_y = bcurv_y(3:end-2,3:end-2);
+        bcurv_z = bcurv_z(3:end-2,3:end-2);
+      end
       
       
       bcurv.units = 'wpi/c';
@@ -5384,6 +5435,9 @@ classdef PIC
         B(ixlim,:) = Bz_peak;
       end
     end  
+    function out = fft(obj,dim)
+      
+    end
     
     function out = xmesh(obj)
       x = obj.xi;

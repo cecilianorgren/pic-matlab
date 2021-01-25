@@ -1,7 +1,7 @@
 %% Initial conditions
 pic = no02m;
 comp = 'z';
-twpe = 1000;
+twpe = 18000;
 xlim = 53+0.5*[-1 1];
 zlim = pic.zi([1 end]);
 pic = pic.xlim(xlim).zlim(zlim).twpelim(twpe,'exact');
@@ -23,11 +23,10 @@ h.FontSize = 14;
 h.Title.String = 'Initial density configuration';
 
 %% Movie, ncold/ntot
-twpe = 17000:100:24000;
+twpe = 15000:100:24000;
 xlim = no02m.xi([1 end])+[40 -40]';
 zlim = [-8 8];
 pic = no02m.xlim(xlim).zlim(zlim).twpelim(twpe,'exact');
-tr
 cmapbr = pic_colors('blue_red');
 cmapwa = pic_colors('waterfall');
 

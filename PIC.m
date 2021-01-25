@@ -549,6 +549,8 @@ classdef PIC
       stepA = 0.5;
       trajargs = {};
       print_flag = 1;
+      doSmooth = 0;
+      npSmooth = 1;
       colorMapTraj = pic_colors('waterfall');
       
       ntimes = obj.length;
@@ -575,6 +577,10 @@ classdef PIC
             l = 2;
           case {'cola'}
             colorA = args{2};
+            l = 2;
+          case 'smooth'
+            doSmooth = 1;
+            npSmooth = args{2};
             l = 2;
           case {'trajargs','trarg','argtraj','argtr'}
             trajargs = args{2};
@@ -689,10 +695,13 @@ classdef PIC
 %               else
 %                 var = tmp_obj.(varstrs{ivar});
 %               end        
-              var = tmp_obj.get_exp(varstrs{ivar});
-              %imagesc(hca,tmp_obj.xi,tmp_obj.zi,var');
+              var = tmp_obj.get_exp(varstrs{ivar});              
+              if doSmooth
+                var = smooth2(var,npSmooth);
+              end
+              imagesc(hca,tmp_obj.xi,tmp_obj.zi,var');
               %contourf(hca,tmp_obj.xi,tmp_obj.zi,var',0:0.25:25);
-              contourf(hca,tmp_obj.xi,tmp_obj.zi,var',2:0.2:8);
+              %contourf(hca,tmp_obj.xi,tmp_obj.zi,var',2:0.2:8);
               hb(ivar) = colorbar('peer',hca);
               if doCBarLabels
                 hb(ivar).YLabel.String = cBarLabels{ivar};
@@ -811,6 +820,7 @@ classdef PIC
         %drawnow;
         h(1).Title.String = sprintf('twpe = %.0f, twci = %.1f',tmp_obj.twpe,tmp_obj.twci);
         compact_panels(0.01)
+%        h(3).Position(3) = h(2).Position(3);
         % Collect frames
         pause(1)
         if doVideo
@@ -871,6 +881,8 @@ classdef PIC
       doYLim = 0;
       fileName = 'movie'; % deafult filenam (including path, mp4 added later)
       doSmooth = 0;
+      doColor = 0;
+      doVarLabels = 0;
      
       % Which dimension to plot against
       if strcmp(dim,'x')
@@ -895,8 +907,12 @@ classdef PIC
       if nargs > 0, have_options = 1; args = varargin(:); end      
       while have_options
         l = 1;
-        switch(lower(args{1}))          
+        switch(lower(args{1}))
           case 'ylim'
+            l = 2;
+            doYLim = 1;  
+            ylims = args{2};
+          case 'color'
             l = 2;
             doYLim = 1;  
             ylims = args{2};
@@ -1227,7 +1243,7 @@ classdef PIC
       
       % Defaults
       doA = 0;
-      
+      doXline = 0;
       
       % Which dimension to plot against
       if strfind(dim,'x')
@@ -1282,6 +1298,9 @@ classdef PIC
             doA = 1;
             stepA = args{2};
             l = 2;
+          case 'xline'
+            doXline = 1;
+            l = 1;
           otherwise 
             warning(sprintf('Unknown argument %s.',args{1}))
         end
@@ -1303,7 +1322,22 @@ classdef PIC
           iAdepy = 1:1:numel(plot_depy);
         end
       end
-      
+      if doXline
+        switch dim
+          case 'xt'
+            x_xline = pic.z_xline;
+            y_xline = pic.twci;
+          case 'zt'
+            x_xline = pic.z_xline;
+            y_xline = pic.twci;
+          case 'tx'
+            y_xline = pic.z_xline;
+            x_xline = pic.twci;
+          case 'tz'
+            y_xline = pic.z_xline;
+            x_xline = pic.twci;
+        end
+      end
       [nrows,ncols] = size(varstrs);      
       for ip = 1:nrows*ncols
         h(ip) = subplot(nrows,ncols,ip);
@@ -1336,6 +1370,11 @@ classdef PIC
         if doA
           hold(hca,'on')
           contour(hca,plot_depx(iAdepx),plot_depy(iAdepy),A(iAdepy,iAdepx),levA,'k')
+          hold(hca,'off')
+        end
+        if doXline
+          hold(hca,'on')
+          plot(hca,x_xline,y_xline,'linewidth',1,'color',[0 0 0])
           hold(hca,'off')
         end
         hca.CLim = clim;   

@@ -1,0 +1,24 @@
+%% Movie of vex, Epar, log10(ne)
+
+twpe = 15000:1000:25000;
+xlim = no02m.xi([1 end])+[60 -60]';
+xlim = []
+zlim = [-1 8];
+pic = no02m.xlim(xlim).zlim(zlim).twpelim(twpe,'exact');
+
+cmapbr = pic_colors('blue_red');
+cmapwa = pic_colors('waterfall');
+cmapth = pic_colors('thermal');
+%cmapjet = colormap('jet');
+
+
+varstrs = {'ni','log10(ni)'}';
+varstrs = {'vex','Epar','log10(ne)'}';
+clims = {[-6 6],[-0.5 0.5],[-2 0.5]};
+
+% varstrs = {'n([3 5])','t([3 5])'}';
+% clims = {[0 0.5],[0 0.5]};
+cmaps = {cmapbr,cmapbr,cmapth};
+cbarlabels = {'v_{ex}','E_{||}','log_{10}(n_e)'};
+filename = [printpath 'cospar_intro_video'];
+pic.movie(varstrs,'A',1,'cmap',cmaps,'clim',clims,'cbarlabels',cbarlabels,'filename',filename);
