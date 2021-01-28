@@ -288,3 +288,39 @@ for ip = 1:numel(h)
   h(ip).FontSize = 14;
   %hb(ip).FontSize = 14;
 end
+
+%% Illustrating thermalization vs. superposition
+colors = pic_colors('matlab');
+vt = 1;
+n = 1;
+v = linspace(-20,30,1000);
+
+f = @(v,n,vd,vt) n./sqrt(vt).*exp(-(v-vd).^2./vt.^2);
+
+
+if 1
+  hca = subplot(2,1,1);
+  %set(hca,'ColorOrder',colors); hold(hca,'on')
+  plot(hca,v,f(v,1,0,1),'-','color',[0 0 0])
+  hold(hca,'on')  
+  plot(hca,v,f(v,1,0,5),'--','color',[0 0 0])
+  hold(hca,'off')
+  hca.Visible = 'off';
+  hca.YLim = [0 1];
+end
+if 1
+  hca = subplot(2,1,2);
+  vt = 5;
+  vdstep = 5;
+  plot(hca,v,f(v,1,0*vdstep,vt),'--',v,f(v,1,1*vdstep,vt*1.2),'--',v,f(v,1,2*vdstep,vt*1.4),'--',v,f(v,1,3*vdstep,vt*1.6),'--','color',[0 0 0])
+  hold(hca,'on')
+  plot(hca,v,f(v,1,0*vdstep,vt)+f(v,1,1*vdstep,vt*1.2)+f(v,1,2*vdstep,vt*1.4)+f(v,1,3*vdstep,vt*1.6),':','color',[0 0 0],'linewidth',1)
+  hold(hca,'off')
+  %hca.Box = 'off';
+  %hca.XTick = [];
+  %hca.YTick = [];
+  hca.Visible = 'off';
+  hca.YLim = [0 1];
+end
+
+

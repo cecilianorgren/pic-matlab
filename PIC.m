@@ -1347,16 +1347,17 @@ classdef PIC
         hca = h(ivar);
         % check if input demand som andditional input, e.g. n(1)
         tic
-        if strfind(varstrs{ivar},'(')
-          ind1 = strfind(varstrs{ivar},'(');
-          ind2 = strfind(varstrs{ivar},')');
-          %varsplit = regexp(varstrs{ivar}, '(?<var>\w+)\W+(?<ind>\d)\W+','names');
-          indstr = varstrs{ivar}(ind1+1:ind2-1);
-          varstr =  varstrs{ivar}(1:ind1-1);
-          var = obj.(varstr)(eval(indstr));
-        else
-          var = obj.(varstrs{ivar});
-        end
+%         if strfind(varstrs{ivar},'(')
+%           ind1 = strfind(varstrs{ivar},'(');
+%           ind2 = strfind(varstrs{ivar},')');
+%           %varsplit = regexp(varstrs{ivar}, '(?<var>\w+)\W+(?<ind>\d)\W+','names');
+%           indstr = varstrs{ivar}(ind1+1:ind2-1);
+%           varstr =  varstrs{ivar}(1:ind1-1);
+%           var = obj.(varstr)(eval(indstr));
+%         else
+%           var = obj.(varstrs{ivar});
+%         end
+        var = obj.get_exp(varstrs{ivar});
         toc
         var = permute(squeeze(nanmean(var,sum_dim)),permuteorder);
         pcolor(hca,plot_depx,plot_depy,var);
