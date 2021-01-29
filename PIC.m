@@ -292,6 +292,24 @@ classdef PIC
           error('Number of inputs not supported.')
       end          
     end
+    function obj = xgrid(obj,inds)
+      % pic.XGRID Get subset of x indices.
+      %   pic.XGRID(100) - 
+      %   pic.XGRID([100 110]) - 
+      %   pic.XGRID(10:1:110) - 
+      %
+      % See also: PIC.ZLIM, PIC.TWPELIM, PIC.TWCILIM      
+      obj = obj.subset('x',inds);      
+    end
+    function obj = zgrid(obj,inds)
+      % pic.ZGRID Get subset of z indices.
+      %   pic.ZGRID(100) - 
+      %   pic.ZGRID([100 110]) - 
+      %   pic.ZGRID(10:1:110) - 
+      %
+      % See also: PIC.XLIM, PIC.TWPELIM, PIC.TWCILIM      
+      obj = obj.subset('z',inds);
+    end
     function obj = xlim(obj,value,varargin)
       % pic.XLIM Get subset of xi (x/di).
       %   pic.XLIM(100) - gives closest index
