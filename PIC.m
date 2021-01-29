@@ -2935,7 +2935,9 @@ classdef PIC
         %iIter
         iAtt = find(contains({fileInfo.Groups(iGroup).Groups(iIter).Attributes.Name},attr_str));
         if numel(iAtt)>1
-          warning(sprintf('Found more than one (partial) match to %s, choosing the first match %s.',attr_str,fileInfo.Groups(iGroup).Groups(iIter).Attributes(iAtt(1)).Name))
+          if iIter == 1
+            warning(sprintf('Found more than one (partial) match to %s, choosing the first match %s.',attr_str,fileInfo.Groups(iGroup).Groups(iIter).Attributes(iAtt(1)).Name))
+          end
           iAtt = iAtt(1);
         end
         if not(isempty(iAtt))
