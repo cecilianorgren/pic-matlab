@@ -1949,6 +1949,30 @@ classdef PIC
         
       end
     end
+    function out = get_points(obj,x,z,t,range,field,varargin)
+      % Pic outs values in given spatial range around a given point
+      %   out = get_points(obj,x,z,t,field,range,varargin)
+      %
+      nt = numel(t);
+      if nt == 1
+        nP = numel(x);
+        t = repmat(t,nP,1);
+      else
+        nP = nt;
+      end
+      nPoints = nP;      
+      var = nan(nPoints,1);
+      
+      for iP = 1:nPoints
+        tmppic = obj.xlim(x(iP)+range).zlim(z(iP)+range).twcilim(t(iP));
+        tmpt =  tmppic.twci;
+        tmpx =  tmppic.xi;
+        tmpz =  tmppic.zi;          
+        tmpvar = tmppic.get_exp(field);         
+        var(iP) = mean(mean(tmpvar));   
+      end
+      out = var;
+    end
     function [Ex,Ey,Ez,Bx,By,Bz] = interp_EB(obj,x,z,t,varargin)
       % Interpolate field to a given point (x,z,t)
       % Used in paarticular for integrating particle trajectories. Proceed

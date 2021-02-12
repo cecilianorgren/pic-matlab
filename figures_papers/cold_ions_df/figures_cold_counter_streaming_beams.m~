@@ -948,16 +948,16 @@ if 1 % xcut
   %legend(hca,{'n_{hot}','n_{cold}','|B|'},'location','northwest','box','off')
 end
 
-h(1).YLim = [0 1.7];
+h(1).YLim = [0 1.5];
 h(2).YLim = h(1).YLim;
 
 ax2all(1).YLim = [4 11.3];
-ax2all(1).YLim = [0 17];
+ax2all(1).YLim = [0 15];
 ax2all(2).YLim = ax2all(1).YLim;
 
 h(3).XLim = [4 11.3];
 h(4).XLim = h(3).XLim;
-h(3).YLim = [0 1.7];
+h(3).YLim = [0 1.5];
 h(4).YLim = h(3).YLim;
 
 
@@ -989,7 +989,5 @@ end
 ax2all(1).Position = h(1).Position;
 ax2all(2).Position = h(2).Position;
 
-irf_legend(h(1),{['inflow: t\omega_{ci} = ' sprintf('%g',twci1)]},[0.02 0.98],'fontsize',14,'color',[0 0 0],'fontweight','bold')
-irf_legend(h(2),{['outflow: t\omega_{ci} = ' sprintf('%g',twci2)]},[0.02 0.98],'fontsize',14,'color',[0 0 0],'fontweight','bold')
-irf_legend(h(3),{['inflow: t\omega_{ci} = ' sprintf('%g',twci1)]},[0.02 0.98],'fontsize',14,'color',[0 0 0],'fontweight','bold')
-irf_legend(h(4),{['outflow: t\omega_{ci} = ' sprintf('%g',twci2)]},[0.02 0.98],'fontsize',14,'color',[0 0 0],'fontweight','bold')
+irf_legend(h(1),{['t\omega_{ci} = ' sprintf('%g, inflow',twci2)]},[0.02 0.98],'fontsize',12,'color',[0 0 0])
+irf_legend(h(2),{['t\omega_{ci} = ' sprintf('%g, outflow',twci1)]},[0.02 0.98],'fontsize',12,'color',[0 0 0])

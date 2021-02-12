@@ -292,6 +292,24 @@ classdef PIC
           error('Number of inputs not supported.')
       end          
     end
+    function obj = xgrid(obj,inds)
+      % pic.XGRID Get subset of x indices.
+      %   pic.XGRID(100) - 
+      %   pic.XGRID([100 110]) - 
+      %   pic.XGRID(10:1:110) - 
+      %
+      % See also: PIC.ZLIM, PIC.TWPELIM, PIC.TWCILIM      
+      obj = obj.subset('x',inds);      
+    end
+    function obj = zgrid(obj,inds)
+      % pic.ZGRID Get subset of z indices.
+      %   pic.ZGRID(100) - 
+      %   pic.ZGRID([100 110]) - 
+      %   pic.ZGRID(10:1:110) - 
+      %
+      % See also: PIC.XLIM, PIC.TWPELIM, PIC.TWCILIM      
+      obj = obj.subset('z',inds);
+    end
     function obj = xlim(obj,value,varargin)
       % pic.XLIM Get subset of xi (x/di).
       %   pic.XLIM(100) - gives closest index
@@ -1323,11 +1341,19 @@ classdef PIC
         end
       end
       if doXline
-        if sum_dim == 1 % z
-          depx_xline = pic.z_xline;
-          depy_xline = 
-        elseif sum_dim == 2 % x
-          pos_xline = pic.x_xline;
+        switch dim
+          case 'xt'
+            x_xline = pic.z_xline;
+            y_xline = pic.twci;
+          case 'zt'
+            x_xline = pic.z_xline;
+            y_xline = pic.twci;
+          case 'tx'
+            y_xline = pic.z_xline;
+            x_xline = pic.twci;
+          case 'tz'
+            y_xline = pic.z_xline;
+            x_xline = pic.twci;
         end
       end
       [nrows,ncols] = size(varstrs);      
@@ -1339,16 +1365,17 @@ classdef PIC
         hca = h(ivar);
         % check if input demand som andditional input, e.g. n(1)
         tic
-        if strfind(varstrs{ivar},'(')
-          ind1 = strfind(varstrs{ivar},'(');
-          ind2 = strfind(varstrs{ivar},')');
-          %varsplit = regexp(varstrs{ivar}, '(?<var>\w+)\W+(?<ind>\d)\W+','names');
-          indstr = varstrs{ivar}(ind1+1:ind2-1);
-          varstr =  varstrs{ivar}(1:ind1-1);
-          var = obj.(varstr)(eval(indstr));
-        else
-          var = obj.(varstrs{ivar});
-        end
+%         if strfind(varstrs{ivar},'(')
+%           ind1 = strfind(varstrs{ivar},'(');
+%           ind2 = strfind(varstrs{ivar},')');
+%           %varsplit = regexp(varstrs{ivar}, '(?<var>\w+)\W+(?<ind>\d)\W+','names');
+%           indstr = varstrs{ivar}(ind1+1:ind2-1);
+%           varstr =  varstrs{ivar}(1:ind1-1);
+%           var = obj.(varstr)(eval(indstr));
+%         else
+%           var = obj.(varstrs{ivar});
+%         end
+        var = obj.get_exp(varstrs{ivar});
         toc
         var = permute(squeeze(nanmean(var,sum_dim)),permuteorder);
         pcolor(hca,plot_depx,plot_depy,var);
@@ -1366,7 +1393,7 @@ classdef PIC
         end
         if doXline
           hold(hca,'on')
-          plot(hca,,1)
+          plot(hca,x_xline,y_xline,'linewidth',1,'color',[0 0 0])
           hold(hca,'off')
         end
         hca.CLim = clim;   
@@ -1921,6 +1948,91 @@ classdef PIC
       function out = get_pic_obj(pic)
         
       end
+    end
+    function out = get_points(obj,x,z,t,field,range,varargin)
+      % Interpolates fields to given x,z,t
+      %   out = interp(obj,x,z,t,field,varargin)
+      %
+      
+      
+      method = 'linear';
+      nBounding = 1;
+      if strcmp(method,'linear')
+        nClosest = 2;
+      end
+      
+      nt = numel(t);
+      if nt == 1
+        nP = numel(x);
+        t = repmat(t,nP,1);
+      else nP = nt;
+      end
+%       sizex = size(x);
+%       sizez = size(z);
+%       idim_tx = sizex==nt;
+%       idim_tz = sizez==nt;
+%       nx = sizex(find(not(idim_tx)));
+%       nz = sizex(find(not(idim_tz)));
+      
+      
+      
+      nPoints = nP;      
+      var = nan(nPoints,1);
+      
+      for iP = 1:nPoints
+        tmppic = obj.xlim(x(iP)+range).zlim(z(iP)+range).twcilim(t(iP));           
+        
+        %iP
+        % Make sure we get the pic object we need.
+        %tmppic = get_pic_obj(obj);
+        try
+        if t(iP) == obj.twci(end) || t(iP) == obj.twci(1) % do 2D interpolation
+          tmppic = obj.xlim(x(iP),'closest',nClosest).zlim(z(iP),'closest',nClosest).twcilim(t(iP));           
+          tmpt =  tmppic.twci;
+          tmpx =  tmppic.xi;
+          tmpz =  tmppic.zi;          
+          tmpvar = tmppic.get_exp(field); 
+          [X,Z] = meshgrid(tmpx,tmpz);
+          var(iP) = interp2(X,Z,tmpvar,x(iP),z(iP),method);
+        elseif any(abs(obj.xi - x(iP)) < 1e-5) % end up very close to grid point, do 3 closest
+          tmppic = obj.xlim(x(iP),'closest',3).zlim(z(iP),'closest',nClosest).twcilim(t(iP),'bounding',nBounding);
+          tmpt =  tmppic.twci;
+          tmpx =  tmppic.xi;
+          tmpz =  tmppic.zi;          
+          tmpvar = tmppic.get_exp(field); 
+          [X,Z,T] = meshgrid(tmpx,tmpz,tmpt);
+          var(iP) = interp3(X,Z,T,permute(tmpvar,[2 1 3]),x(iP),z(iP),t(iP),method);
+         elseif any(abs(obj.zi - z(iP)) < 1e-5) % end up very close to grid point, do 3 closest
+          tmppic = obj.xlim(x(iP),'closest',nClosest).zlim(z(iP),'closest',3).twcilim(t(iP),'bounding',nBounding);
+          tmpt =  tmppic.twci;
+          tmpx =  tmppic.xi;
+          tmpz =  tmppic.zi;          
+          tmpvar = tmppic.get_exp(field); 
+          [X,Z,T] = meshgrid(tmpx,tmpz,tmpt);
+          var(iP) = interp3(X,Z,T,permute(tmpvar,[2 1 3]),x(iP),z(iP),t(iP),method);
+        else
+          tmppic = obj.xlim(x(iP),'closest',nClosest).zlim(z(iP),'closest',nClosest).twcilim(t(iP),'bounding',nBounding);  
+          tmpt =  tmppic.twci;
+          tmpx =  tmppic.xi;
+          tmpz =  tmppic.zi;
+          tmpvar = tmppic.get_exp(field);
+          [X,Z,T] = meshgrid(tmpx,tmpz,tmpt);
+          var(iP) = interp3(X,Z,T,permute(tmpvar,[2 1 3]),x(iP),z(iP),t(iP),method);
+        end
+        % Check so no value ends up o the edges of, then the interpolation
+        % doesn't work.
+        
+        % Interpolate to particle position
+        % Vq = interp3(V,Xq,Yq,Zq) assumes X=1:N, Y=1:M, Z=1:P where [M,N,P]=SIZE(V).      
+
+        %[X,Z,T] = meshgrid(tmpx,tmpz,tmpt);  
+%         try
+%         var(iP) = interp3(X,Z,T,permute(tmpvar,[2 1 3]),x(iP),z(iP),t(iP),method);
+        catch
+          1;
+        end        
+      end
+      out = var;
     end
     function [Ex,Ey,Ez,Bx,By,Bz] = interp_EB(obj,x,z,t,varargin)
       % Interpolate field to a given point (x,z,t)
@@ -2925,6 +3037,12 @@ classdef PIC
         % redo to actually find the 
         %iIter
         iAtt = find(contains({fileInfo.Groups(iGroup).Groups(iIter).Attributes.Name},attr_str));
+        if numel(iAtt)>1
+          if iIter == 1
+            warning(sprintf('Found more than one (partial) match to %s, choosing the first match %s.',attr_str,fileInfo.Groups(iGroup).Groups(iIter).Attributes(iAtt(1)).Name))
+          end
+          iAtt = iAtt(1);
+        end
         if not(isempty(iAtt))
           datasize = fileInfo.Groups(iGroup).Groups(iIter).Attributes(iAtt).Dataspace.Size;          
           attr(iIter,:) = fileInfo.Groups(iGroup).Groups(iIter).Attributes(iAtt).Value;

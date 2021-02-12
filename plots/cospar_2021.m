@@ -70,14 +70,14 @@ h.Title.String = 'Initial density configuration';
 %% Transition from hot dense to cold tenuous inflow
 pic = no02m;
 if 0 % Calculate density at and above xline
-  pic_Bxline_z05 = pic.interp(pic.x_xline,pic.z_xline+0.5,pic.twci,'Bx');
-  pic_nxline_z05 = pic.interp(pic.x_xline,pic.z_xline+0.5,pic.twci,'ne');
+  %pic_Bxline_z05 = pic.interp(pic.x_xline,pic.z_xline+0.5,pic.twci,'Bx');
+  %pic_nxline_z05 = pic.interp(pic.x_xline,pic.z_xline+0.5,pic.twci,'ne');
   pic_Bxline_z1 = pic.interp(pic.x_xline,pic.z_xline+1,pic.twci,'Bx');
   pic_nxline_z1 = pic.interp(pic.x_xline,pic.z_xline+1,pic.twci,'ne');
-  pic_nxline_z0 = pic.interp(pic.x_xline,pic.z_xline+0,pic.twci,'ne');
+  %pic_nxline_z0 = pic.interp(pic.x_xline,pic.z_xline+0,pic.twci,'ne');
   pic_tixline_z1 = pic.interp(pic.x_xline,pic.z_xline+1,pic.twci,'ti');
   pic_vA_z1 = squeeze(pic_Bxline_z1./sqrt(pic_nxline_z1));
-  pic_vA_z05 = squeeze(pic_Bxline_z05./sqrt(pic_nxline_z05));
+  %pic_vA_z05 = squeeze(pic_Bxline_z05./sqrt(pic_nxline_z05));
 end
 % Figure
 zlim = [-0.5 0.5];
