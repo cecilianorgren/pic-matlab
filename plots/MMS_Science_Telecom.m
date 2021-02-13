@@ -2081,7 +2081,7 @@ if holdon
   holdon = 0; 
 end
   
-%% Reduced distributiin plot, with trajectory initial positions
+%% Reduced distribution plot, with trajectory initial positions
 
 % What to include
 % - overview of where boxes are
