@@ -549,6 +549,8 @@
       doSmooth = 0;
       plotInAxes = 0;
       doLabel = 1;
+      doNaN = 0;
+      doExB = 0;
       
       [ax,args,nargs] = irf.axescheck(varargin{:}); 
       iSpecies = args{1}; args = args(2:end); nargs = nargs - 1;
@@ -588,6 +590,10 @@
             doV = 1;
             pic = args{2};
             l = 2;
+          case 'exb'
+            doExB = 1;
+            pic = args{2};
+            l = 2;            
           case 'log'
             doLog = 1;            
             l = 1;
@@ -619,6 +625,9 @@
             l = 2;
           case 'nolabel'
             doLabel = 0;
+            l = 1;
+          case 'nan'
+            doNaN = 1;
             l = 1;
         end
         args = args((1+l):end);
@@ -789,9 +798,12 @@
             fplot = log10(f.f);
           else
             fplot = f.f;
-          end
+          end          
           if doSmooth
             fplot = smooth2(fplot,npSmooth);
+          end
+          if doNaN
+            fplot(fplot==0) = NaN;
           end
           imagesc(hca,f.v,f.v,fplot')
           %hca.XLabel.String = '';
@@ -882,6 +894,26 @@
             hold(hca,'on')                
             %hVDot = plot(hca,v1,v2,'Marker','x','color',[0 0 0]);
             hVDot = scatter(hca,v1,v2,30,[0 0 0],'Marker','x');
+            hold(hca,'off')
+          end
+          if doExB
+            pic_tmp = pic.twpelim(obj.twpe,'exact').xlim(f.x).zlim(f.z);
+%             switch sumdim
+%               case 2 % xz
+%                 v1 = mean(mean(pic_tmp.vExBx));                
+%                 v2 = mean(mean(pic_tmp.vExBz));
+%               case 1 % yz
+%                 v1 = mean(mean(pic_tmp.vExBy));                
+%                 v2 = mean(mean(pic_tmp.vExBz));
+%               case 3 % xy
+%                 v1 = mean(mean(pic_tmp.vExBx));                
+%                 v2 = mean(mean(pic_tmp.vExBy));
+%             end
+            vExB1 = mean(mean(pic.twpelim(obj.twpe,'exact').xlim(f.x).zlim(f.z).(['vExB' xaxstr])));
+            vExB2 = mean(mean(pic.twpelim(obj.twpe,'exact').xlim(f.x).zlim(f.z).(['vExB' yaxstr])));            
+            hold(hca,'on')                
+            %hVDot = plot(hca,v1,v2,'Marker','x','color',[0 0 0]);
+            hVExB = scatter(hca,vExB1,vExB2,20,[0 0 0],'Marker','o');
             hold(hca,'off')
           end
           if doNumber
