@@ -1164,7 +1164,7 @@ end
 %ds = ds01.zfind(3);
 %fred = ds.reduce_1d_new('x',[5],[]);
 twpe = 10000; xlim = [130 110]; zlim = [-8 8];
-twpe = 24000; xlim = [60 80]; zlim = [-8 8];
+twpe = 23000; xlim = [60 80]; zlim = [-8 8];
 
 %ds = ds100.twpelim(twpe).findtag({'A=-6'});
 %ds = ds100.twpelim(twpe).zfind(0).findtag({'line horizontal'});
@@ -1212,6 +1212,7 @@ else % make reduced distributions
   %fred46_z4 = ds.reduce_1d_new('x',[4 6],[],'vpar',{Bx,By,Bz},'pitch',{Bx,By,Bz});
   
 end
+% save('/Volumes/Fountain/Data/PIC/no_hot_bg_n02_m100/matlab//fred_twpe23000_A75.mat','fred35_A75','fred46_A75','fred3_A75')
 %% Plot
 fredi_str = '3'; iSpecies = [3];
 frede_str = '3'; eSpecies = [3];
@@ -1261,7 +1262,7 @@ Epar_ = interpfield(pic.xi,pic.zi,pic.Epar,xinterp,zinterp);
 fi_clim = [0 0.0499];
 fe_clim = [0 1.3e-2];
 
-nrows = 5;
+nrows = 6;
 ncols = 1;
 h = setup_subplots(nrows,ncols);
 isub = 1;
@@ -1312,7 +1313,8 @@ end
 if 1 % line position on map, Epar
   isMap(end+1) = isub; 
   hca = h(isub); isub = isub + 1;
-  imagesc(hca,pic_lim.xi,pic_lim.zi,smooth2(pic_lim.Epar,3)');
+  %imagesc(hca,pic_lim.xi,pic_lim.zi,smooth2(pic_lim.Epar,3)');
+  imagesc(hca,pic_lim.xi,pic_lim.zi,pic_lim.Epar');
   colormap(hca,pic_colors('blue_red'));
   hcb = colorbar('peer',hca);
   hca.CLim = max(max(get(findobj(hca.Children,'type','Image'),'CData')))*[-1 1];
@@ -1452,6 +1454,17 @@ if 0 % Epar, int(Epar)dl
   end
   hca.YLabel.String = 'E_{||}, \int E_{||}dl_{||}'; 
   
+  hca.XLabel.String = 'arclength (d_i)';  
+  hca.XGrid = 'on';
+  hca.YGrid = 'on';
+end
+if 1 % z
+  hca = h(isub); isub = isub + 1;  
+  %plot(hca,arclength_interp,Epar_,arclength_interp,ni_,arclength_interp,ne_,arclength_interp,(ni_-ne_)*10)  
+  %legend(hca,{'E_{||}','n_{i,cold}','n_{e,cold}','ni-ne'},'location','eastoutside')   
+  plotyy(hca,arclength,zdist,arclength,xdist)    
+  hca.YLabel.String = 'x, z';   
+  legend(hca,{'x','z'},'location','best')
   hca.XLabel.String = 'arclength (d_i)';  
   hca.XGrid = 'on';
   hca.YGrid = 'on';

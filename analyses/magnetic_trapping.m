@@ -8,7 +8,7 @@ iIonHot = [1];
 iEleHot = [2];
 
 %%
-twpe = 24000;
+twpe = 23000;
 % Field region
 xlim = [20 180]; 
 zlim = [-12 12];

@@ -9,7 +9,7 @@ iIonHot = [1];
 iEleHot = [2];
 
 %% Make overview plot to show the location of distribution and fits
-twpe = 24000;
+twpe = 23000;
 % Field
 xlim = [65 75]; 
 zlim = [-6 6];
@@ -21,10 +21,11 @@ xdist = (ds.xi1{1}+ds.xi2{1})/2;
 zdist = (ds.zi1{1}+ds.zi2{1})/2;
 arclength = [0 cumsum(sqrt(diff(xdist).^2 + diff(zdist).^2))];
 %arclength = arclength(end:-1:1);
-arcval = 4;
-arcval = 4.3;
-arcval = 5.2;
-arcval = 4.5;
+arcval = 4; % twpe=24000
+arcval = 4.3; % twpe=24000
+arcval = 5.2; % twpe=24000
+arcval = 4.5; % twpe=24000
+arcval = 7; % twpe=23000
 arccenter = (arclength(end)-arclength(1))/2;
 idist = find(abs(arclength-arcval-arccenter)==min(abs(arclength-arcval-arccenter)));
 xzarcdist = [xdist zdist arclength];
@@ -46,6 +47,35 @@ mime = 25;
 dist_param = arcval;
 f_max = @(v,n,vt,vd) n/sqrt(pi*vt^2)*exp(0.5*(v-vd).^2./(vt.^2));
 switch dist_param
+  case 7 % hot ebg
+    n = [0.05 0.08 0.15 0.11 0.13 0.04];
+    vd = [0.5 1.15 0.05 -2.1 3 0.5]; % m/s
+    vt = [1.5 0.3 0.07 2.8 3.0 4.0];
+    
+    n = [0.05 0.08 0.15 0.11 0.13 0.04];
+    vd = [0.5 1.15 0.05 -2.1 2.7 0.5]; % m/s
+    vt = [1.5 0.3 0.07 2.8 3.0 4.0];
+    
+    m = [1 1 1 1/100 1/100 1/100]*1;
+    q = [1 1 1 -1 -1 -1]*qe;     
+    iIncl = [1 2 3];
+    eIncl = [4 5 6];
+    wp = sqrt(n./m);
+    x = 0.1;
+    k_min = 0.2;
+  case 7000001
+    n = [0.05 0.08 0.15 0.14 0.14];
+    vd = [0.5 1.15 0.05 -2 3]; % m/s
+    vt = [1.5 0.3 0.07 3.5 3.5];
+    %vd = [0.5 0.95 0.025 -3 4]; % m/s
+    %vt = [1.5 0.20 0.05 6 6];
+    m = [1 1 1 1/100 1/100]*1;
+    q = [1 1 1 -1 -1]*qe;     
+    iIncl = [1 2 3];
+    eIncl = [5];
+    wp = sqrt(n./m);
+    x = 0.1;
+    k_min = 0.2;
   case 4.5
     n = [0.05 0.2 0.06 0.155 0.155];
     vd = [0.5 0.900 0.0 -2 3]; % m/s
@@ -118,7 +148,7 @@ for iSpecies = 1:nSpecies
   f(iSpecies).n_map = mean(mean(pic.xlim(f(iSpecies).x).zlim(f(iSpecies).z).n(iSpecies)));
   f(iSpecies).n_dist = sum(f(iSpecies).f(:))*f(iSpecies).dv^3;
 end
-if 0
+if 0 % takes some time, so not necessary to do many times if the dist is the same
 clear f_rot
 for iSpecies = 1:nSpecies
   x_tmp = f(iSpecies).x;
@@ -304,10 +334,10 @@ end
 % Wavenumber vector
 figure(77)
 nk = 20;
-lguess = [1 0.1];
+lguess = [10 0.1];
 k_min = 2*pi/lguess(1);
 k_max = 2*pi/lguess(2);
-k_min = 0.2; k_max = 1;
+k_min = 0.1; k_max = 2;
 knorm = 1;  % length
 knorm_str = sprintf('L_{d%g}',1);
 kvec = linspace(k_min,k_max,nk)/knorm;
@@ -326,11 +356,11 @@ icolor = icolor + 1;
 holdOn = 0;
 for ik = 1:nk
   xguess = x;
-  xguess = 0.2;
+  %xguess = 0.1;
   %if xguess>2, xguess = 0.0; end
   %xguess = vd(1)*kvec(ik);
   %allIncl = [1:4];
-  allIncl = [1 2 3 5];
+  allIncl = [1 2 3 4 5];
   af = @(temp) D_streaming(temp,kvec(ik),vt(allIncl),wp(allIncl),vd(allIncl));   
   options = optimset('GradObj','on','display','off','TolFun',1e-4);  
   [x,FVAL,EXITFLAG] = fsolve(af,xguess,options);    
