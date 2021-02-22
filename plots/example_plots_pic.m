@@ -247,6 +247,27 @@ cmaps = {cmapbr,cmapbr,cmapbr,cmapbr}';
 filename = [printpath 'no02m_By_Ez_vx46'];
 pic.movie(varstrs,'A',1,'cmap',cmaps,'clim',clims,'filename',filename);
 
+%% plot_map/movie, Epar
+twpe = [18000 24000];
+xlim = [65 85];
+zlim = [-8 0];
+
+twpe = [22700 25000];
+xlim = [65 76];
+zlim = [-6 -1];
+
+pic = no02m.twpelim(twpe).xlim(xlim).zlim(zlim);
+varstrs = {'Epar'};
+clims = {[-0.6 0.6]}';
+
+cmapbr = pic_colors('blue_red');
+cmapjet = colormap('jet');
+cmapwa = pic_colors('waterfall');
+cmaps = {cmapbr}';
+
+filename = [printpath 'no02m_Epar_zoom2_bottom_A75'];
+pic.movie(varstrs,'A',[7.5 7.5],'cmap',cmaps,'clim',clims,'filename',filename);
+
 %% plot_line, horizontal
 pic = no02(15);
 comp = 'x';

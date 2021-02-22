@@ -79,7 +79,7 @@ for it = 1:pic_orig.nt
   zXline = pic_tmp.zi(Ainds(1,2));  
   AXline = Avals(1);
   EyXline = mean(mean(pic_tmp.xlim(xXline+[-0.1 0.1]).zlim(zXline+[-0.1 0.1]).Ey));
-  end
+  
   % Write data to file
   if 0
   h5write_fields_ancillary(pic_tmp,pic_tmp.twpe,'A',A)

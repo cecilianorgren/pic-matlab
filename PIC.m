@@ -747,6 +747,7 @@ classdef PIC
               A = tmp_obj.A;
               %stepA = 1;
               levA = floor(min(A(:))/stepA)*stepA:stepA:ceil(max(A(:))/stepA)*stepA;
+              %levA = stepA;
               iAx = 1:5:obj.nx;
               iAz = 1:5:obj.nz;
               hold(hca,'on')
@@ -2971,7 +2972,9 @@ classdef PIC
       iGroup = find(contains({fileInfo.Groups.Name},'/data'));
       nIter = numel(fileInfo.Groups(iGroup).Groups); % number of iterations
       
-      for iIter = 1:nIter
+      isub = 0;
+      for iIter = obj.it
+        isub = isub + 1;
         % /data/00000xxxxx/ 
         % redo to actually find the 
         %iIter
@@ -2984,9 +2987,9 @@ classdef PIC
         end
         if not(isempty(iAtt))
           datasize = fileInfo.Groups(iGroup).Groups(iIter).Attributes(iAtt).Dataspace.Size;          
-          attr(iIter,:) = fileInfo.Groups(iGroup).Groups(iIter).Attributes(iAtt).Value;
+          attr(isub,:) = fileInfo.Groups(iGroup).Groups(iIter).Attributes(iAtt).Value;
         else
-          attr(iIter,:) = NaN;
+          attr(isub,:) = NaN;
         end
         
       end
@@ -5126,6 +5129,22 @@ classdef PIC
       % 
       out = h5read(obj.file,['/scalar_timeseries/U/T/' num2str(value)]);
       out = out(obj.indices_);
+    end
+    function out = Ute(obj)
+      % Integrated electron thermal energy density
+      out = obj.get_timeline_attributes('Ute');
+    end
+    function out = Uti(obj)
+      % Integrated ion thermal energy density
+      out = obj.get_timeline_attributes('Uti');
+    end
+    function out = Uke(obj)
+      % Integrated electron kinetic energy density
+      out = obj.get_timeline_attributes('Uke');
+    end
+    function out = Uki(obj)
+      % Integrated electron kinetic energy density
+      out = obj.get_timeline_attributes('Uki');
     end
     function out = RE(obj)
       % Reconnection rate from out-of-plane electric field Ey at X line

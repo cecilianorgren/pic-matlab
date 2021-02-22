@@ -1164,7 +1164,7 @@ end
 %ds = ds01.zfind(3);
 %fred = ds.reduce_1d_new('x',[5],[]);
 twpe = 10000; xlim = [130 110]; zlim = [-8 8];
-twpe = 24000; xlim = [60 80]; zlim = [-8 8];
+twpe = 24000; xlim = [50 110]; zlim = [-8 8];
 
 %ds = ds100.twpelim(twpe).findtag({'A=-6'});
 %ds = ds100.twpelim(twpe).zfind(0).findtag({'line horizontal'});
@@ -1233,7 +1233,7 @@ ne = interpfield(pic.xi,pic.zi,pic.ne,fredi.x,fredi.z);
 ne_ = interpfield(pic.xi,pic.zi,pic.ne,xinterp,zinterp); 
 tic; vipar = interpfield(pic.xi,pic.zi,pic.vpar(iSpecies),fredi.x,fredi.z); toc
 %tic; vipar_ = pic.get_points(xdist,zdist,twpe,[-0.1 0.1],'vpar([3])'); toc
-vepar = interpfield(pic.xi,pic.zi,pic.vpar([3 5]),fredi.x,fredi.z); 
+vepar = interpfield(pic.xi,pic.zi,pic.vpar(eSpecies),fredi.x,fredi.z); 
 %vix = interpfield(pic.xi,pic.zi,pic.vx(iSpecies),fredi.x,fredi.z); 
 %viy = interpfield(pic.xi,pic.zi,pic.vy(iSpecies),fredi.x,fredi.z); 
 %viz = interpfield(pic.xi,pic.zi,pic.vz(iSpecies),fredi.x,fredi.z); 
@@ -1329,38 +1329,7 @@ if 1 % line position on map, Epar
   end
   if 1 % plot A
     hold(hca,'on')
-    A = pic_lim.A;
-    clim = hca.CLim;
-    contour(hca,pic_lim.xi,pic_lim.zi,A',[0:1:25],'color',0.5*[1 1 1])
-    hca.CLim = clim;
-    hold(hca,'off')
-  end
-end
-if 0 % line position on map, vepar
-  isMap(end+1) = isub; 
-  hca = h(isub); isub = isub + 1;
-  imagesc(hca,pic_lim.xi,pic_lim.zi,abs(pic_lim.vepar)');
-  colormap(hca,pic_colors('blue_red'));
-  hcb = colorbar('peer',hca);
-  hca.CLim = max(max(get(findobj(hca.Children,'type','Image'),'CData')))*[-1 1];
-  hcb.YLabel.String = 'v_{e,||}';
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.YDir = 'normal';
-  hca.XGrid = 'on';
-  hca.YGrid = 'on';
-  if 0 % plot_boxes
-    hold(hca,'on')
-    ds.plot_boxes(hca)
-    hold(hca,'off')
-  end
-  if 1 % plot A
-    hold(hca,'on')
-    A = pic_lim.A;
-    clim = hca.CLim;
-    contour(hca,pic_lim.xi,pic_lim.zi,A',[0:1:25],'color',0.5*[1 1 1])
-    contour(hca,pic_lim.xi,pic_lim.zi,A',[7.5 7.5],'color',0.0*[1 1 1])
-    hca.CLim = clim;
+    A = pic
     hold(hca,'off')
   end
 end
@@ -1832,7 +1801,7 @@ if 1 % log 10 fe(vpar)
     plot(hca,arclength_interp,Epar_*max(abs(hca.YLim))/max(abs(Epar_)),'color',colorE+0.2)
     hold(hca,'off')
   end
-  if 1%doV
+  if doV
     hold(hca,'on')
     plot(hca,arclength,vepar,'color',colorV,'linewidth',1.5)
     hold(hca,'off')
@@ -1966,7 +1935,7 @@ if 0 % f46(vpar)
     plot(hca,arclength,Epar*max(abs(hca.YLim))/max(abs(Epar)),'color',colorE)
     hold(hca,'off')
   end
-  if 1%doV
+  if doV
     hold(hca,'on')
     plot(hca,arclength,vepar,'color',colorV,'linewidth',1.5)
     hold(hca,'off')
@@ -2010,10 +1979,6 @@ if 0 % def35(vabs^2)
   end
 end
 %
-legends = {'a)','b)','c)','d)','e)','f)'};
-for ip = 1:numel(h)
-  irf_legend(h(ip),legends{ip},[-0.06 0.98],'fontsize',12,'color','k')
-end
 compact_panels(h(setdiff(1:nrows*ncols,isMap)),0.01)
 compact_panels(h(isMap),0.01)
 h(1).Title.String = ['nobg, t\omega_{pe} = ' num2str(twpe,'%05.0f')];

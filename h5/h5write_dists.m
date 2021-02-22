@@ -136,7 +136,7 @@ function h5write_dists_single(datFilePath,h5FilePath,distnumber,nSpecies,iterati
       h5writeatt(h5FilePath, dataset_name,'tag', tag);
     end
     h5writeatt(h5FilePath, ['/data/' str_iteration],'twpe', timestep);    
-    h5writeatt(h5FilePath, ['/data/' str_iteration],'twci', timestep/(mass*2));
+    h5writeatt(h5FilePath, ['/data/' str_iteration],'twci', timestep/(mass(1)*2));
   
     h5disp(h5FilePath,dataset_name(1:(end-4)))
     %pause

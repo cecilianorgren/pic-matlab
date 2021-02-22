@@ -529,9 +529,10 @@ xlim = [075 105]; zlim = [-0 10]; Avals = -10.0:0.5:-4.5; % 21000
 %xlim = [060 105]; zlim = [-0 10]; Avals = -10.0:0.5:-4.0; % 24000
 xlim = [080 105]; zlim = [-0 10]; Avals = -7.0:0.25:-4.75; % 20000
 xlim = [061 105]; zlim = [-10 10]; Avals = 7.5; % 24000
+xlim = [065 105]; zlim = [-10 10]; Avals = 7.5; % 23000
 
 twpe = 7000;
-pic = no02m.twpelim(24000).xlim(xlim).zlim(zlim);
+pic = no02m.twpelim(23000).xlim(xlim).zlim(zlim);
 %ind = 26;
 A = squeeze(pic.A);
 Bz = squeeze(pic.Bz);
