@@ -8,6 +8,7 @@ classdef PIC
   
   properties (SetAccess = immutable)
     software
+    ndim
     file
     namelist
     particlebinning
@@ -379,18 +380,26 @@ classdef PIC
           obj.xi_ = obj.xi_(inds);      
           obj.grid_{1} = obj.grid_{1}(inds);
           obj.ix_ = obj.grid_{1};
-          field_names = fields(obj.xivar);
-          for ifield = 1:numel(field_names)
-            obj.xivar.(field_names{ifield}) = obj.xivar.(field_names{ifield})(inds);
+          if strcmp(obj.software,'Smilei') 
+          
+          else
+            field_names = fields(obj.xivar);
+            for ifield = 1:numel(field_names)
+              obj.xivar.(field_names{ifield}) = obj.xivar.(field_names{ifield})(inds);
+            end
           end
-        case 'z'          
+        case 'z'
           obj.ze_ = obj.ze_(inds);
           obj.zi_ = obj.zi_(inds);      
           obj.grid_{2} = obj.grid_{2}(inds);
           obj.iz_ = obj.grid_{2};  
-          field_names = fields(obj.zivar);
-          for ifield = 1:numel(field_names)
-            obj.zivar.(field_names{ifield}) = obj.zivar.(field_names{ifield})(inds);
+          if strcmp(obj.software,'Smilei') 
+          
+          else
+            field_names = fields(obj.zivar);
+            for ifield = 1:numel(field_names)
+              obj.zivar.(field_names{ifield}) = obj.zivar.(field_names{ifield})(inds);
+            end
           end
       end
     end
@@ -3135,7 +3144,7 @@ classdef PIC
     % the Smilei data: x -> x, -z -> y, y -> z
     function out = A(obj)
       % pic.A Magnetic vector potential Ay.
-      if 1 %any(contains(obj.fields,'A')) % stored as field
+      if any(contains(obj.fields,'A')) % stored as field
        	out = get_field(obj,'A');
       else % calculate it
          if strcmp(obj.software,'micPIC')
