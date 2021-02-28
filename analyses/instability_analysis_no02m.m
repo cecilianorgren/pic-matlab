@@ -48,19 +48,24 @@ dist_param = arcval;
 f_max = @(v,n,vt,vd) n/sqrt(pi*vt^2)*exp(0.5*(v-vd).^2./(vt.^2));
 switch dist_param
   case 7 % hot ebg
-    n = [0.05 0.08 0.15 0.11 0.13 0.04];
+    %%
+    qe = 1;
+    n = [0.05 0.08 0.15 0.11 0.13 0.04]; 
     vd = [0.5 1.15 0.05 -2.1 3 0.5]; % m/s
     vt = [1.5 0.3 0.07 2.8 3.0 4.0];
     
-    n = [0.05 0.08 0.15 0.11 0.13 0.04];
-    vd = [0.5 1.15 0.05 -2.1 2.7 0.5]; % m/s
-    vt = [1.5 0.3 0.07 2.8 3.0 4.0];
+    n = [0.05 0.08 0.15 0.11 0.13 0.04]; % n0
+    vd = [0.5 1.15 0.05 -2.1 2.7 0.5]; % vA0
+    vt = [1.5 0.3 0.07 2.8 3.0 4.0]; % vA0
     
-    m = [1 1 1 1/100 1/100 1/100]*1;
-    q = [1 1 1 -1 -1 -1]*qe;     
+    m = [1 1 1 1/100 1/100 1/100]*1; % m0
+    m = [1 1 1 1/100 1/100 1/100]*1; % m0
+    q = [1 1 1 -1 -1 -1]*qe; % e0=1?
     iIncl = [1 2 3];
     eIncl = [4 5 6];
-    wp = sqrt(n./m);
+    % it seems like vph might be correct because the vd,vt normalizations 
+    % are correct...?
+    wp = sqrt(n./m)*sqrt(200); % normalization? wci? write in units of wci?
     x = 0.1;
     k_min = 0.2;
   case 7000001
@@ -333,11 +338,11 @@ end
 % Dispersion solver, one surface
 % Wavenumber vector
 figure(77)
-nk = 20;
+nk = 40;
 lguess = [10 0.1];
 k_min = 2*pi/lguess(1);
 k_max = 2*pi/lguess(2);
-k_min = 0.1; k_max = 2;
+k_min = 0.1; k_max = 8;
 knorm = 1;  % length
 knorm_str = sprintf('L_{d%g}',1);
 kvec = linspace(k_min,k_max,nk)/knorm;
