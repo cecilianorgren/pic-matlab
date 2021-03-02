@@ -2275,8 +2275,8 @@ classdef PIC
 
       [X,Z,T] = meshgrid(tmpx,tmpz,tmpt);
       vx = interp3(X,Z,T,permute(tmpVx,[2 1 3]),x,z,t,method);
-      yy = interp3(X,Z,T,permute(tmpVy,[2 1 3]),x,z,t,method);
-      zz = interp3(X,Z,T,permute(tmpVz,[2 1 3]),x,z,t,method);
+      vy = interp3(X,Z,T,permute(tmpVy,[2 1 3]),x,z,t,method);
+      vz = interp3(X,Z,T,permute(tmpVz,[2 1 3]),x,z,t,method);
       
     end
     function out = integrate_trajectory_old(obj,r0,v0,tspan,m,q,varargin)

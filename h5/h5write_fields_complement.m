@@ -19,14 +19,14 @@ if nargin > 1 && strcmp(varargin{1},'group') % additional input given
   nGroups = numel(groupSpecies);
 end
 
-doGroup = 1;
+doGroup = 0;
 groups = {[1],[2],[3 5],[4 6]};
 groupNames = {'i_hot','e_hot','i_cold','e_cold'};
   
 timesteps = pic_orig.twpe;
 for it = 1:pic_orig.nt
   pic_tmp = pic_orig(it);
-  if 0
+  if 1
   Bx = pic_tmp.Bx;
   By = pic_tmp.By;
   Bz = pic_tmp.Bz;
@@ -55,6 +55,11 @@ for it = 1:pic_orig.nt
     Ute = nansum(Ute(:));
     Uki = nansum(Uki(:));
     Uti = nansum(Uti(:));
+    
+    h5write_attr(pic_tmp,pic_tmp.twci,'Ute',Ute)
+    h5write_attr(pic_tmp,pic_tmp.twci,'Uti',Uti)
+    h5write_attr(pic_tmp,pic_tmp.twci,'Uke',Uke)
+    h5write_attr(pic_tmp,pic_tmp.twci,'Uki',Uki)
   end
   if doGroup
     for iGroup = 1:nGroups
@@ -72,7 +77,7 @@ for it = 1:pic_orig.nt
   end
   
   % X line and reconnection rate
-  if 0
+  if 1
   A = vector_potential(pic_tmp.xi,pic_tmp.zi,Bx,Bz);        
   [Ainds,Avals] = saddle(A,'sort');
   xXline = pic_tmp.xi(Ainds(1,1));
@@ -81,15 +86,11 @@ for it = 1:pic_orig.nt
   EyXline = mean(mean(pic_tmp.xlim(xXline+[-0.1 0.1]).zlim(zXline+[-0.1 0.1]).Ey));
   end
   % Write data to file
-  if 0
+  if 1
   h5write_fields_ancillary(pic_tmp,pic_tmp.twpe,'A',A)
   h5write_attr(pic_tmp,pic_tmp.twci,'Axline',AXline)
   h5write_attr(pic_tmp,pic_tmp.twci,'xline_position',[xXline' zXline'])
   h5write_attr(pic_tmp,pic_tmp.twci,'RE',EyXline)  
   h5write_attr(pic_tmp,pic_tmp.twci,'UB',UB)
-  h5write_attr(pic_tmp,pic_tmp.twci,'Ute',Ute)
-  h5write_attr(pic_tmp,pic_tmp.twci,'Uti',Uti)
-  h5write_attr(pic_tmp,pic_tmp.twci,'Uke',Uke)
-  h5write_attr(pic_tmp,pic_tmp.twci,'Uki',Uki)
   end
 end

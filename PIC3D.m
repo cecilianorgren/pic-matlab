@@ -3301,14 +3301,14 @@ classdef PIC3D
       if strcmp(obj.software,'micPIC')
         out = get_field(obj,'by')*obj.wpewce;
       elseif strcmp(obj.software,'Smilei')
-        out = -get_field(obj,'Bz')*obj.wpewce;
+        out = get_field(obj,'By')*obj.wpewce;
       end
     end
     function out = Bz(obj)
       if strcmp(obj.software,'micPIC')
         out = get_field(obj,'bz')*obj.wpewce;
       elseif strcmp(obj.software,'Smilei')
-        out = get_field(obj,'By')*obj.wpewce;
+        out = get_field(obj,'Bz')*obj.wpewce;
       end
     end
     function out = Babs(obj)
@@ -3328,14 +3328,14 @@ classdef PIC3D
       if strcmp(obj.software,'micPIC')
         out = get_field(obj,'ey')*sqrt(obj.mime)*obj.wpewce^2;
       elseif strcmp(obj.software,'Smilei')
-        out = -get_field(obj,'Ez')*sqrt(obj.mime)*obj.wpewce^2;
+        out = get_field(obj,'Ey')*sqrt(obj.mime)*obj.wpewce^2;
       end      
     end
     function out = Ez(obj)
       if strcmp(obj.software,'micPIC')
         out = get_field(obj,'ez')*sqrt(obj.mime)*obj.wpewce^2;
       elseif strcmp(obj.software,'Smilei')
-        out = get_field(obj,'Ey')*sqrt(obj.mime)*obj.wpewce^2;
+        out = get_field(obj,'Ez')*sqrt(obj.mime)*obj.wpewce^2;
       end     
     end
     function out = PB(obj)
@@ -3444,7 +3444,7 @@ classdef PIC3D
         var = zeros(obj.nx,obj.nz,obj.nt);
         for iSpecies = species
           pop_str = obj.species{iSpecies};
-          var = var + -1*obj.charge(iSpecies)*obj.get_field(['Jz_' pop_str])*obj.wpewce*sqrt(obj.mime); % normalization ???
+          var = var + obj.charge(iSpecies)*obj.get_field(['Jy_' pop_str])*obj.wpewce*sqrt(obj.mime); % normalization ???
         end
       end
       out = var;    
@@ -3467,7 +3467,7 @@ classdef PIC3D
         var = zeros(obj.nx,obj.nz,obj.nt);
         for iSpecies = species
           pop_str = obj.species{iSpecies};
-          var = var + obj.charge(iSpecies)*obj.get_field(['Jy_' pop_str])*obj.wpewce*sqrt(obj.mime); % normalization ???
+          var = var + obj.charge(iSpecies)*obj.get_field(['Jz_' pop_str])*obj.wpewce*sqrt(obj.mime); % normalization ???
         end
       end
       out = var;  
@@ -6142,6 +6142,7 @@ classdef PIC3D
               [obj.grid{3}(1) obj.grid{2}(1) obj.grid{1}(1)]',... % start indices
               [numel(obj.grid{3}) numel(obj.grid{2}) numel(obj.grid{1})]'); % number of counts
             data_tmp = permute(data_tmp,[3 2 1]);
+            %  obj.info.Groups(1).Groups.obj.info.Groups(1).Groups.Datasets(1).DataspaceDatasets(1).Dataspace
           end
           data(:,:,:,iIter) = data_tmp;
           %toc(tt)

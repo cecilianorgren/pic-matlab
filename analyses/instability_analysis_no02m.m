@@ -65,7 +65,11 @@ switch dist_param
     eIncl = [4 5 6];
     % it seems like vph might be correct because the vd,vt normalizations 
     % are correct...?
-    wp = sqrt(n./m)*sqrt(200); % normalization? wci? write in units of wci?
+    % n = sqrt(ne^2/meps0)
+    wpewce = 2;
+    mime = 200;
+    eps0 = 1/(wpewce^2*mime);
+    wp = sqrt(n./m)*sqrt(1/eps0); % normalization? wci? write in units of wci?
     x = 0.1;
     k_min = 0.2;
   case 7000001
@@ -342,7 +346,7 @@ nk = 40;
 lguess = [10 0.1];
 k_min = 2*pi/lguess(1);
 k_max = 2*pi/lguess(2);
-k_min = 0.1; k_max = 8;
+k_min = 1; k_max = 60;
 knorm = 1;  % length
 knorm_str = sprintf('L_{d%g}',1);
 kvec = linspace(k_min,k_max,nk)/knorm;
@@ -352,7 +356,7 @@ wi_store = nan(1,nk);
 fval_store = nan(1,nk);
 h = setup_subplots(3,1);
 %x = 0.5;-400;x=k_min*mean(vd);
-x = 0.1;
+x = 1;
 %close all
 colors = pic_colors('matlab');
 if not(exist('icolor','var')), icolor = 0; end
@@ -361,15 +365,15 @@ icolor = icolor + 1;
 holdOn = 0;
 for ik = 1:nk
   xguess = x;
-  %xguess = 0.1;
+  %xguess = 2;
   %if xguess>2, xguess = 0.0; end
   %xguess = vd(1)*kvec(ik);
   %allIncl = [1:4];
-  allIncl = [1 2 3 4 5];
+  allIncl = [1 2 3 4 5 6];
   af = @(temp) D_streaming(temp,kvec(ik),vt(allIncl),wp(allIncl),vd(allIncl));   
   options = optimset('GradObj','on','display','off','TolFun',1e-4);  
   [x,FVAL,EXITFLAG] = fsolve(af,xguess,options);    
-  fprintf('x = %g + %gi \n',real(x),imag(x))  
+  fprintf('ik = %g, x = %g + %gi \n',ik,real(x),imag(x))  
   fval_store(ik) = FVAL; 
   wr_store(ik) = real(x);
   wi_store(ik) = imag(x);  
@@ -386,7 +390,7 @@ end
 
 vph_store = wr_store./kvec;
 
-rem_ind = nk;350:nk;
+rem_ind = [];nk;350:nk;
 wr_store(rem_ind) = NaN;
 wi_store(rem_ind) = NaN;
 fval_store(rem_ind) = NaN;

@@ -1204,7 +1204,6 @@ darc = arclength(2)-arclength(1);
 arcedges = [arclength(1)-0.5*darc; arclength+0.5*darc];
 narc = 1800; % 900
 arclength_interp = linspace(arclength(1),arclength(end),narc);
-darc_interp = (arclength_interp(end)-arclength_interp(1))/narc;
 xinterp = interp1(arclength,xdist,arclength_interp);
 zinterp = interp1(arclength,zdist,arclength_interp);
 ni = interpfield(pic.xi,pic.zi,pic.ni,fredi.x,fredi.z); 
@@ -1216,9 +1215,8 @@ ne_ = interpfield(pic.xi,pic.zi,pic.ne,xinterp,zinterp);
 vepar = interpfield(pic.xi,pic.zi,pic.vpar([3 5]),fredi.x,fredi.z); 
 %vepar = interpfield(pic.xi,pic.zi,pic.vpar(eSpecies),fredi.x,fredi.z); 
 Epar = interpfield(pic.xi,pic.zi,pic.Epar,fredi.x,fredi.z); 
-Epar_ = interpfield(pic.xi,pic.zi,pic.Epar,xinterp,zinterp);
+Epar_ = interpfield(pic.xi,pic.zi,pic.Epar,xinterp,zinterp); 
 Babs = interpfield(pic.xi,pic.zi,pic.Babs,fredi.x,fredi.z); 
-intEpar = -cumsum(Epar_*darc_interp);
 
 fi_clim = [0 0.0499];
 fe_clim = [0 1.3e-2];
@@ -1271,7 +1269,7 @@ if 0 % line position on map, Ez
     hold(hca,'off')
   end
 end
-if 0 % line position on map, Epar
+if 1 % line position on map, Epar
   isMap(end+1) = isub; 
   hca = h(isub); isub = isub + 1;
   %imagesc(hca,pic_lim.xi,pic_lim.zi,smooth2(pic_lim.Epar,3)');
@@ -1286,35 +1284,6 @@ if 0 % line position on map, Epar
   hca.XGrid = 'on';
   hca.YGrid = 'on';
   hca.CLim = [-1 1];
-  if 1 % plot_boxes
-    hold(hca,'on')
-    ds.plot_boxes(hca)
-    hold(hca,'off')
-  end
-  if 1 % plot A
-    hold(hca,'on')
-    A = pic_lim.A;
-    clim = hca.CLim;
-    contour(hca,pic_lim.xi,pic_lim.zi,A',[0:1:25],'color',0.5*[1 1 1])
-    hca.CLim = clim;
-    hold(hca,'off')
-  end
-end
-if 0 % line position on map, Babs
-  isMap(end+1) = isub; 
-  hca = h(isub); isub = isub + 1;
-  %imagesc(hca,pic_lim.xi,pic_lim.zi,smooth2(pic_lim.Epar,3)');
-  imagesc(hca,pic_lim.xi,pic_lim.zi,pic_lim.Babs');
-  colormap(hca,pic_colors('blue_red'));
-  hcb = colorbar('peer',hca);
-  hca.CLim = max(max(get(findobj(hca.Children,'type','Image'),'CData')))*[-1 1];
-  hcb.YLabel.String = '|B|';
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.YDir = 'normal';
-  hca.XGrid = 'on';
-  hca.YGrid = 'on';
-  %hca.CLim = [-1 1];
   if 1 % plot_boxes
     hold(hca,'on')
     ds.plot_boxes(hca)
@@ -1377,47 +1346,7 @@ if 1 % line position on map, ntop
     hold(hca,'off')
   end
 end
-if 1 % line position on map, ptot
-  isMap(end+1) = isub; 
-  hca = h(isub); isub = isub + 1;
-  imagesc(hca,pic_lim.xi,pic_lim.zi,pic_lim.p([1 3 5])');
-  colormap(hca,pic_colors('thermal'));
-  hcb = colorbar('peer',hca);
-  hca.CLim = max(max(get(findobj(hca.Children,'type','Image'),'CData')))*[-1 1];
-  hcb.YLabel.String = 'P';
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.YDir = 'normal';
-  hca.XGrid = 'on';
-  hca.YGrid = 'on';
-  hca.CLim = [0 0.5];
-  if 1 % plot_boxes
-    hold(hca,'on')
-    ds.plot_boxes(hca)
-    hold(hca,'off')
-  end
-end
-if 1 % line position on map, pcold
-  isMap(end+1) = isub; 
-  hca = h(isub); isub = isub + 1;
-  imagesc(hca,pic_lim.xi,pic_lim.zi,pic_lim.p([3 5])');
-  colormap(hca,pic_colors('thermal'));
-  hcb = colorbar('peer',hca);
-  hca.CLim = max(max(get(findobj(hca.Children,'type','Image'),'CData')))*[-1 1];
-  hcb.YLabel.String = 'P';
-  hca.XLabel.String = 'x (d_i)';
-  hca.YLabel.String = 'z (d_i)';
-  hca.YDir = 'normal';
-  hca.XGrid = 'on';
-  hca.YGrid = 'on';
-  hca.CLim = [0 0.5];
-  if 1 % plot_boxes
-    hold(hca,'on')
-    ds.plot_boxes(hca)
-    hold(hca,'off')
-  end
-end
-if 0 % line position on map, log10ntot
+if 1 % line position on map, log10ntot
   isMap(end+1) = isub; 
   hca = h(isub); isub = isub + 1;
   imagesc(hca,pic_lim.xi,pic_lim.zi,real(log10(pic_lim.n([3 5])))');
@@ -1525,7 +1454,7 @@ if 1 % Epar
   %plot(hca,arclength_interp,Epar_,arclength_interp,ni_,arclength_interp,ne_,arclength_interp,(ni_-ne_)*10)  
   %legend(hca,{'E_{||}','n_{i,cold}','n_{e,cold}','ni-ne'},'location','eastoutside')   
   %plot(hca,arclength_interp,Epar_,'k')  
-  plot(hca,arclength_interp,Epar_,'k',arclength_interp,intEpar*3,arclength,Babs/2)  
+  plot(hca,arclength_interp,Epar_,'k',arclength,'Babs')  
   legend(hca,{'E_{||}'},'location','eastoutside')   
   hca.YLabel.String = 'E_{||}';   
   hca.XLabel.String = 'arclength (d_i)';  
