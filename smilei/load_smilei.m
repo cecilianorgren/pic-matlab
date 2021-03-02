@@ -4,7 +4,7 @@ namelist = '/Users/cecilia/Discs/tesla/software/Smilei4.5/Smilei/GEMchallenge/Ha
 filepath = '/Users/cecilia/Discs/tesla/software/Smilei4.5/Smilei/3dtest/Fields0.h5';
 namelist = '/Users/cecilia/Discs/tesla/software/Smilei4.5/Smilei/3dtest/Harris3d.py';
 
-pic = PIC3D(filepath,namelist);
+pic = PIC3D(filepath,namelist); %test
 
 %% Examine struture of h5 file
 info = h5info(filepath);
