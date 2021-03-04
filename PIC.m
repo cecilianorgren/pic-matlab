@@ -571,6 +571,7 @@ classdef PIC
       doTrajectories = 0;
       colorTrajDot = [0 0 0];
       doColorTrajDot = 0;
+      doColorTrajLine = 0;
       doTrajTail = 1;
       ntTail = 4;
       stepA = 0.5;
@@ -598,6 +599,10 @@ classdef PIC
             doColorTrajDot = 1;
             cTrajDot = args{2};
             l = 2;
+          case {'trajlinecolor'}
+            doColorTrajLine = 1;
+            cTrajLine = args{2};
+            l=1;
           case 'a'
             doA = 1;
             stepA = args{2};
@@ -810,7 +815,32 @@ classdef PIC
                     end
                   end
                 end
-                %plot(hca,tr(itr).x,tr(itr).z,'k')
+                             
+                if doColorTrajLine
+                  if ischar(colorTrajDot)
+                    var = tr(itr).(colorTrajDot); 
+                    var(idup) = [];
+                    colline = interp1(tt,var,tmp_obj.twci);
+                  else
+                    if numel(colorTrajDot) == 3
+                      colline = colorTrajDot;
+                    elseif numel(colorTrajDot) == tr.ntr
+                      %coldot = colorTrajDot(itr,:);
+                      crange = (cTrajDot(itr)-0.99999*min(cTrajDot))/(max(cTrajDot)-0.9999*min(cTrajDot));
+                      colline = interp1(0:size(colorMapTraj,1)-1,colorMapTraj,crange*(size(colorMapTraj,1)-1));
+                    elseif size(colorTrajDot) == [tr.ntr,3]
+                      colline = colorTrajDot(itr,:);
+                    end
+                  end
+                else
+                  colline = [0 0 0];
+                end
+                
+                if doColorTrajLine
+                  sc = scatter(hca,tr(itr).x,tr(itr).z,20,coldot,'Marker','o','MarkerFaceColor','flat');
+                else
+                  plot(hca,tr(itr).x,tr(itr).z,'k')
+                end               
                 if doColorTrajDot
                   if ischar(colorTrajDot)
                     var = tr(itr).(colorTrajDot); 

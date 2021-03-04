@@ -34,7 +34,6 @@ for it = 1:pic_orig.nt
     % Magnetic field energy density
     UB = sum(Babs(:).^2)/2;
     
-    % Write data to file
     h5write_attr(pic_tmp,pic_tmp.twci,'UB',UB)
   end
   % Plasma energy densities
@@ -59,14 +58,12 @@ for it = 1:pic_orig.nt
     Uki = nansum(Uki(:));
     Uti = nansum(Uti(:));
     
-    % Write data to file
     h5write_attr(pic_tmp,pic_tmp.twci,'Ute',Ute)
     h5write_attr(pic_tmp,pic_tmp.twci,'Uti',Uti)
     h5write_attr(pic_tmp,pic_tmp.twci,'Uke',Uke)
     h5write_attr(pic_tmp,pic_tmp.twci,'Uki',Uki)
   end
-  
-  if doGroup % NOT IMPLEMENTED
+  if doGroup
     for iGroup = 1:nGroups
       iSpecies = groupSpecies{iGroup};
       n = pic_tmp.n(iSpecies);
@@ -83,17 +80,18 @@ for it = 1:pic_orig.nt
   
   % X line and reconnection rate
   if 1
-    A = vector_potential(pic_tmp.xi,pic_tmp.zi,Bx,Bz);        
-    [Ainds,Avals] = saddle(A,'sort');
-    xXline = pic_tmp.xi(Ainds(1,1));
-    zXline = pic_tmp.zi(Ainds(1,2));  
-    AXline = Avals(1);
-    EyXline = mean(mean(pic_tmp.xlim(xXline+[-0.1 0.1]).zlim(zXline+[-0.1 0.1]).Ey));
-    % Write data to file
-    h5write_fields_ancillary(pic_tmp,pic_tmp.twpe,'A',A)
-    h5write_attr(pic_tmp,pic_tmp.twci,'Axline',AXline)
-    h5write_attr(pic_tmp,pic_tmp.twci,'xline_position',[xXline' zXline'])
-    h5write_attr(pic_tmp,pic_tmp.twci,'RE',EyXline)  
+  A = vector_potential(pic_tmp.xi,pic_tmp.zi,Bx,Bz);        
+  [Ainds,Avals] = saddle(A,'sort');
+  xXline = pic_tmp.xi(Ainds(1,1));
+  zXline = pic_tmp.zi(Ainds(1,2));  
+  AXline = Avals(1);
+  EyXline = mean(mean(pic_tmp.xlim(xXline+[-0.1 0.1]).zlim(zXline+[-0.1 0.1]).Ey));
   end
-  
+  % Write data to file
+  if 1
+  h5write_fields_ancillary(pic_tmp,pic_tmp.twpe,'A',A)
+  h5write_attr(pic_tmp,pic_tmp.twci,'Axline',AXline)
+  h5write_attr(pic_tmp,pic_tmp.twci,'xline_position',[xXline' zXline'])
+  h5write_attr(pic_tmp,pic_tmp.twci,'RE',EyXline)  
+  end
 end

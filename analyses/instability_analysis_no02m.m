@@ -157,7 +157,7 @@ for iSpecies = 1:nSpecies
   f(iSpecies).n_map = mean(mean(pic.xlim(f(iSpecies).x).zlim(f(iSpecies).z).n(iSpecies)));
   f(iSpecies).n_dist = sum(f(iSpecies).f(:))*f(iSpecies).dv^3;
 end
-if 0 % takes some time, so not necessary to do many times if the dist is the same
+if 1 % takes some time, so not necessary to do many times if the dist is the same
 clear f_rot
 for iSpecies = 1:nSpecies
   x_tmp = f(iSpecies).x;
