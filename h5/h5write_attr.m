@@ -1,7 +1,7 @@
 function h5write_attr(pic_orig,timesteps,attr_str,attr_data)
 %function h5write_attr(picobj,timesteps,attr_str,attr_data)
-% H5WRITE_FIELDS Write some auxcilliary data to h5 file.
-% H5WRITE_FIELDS(picobj,timesteps,attr_str,attr_data)
+% H5WRITE_ATTR Write some auxcilliary data to h5 file.
+% H5WRITE_ATTR(picobj,timesteps,attr_str,attr_data)
 % 
 % dirData - directory of data
 % h5FilePath - directory and file name

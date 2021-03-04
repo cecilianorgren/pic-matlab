@@ -38,7 +38,7 @@ for it = 1:pic_orig.nt
     h5write_attr(pic_tmp,pic_tmp.twci,'UB',UB)
   end
   % Plasma energy densities
-  if 0
+  if 1
     ne = pic_tmp.ne;  
     pe = pic_tmp.pe;
     vex = pic_tmp.vex;
