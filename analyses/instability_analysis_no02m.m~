@@ -25,8 +25,8 @@ arcval = 4; % twpe=24000
 arcval = 4.3; % twpe=24000
 arcval = 5.2; % twpe=24000
 arcval = 4.5; % twpe=24000
-arcval = -7; % twpe=23000
-%arcval = 1; % twpe=23000, at neutral plane
+arcval = 7; % twpe=23000
+arcval = 1; % twpe=23000, at neutral plane
 arccenter = (arclength(end)-arclength(1))/2;
 idist = find(abs(arclength-arcval-arccenter)==min(abs(arclength-arcval-arccenter)));
 xzarcdist = [xdist zdist arclength];
@@ -182,7 +182,7 @@ for iSpecies = 1:nSpecies
   f(iSpecies).n_map = mean(mean(pic.xlim(f(iSpecies).x).zlim(f(iSpecies).z).n(iSpecies)));
   f(iSpecies).n_dist = sum(f(iSpecies).f(:))*f(iSpecies).dv^3;
 end
-if 1 % takes some time, so not necessary to do many times if the dist is the same
+if 0 % takes some time, so not necessary to do many times if the dist is the same
 clear f_rot
 for iSpecies = 1:nSpecies
   x_tmp = f(iSpecies).x;
@@ -295,7 +295,7 @@ if 1 % f(vpar), electrons
   hca.YLabel.String = 'f_e(v_{||}) (d_{i0}^3v_{A0})';
   legend(hca,{'f_{hot}','f_{cold}^{top}','f_{cold}^{top}','f_{tot}','f_{fit}'},'location','eastoutside')  
 end
-if 1 % f(vpar), ions
+if 1 % f(vpar), electrons
   hca = h(isub); isub = isub + 1;
   isDist = [isDist isub-1];
   isDistIon = [isDistIon isub-1];  
@@ -371,7 +371,7 @@ nk = 40;
 lguess = [10 0.1];
 k_min = 2*pi/lguess(1);
 k_max = 2*pi/lguess(2);
-k_min = 1; k_max = 60;
+k_min = 3; k_max = 60;
 knorm = 1;  % length
 knorm_str = sprintf('L_{d%g}',1);
 kvec = linspace(k_min,k_max,nk)/knorm;
@@ -381,7 +381,7 @@ wi_store = nan(1,nk);
 fval_store = nan(1,nk);
 h = setup_subplots(3,1);
 %x = 0.5;-400;x=k_min*mean(vd);
-x = 1;
+x = 5;
 %close all
 colors = pic_colors('matlab');
 if not(exist('icolor','var')), icolor = 0; end
@@ -390,7 +390,7 @@ icolor = icolor + 1;
 holdOn = 0;
 for ik = 1:nk
   xguess = x;
-  %xguess = 1.5;
+  xguess = 1.5;
   %if xguess>2, xguess = 0.0; end
   %xguess = vd(1)*kvec(ik);
   %allIncl = [1:4];

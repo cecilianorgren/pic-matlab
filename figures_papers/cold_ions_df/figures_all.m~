@@ -934,7 +934,7 @@ if 1 % By
     no02m.twpelim(twpe).xlim(xlim).zlim(zlim).plot_map(hca,{'By'},'A',1)
     colormap(hca,pic_colors('blue_red'))
     irf_legend(hca,'B_y',[0.02 0.98],'color',[0 0 0])
-    hca.CLim = 0.99*[-0.2 0.2];
+    hca.CLim = [-0.2 0.2];
 end
 
 for ip = 4:5 % force panels

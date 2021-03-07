@@ -1,9 +1,9 @@
  function fout = rotate_dist(f,rx,ry,rz,doInterp)
 % f is a structure with fields v and 3D f(vx,vy,vz)
-
-doInterp = 0;
-if nargin == 5
-end 
+if nargin == 4
+  doInterp = 0;
+end
+ 
 if doInterp
   f_old = f.f;
   v_old = f.v;

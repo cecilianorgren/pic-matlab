@@ -1991,7 +1991,7 @@ classdef PIC
     end
     function out = get_points(obj,x,z,t,range,field,varargin)
       % Pic outs values in given spatial range around a given point
-      %   out = get_points(obj,x,z,t,field,range,varargin)
+      %   out = get_points(obj,x,z,twci,range,field,varargin)
       %
       nt = numel(t);
       if nt == 1
@@ -2004,7 +2004,11 @@ classdef PIC
       var = nan(nPoints,1);
       
       for iP = 1:nPoints
-        tmppic = obj.xlim(x(iP)+range).zlim(z(iP)+range).twcilim(t(iP));
+        if numel(range) == 1
+          tmppic = obj.xlim(x(iP)+range).zlim(z(iP)+range).twcilim(t(iP));
+        elseif numel(range) == 2
+          tmppic = obj.xlim(x(iP)+range(1)).zlim(z(iP)+range(2)).twcilim(t(iP));
+        end
         tmpt =  tmppic.twci;
         tmpx =  tmppic.xi;
         tmpz =  tmppic.zi;          

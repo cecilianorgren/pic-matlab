@@ -1074,7 +1074,7 @@
         for idist = 1:numel(obj.xi1{it})
           xplot = [obj.xi1{it}(idist) obj.xi2{it}(idist) obj.xi2{it}(idist) obj.xi1{it}(idist) obj.xi1{it}(idist)];
           zplot = [obj.zi1{it}(idist) obj.zi1{it}(idist) obj.zi2{it}(idist) obj.zi2{it}(idist) obj.zi1{it}(idist)];
-          plot(hca,xplot,zplot,'color',color,'linewidth',1)
+          hbox(idist) = plot(hca,xplot,zplot,'color',color,'linewidth',1);
           if idist == 1; hold(hca,'on'); end
         end
         hold(hca,'off');
@@ -1089,6 +1089,9 @@
       
       if nargout == 1
         varargout{1} = ax;
+      elseif nargout == 2
+        varargout{1} = ax;
+        varargout{2} = hbox;
       end
     end
               
