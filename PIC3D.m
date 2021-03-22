@@ -329,6 +329,15 @@ classdef PIC3D
       % See also: PIC.XLIM, PIC.TWPELIM, PIC.TWCILIM      
       obj = obj.subset('z',inds);
     end
+    function obj = tgrid(obj,inds)
+      % pic.ZGRID Get subset of z indices.
+      %   pic.ZGRID(100) - 
+      %   pic.ZGRID([100 110]) - 
+      %   pic.ZGRID(10:1:110) - 
+      %
+      % See also: PIC.XLIM, PIC.TWPELIM, PIC.TWCILIM      
+      obj = obj.subset('t',inds);
+    end
     function obj = xlim(obj,value,varargin)
       % pic.XLIM Get subset of xi (x/di).
       %   pic.XLIM(100) - gives closest index
@@ -6125,6 +6134,7 @@ classdef PIC3D
         % initialize matrix
         gridsize = obj.get_gridsize;
         data = nan([gridsize([3 2 1]),nIter]);
+        data = nan([gridsize,nIter]);
         %disp(field)
         for iIter = 1:nIter
           %tt = tic;
@@ -6141,7 +6151,8 @@ classdef PIC3D
               ['/data/' str_iter '/' field],...
               [obj.grid{3}(1) obj.grid{2}(1) obj.grid{1}(1)]',... % start indices
               [numel(obj.grid{3}) numel(obj.grid{2}) numel(obj.grid{1})]'); % number of counts
-            data_tmp = permute(data_tmp,[3 2 1]);
+            % dimension of data is saved as [nz ny nx], so permute it back here
+            data_tmp = permute(data_tmp,[3 2 1 4]); % dimension of data is saved as 
             %  obj.info.Groups(1).Groups.obj.info.Groups(1).Groups.Datasets(1).DataspaceDatasets(1).Dataspace
           end
           data(:,:,:,iIter) = data_tmp;
