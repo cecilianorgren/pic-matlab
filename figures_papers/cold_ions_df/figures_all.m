@@ -358,6 +358,63 @@ if 1 % 2x2
   hcbar(1).FontSize = 12;
   h(1).Title.String = '';
 end
+%% Figure 2, ALT2, overview at t=120
+% what do we want to show here?
+varstrs = {'n(1)','n([3 5])';'p(1)','p([3 5])'};
+%varstrs = {'n([3 5])','n(3)','t([3 5])','t(3)'}';
+clims = {[0 0.5],[0 0.5],[0 0.5],[0 0.5]};
+
+xlim = [40 165];
+xlim = [61 119];
+zlim = 0.99*[-10 10];
+cmapth = pic_colors('thermal');
+cmaps = {cmapth,cmapth,cmapth,cmapth};
+cbarlabels = {'n_{ih}','n_{ic}';'P_{ih}','P_{ic}'};
+%cbarlabels = {'n_{i}','n_{i}';'P_{i}','P_{i}'};
+pic = no02m.twpelim(24000).xlim(xlim).zlim(zlim);
+h = pic.plot_map(varstrs,'A',1,'clim',clims,'cmap',cmaps,'cbarlabels',cbarlabels);
+
+for ip = 1:numel(h)
+  h(ip).FontSize = 12;
+  h(ip).XGrid = 'on';
+  h(ip).YGrid = 'on';
+end
+hl = findobj(gcf,'Type','Contour');
+c_eval('hl(?).Color = 0.5 + [0 0 0];',1:numel(hl))
+
+legends = {'a)','b)','c)','d)','e)','f)'};
+if 1 % 2x2
+  %%
+  compact_panels(h,0.002,0.002)
+  for ip = 1:numel(h)
+    irf_legend(h(ip),{[legends{ip} ' ' cbarlabels{ip}]},[0.8 0.98],'color',[1 1 1],'fontweight','bold','fontsize',12)
+  end
+  delete(findobj(gcf,'Type','ColorBar'))
+  hcbar(1) = colorbar('peer',h(3),'location','eastoutside');
+  hcbar(2) = colorbar('peer',h(4),'location','eastoutside');
+  hcbar(1).YLabel.String = 'n';
+  hcbar(2).YLabel.String = 'P';
+  hcbar = findobj(gcf,'Type','ColorBar');
+  hcbar(1).FontSize = 12;
+  hcbar(2).FontSize = 12;
+  
+  h(3).YTickLabels = [];
+  h(3).YLabel.String = [];
+  h(4).YTickLabels = [];
+  h(4).YLabel.String = [];    
+  %c_eval('h(?).Position(2) = h(?).Position(2) + 0.05;',[2 4])
+  c_eval('h(?).Position(2) = h(?).Position(2) + 0.04;',[1 2 3 4])
+  c_eval('h(?).CLim = [0 0.499];',[1 3])
+  c_eval('h(?).CLim = [0 0.099];',[2 4])
+  %c_eval('h(?).Position(4) = h(?).Position(4) - 0.05;',[1 3])
+%   for ip = 1:numel(h)
+%     %h(ip).Position(2) = h(ip).Position(2) + 0.05;
+%     h(ip).Position(4) = h(ip).Position(4) - 0.05;
+%   end
+  %hcbar(1).Position(2) = hcbar(1).Position(2) + 0.05;
+  h(1).Title.String = '';
+  compact_panels(h,0.002,0.002)
+end
 
 %% Figure 3, reduced distributions
 %ds100 = PICDist('/Volumes/Fountain/Data/PIC/no_hot_bg_n02_m100/data_h5/dists.h5');
@@ -382,10 +439,11 @@ for zpick = [0 2 4]
   By = interpfield(pic.xi,pic.zi,By_,xdist,zdist); 
   Bz = interpfield(pic.xi,pic.zi,Bz_,xdist,zdist); 
   %fred5_tmp = ds.reduce_1d_new('x',[5],[],'vpar',{Bx,By,Bz},'pitch',{Bx,By,Bz}); eval(sprintf('fred5_z%g = fred5_tmp;',zpick))
-  %fred3_tmp = ds.reduce_1d_new('x',[3],[],'vpar',{Bx,By,Bz},'pitch',{Bx,By,Bz}); eval(sprintf('fred3_z%g = fred3_tmp;',zpick))
+  fred3_tmp = ds.reduce_1d_new('x',[3],[],'vpar',{Bx,By,Bz},'pitch',{Bx,By,Bz}); eval(sprintf('fred3_z%g = fred3_tmp;',zpick))
   %fred35_tmp = ds.reduce_1d_new('x',[3 5],[],'vpar',{Bx,By,Bz},'pitch',{Bx,By,Bz}); eval(sprintf('fred35_z%g = fred35_tmp;',zpick))
   %fred46_tmp = ds.reduce_1d_new('x',[4 6],[],'vpar',{Bx,By,Bz},'pitch',{Bx,By,Bz}); eval(sprintf('fred46_z%g = fred46_tmp;',zpick))    
 end
+%[xDF,vDF,aDF,BDF] = pic.xva_df;
 %% Figure 3, plot
 % What to include
 % - overview of where boxes are
@@ -446,7 +504,169 @@ for ifred = 1:numel(freds)
     end
     if doExB
       hold(hca,'on')
-      xx = eval(['x_z' num2str(unique(fred.z))]);
+      %xx = eval(['x_z' num2str(unique(fred.z))]);
+      xx = fred.x;
+      vv = eval(['vExB' labstr '_z' num2str(unique(fred.z))]);
+      hExB = plot(hca,xx,vv,'color',colorExB,'linewidth',0.5);
+      %plot(hca,pic_sm.zi,mean(pic_sm.vExBy,1),'color',colorExB,'linewidth',1.5)
+      hold(hca,'off')
+    end    
+    if doSep
+      hold(hca,'on')   
+      if 1           
+        zz = unique(fred.z);
+        [PKS,LOCS] = findpeaks(-abs(sep.z-zz),'sort','descend');
+        [~,iz] = min(abs(sep.z-zz));
+        if zz == 0
+          xx = sep.x(LOCS(1));
+          hSep = plot(hca,xx(1)*[1 1],hca.YLim,'color',0*colorExB,'linewidth',1,'linestyle',':');      
+        else
+          xx = sep.x(LOCS(1:2));
+          hSep = plot(hca,xx(1)*[1 1],hca.YLim,'color',0*colorExB,'linewidth',1,'linestyle',':');      
+          hSep = plot(hca,xx(2)*[1 1],hca.YLim,'color',0*colorExB,'linewidth',1,'linestyle',':');      
+        end
+      elseif 0
+        xx = unique(fred.x);
+        [~,ix] = min(abs(sep.x-xx));
+        zz = sep.z(ix);
+      end      
+      hold(hca,'off')      
+    end
+  end
+end
+drawnow
+compact_panels(h(1:end),0.01,0.05)
+%h(1).Title.String = ['nobg, t\omega_{pe} = ' num2str(twpe,'%05.0f')];
+hl = findobj(h(1),'type','line');
+legend(hl([3 2]),{'v_{ExB}','separatrix'},'box','off','location','south')
+%legend([hExB,hSep],{'v_{ExB}','separatrix'})
+fig = gcf; h_ = findobj(fig.Children,'type','axes');
+hlinks = linkprop(h(1:end),{'XLim','YLim','CLim'});
+hl = findobj(h(8),'type','line'); delete(hl(2));
+hl = findobj(h(9),'type','line'); delete(hl(2));
+
+hcb = colorbar('peer',h(9));
+hcb.Position = [0.91 0.115 0.01 0.810];
+hcb.YLabel.String = 'log_{10} f_{ic}(x,v_{x,y,z})';
+c_eval('h(?).YLabel.String = []; h(?).YTickLabel = [];',[2 3 5 6 8 9])
+c_eval('h(?).YLabel.String = ''v'';',[1 4 7])
+compact_panels(h,0.002,0.002)
+%hlinks.Targets(1).XLim = arclength([1 end]);
+%irf_plot_axis_align
+h(1).CLim = 0.99*[-4 2];
+h(1).YLim = 0.99*4*[-1 1];
+
+if 1 % extra markings and annotations 
+  %%
+  % Add DF locations
+  itt = no02m.twpelim(twpe).it;  
+  for ip = 7:9
+    hold(h(ip),'on')
+    hDF = plot(h(ip),xDF(1,itt)*[1 1],h(ip).YLim,'k--');
+    plot(h(ip),xDF(2,itt)*[1 1],h(ip).YLim,'k--');
+    hold(h(ip),'off')
+    if ip == 7
+      hlegdf = legend(hDF,{'DF'},'location','southeast','box','off');
+      hlegdf.Position(1) = 0.32;
+    end    
+  end
+  % inflow/outflow
+  text(h(1),102,2.5,'inflow','fontsize',13,'horizontalalignment','center')
+  text(h(1),128,2.5,'outflow','fontsize',13,'horizontalalignment','center')
+  text(h(1),75,2.5,'outflow','fontsize',13,'horizontalalignment','center')
+  
+  annotation('textarrow',[0.56 0.544],[0.14 0.14],'String','main X line','fontsize',13,'fontweight','light')
+  annotation('textarrow',[0.83 0.84],[0.74 0.76],'String',{'thermalization of','cold inbound ions','at separatrices'},'fontsize',13,'fontweight','light')
+  annotation('textarrow',[0.81 0.825],[0.46 0.48],'String',{'inside separatrix,','inbound ions','are thermalized'},'fontsize',13,'fontweight','light')
+  annotation('textarrow',[0.86 0.87],[0.46 0.50],'String',{'deeper within','exhaust, inbound','ions are still cold'},'fontsize',13,'fontweight','light','horizontalalignment','left')
+  annotation('textarrow',[0.86 0.87],[0.87 0.84],'String',{'heated exhaust ions'},'fontsize',13,'fontweight','light')
+  annotation('textarrow',[0.78 0.78],[0.82 0.79],'String',{'cold inflow'},'fontsize',13,'fontweight','light')  
+  annotation('textarrow',[0.69 0.675],[0.58 0.54],'String',{'cold outbound','beam close to DF'},'fontsize',13,'fontweight','light','horizontalalignment','left')
+  annotation('textarrow',[0.46 0.46],[0.20 0.23],'String',{'inbound ions','with v_y<0'},'fontsize',13,'fontweight','light')
+  %annotation('textarrow',[0.43 0.43],[0.29 0.27],'String',{'inbound ions','with v_y>0'},'fontsize',13,'fontweight','light')
+  %annotation('textarrow',[0.62 0.63],[0.84 0.81],'String',{'inbound ions','with v_y>0'},'fontsize',13,'fontweight','light')
+  annotation('textarrow',[0.61 0.63],[0.86 0.81],'String',{'inbound ions','with v_y>0'},'fontsize',13,'fontweight','light')
+  annotation('textarrow',[0.60 0.60],[0.73 0.77],'String',{'inbound ions','with v_y<0'},'fontsize',13,'fontweight','light')
+  % islands
+  text(h(7),99,2.9,'islands','fontsize',13,'horizontalalignment','center')
+  annotation('arrow',[0.260 0.260],[0.33 0.28])
+  annotation('arrow',[0.235 0.235],[0.33 0.29]) 
+  % secondary X lines
+  text(h(8),95,3.5,'secondary X lines','fontsize',13,'horizontalalignment','center')
+  annotation('arrow',[0.4795 0.4795],[0.33 0.29])
+  annotation('arrow',[0.5117 0.5117],[0.33 0.29])
+  % counterstreaming beams
+  % alt 1
+%   text(h(9),119,-3.25,'counter-streaming beams','fontsize',13,'horizontalalignment','center')
+%   annotation('textarrow',0.79*[1 1],[0.17 0.21],'string','cold','fontsize',13) 
+%   annotation('textarrow',0.825*[1 1],[0.17 0.21],'string','warmer','fontsize',13)
+%   annotation('textarrow',0.875*[1 1],[0.17 0.22],'string','cold','fontsize',13)
+  % alt 2
+  text(h(9),119,-3.35,'counter-streaming beams','fontsize',13,'horizontalalignment','center')
+  annotation('textarrow',[0.78 0.79],[0.17 0.21],'string','cold','fontsize',13) 
+  annotation('textarrow',[0.82 0.825],[0.17 0.21],'string','warmer','fontsize',13)
+  annotation('textarrow',[0.86 0.870],[0.17 0.19],'string','hot','fontsize',13)
+  annotation('textarrow',[0.885 0.875],[0.17 0.22],'string','cold','fontsize',13)
+  
+end
+%% Figure 3, plot, origin fraction
+% What to include
+% - overview of where boxes are
+fi_clim = [0 0.13];
+fe_clim = [0 0.02];
+fe_clim = [-4 log10(0.02)];
+
+nrows = 3;
+ncols = 3;
+h = setup_subplots(nrows,ncols,'horizontal');
+isub = 1;
+doE = 0; colorE = [0 0.8 0.8];
+doV = 0; colorV = 0*[1 1 1];
+doN = 0; colorN = [0 0 0];
+doExB = 1; colorExB = 0*[1 1 1]+0.0;
+doPhi = 0; colorPhi = [0.5 0.5 0];
+doSep = 1;
+
+cmap_dist = pic_colors('waterfall');
+
+freds = {fred3_z4,fred3_z4,fred3_z4,fred3_z2,fred3_z2,fred3_z2,fred3_z0,fred3_z0,fred3_z0};
+freds_tot = {fred35_z4,fred35_z4,fred35_z4,fred35_z2,fred35_z2,fred35_z2,fred35_z0,fred35_z0,fred35_z0};
+%freds = {fred35_z2,fred35_z2,fred35_z2};
+%freds = {fred5_z4,fred5_z4,fred5_z4;fred5_z2,fred5_z2,fred5_z2;fred5_z0,fred5_z0,fred5_z0}';
+%freds = {fred3_z4,fred3_z4,fred3_z4,fred3_z2,fred3_z2,fred3_z2,fred3_z0,fred3_z0,fred3_z0};
+labstrs = {'x','y','z','x','y','z','x','y','z'};
+legends = {'a)','b)','c)','d)','e)','f)','g)','h)','i)'}; 
+
+for ifred = 1:numel(freds)
+  if 1 % fi(v_) z_
+    hca = h(isub); isub = isub + 1;    
+    labstr = labstrs{ifred};
+    fred = freds{ifred};
+    fred_tot = freds_tot{ifred};    
+    %['fred_one.fv' labstr]
+    fred_one_plot = eval(['fred.fv' labstr]);
+    fred_tot_plot = eval(['fred_tot.fv' labstr]);
+    fredplot = fred_one_plot./fred_tot_plot;
+    pcolor(hca,fred.x,fred.v,fredplot')
+    shading(hca,'flat')
+    hca.XLabel.String = 'x (d_i)';
+    hca.YLabel.String = sprintf('v_{%s}',labstr);
+    colormap(hca,pic_colors('pasteljet')) 
+    %irf_legend(hca,{sprintf('f_{cold}(x,v_%s)',labstr)},[0.02 0.98],'color',[0 0 0],'fontsize',14)
+    %irf_legend(hca,{sprintf('%s z = %g',legends{ifred},unique(fred.z))},[0.02 0.98],'color',[0 0 0],'fontsize',14)
+    irf_legend(hca,{sprintf('%s f(v_%s,z=%g)',legends{ifred},labstr,unique(fred.z))},[0.02 0.98],'color',[0 0 0],'fontsize',14)
+    %hcb = colorbar('peer',hca);  
+    %hcb.YLabel.String = sprintf('f_{i,cold}(l_{||},v_{%s})',labstr);
+    %hca.CLim(2) = prctile(fred.fvx(:),99);
+    hca.CLim = [0 1];
+    hca.XGrid = 'on';
+    hca.YGrid = 'on';
+    hca.Layer = 'top';
+    hca.FontSize = 12;
+    if doExB
+      hold(hca,'on')
+      %xx = eval(['x_z' num2str(unique(fred.z))]);
+      xx = fred.x;
       vv = eval(['vExB' labstr '_z' num2str(unique(fred.z))]);
       hExB = plot(hca,xx,vv,'color',colorExB,'linewidth',0.5);
       %plot(hca,pic_sm.zi,mean(pic_sm.vExBy,1),'color',colorExB,'linewidth',1.5)
@@ -488,15 +708,256 @@ hl = findobj(h(9),'type','line'); delete(hl(2));
 
 hcb = colorbar('peer',h(9));
 hcb.Position = [0.91 0.13 0.015 0.795];
-hcb.YLabel.String = 'log_{10} f(x,v_{x,y,z})';
+hcb.YLabel.String = 'f^{top}_{ic}/f^{tot}_{ic}';
 c_eval('h(?).YLabel.String = []; h(?).YTickLabel = [];',[2 3 5 6 8 9])
 c_eval('h(?).YLabel.String = ''v'';',[1 4 7])
 compact_panels(h,0.002,0.002)
 %hlinks.Targets(1).XLim = arclength([1 end]);
 %irf_plot_axis_align
-h(1).CLim = 0.99*[-4 2];
+%h(1).CLim = 0.99*[-4 2];
 h(1).YLim = 0.99*4*[-1 1];
 
+if 1 % extra markings and annotations 
+  %%
+  % Add DF locations
+  itt = no02m.twpelim(twpe).it;  
+  for ip = 7:9
+    hold(h(ip),'on')
+    hDF = plot(h(ip),xDF(1,itt)*[1 1],h(ip).YLim,'k--');
+    plot(h(ip),xDF(2,itt)*[1 1],h(ip).YLim,'k--');
+    hold(h(ip),'off')
+    if ip == 7
+      hlegdf = legend(hDF,{'DF'},'location','southeast','box','off');
+      hlegdf.Position(1) = 0.32;
+    end    
+  end
+  annotation('textarrow',[0.56 0.544],[0.14 0.14],'String','main X line','fontsize',13,'fontweight','light')
+  annotation('textarrow',[0.83 0.84],[0.74 0.76],'String',{'thermalization of','cold inbound ions','at separatrices'},'fontsize',13,'fontweight','light')
+  annotation('textarrow',[0.81 0.825],[0.46 0.48],'String',{'inside separatrix,','inbound ions','are thermalized'},'fontsize',13,'fontweight','light')
+  annotation('textarrow',[0.86 0.87],[0.46 0.50],'String',{'deeper within','exhaust, inbound','ions are still cold'},'fontsize',13,'fontweight','light','horizontalalignment','left')
+  annotation('textarrow',[0.86 0.87],[0.87 0.84],'String',{'heated exhaust ions'},'fontsize',13,'fontweight','light')
+  annotation('textarrow',[0.78 0.78],[0.82 0.79],'String',{'cold inflow'},'fontsize',13,'fontweight','light')  
+  annotation('textarrow',[0.69 0.675],[0.58 0.54],'String',{'cold outbound','beam close to DF'},'fontsize',13,'fontweight','light','horizontalalignment','left')
+  annotation('textarrow',[0.46 0.46],[0.20 0.23],'String',{'inbound ions','with v_y<0'},'fontsize',13,'fontweight','light')
+  % islands
+  text(h(7),99,2.9,'islands','fontsize',13,'horizontalalignment','center')
+  annotation('arrow',[0.260 0.260],[0.33 0.28])
+  annotation('arrow',[0.235 0.235],[0.33 0.29]) 
+  % secondary X lines
+  text(h(8),95,3.5,'secondary X lines','fontsize',13,'horizontalalignment','center')
+  annotation('arrow',[0.4795 0.4795],[0.33 0.29])
+  annotation('arrow',[0.5117 0.5117],[0.33 0.29])
+  % counterstreaming beams
+  % alt 1
+%   text(h(9),119,-3.25,'counter-streaming beams','fontsize',13,'horizontalalignment','center')
+%   annotation('textarrow',0.79*[1 1],[0.17 0.21],'string','cold','fontsize',13) 
+%   annotation('textarrow',0.825*[1 1],[0.17 0.21],'string','warmer','fontsize',13)
+%   annotation('textarrow',0.875*[1 1],[0.17 0.22],'string','cold','fontsize',13)
+  % alt 2
+  text(h(9),119,-3.25,'counter-streaming beams','fontsize',13,'horizontalalignment','center')
+  annotation('textarrow',[0.78 0.79],[0.17 0.21],'string','cold','fontsize',13) 
+  annotation('textarrow',[0.82 0.825],[0.17 0.21],'string','warmer','fontsize',13)
+  annotation('textarrow',[0.86 0.870],[0.17 0.19],'string','hot','fontsize',13)
+  annotation('textarrow',[0.885 0.875],[0.17 0.22],'string','cold','fontsize',13)
+  
+end
+
+%% Figure 3.5 % counter-streaming beams in f(vz,z=0)
+doE = 0; colorE = [0 0.8 0.8];
+doV = 0; colorV = 0*[1 1 1];
+doN = 0; colorN = [0 0 0];
+doExB = 1; colorExB = 0*[1 1 1]+0.0;
+doPhi = 0; colorPhi = [0.5 0.5 0];
+doSep = 1;
+labstrs = {'z'};
+freds = {fred3_z0};
+freds_tot = {fred35_z0};
+ifred = 1;
+xlim = freds{1}.x([1 end]);
+zlim = 0.05*[-1 1];
+tlim = [75 120];
+doFCont = 1; fcontlev = [-0:1:1];
+
+nrows = 4;
+ncols = 1;
+npanels =nrows*ncols;
+h = setup_subplots(nrows,ncols,'horizontal');
+isub = 1;
+
+if 1 % Bz(x,t)
+  hca = h(isub); isub = isub + 1;   
+  pic_tmp = no02m.twcilim(tlim).xlim(xlim).zlim(zlim);
+  %Bz_tmp = pic_tmp.Bz;
+  %A_tmp = pic_tmp.A;
+  Bz_mean = squeeze(mean(Bz_tmp,2));
+  A_mean = squeeze(mean(A_tmp,2));
+  pcolor(hca,pic_tmp.xi,pic_tmp.twci,Bz_mean')  
+  shading(hca,'flat')
+  colormap(hca,pic_colors('blue_red'))
+  hcb = colorbar('peer',hca);  
+  hcb.YLabel.String = sprintf('B_z(x,t)',labstr);    
+  hca.YLabel.String = 't\omega_{ci}';
+  if 1 % A
+    hold(hca,'on')
+    contour(hca,pic_tmp.xi,pic_tmp.twci,A_mean',[0:1:25],'k')
+    hold(hca,'off')
+  end
+  hca.YDir = 'reverse';
+  hca.CLim = [-1 1];
+  hca.XGrid = 'on';
+  hca.YGrid = 'on';
+  hca.Layer = 'top';
+end
+if 0 % Ey(x,t)
+  hca = h(isub); isub = isub + 1;   
+  pic_tmp = no02m.twcilim(tlim).xlim(xlim).zlim(zlim);
+  %Ey_tmp = pic_tmp.Ey;
+  %A_tmp = pic_tmp.A;
+  Ey_mean = squeeze(mean(Ey_tmp,2));
+  A_mean = squeeze(mean(A_tmp,2));
+  pcolor(hca,pic_tmp.xi,pic_tmp.twci,Ey_mean')  
+  shading(hca,'flat')
+  colormap(hca,pic_colors('blue_red'))
+  hcb = colorbar('peer',hca);  
+  hcb.YLabel.String = sprintf('E_{y}(x,t)',labstr);    
+  hca.YLabel.String = 't\omega_{ci}';
+  if 1 % A
+    hold(hca,'on')
+    contour(hca,pic_tmp.xi,pic_tmp.twci,A_mean',[0:1:25],'k')
+    hold(hca,'off')
+  end
+  hca.YDir = 'reverse';
+  hca.CLim = [-1 1];
+  hca.XGrid = 'on';
+  hca.YGrid = 'on';
+  hca.Layer = 'top';
+end
+if 1 % Tic(x,t)
+  hca = h(isub); isub = isub + 1;   
+  pic_tmp = no02m.twcilim(tlim).xlim(xlim).zlim(zlim);
+  %Ti_tmp = pic_tmp.t([3 5]);
+  %A_tmp = pic_tmp.A;
+  Ti_mean = squeeze(mean(Ti_tmp,2));
+  A_mean = squeeze(mean(A_tmp,2));
+  pcolor(hca,pic_tmp.xi,pic_tmp.twci,Ti_mean')  
+  shading(hca,'flat')
+  colormap(hca,pic_colors('thermal'))
+  hcb = colorbar('peer',hca);  
+  hcb.YLabel.String = sprintf('T_{ic}(x,t)',labstr);    
+  hca.YLabel.String = 't\omega_{ci}';
+  if 1 % A
+    hold(hca,'on')
+    contour(hca,pic_tmp.xi,pic_tmp.twci,A_mean',[0:1:25],'k')
+    hold(hca,'off')
+  end
+  hca.YDir = 'reverse';
+  hca.CLim = [0 0.5];
+  hca.XGrid = 'on';
+  hca.YGrid = 'on';
+  hca.Layer = 'top';
+end
+if 1 % fic(vz,z=0)
+  hca = h(isub); isub = isub + 1;    
+  labstr = labstrs{ifred};
+  fred = freds_tot{ifred};  
+  fredplot = eval(['fred.fv' labstr]);
+  pcolor(hca,fred.x,fred.v,log10(fredplot)')
+  shading(hca,'flat')
+  hca.XLabel.String = 'x (d_i)';
+  hca.YLabel.String = sprintf('v_{%s}',labstr);
+  colormap(hca,pic_colors('candy4')) 
+  %irf_legend(hca,{sprintf('f_{cold}(x,v_%s)',labstr)},[0.02 0.98],'color',[0 0 0],'fontsize',14)
+  %irf_legend(hca,{sprintf('%s z = %g',legends{ifred},unique(fred.z))},[0.02 0.98],'color',[0 0 0],'fontsize',14)
+  irf_legend(hca,{sprintf('%s f(v_%s,z=%g)',legends{ifred},labstr,unique(fred.z))},[0.02 0.98],'color',[0 0 0],'fontsize',14)
+  hcb = colorbar('peer',hca);  
+  hcb.YLabel.String = sprintf('f_{ic}(x,v_{%s})',labstr);    
+  hca.CLim = 0.99*[-4 2];
+  hca.YLim = 0.99*4*[-1 1];
+  hca.XGrid = 'on';
+  hca.YGrid = 'on';
+  hca.Layer = 'top';
+  hca.FontSize = 12;
+  if doSep
+    hold(hca,'on')   
+    if 1           
+      zz = unique(fred.z);
+      [PKS,LOCS] = findpeaks(-abs(sep.z-zz),'sort','descend');
+      [~,iz] = min(abs(sep.z-zz));
+      if zz == 0
+        xx = sep.x(LOCS(1));
+        hSep = plot(hca,xx(1)*[1 1],hca.YLim,'color',0*colorExB,'linewidth',1,'linestyle',':');      
+      else
+        xx = sep.x(LOCS(1:2));
+        hSep = plot(hca,xx(1)*[1 1],hca.YLim,'color',0*colorExB,'linewidth',1,'linestyle',':');      
+        hSep = plot(hca,xx(2)*[1 1],hca.YLim,'color',0*colorExB,'linewidth',1,'linestyle',':');      
+      end
+    elseif 0
+      xx = unique(fred.x);
+      [~,ix] = min(abs(sep.x-xx));
+      zz = sep.z(ix);
+    end      
+    hold(hca,'off')      
+  end
+  if doFCont
+    hold(hca,'on')
+    contour(hca,fred.x,fred.v,log10(fredplot)',fcontlev,'k')
+    hold(hca,'off')
+  end
+end
+if 1 % fictop/fictot(vz,z=0)
+  hca = h(isub); isub = isub + 1;    
+  labstr = labstrs{ifred};
+  fred = freds{ifred};
+  fred_tot = freds_tot{ifred};    
+  %['fred_one.fv' labstr]
+  fred_one_plot = eval(['fred.fv' labstr]);
+  fred_tot_plot = eval(['fred_tot.fv' labstr]);
+  fredplot = fred_one_plot./fred_tot_plot;
+  pcolor(hca,fred.x,fred.v,fredplot')
+  shading(hca,'flat')
+  hca.XLabel.String = 'x (d_i)';
+  hca.YLabel.String = sprintf('v_{%s}',labstr);
+  colormap(hca,pic_colors('pasteljet')) 
+  %irf_legend(hca,{sprintf('f_{cold}(x,v_%s)',labstr)},[0.02 0.98],'color',[0 0 0],'fontsize',14)
+  %irf_legend(hca,{sprintf('%s z = %g',legends{ifred},unique(fred.z))},[0.02 0.98],'color',[0 0 0],'fontsize',14)
+  irf_legend(hca,{sprintf('%s f(v_%s,z=%g)',legends{ifred},labstr,unique(fred.z))},[0.02 0.98],'color',[0 0 0],'fontsize',14)
+  hcb = colorbar('peer',hca);  
+  hcb.YLabel.String = sprintf('f_{ic}^{top}/f_{ic}^{tot}(x,v_{%s})',labstr);  
+  hca.CLim = [0 1];
+  hca.XGrid = 'on';
+  hca.YGrid = 'on';
+  hca.Layer = 'top';
+  hca.FontSize = 12;
+  if doSep
+    hold(hca,'on')   
+    if 1           
+      zz = unique(fred.z);
+      [PKS,LOCS] = findpeaks(-abs(sep.z-zz),'sort','descend');
+      [~,iz] = min(abs(sep.z-zz));
+      if zz == 0
+        xx = sep.x(LOCS(1));
+        hSep = plot(hca,xx(1)*[1 1],hca.YLim,'color',0*colorExB,'linewidth',1,'linestyle',':');      
+      else
+        xx = sep.x(LOCS(1:2));
+        hSep = plot(hca,xx(1)*[1 1],hca.YLim,'color',0*colorExB,'linewidth',1,'linestyle',':');      
+        hSep = plot(hca,xx(2)*[1 1],hca.YLim,'color',0*colorExB,'linewidth',1,'linestyle',':');      
+      end
+    elseif 0
+      xx = unique(fred.x);
+      [~,ix] = min(abs(sep.x-xx));
+      zz = sep.z(ix);
+    end      
+    hold(hca,'off')      
+  end  
+  if doFCont
+    hold(hca,'on')
+    contour(hca,fred_tot.x,fred_tot.v,log10(fred_tot_plot)',fcontlev,'k','linewidth',1)
+    hold(hca,'off')
+  end
+end
+
+compact_panels(h,0.01,0.01)
+c_eval('h(?).Position(3) = [0.7];',1:npanels)
 %% Figure 4, reduced vertical distribution 
 %ds100 = PICDist('/Volumes/Fountain/Data/PIC/no_hot_bg_n02_m100/data_h5/dists.h5');
 %% Figure 4, prepare data

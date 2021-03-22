@@ -3,6 +3,12 @@ fid = H5F.open(filePath,'H5F_ACC_RDWR','H5P_DEFAULT');
 H5L.delete(fid,'/scalar_timeseries/U/T/1','H5P_DEFAULT');
 H5F.close(fid);
 
+%% Remove attribute
+filePath = no02m.file;
+fid = H5F.open(filePath,'H5F_ACC_RDWR','H5P_DEFAULT');
+H5L.delete(fid,'/scalar_timeseries/U/T/1','H5P_DEFAULT');
+H5F.close(fid);
+
 %% Remove trajectories
 
 filePath = '/Volumes/Fountain/Data/PIC/df_cold_protons_n04/data_h5/trajectories.h5';

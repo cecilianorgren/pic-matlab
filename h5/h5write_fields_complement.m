@@ -19,14 +19,15 @@ if nargin > 1 && strcmp(varargin{1},'group') % additional input given
   nGroups = numel(groupSpecies);
 end
 
-doGroup = 0;
-groups = {[1],[2],[3 5],[4 6]};
+doGroup = 1;
+groupSpecies = {[1],[2],[3 5],[4 6]};
 groupNames = {'i_hot','e_hot','i_cold','e_cold'};
+nGroups = numel(groupSpecies);
   
 timesteps = pic_orig.twpe;
 for it = 1:pic_orig.nt
   pic_tmp = pic_orig(it);
-  if 1
+  if 0
     Bx = pic_tmp.Bx;
     By = pic_tmp.By;
     Bz = pic_tmp.Bz;
@@ -38,7 +39,7 @@ for it = 1:pic_orig.nt
     h5write_attr(pic_tmp,pic_tmp.twci,'UB',UB)
   end
   % Plasma energy densities
-  if 1
+  if 0
     ne = pic_tmp.ne;  
     pe = pic_tmp.pe;
     vex = pic_tmp.vex;
@@ -67,6 +68,7 @@ for it = 1:pic_orig.nt
   end
   
   if doGroup % NOT IMPLEMENTED
+    disp(sprintf('twci=%g',pic_tmp.twci))
     for iGroup = 1:nGroups
       iSpecies = groupSpecies{iGroup};
       n = pic_tmp.n(iSpecies);
@@ -75,14 +77,30 @@ for it = 1:pic_orig.nt
       vy = pic_tmp.vy(iSpecies);
       vz = pic_tmp.vz(iSpecies);      
       Uk = pic_tmp.mass(iSpecies(1))/pic_tmp.mass(1)*0.5*n.*(vx.^2 + vy.^2 + vz.^2);
-      Ut = 3/2*p.scalar;         
+      Ut = 3/2*p;    
+      
+      if 1 % plot
+        figure(77)
+        hca = subplot(2,1,1);
+        imagesc(hca,pic_tmp.xi,pic_tmp.zi,Uk')
+        hca.Title.String = sprintf('nansum(Uk%s)=%g',groupNames{iGroup},nansum(Uk(:)));
+        colorbar('peer',hca)
+        hca = subplot(2,1,2);
+        imagesc(hca,pic_tmp.xi,pic_tmp.zi,Ut')
+        hca.Title.String = sprintf('nansum(Ut%s)=%g',groupNames{iGroup},nansum(Ut(:)));
+        colorbar('peer',hca)
+        drawnow
+      end
+      
+      Uk = nansum(Uk(:));
+      Ut = nansum(Ut(:));
       h5write_attr(pic_tmp,pic_tmp.twci,sprintf('Ut%s',groupNames{iGroup}),Ut)
       h5write_attr(pic_tmp,pic_tmp.twci,sprintf('Uk%s',groupNames{iGroup}),Uk)      
     end
   end
   
   % X line and reconnection rate
-  if 1
+  if 0
     A = vector_potential(pic_tmp.xi,pic_tmp.zi,Bx,Bz);        
     [Ainds,Avals] = saddle(A,'sort');
     xXline = pic_tmp.xi(Ainds(1,1));

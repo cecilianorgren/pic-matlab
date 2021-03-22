@@ -8,7 +8,7 @@ h5write_fields('/Volumes/Fountain/Data/PIC/oxygen_hakon/data/',...
 ox = PIC('/Volumes/Fountain/Data/PIC/oxygen_hakon/data_h5/fields.h5');
 
 %% Make/load trajectories and interpolate data
-traj = 3;
+traj = 66;
 switch traj
   case 'hakon' % Hakons initial trajectory with modifications
     ix_traj = load(['/Users/' localuser ,'/MATLAB/pic-matlab/hakon/indexListX.txt']);
@@ -292,6 +292,139 @@ switch traj
     vz_traj = diff(z_traj)/(dt/50);
     gongStruct = load('chirp.mat');
     %sound(gongStruct.y,gongStruct.Fs)
+  case 66 % down-up-down-up
+    %%
+    twpe1 = 8000;
+    twpe2 = 10000;    
+    t_traj = [twpe1:200:twpe2];
+    x_traj = [220 230 240 241 241 241 242 243 244 245 246];
+    z_traj = [6 2 3 6 5 4 4 4 6 8.0 10];
+    
+    % shifted a bit more to later times
+    x_traj = [220 225 230 240 243 245 246 247 248 249 250 245 246];
+    x_traj = x_traj(end:-1:1);
+    x_traj = [240 240 240 240 240 240 240 240 240 240 240 240 240];
+    x_traj = x_traj + linspace(0,5,numel(x_traj));
+    z_traj = [6 5 3 2 2 2 3 4 5 6 7 8];
+    z_traj = [8 6 5 4 3 2 3 4 5 6 7 9];
+    
+    x_traj = x_traj(1:numel(t_traj));
+    z_traj = z_traj(1:numel(t_traj));
+    
+    % interpolate to more trajectory points below plot
+       
+    if 1 % Plot density for each time so I can select points from it
+      %%
+      twpelim = [twpe1 twpe2];
+      zlim = [-1 9];
+      xlim = [190 280];
+      pic_ = ox.xlim(xlim).zlim(zlim).twpelim(twpelim);
+      nO_tmp = pic_.n(3);
+      vzO_tmp = pic_.vz(3);
+      vex_tmp = pic_.vx([2 4]);
+      
+      figure(21)
+      ncols = 3;
+      %nrows = ceil(pic_.nt/ncols);
+      nrows = pic_.nt; % plot second column in spacecraft frame.
+      npanels = nrows*ncols;
+
+      %h = setup_subplots(nrows,ncols,'vertical');
+      h = setup_subplots(nrows,ncols,'horizontal');
+      isub = 1;
+
+      for it = 1:pic_.nt
+        pic_tmp = pic_(it);
+        pic_tmp.twpe;
+        if 1 % vex
+          hca = h(isub); isub = isub + 1;
+          imagesc(hca,pic_tmp.xi,pic_tmp.zi,squeeze(vex_tmp(:,:,pic_tmp.it))');
+          hca.YDir = 'normal';
+          hca.XLabel.String = 'x';
+          hca.YLabel.String = 'z';          
+          irf_legend(hca,{sprintf('tw_{pe}=%g',pic_tmp.twpe),sprintf('x=%0.1f, z=%0.1f',x_traj(it),z_traj(it))},[0.02 0.98],'color','k')
+          hca.CLim = [-1 1];
+          colormap(hca,pic_colors('blue_red'))
+          if 1 % plot trajectory positions for each time
+            try
+            hold(hca,'on')
+            plot(hca,x_traj,z_traj,'k')
+            plot(hca,x_traj(it),z_traj(it),'ok')
+            hold(hca,'off')
+            end
+          end
+        end
+        if 1 % vz
+          hca = h(isub); isub = isub + 1;
+          imagesc(hca,pic_tmp.xi,pic_tmp.zi,squeeze(vzO_tmp(:,:,pic_tmp.it))');
+          hca.YDir = 'normal';
+          hca.XLabel.String = 'x';
+          hca.YLabel.String = 'z';          
+          irf_legend(hca,{sprintf('tw_{pe}=%g',pic_tmp.twpe),sprintf('x=%0.1f, z=%0.1f',x_traj(it),z_traj(it))},[0.02 0.98],'color','k')
+          hca.CLim = [-0.4 0.4];
+          colormap(hca,pic_colors('blue_red'))
+          if 1 % plot trajectory positions for each time
+            try
+            hold(hca,'on')
+            plot(hca,x_traj,z_traj,'k')
+            plot(hca,x_traj(it),z_traj(it),'ok')
+            hold(hca,'off')
+            end
+          end
+        end
+        if 1 % n
+          hca = h(isub); isub = isub + 1;
+          imagesc(hca,pic_tmp.xi,pic_tmp.zi,squeeze(nO_tmp(:,:,pic_tmp.it))');
+          hca.YDir = 'normal';
+          hca.XLabel.String = 'x';
+          hca.YLabel.String = 'z';          
+          irf_legend(hca,{sprintf('tw_{pe}=%g',pic_tmp.twpe),sprintf('x=%0.1f, z=%0.1f',x_traj(it),z_traj(it))},[0.02 0.98],'color','k')
+          hca.CLim = [0 0.4];
+          if 1 % plot trajectory positions for each time
+            try
+            hold(hca,'on')
+            plot(hca,x_traj,z_traj,'k')
+            plot(hca,x_traj(it),z_traj(it),'ok')
+            hold(hca,'off')
+            end
+          end
+        end
+        if 0 % n, spacecraft frame
+          hca = h(isub); isub = isub + 1;
+          pcolor(hca,pic_tmp.xi-0*x_traj(it),pic_tmp.zi-0*z_traj(it),squeeze(nO_tmp(:,:,pic_tmp.it))');
+          shading(hca,'flat')
+          hca.XLim = x_traj(it) + 0.5*diff(xlim)*[-1 1];
+          hca.YLim = z_traj(it) + 0.5*diff(zlim)*[-1 1];
+          hca.YDir = 'normal';
+          hca.XLabel.String = 'x';
+          hca.YLabel.String = 'z';          
+          irf_legend(hca,{sprintf('tw_{pe}=%g',pic_tmp.twpe),sprintf('x=%0.1f, z=%0.1f',x_traj(it),z_traj(it))},[0.02 0.98],'color','k')
+          hca.CLim = [0 0.4];
+          if 1 % plot trajectory positions for each time
+            try
+            hold(hca,'on')            
+            plot(hca,x_traj,z_traj,'k')
+            plot(hca,x_traj(it),z_traj(it),'ok')
+            hold(hca,'off')
+            end
+          end
+        end
+      end
+      %hlinks = linkprop(h,{'XLim','YLim','CLim'});
+      %hlinks.Targets(1)
+      compact_panels(h,0,0.02)
+    end    
+        
+    t_traj_old = t_traj;
+    dt = 1;
+    t_traj = twpe1:dt:twpe2;
+    
+    x_traj = interp1(t_traj_old,x_traj,t_traj,'spline');
+    z_traj = interp1(t_traj_old,z_traj,t_traj,'spline');
+    vx_traj = diff(x_traj)/(dt/50);
+    vz_traj = diff(z_traj)/(dt/50);
+    %gongStruct = load('chirp.mat');
+    %sound(gongStruct.y,gongStruct.Fs)
   case 4 % 'almost single time', two fronts, 10000
     %%
     twpe1 = 9600;
@@ -532,7 +665,7 @@ if 1 % not necessary to redo every time, only if new times are added, or
   vOy = pic.vy(3);
   vOz = pic.vz(3);
   nO = pic.n(3);
-end
+end 
 % Make 3D meshgrid, which is reuired input to interp3.
 % X,Z,T all have dimensions [nz,nx,nt], thats why I need to
 % permute the data below, e.g. Bx have dimension [nx,nz,nt], and the 
@@ -565,7 +698,7 @@ if 1 % r(t)
 end
 if 1 % v(t)
   hca = h(isub); isub = isub + 1;
-  [AX,H1,H2] = plotyy(hca,t_traj(1:end-1),vx_traj,t_traj(1:end-1),vz_traj);
+  [AX,H1,H2] = plotyy(hca,t_traj(1:end-1),smooth(vx_traj,50),t_traj(1:end-1),vz_traj);
   AX(1).YLabel.String = 'v_x';
   AX(2).YLabel.String = 'v_z';
   legend(hca,{'v_x','v_z'},'Box','off','orientation','horizontal');

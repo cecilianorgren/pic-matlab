@@ -2725,57 +2725,13 @@ hcb.YLabel.String = 'log_{10}f(v_x,v_y)';
 
 %% Energy partitioning
 pic = no02m;
-nrows = 5;
-ncols = 2;
+nrows = 3;
+ncols = 1;
 npanels = nrows*ncols;
 h = setup_subplots(nrows,ncols);
 isub = 1;
 
-tmp_twci = [10 130];
-ttmp = pic.twcilim(tmp_twci).twci;
-Uti_hot = pic.twcilim(tmp_twci).get_timeline_attributes('Uti_hot'); 
-Uki_hot = pic.twcilim(tmp_twci).get_timeline_attributes('Uki_hot');
-Uti_cold = pic.twcilim(tmp_twci).get_timeline_attributes('Uti_cold');
-Uki_cold = pic.twcilim(tmp_twci).get_timeline_attributes('Uki_cold');
-Ute_hot = pic.twcilim(tmp_twci).get_timeline_attributes('Ute_hot');
-Uke_hot = pic.twcilim(tmp_twci).get_timeline_attributes('Uke_hot');
-Ute_cold = pic.twcilim(tmp_twci).get_timeline_attributes('Ute_cold');
-Uke_cold = pic.twcilim(tmp_twci).get_timeline_attributes('Uke_cold');
-
-d0Uti_hot = Uti_hot-Uti_hot(1);
-d0Uki_hot = Uki_hot-Uki_hot(1);
-d0Uti_cold = Uti_cold-Uti_cold(1);
-d0Uki_cold = Uki_cold-Uki_cold(1);
-d0Ute_hot = Ute_hot-Ute_hot(1);
-d0Uke_hot = Uke_hot-Uke_hot(1);
-d0Ute_cold = Ute_cold-Ute_cold(1);
-d0Uke_cold = Uke_cold-Uke_cold(1);
-
-d1Uti_hot = Uti_hot./Uti_hot(1);
-d1Uki_hot = Uki_hot./Uki_hot(1);
-d1Uti_cold = Uti_cold./Uti_cold(1);
-d1Uki_cold = Uki_cold./Uki_cold(1);
-d1Ute_hot = Ute_hot./Ute_hot(1);
-d1Uke_hot = Uke_hot./Uke_hot(1);
-d1Ute_cold = Ute_cold./Ute_cold(1);
-d1Uke_cold = Uke_cold./Uke_cold(1);
-
-d0Kih = d0Uti_hot./d0Uki_hot;
-d0Kic = d0Uti_cold./d0Uki_cold;
-d0Keh = d0Ute_hot./d0Uke_hot;
-d0Kec = d0Ute_cold./d0Uke_cold;
-
-d1Kih = d1Uti_hot./d1Uki_hot;
-d1Kic = d1Uti_cold./d1Uki_cold;
-d1Keh = d1Ute_hot./d1Uke_hot;
-d1Kec = d1Ute_cold./d1Uke_cold;
-
-Kih = Uti_hot./Uki_hot;
-Kic = Uti_cold./Uki_cold;
-Keh = Ute_hot./Uke_hot;
-Kec = Ute_cold./Uke_cold;
-
-if 0 % RE
+if 1 % RE
   hca = h(isub); isub = isub + 1;
   plot(hca,pic.twci,pic.RE)
   legend(hca,{'R_{E}'},'location','best','box','off')
@@ -2809,46 +2765,6 @@ if 0 % Delta Ue (4 types)
            pic.twci,pic.get_timeline_attributes('Uke_hot')-pic(1).get_timeline_attributes('Uke_hot'),'-',...
            pic.twci,pic.get_timeline_attributes('Uke_cold')-pic(1).get_timeline_attributes('Uke_cold'),'-')
   legend(hca,{'\Delta U_{teh}','\Delta U_{tec}','\Delta U_{keh}','\Delta U_{kec}'},'location','best','box','off')  
-end
-if 1 % Delta Ui-Ui(0) (4 types)
-  hca = h(isub); isub = isub + 1;
-  plot(hca,ttmp,d0Uti_hot,'-',...
-           ttmp,d0Uti_cold,'-',...
-           ttmp,d0Uki_hot,'-',...
-           ttmp,d0Uki_cold,'-')
-  legend(hca,{'\Delta U_{tih}','\Delta U_{tic}','\Delta U_{kih}','\Delta U_{kic}'},'location','best','box','off')  
-  grid(hca,'on')
-  hca.YLabel.String = 'U-U(0)';
-end
-if 1 % Delta Ue-Ue(0) (4 types)
-  hca = h(isub); isub = isub + 1;
-  plot(hca,ttmp,d0Ute_hot,'-',...
-           ttmp,d0Ute_cold,'-',...
-           ttmp,d0Uke_hot,'-',...
-           ttmp,d0Uke_cold,'-')
-  legend(hca,{'\Delta U_{teh}','\Delta U_{tec}','\Delta U_{keh}','\Delta U_{kec}'},'location','best','box','off')  
-  grid(hca,'on')
-  hca.YLabel.String = 'U-U(0)';
-end
-if 1 % Delta Ui/Ui(0) (4 types)
-  hca = h(isub); isub = isub + 1;
-  plot(hca,ttmp,d1Uti_hot,'-',...
-           ttmp,d1Uti_cold,'-',...
-           ttmp,d1Uki_hot,'-',...
-           ttmp,d1Uki_cold,'-')
-  legend(hca,{'\Delta U_{tih}','\Delta U_{tic}','\Delta U_{kih}','\Delta U_{kic}'},'location','best','box','off')  
-  grid(hca,'on')
-  hca.YLabel.String = 'U/U(0)';
-end
-if 1 % Delta Ue/Ue(0) (4 types)
-  hca = h(isub); isub = isub + 1;
-  plot(hca,ttmp,d1Ute_hot,'-',...
-           ttmp,d1Ute_cold,'-',...
-           ttmp,d1Uke_hot,'-',...
-           ttmp,d1Uke_cold,'-')
-  legend(hca,{'\Delta U_{teh}','\Delta U_{tec}','\Delta U_{keh}','\Delta U_{kec}'},'location','best','box','off')  
-  grid(hca,'on')
-  hca.YLabel.String = 'U/U(0)';
 end
 if 0 % xDF
   hca = h(isub); isub = isub + 1;
@@ -2980,102 +2896,35 @@ if 0 % Uki_cold vs Uke_cold
   hca.XGrid = 'on';
   hca.YGrid = 'on';    
 end
-if 1 % dKi
-  hca = h(isub); isub = isub + 1;
-  plot(hca,ttmp,d0Kih,ttmp,d0Kic)  
-  hca.XLabel.String = 't\omega_{ci}';
-  hca.XGrid = 'on';
-  hca.YGrid = 'on';
-  hca.YLim = [0 2];
-  legend(hca,{'hot ions','cold ions'},'location','best','box','off')  
-  hca.YLabel.String = '(U_t-U_{t0})/(U_k-U_{k0})';
-end
-if 1 % dKe
-  hca = h(isub); isub = isub + 1;
-  plot(hca,ttmp,d0Keh,ttmp,d0Kec)  
-  hca.XLabel.String = 't\omega_{ci}';
-  hca.XGrid = 'on';
-  hca.YGrid = 'on';
-  hca.YLim = [0 300];
-  legend(hca,{'hot electrons','cold electrons'},'location','best','box','off')  
-  hca.YLabel.String = '(U_t-U_{t0})/(U_k-U_{k0})';
-end
-if 1 % dKi
-  hca = h(isub); isub = isub + 1;
-  plot(hca,ttmp,d1Kih,ttmp,d1Kic)  
-  hca.XLabel.String = 't\omega_{ci}';
-  hca.XGrid = 'on';
-  hca.YGrid = 'on';
-  %hca.YLim = [0 2];
-  legend(hca,{'hot ions','cold ions'},'location','best','box','off')  
-  hca.YLabel.String = '(U_t/U_{t0})/(U_k/U_{k0})';
-end
-if 1 % dKe
-  hca = h(isub); isub = isub + 1;
-  plot(hca,ttmp,d1Keh,ttmp,d1Kec)  
-  hca.XLabel.String = 't\omega_{ci}';
-  hca.XGrid = 'on';
-  hca.YGrid = 'on';
-  %hca.YLim = [0 300];
-  legend(hca,{'hot electrons','cold electrons'},'location','best','box','off')  
-  hca.YLabel.String = '(U_t/U_{t0})/(U_k/U_{k0})';
-end
-if 1 % Ki
-  hca = h(isub); isub = isub + 1;
-  plot(hca,ttmp,Kih,ttmp,Kic)  
-  hca.XLabel.String = 't\omega_{ci}';
-  hca.XGrid = 'on';
-  hca.YGrid = 'on';
-  %hca.YLim = [0 2];
-  legend(hca,{'hot ions','cold ions'},'location','best','box','off')  
-  hca.YLabel.String = 'U_t/U_k';
-end
-if 1 % Ke
-  hca = h(isub); isub = isub + 1;
-  plot(hca,ttmp,Keh,ttmp,Kec)  
-  hca.XLabel.String = 't\omega_{ci}';
-  hca.XGrid = 'on';
-  hca.YGrid = 'on';
-  %hca.YLim = [0 300];
-  legend(hca,{'hot electrons','cold electrons'},'location','best','box','off')  
-  hca.YLabel.String = 'U_t/U_k';
-end
-if 0 % dK
+if 1 % Uki_cold vs Uke_cold
   hca = h(isub); isub = isub + 1;
   tmp_twci = [10 130];
-  
+  Uti_hot = pic.twcilim(tmp_twci).get_timeline_attributes('Uti_hot'); dUti_hot = Uti_hot-Uti_hot(1);
+  Uki_hot = pic.twcilim(tmp_twci).get_timeline_attributes('Uki_hot'); dUki_hot = Uti_hot-Uti_hot(1);
+  Uti_cold = pic.twcilim(tmp_twci).get_timeline_attributes('Uti_cold'); dUti_hot = Uti_hot-Uti_hot(1);
+  Uki_cold = pic.twcilim(tmp_twci).get_timeline_attributes('Uti_cold'); dUki_hot = Uti_hot-Uti_hot(1);
+  Ute_hot = pic.twcilim(tmp_twci).get_timeline_attributes('Ute_hot'); dUti_hot = Uti_hot-Uti_hot(1);
+  Uke_hot = pic.twcilim(tmp_twci).get_timeline_attributes('Uke_hot'); dUki_hot = Uti_hot-Uti_hot(1);
+  Ute_cold = pic.twcilim(tmp_twci).get_timeline_attributes('Ute_cold'); dUti_hot = Uti_hot-Uti_hot(1);
+  Uke_cold = pic.twcilim(tmp_twci).get_timeline_attributes('Ute_cold'); dUki_hot = Uti_hot-Uti_hot(1);
+  Kih = ./pic.twcilim(tmp_twci).get_timeline_attributes('Uki_hot');
+  Kic = pic.twcilim(tmp_twci).get_timeline_attributes('Uti_cold')./pic.twcilim(tmp_twci).get_timeline_attributes('Uki_cold');
+  Keh = pic.twcilim(tmp_twci).get_timeline_attributes('Ute_hot')./pic.twcilim(tmp_twci).get_timeline_attributes('Uke_hot');
+  Kec = pic.twcilim(tmp_twci).get_timeline_attributes('Ute_cold')./pic.twcilim(tmp_twci).get_timeline_attributes('Uke_cold');
   ttmp = pic.twcilim(tmp_twci).twci;
-  plot(hca,ttmp,dKih,ttmp,dKic,ttmp,dKeh,ttmp,dKec)  
-  %[AX,H1,H2] = plotyy(hca,ttmp,[dKih,dKic],ttmp,[dKeh,dKec]);
+  %plot(hca,ttmp,Kih,ttmp,Kic,ttmp,Keh,ttmp,Kec)  
+  [AX,H1,H2] = plotyy(hca,ttmp,[Kih,Kic],ttmp,[Keh,Kec]);
   hca.XLabel.String = 't\omega_{ci}';
-  %AX(1).YLabel.String = '\Delta U_{ti}/\Delta U_{ki}'; 
-  %AX(2).YLabel.String = '\DeltaU_{te}/\Delta U_{ke}'; 
+  AX(1).YLabel.String = 'U_{ti}/U_{ki}'; 
+  AX(2).YLabel.String = 'U_{te}/U_{ke}'; 
   hca.XGrid = 'on';
   hca.YGrid = 'on';
-  %hca.YTick = [0:1:20];
-  %AX(2).YTick = [0:40:400];
+  hca.YTick = [0:1:20];
+  AX(2).YTick = [0:40:400];
   %legend(hca,{'U_{tic}/U_{kic}','U_{tih}/U_{kih}','U_{tec}/U_{kec}','U_{teh}/U_{keh}'},'location','best','box','off')  
   legend(hca,{'hot ions','cold ions','hot electrons','cold electrons'},'location','best','box','off')  
 end
-if 0 % dK
-  hca = h(isub); isub = isub + 1;
-  tmp_twci = [10 130];
-  
-  ttmp = pic.twcilim(tmp_twci).twci;
-  plot(hca,ttmp,dKih,ttmp,dKic,ttmp,dKeh,ttmp,dKec)  
-  %[AX,H1,H2] = plotyy(hca,ttmp,[dKih,dKic],ttmp,[dKeh,dKec]);
-  hca.XLabel.String = 't\omega_{ci}';
-  %AX(1).YLabel.String = '\Delta U_{ti}/\Delta U_{ki}'; 
-  %AX(2).YLabel.String = '\DeltaU_{te}/\Delta U_{ke}'; 
-  hca.XGrid = 'on';
-  hca.YGrid = 'on';
-  hca.YLim = [0 15];
-  %hca.YTick = [0:1:20];
-  %AX(2).YTick = [0:40:400];
-  %legend(hca,{'U_{tic}/U_{kic}','U_{tih}/U_{kih}','U_{tec}/U_{kec}','U_{teh}/U_{keh}'},'location','best','box','off')  
-  legend(hca,{'hot ions','cold ions','hot electrons','cold electrons'},'location','best','box','off')  
-end
-if 0 % Uki_cold vs Uke_cold
+if 1 % Uki_cold vs Uke_cold
   hca = h(isub); isub = isub + 1;
   tmp_twci = [10 130];
   Kih = pic.twcilim(tmp_twci).get_timeline_attributes('Uti_hot')./pic.twcilim(tmp_twci).get_timeline_attributes('Uki_hot');
