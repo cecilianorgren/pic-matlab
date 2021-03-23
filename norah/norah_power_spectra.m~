@@ -65,11 +65,11 @@ df_orig = diff(f_orig(1:2)); % uniform
 % f_orig_edges = [f_orig(1)-0.5*df_orig(1); f_orig(1:end-1)+0.5*df_orig; f_orig(end)+0.5*df_orig(end)];
 % if f_orig_edges(1)<0, f_orig_edges(1) = 0; end
 % new frequency bins
-nf = 100;
+nf = 50;
 fsmooth_edges = logspace(-5,-2,nf+1);
 fsmooth_edges = linspace(1e-5,1e-2,nf+1);
 df = diff(fsmooth_edges);
-fsmooth = fsmooth_edges(1:end-1)+0.5*df;
+fsmooth = fsmooth_edges(1:end-1)+df;
 psmooth = zeros(1,nf);
 for ivar = 1:numel(varstrs)
   var = eval(varstrs{ivar});
@@ -81,8 +81,8 @@ for ivar = 1:numel(varstrs)
   var.fsmooth = fsmooth;
   var.psmooth{1} = psmooth;
   % make step-like resampled spectra, to show bin edges
-  var.fstep = reshape([fsmooth_edges(1:end-1);fsmooth_edges(2:end)],(numel(fsmooth_edges)-1)*2,1)';
-  var.pstep{1} = reshape([psmooth;psmooth],numel(psmooth)*2,1)';
+  var.fstep = reshape([fsmooth(1:end-1);fsmooth(2:end)],(numel(fsmooth)-1)*2,1)';
+  var.pstep{1} = reshape([fsmooth(1:end-1);fsmooth(2:end)],(numel(fsmooth)-1)*2,1)';
   
   eval([varstrs{ivar} '= var;'])
 end
@@ -116,7 +116,7 @@ if 1 % Test plot
     hca.YLabel.String = 'Power Obs';
     hca.XGrid = 'on';
     hca.YGrid = 'on';
-    irf_legend(hca,{'original','smoothed (bin center)','smoothed (bin width)'}',[0.98 0.98])
+    irf_legend(hca,{'original','smoothed','smoothed'}',[0.98 0.98])
   end
   if 1 % smoothed data, all
     hca = h(isub); isub = isub + 1;
