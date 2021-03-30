@@ -1269,27 +1269,14 @@
         % /data/00000xxxxx/ 
         % redo to actually find the         
         nDists = numel(fileInfo.Groups(iGroup).Groups(iIter).Groups);
-        
         for iDist = 1:nDists
-          % Try group attributes first (i saved them a bit differently)
-          iAtt =   find(contains({fileInfo.Groups(iGroup).Groups(iIter).Groups(iDist).Attributes.Name},'tag')); 
-          if isempty(iAtt) % go to subdataset
-            iAtt = find(contains({fileInfo.Groups(iGroup).Groups(iIter).Groups(iDist).Datasets(1).Attributes.Name},'tag')); 
-            if isempty(iAtt) % no attribute found
-              all_tags{iIter}{iDist} = '';
-            end
+          iAtt = find(contains({fileInfo.Groups(iGroup).Groups(iIter).Groups(iDist).Datasets(1).Attributes.Name},'tag')); 
+          if isempty(iAtt)
+            all_tags{iIter}{iDist} = '';
           else
-            all_tags{iIter}{iDist} = fileInfo.Groups(iGroup).Groups(iIter).Groups(iDist).Attributes(iAtt).Value;
+            all_tags{iIter}{iDist} = fileInfo.Groups(iGroup).Groups(iIter).Groups(iDist).Datasets(1).Attributes(iAtt).Value;
           end
-          
-%           iAtt =      find(contains({fileInfo.Groups(iGroup).Groups(iIter).Groups(iDist).Datasets(1).Attributes.Name},'tag')); 
-%           if isempty(iAtt)
-%             all_tags{iIter}{iDist} = '';
-%           else
-%             all_tags{iIter}{iDist} = fileInfo.Groups(iGroup).Groups(iIter).Groups(iDist).Datasets(1).Attributes(iAtt).Value;
-%           end
-        end
-        
+        end        
       end
       out = all_tags;
       
@@ -1372,8 +1359,12 @@
       for iIter = 1:obj.nt
         iter = iterations(iIter);
         str_iter = sprintf('%010.0f',iter);
+        % this gives error if there is a jump in dists
+        % use obj.dists{iIter}{iDist} instead of num2str(iDist,'%05.0f')?
         for iDist = 1:numel(obj.dists{iIter}) 
+          %dataset_name = ['/data/' str_iter '/' num2str(iDist,'%05.0f') '/fxyz'];
           dataset_name = ['/data/' str_iter '/' obj.dists{iIter}{iDist} '/fxyz'];          
+          %locs{iIter}{iDist} = [h5readatt(obj.file,dataset_name,'x') h5readatt(obj.file,dataset_name,'z')];
           try
             vtmp = h5readatt(obj.file,dataset_name,'axes')';
           catch

@@ -21,6 +21,10 @@
 % close,lun
 % free_lun,lun
 directory = '/Users/cecilia/Data/Hide/ellip0.10eta79/';
+% See content
+%s = whos('-file',directory);
+%varnames = {s.name};
+
 b = load([directory 'b.dat']);
 epar = load([directory 'epar.dat']);
 nx = 51;
@@ -275,3 +279,131 @@ if 1
   hca.XGrid = 'on';
   hca.YGrid = 'on';
 end
+
+
+%% Get selection of fieldlines, to make sketch figure
+intEpar = zeros(ny,nz);
+ystart = zeros(ny,nz);
+ystop = zeros(ny,nz);
+zstart = zeros(ny,nz);
+zstop = zeros(ny,nz);
+
+%clear lines;
+ix = 2;
+tic
+for iy = 2:1:ny-1
+  disp(sprintf('iy = %g',iy))
+  for iz = 2:1:nz-1
+    %disp(sprintf('[iy,iz] = [%g,%g]',iy,iz))
+    x0 = x(ix);
+    y0 = y(iy);
+    z0 = z(iz);
+    ds = 0.005; 
+    
+    nsteps = inf; % if nsteps is not an even number, integration will stop 
+                    % when the fieldline arclength is above nsteps    
+    [linearc,linex,liney,linez,linebx,lineby,linebz] = fieldline3(x0,y0,z0,x,y,z,Bx,By,Bz,ds,nsteps);    
+    Epar_along_line = interpfield3(x,y,z,Epar,linex,liney,linez);
+    intEpar_along_line = -trapz(linearc,Epar_along_line);
+    intEpar_along_line_cum = -cumtrapz(linearc,Epar_along_line);
+    intEpar(iy,iz) = intEpar_along_line;
+    ystart(iy,iz) = liney(1);
+    ystop(iy,iz) = liney(end);
+    zstart(iy,iz) = linez(1);
+    zstop(iy,iz) = linez(end);
+    
+    lines(iy,iz).s = linearc;
+    lines(iy,iz).x = linex;
+    lines(iy,iz).y = liney;
+    lines(iy,iz).z = linez;
+    lines(iy,iz).epar  = Epar_along_line;
+    lines(iy,iz).epar_int  = intEpar_along_line_cum;
+  end
+end
+toc
+
+%% Find equicontour lines of Epar
+ix = 2;
+tic
+phi_lev = linspace(0,13e-4,10);
+for iy = 2:1:ny-1
+  disp(sprintf('iy = %g',iy))
+  for iz = 2:1:nz-1
+    phi_par = lines(iy,iz).epar_int;    
+    % find point closest 9to each level
+    for ip = 1:numel(phi_lev)
+      [lev,ind] = min(abs(phi_par-phi_lev(ip)));     
+      
+      phi(iy,iz,ip) = phi_par(ind);
+      x_phi(iy,iz,ip) = lines(iy,iz).x(ind);
+      y_phi(iy,iz,ip) = lines(iy,iz).y(ind);
+      z_phi(iy,iz,ip) = lines(iy,iz).z(ind);
+      if 0%max(phi_par)>5e-4        
+        %%
+        plot(lines(iy,iz).s,phi_par,[0 2],phi_lev(ip),'-o',lines(iy,iz).s(ind), phi_par(ind),'*')
+        title(sprintf('ind = %g, philev=%g',ind,phi_lev(ip)))
+        1;
+      end
+    end
+  end
+end
+
+%% Plot
+nlines = numel(lines);
+holdon = 0;
+hca = subplot(1,1,1);
+hca.XLim = [0 2];
+hca.YLim = [-1 1];
+hca.ZLim = [-1 1];
+
+for iline = 1:nlines
+  l = lines(iline);
+  plot3(hca,l.x,l.y,l.z)
+  if not(holdon), hold(hca,'on'); end
+end
+
+%[C,H] = contour3(...)
+  
+hold(hca,'off')
+
+%% Plot
+nplanes = numel(phi_lev);
+holdon = 0;
+hca = subplot(1,1,1);
+hca.XLim = [0 2];
+
+for ip = 2:8
+  l = lines(ip);
+  xx = x_phi(:,:,ip); 
+  yy = y_phi(:,:,ip); 
+  zz = z_phi(:,:,ip); 
+  scatter3(hca,xx(:),yy(:),zz(:),'.')
+  if not(holdon), hold(hca,'on'); end
+end
+
+%[C,H] = contour3(...)
+  
+hold(hca,'off')
+hca.ZLim = [0.5 1.5];
+hca.YLim = [0 2];
+hca.XLim = [0.5 2];
+
+%% Plot
+nlines = numel(lines);
+holdon = 0;
+hca = subplot(1,1,1);
+%hca.XLim = [0 2];
+%hca.YLim = [-1 1];
+%hca.ZLim = [-1 1];
+
+for iline = 1:nlines
+  l = lines(iline);
+  plot(hca,l.s,-l.epar_int)
+  if not(holdon), hold(hca,'on'); end
+  drawnow
+  pause(0.01)
+end
+
+%[C,H] = contour3(...)
+  
+hold(hca,'off')

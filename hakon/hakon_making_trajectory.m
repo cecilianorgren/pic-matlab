@@ -304,9 +304,10 @@ switch traj
     x_traj = [220 225 230 240 243 245 246 247 248 249 250 245 246];
     x_traj = x_traj(end:-1:1);
     x_traj = [240 240 240 240 240 240 240 240 240 240 240 240 240];
-    x_traj = x_traj + linspace(0,5,numel(x_traj));
+    x_traj = x_traj + linspace(0,1,numel(x_traj));
     z_traj = [6 5 3 2 2 2 3 4 5 6 7 8];
     z_traj = [8 6 5 4 3 2 3 4 5 6 7 9];
+    z_traj = [6 5.5 5 4.5 4 4 4 4.5 5 5.5 6 6.5];
     
     x_traj = x_traj(1:numel(t_traj));
     z_traj = z_traj(1:numel(t_traj));
@@ -656,7 +657,7 @@ xlim = [100 300];
 pic = ox.xlim(xlim).zlim(zlim).twpelim(twpelim);
 
 % 3D matrices of data
-if 1 % not necessary to redo every time, only if new times are added, or 
+if 0 % not necessary to redo every time, only if new times are added, or 
   % x,z expanded beyond xlim,zlim
   Bx = pic.Bx;
   By = pic.By;

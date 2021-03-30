@@ -421,7 +421,7 @@ end
 %% Figure 3, prepare data
 twpe = 24000; xlim = [50 155]; zlim = [-15 15];
 sep = no02m.twpelim(twpe).separatrix_location;
-for zpick = [0 2 4]
+for zpick = 0;[0 2 4];
   ds = ds100.twpelim(twpe).zfind(zpick).xlim(xlim).findtag({'line horizontal'});
   
   xdist = (ds.xi1{1}+ds.xi2{1})/2;
@@ -1209,7 +1209,7 @@ twpe = 24000;
 pic = no02m.twpelim(twpe);
 for xpick = 75
   ds = ds100.twpelim(twpe).xfind(xpick).findtag({'line vertical'});
-  fred35_tmp = ds.reduce_1d_new('x',[3 5],[]); eval(sprintf('fred35_x%g = fred35_tmp;',xpick))
+  fred35_tmp = ds.reduce_1d_new('x',[3 5],[]); 
   
   xdist = (ds.xi1{1}+ds.xi2{1})/2;
   zdist = (ds.zi1{1}+ds.zi2{1})/2;  
@@ -1228,11 +1228,23 @@ for xpick = 75
   %eval(sprintf('Ez_x%g = squeeze(mean(pic.xlim(xlim_fred).zlim(zlim_fred).Ez,1));',xpick))
   %eval(sprintf('phiz_x%g = -cumtrapz(z_x%g,Ez_x%g);',xpick,xpick,xpick))
   
+  fred35_tmp.x_all = pic.zi;
+  eval(sprintf('fred35_tmp.Bx_all = Bx_x%g;',xpick))
+  eval(sprintf('fred35_tmp.By_all = By_x%g;',xpick))
+  eval(sprintf('fred35_tmp.Bz_all = Bz_x%g;',xpick))
+  eval(sprintf('fred35_tmp.vExBx_all = vExBx_x%g;',xpick))
+  eval(sprintf('fred35_tmp.vExBy_all = vExBy_x%g;',xpick))
+  eval(sprintf('fred35_tmp.vExBz_all = vExBz_x%g;',xpick))
+  
   pic_tmp = no02m.twpelim(twpe).xlim(xlim_fred).zlim(zlim_fred);
   Bx = pic_tmp.get_points(xdist,zdist,pic_tmp.twci,[dxdist(1) dzdist(1)],'Bx');
   By = pic_tmp.get_points(xdist,zdist,pic_tmp.twci,[dxdist(1) dzdist(1)],'By');
   Bz = pic_tmp.get_points(xdist,zdist,pic_tmp.twci,[dxdist(1) dzdist(1)],'Bz');
-  
+    
+  fred35_tmp.Bx = Bx;
+  fred35_tmp.By = By;
+  fred35_tmp.Bz = Bz;
+  eval(sprintf('fred35_x%g = fred35_tmp;',xpick))
   
 %   Bx_ = pic_tmp.Bx;
 %   By_ = pic_tmp.By;
@@ -2657,12 +2669,12 @@ end
 
 %% Figure 9.2 reduced parallel ion distributiona at two different times
 %% Figure 9.2 prepare data
-twpe = 23000;
-pic = no02m.twpelim(twpe);
-ds1 = ds100.twpelim(twpe).findtag({'A=7.5'});
+% Distribution at 1st time
+twpe1 = 23000;
+pic = no02m.twpelim(twpe1);
+ds1 = ds100.twpelim(twpe1).findtag({'A=7.5'});
 xdist1 = (ds1.xi1{1}+ds1.xi2{1})/2;
 zdist1 = (ds1.zi1{1}+ds1.zi2{1})/2;
-pic = no02m.twpelim(twpe);
 Bx1_ = pic.Bx;
 By1_ = pic.By;
 Bz1_ = pic.Bz;
@@ -2677,9 +2689,10 @@ arclength1 = arclength1 - arc01;
 darcs1 = diff(arclength1);
 arcedges1 = [arclength1(1)-0.5*darcs1(1) arclength1(1:end-1)+0.5*darcs1 arclength1(end)+0.5*darcs1(end)];
 
-twpe = 24000;
-pic = no02m.twpelim(twpe);
-ds2 = ds100.twpelim(twpe).findtag({'A=7.5'});
+% Distribution at 2nd time
+twpe2 = 24000;
+pic = no02m.twpelim(twpe2);
+ds2 = ds100.twpelim(twpe2).findtag({'A=7.5'});
 xdist2 = (ds2.xi1{1}+ds2.xi2{1})/2;
 zdist2 = (ds2.zi1{1}+ds2.zi2{1})/2;
 Bx2_ = pic.Bx;
@@ -2695,6 +2708,133 @@ arc02 = arclength2(find(abs(zdist2)==min(abs(zdist2))));
 arclength2 = arclength2 - arc02;
 darcs2 = diff(arclength2);
 arcedges2 = [arclength2(1)-0.5*darcs2(1) arclength2(1:end-1)+0.5*darcs2 arclength2(end)+0.5*darcs2(end)];
+
+%% Parallel electric field between the two times
+% obtain point along field line
+twpe = [23000 24000];
+xlim = [60 80];
+zlim = [-6 6];
+varnames = {'Epar','nic_top','nic_bot'};
+varstrs = {'Epar','n(3)','n(5)'};
+pic = no02m.twpelim(twpe).xlim(xlim).zlim(zlim);
+Aval = 7.5;
+clear S
+for it = 1:pic.nt 
+  it
+  pic_tmp = pic(it);
+  A = squeeze(pic_tmp.A);
+  S_tmp = contourcs(pic_tmp.xi,pic_tmp.zi,A',Aval*[1 1]);
+  % Interpolate equidistant
+  d_arc_x = diff(S_tmp.X);
+  d_arc_y = diff(S_tmp.Y);
+  d_arc_distance = sqrt(d_arc_x.^2 + d_arc_y.^2);
+  arc_distance = [0 cumsum(d_arc_distance)];
+  d_arcdist = 0.03;
+  new_arc_distance = arc_distance(1):d_arcdist:arc_distance(end); % try to get atleast one box at start
+  x_new = interp1(arc_distance,S_tmp.X,new_arc_distance);
+  z_new = interp1(arc_distance,S_tmp.Y,new_arc_distance);
+  % Collect data into table array
+  S(it).twpe = pic_tmp.twpe;
+  S(it).twci = pic_tmp.twci;
+  S(it).A = S_tmp.Level;
+  S(it).np_orig = S_tmp.Length;
+  S(it).x_orig = S_tmp.X;
+  S(it).z_orig = S_tmp.Y;  
+  S(it).s_orig = arc_distance;  
+  S(it).np = numel(x_new);
+  S(it).x = x_new;
+  S(it).z = z_new;
+  S(it).s = new_arc_distance;
+  for ivar = 1:numel(varstrs)
+    xlim_tmp = [min(S(it).x) max(S(it).x)] + [-1 1];
+    zlim_tmp = [min(S(it).z) max(S(it).z)] + [-1 1];
+    pic_tmptmp = no02m.twpelim(S(it).twpe).xlim(xlim_tmp).zlim(zlim_tmp);
+    %varstr = varstrs{ivar};
+    %var = pic_tmptmp.(varstr);
+    var_line = pic_tmptmp.interp(S(it).x,S(it).z,S(it).twci,varstrs{ivar});
+    S(it).(varnames{ivar}) = var_line';
+  end
+  
+end
+
+xmin = min([S.x]);
+%
+for iS = 1:numel(S) % add some stuffs
+  % center arclength where s=0 is at z=0
+  S(iS).i0 = find(abs(S(iS).z)==min(abs(S(iS).z)));
+  S(iS).s0 = S(iS).s(S(iS).i0);
+  S(iS).s_centered = S(iS).s-S(iS).s0;
+  % interpolate to common s where s=0 is at z=0
+  s_common = S(1).s_centered; % first time has longest arclength
+  S(iS).s_common = s_common;
+  for ivar = 1:numel(varnames) 
+    tmp_var = S(iS).(varnames{ivar});
+    new_var = interp1(S(iS).s_centered,tmp_var,S(iS).s_common);
+    S(iS).([varnames{ivar} '_common']) = new_var;
+  end
+end
+%%
+times = [S.twci];
+ss = S(1).s_common;
+stE = cat(1,S.Epar_common);
+stNitop = cat(1,S.nic_top_common);
+stNibot = cat(1,S.nic_bot_common);
+
+nrows = 4;
+ncols = 1;
+npaels = nrows*ncols;
+h = setup_subplots(nrows,ncols);
+isub = 1;
+
+if 1 % Epar
+  hca = h(isub); isub = isub + 1;
+  pcolor(hca,ss,times,smooth2(stE,2))
+  shading(hca,'flat')
+  hca.XLabel.String = 's';
+  hca.YLabel.String = 'twpe';
+  hcb = colorbar('peer',hca);
+  colormap(hca,pic_colors('blue_red'))
+  hca.CLim = [-0.5 0.5];
+end
+if 1 % ntop
+  hca = h(isub); isub = isub + 1;
+  pcolor(hca,ss,times,stNitop)
+  shading(hca,'flat')
+  hca.XLabel.String = 's';
+  hca.YLabel.String = 'twpe';
+  hcb = colorbar('peer',hca);
+  colormap(hca,pic_colors('pasteljet'))
+  hca.CLim = [0 0.5];
+end
+if 1 % nbot
+  hca = h(isub); isub = isub + 1;
+  pcolor(hca,ss,times,stNibot)
+  shading(hca,'flat')
+  hca.XLabel.String = 's';
+  hca.YLabel.String = 'twpe';
+  hcb = colorbar('peer',hca);
+  colormap(hca,pic_colors('pasteljet'))
+  hca.CLim = [0 0.5];
+end
+if 1 % ntop/ntot
+  hca = h(isub); isub = isub + 1;
+  pcolor(hca,ss,times,stNitop./(stNibot+stNitop))
+  shading(hca,'flat')
+  hca.XLabel.String = 's';
+  hca.YLabel.String = 'twpe';
+  hcb = colorbar('peer',hca);
+  colormap(hca,pic_colors('pasteljet'))
+  hca.CLim = [0 1];
+end
+compact_panels(0.01,0.0)
+hlinks = linkprop(h,{'XLim','YLim'});
+% for iS = 1:numel(S)
+%   plot(S(iS).s_centered,S(iS).Epar)
+%   if iS == 1
+%     hold on
+%   end
+% end
+% hold off
 
 % % reduced distributions
 % if 0 % saved reduced distributions
@@ -2728,8 +2868,8 @@ arcedges2 = [arclength2(1)-0.5*darcs2(1) arclength2(1:end-1)+0.5*darcs2 arclengt
 %% Figure 9.2 Plot
 colors = pic_colors('matlab');
 
-nrows = 2;
-ncols = 2;
+nrows = 5;
+ncols = 1;
 %h = setup_subplots(nrows,ncols,'vertical');
 h = setup_subplots(nrows,ncols,'horizontal');
 %[h,h2] = initialize_combined_plot(nrows,2,2,0.4,'vertical')
@@ -2808,6 +2948,23 @@ if 1 % fi3/fi35(vpar)
     hold(hca,'off')
   end
 end
+
+if 1 % Epar
+  hca = h(isub); isub = isub + 1;
+  pcolor(hca,ss,times,smooth2(stE,2))
+  shading(hca,'flat')
+  hca.XLabel.String = 's';
+  hca.YLabel.String = 'twpe';
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'E_{||}';
+  colormap(hca,pic_colors('blue_red'))
+  hca.CLim = [-0.5 0.5];  
+  hca.XGrid = 'on';
+  %hca.YGrid = 'on';
+  hca.Layer = 'top';
+  hca.YDir = 'reverse';
+end
+
 if 1 % log 10 fi35(vpar)
   hca = h(isub); isub = isub + 1;
   fred = fred35_A75_2;  
@@ -2875,6 +3032,11 @@ if 1 % fi3/fi35(vpar)
     hold(hca,'off')
   end
 end
+compact_panels(0.01)
+
+hlinksx = linkprop(h,{'XLim'});
+hlinksy = linkprop(h([1 2 4 5]),{'YLim'});
+
 %% Figure 9.0 top, map of Epar att different times
 legends = {'a)','b)','c)','d)','e)','f)','g)','h)','i)','j)'};
 

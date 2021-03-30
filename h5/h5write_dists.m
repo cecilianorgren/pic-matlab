@@ -44,7 +44,8 @@ else
   info = h5info(h5FilePath);
   newh5file = 1;
   %h5writeatt(h5FilePath,'/','test',1)
-  h5writeatt(h5FilePath,'/','software','micPIC')    
+  h5writeatt(h5FilePath,'/','software','micPIC')
+  h5writeatt(h5FilePath,'/','nSpecies', 6);
 end
 
 % data_dir can both be overarching directory with subdirectories for each

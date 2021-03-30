@@ -130,8 +130,8 @@ hold(hca,'off')
 % 276:321 A=5.5
 % 322:377 A=5
 % 378:438 A=4.5
-% 439:449 A=4.5 correct - just an island 
-% 450:542 A=4
+% 439:449 A=4.5 ? 
+% 450:542 A=4 ?
 % --
 % 543:691 horizontal line z=0
 % 692:840 horizontal line z=2 ? check
@@ -143,9 +143,9 @@ hold(hca,'off')
 
 %% Write tags, write
 h5FilePath = '/Volumes/Fountain/Data/PIC/no_hot_bg_n02_m100/data_h5/dists.h5';
-twpe = 23000;
-tag = 'A=7.5';
-for idist = 1:280
-  dataset = ['/data/' sprintf('%010.0f',2*twpe) '/' sprintf('%05.0f',idist) '/'];  
+twpe = 24000;
+tag = 'A=4.5';
+for idist = 378:438
+  dataset = ['/data/' sprintf('%010.0f',2*twpe) '/' sprintf('%05.0f',idist) '/'];
   h5writeatt(h5FilePath,dataset,'tag',tag)
 end
