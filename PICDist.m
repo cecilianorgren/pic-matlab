@@ -1437,6 +1437,8 @@
             
       iSpecies = iss;        
       dataset = obj.dataset_str(it,id);
+      twci = obj.twci(it);
+      twpe = obj.twpe(it);
       info = h5info(obj.file,dataset);      
       nSpecies = info.Dataspace.Size(4);
       datasize = info.Dataspace.Size(1:3);
@@ -1451,6 +1453,9 @@
       %h = setup_subplots(3,2);
       ip = 1;
       for iSpeciesTmp = iSpecies
+        % Michael did not divide by the phase space volume, so the units of
+        % data_tmp when loaded is #/r3, not #/r3v3, and sum(data_tmp(:)) 
+        % gives the density directly
         data_tmp = h5read(obj.file,dataset,[1 1 1,iSpeciesTmp],[datasize,1]);        
         % The phase space volume might be different due to different vaxes
         % or spatial box sizes. Adjust for that here.
@@ -1467,7 +1472,7 @@
 %         volPhaseSpace = dv.^3*dx*dz;
 %dv = 1;
         volVelocitySpace = dv.^3;
-        data_tmp = data_tmp/volVelocitySpace;
+        data_tmp = data_tmp/volVelocitySpace; % #/r3v3
         
         if nUniqueAxes > 1 % Resample/interpolate to common axes.
           [Vx,Vy,Vz] = meshgrid(allAxes(:,iSpeciesTmp),allAxes(:,iSpeciesTmp),allAxes(:,iSpeciesTmp));
@@ -1475,8 +1480,8 @@
           data_tmp = interp3(Vx,Vy,Vz,data_tmp,Vxq,Vyq,Vzq);
           data_tmp(isnan(data_tmp)) = 0;
           new_dv = comAxes(2)-comAxes(1);
-          new_dv = 1;
-          data_tmp = data_tmp*new_dv.^3;
+          %new_dv = 1; % ???
+          data_tmp = data_tmp*new_dv.^3; % dn
         end       
         %hca = h(ip); ip = ip + 1;
         %imagesc(hca,comAxes,comAxes,squeeze(sum(data_tmp)))
@@ -1489,14 +1494,16 @@
       % Reduce distribution
       if exist('sumdim','var') && any(sumdim == [1 2 3])
         for isum = numel(sumdim):-1:1
-          dist = squeeze(sum(dist,sumdim(isum)));
+          dist = squeeze(sum(dist,sumdim(isum)))*(comAxes(2)-comAxes(1)); % fdv
         end
       end
       
       x = h5readatt(obj.file,dataset,'x');
       z = h5readatt(obj.file,dataset,'z');
       
-      if nargout == 1
+      if nargout == 1        
+        out.twci = twci;
+        out.twpe = twpe;
         out.f = dist;
         out.v = comAxes;
         out.dv = comAxes(2)-comAxes(1);
@@ -1529,6 +1536,8 @@
       
       iSpecies = iss;        
       dataset = obj.dataset_str(it,id);
+      twci = obj.twci(it);
+      twpe = obj.twpe(it);
       info = h5info(obj.file,dataset);      
       nSpecies = info.Dataspace.Size(4);
       datasize = info.Dataspace.Size(1:3);
@@ -1571,7 +1580,7 @@
       fstr = {'yz','xz','xy'};
       for sumdim = 1:3
         for isum = numel(sumdim):-1:1
-          dist_sum{sumdim} = squeeze(sum(dist,sumdim(isum)));
+          dist_sum{sumdim} = squeeze(sum(dist,sumdim(isum)))*(comAxes(2)-comAxes(1)); % fdv
         end        
       end
       
@@ -1582,11 +1591,14 @@
         vpar = comAxes;        
       end
       
+      out.twci = twci;
+      out.twpe = twpe;
       out.f = dist;
       out.fyz = dist_sum{1};
       out.fxz = dist_sum{2};
       out.fxy = dist_sum{3};
       out.v = comAxes;
+      out.dv = comAxes(2)-comAxes(1);
       out.x = x;
       out.z = z;
       varargout{1} = out;
@@ -2055,9 +2067,22 @@
           t_arr(id_count) = ds.twci;
           x_arr(id_count) = mean(f.x);
           z_arr(id_count) = mean(f.z);          
-          f_vx_arr(id_count,:) = interp1(f.v,sum(f.fxy,2),vaxes);
-          f_vy_arr(id_count,:) = interp1(f.v,sum(f.fxy,1),vaxes);
-          f_vz_arr(id_count,:) = interp1(f.v,sum(f.fxz,1),vaxes);
+          dv_old = f.v(2)-f.v(1);
+          dv_new = vaxes(2)-vaxes(1);
+          % may the interpolation may change the summed up (phase space)
+          % density? test:
+          if 0 
+            %%
+            nend = 100;
+            aa = 0:nend;
+            ff = 0:100;
+            aa_new = 0:7:nend;
+            ff_new = interp1(aa,ff,aa_new);
+            sum(ff)/(sum(ff_new)*(aa_new(2)-aa_new(1))/(aa(2)-aa(1)))
+          end
+          f_vx_arr(id_count,:) = interp1(f.v,sum(f.fxy,2)*dv_old,vaxes);%*dv_new/dv_old;
+          f_vy_arr(id_count,:) = interp1(f.v,sum(f.fxy,1)*dv_old,vaxes);%*dv_new/dv_old;
+          f_vz_arr(id_count,:) = interp1(f.v,sum(f.fxz,1)*dv_old,vaxes);%*dv_new/dv_old;
           %f_vabs_arr(id_count,:) = interp1(f_tmp.v,sum(f_tmp.fxz,1),vaxes);
           
 
@@ -2144,7 +2169,7 @@
             dv_par = v_par_grid(2)-v_par_grid(1);
             v_par_center = v_par_grid(1:(end-1)) + dv_par;
             [accum_fvpar edges mid loc] = histcn(VPAR(:),v_par_grid,'AccumData',f.f(:)*d3v);
-            f_vpar_arr(id_count,:) = accum_fvpar; % m-3/(m/s)= s/m4
+            f_vpar_arr(id_count,:) = accum_fvpar/dv_par; % m-3/(m/s)= s/m4
             
             % Pitch angle distributions
             % Pitch angle grid
@@ -2203,9 +2228,11 @@
           fout(itime).vpar_edges = v_par_grid;
           fout(itime).fvpar = f_vpar_arr(i_sorted,:);
           fout(itime).vpitch = v_pitch_grid;
-          fout(itime).pitch = pitch_grid;
+          fout(itime).pitch_edges = pitch_grid;
+          fout(itime).pitch_center = pitch_center;
           fout(itime).fpitch = f_pitch_arr(i_sorted,:,:);
-          fout(itime).Epitch = E_grid;          
+          fout(itime).Epitch_edges = E_grid;
+          fout(itime).Epitch_center = E_center;
           fout(itime).fpitchE = f_pitchE_arr(i_sorted,:,:);
         end
         if 0
