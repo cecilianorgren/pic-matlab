@@ -2026,7 +2026,7 @@
       nv = numel(vaxes);
       
       n_vabs = 50;
-      n_vpar = 120;
+      n_vpar = 101;
       n_pitch = 18;
       n_v_pitch = 20;
       n_E_pitch = 20;
@@ -2073,14 +2073,16 @@
           % density? test:
           if 0 
             %%
-            aa = 0:10;
-            ff = 0:10;
-            aa_new = 0:0.5:10;
+            nend = 100;
+            aa = 0:nend;
+            ff = 0:100;
+            aa_new = 0:7:nend;
             ff_new = interp1(aa,ff,aa_new);
+            sum(ff)/(sum(ff_new)*(aa_new(2)-aa_new(1))/(aa(2)-aa(1)))
           end
-          f_vx_arr(id_count,:) = interp1(f.v,sum(f.fxy,2)*dv_old,vaxes);
-          f_vy_arr(id_count,:) = interp1(f.v,sum(f.fxy,1)*dv_old,vaxes);
-          f_vz_arr(id_count,:) = interp1(f.v,sum(f.fxz,1)*dv_old,vaxes);
+          f_vx_arr(id_count,:) = interp1(f.v,sum(f.fxy,2)*dv_old,vaxes);%*dv_new/dv_old;
+          f_vy_arr(id_count,:) = interp1(f.v,sum(f.fxy,1)*dv_old,vaxes);%*dv_new/dv_old;
+          f_vz_arr(id_count,:) = interp1(f.v,sum(f.fxz,1)*dv_old,vaxes);%*dv_new/dv_old;
           %f_vabs_arr(id_count,:) = interp1(f_tmp.v,sum(f_tmp.fxz,1),vaxes);
           
 
@@ -2147,6 +2149,8 @@
             def_E_arr(id_count,:) = accum_fvE/(4*pi)./Edelta'; % (eV s-1 m-2)/(sr eV) = eV/(s m2 sr eV)
           end
           if any([doPar doPitch])
+            v_interp = linspace(f.v(1),f.v(end),300);
+            f.f_interp = interp3(f.v,f.v,f.v,f.f,v_interp,v_interp,v_interp);
             dv = f.v(2)-f.v(1);
             d3v = dv.^3;
             Bx = B{1}; Bx = Bx(id_count);
@@ -2164,10 +2168,11 @@
             PITCH = acosd(VPAR./VABS);
             
             v_par_grid = linspace(min(VPAR(:)),max(VPAR(:)),n_vpar+1);
+            v_par_grid = [f.v(1)-0.5*dv_old f.v+0.5*dv_old];
             dv_par = v_par_grid(2)-v_par_grid(1);
-            v_par_center = v_par_grid(1:(end-1)) + dv_par;
+            v_par_center = v_par_grid(1:(end-1)) + 0.5*dv_par;
             [accum_fvpar edges mid loc] = histcn(VPAR(:),v_par_grid,'AccumData',f.f(:)*d3v);
-            f_vpar_arr(id_count,:) = accum_fvpar; % m-3/(m/s)= s/m4
+            f_vpar_arr(id_count,:) = accum_fvpar/dv_par; % m-3/(m/s)= s/m4
             
             % Pitch angle distributions
             % Pitch angle grid
@@ -2226,9 +2231,11 @@
           fout(itime).vpar_edges = v_par_grid;
           fout(itime).fvpar = f_vpar_arr(i_sorted,:);
           fout(itime).vpitch = v_pitch_grid;
-          fout(itime).pitch = pitch_grid;
+          fout(itime).pitch_edges = pitch_grid;
+          fout(itime).pitch_center = pitch_center;
           fout(itime).fpitch = f_pitch_arr(i_sorted,:,:);
-          fout(itime).Epitch = E_grid;          
+          fout(itime).Epitch_edges = E_grid;
+          fout(itime).Epitch_center = E_center;
           fout(itime).fpitchE = f_pitchE_arr(i_sorted,:,:);
         end
         if 0

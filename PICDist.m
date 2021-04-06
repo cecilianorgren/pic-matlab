@@ -2026,7 +2026,7 @@
       nv = numel(vaxes);
       
       n_vabs = 50;
-      n_vpar = 120;
+      n_vpar = 101;
       n_pitch = 18;
       n_v_pitch = 20;
       n_E_pitch = 20;
@@ -2160,14 +2160,22 @@
             by = By./Babs;
             bz = Bz./Babs;
             
+            % interp
+%             v_interp = linspace(f.v(1),f.v(end),300);
+%             [VXm,VYm,VZm] = meshgrid(f.v,f.v,f.v);
+%             [VXi,VYi,VZi] = meshgrid(v_interp,v_interp,v_interp);
+%             f.f_interp = interp3(VXm,VYm,VZm,f.f,VXi,VYi,VZi);
+%             
+            
             VPAR = VX(:).*bx + VY(:).*by + VZ(:).*bz;
             VABS = sqrt(VX(:).^2 + VY(:).^2 + VZ(:).^2);
             E = VABS.^2/2; % include mass later
             PITCH = acosd(VPAR./VABS);
             
             v_par_grid = linspace(min(VPAR(:)),max(VPAR(:)),n_vpar+1);
+            v_par_grid = [f.v(1)-0.5*dv_old f.v+0.5*dv_old];
             dv_par = v_par_grid(2)-v_par_grid(1);
-            v_par_center = v_par_grid(1:(end-1)) + dv_par;
+            v_par_center = v_par_grid(1:(end-1)) + 0.5*dv_par;
             [accum_fvpar edges mid loc] = histcn(VPAR(:),v_par_grid,'AccumData',f.f(:)*d3v);
             f_vpar_arr(id_count,:) = accum_fvpar/dv_par; % m-3/(m/s)= s/m4
             

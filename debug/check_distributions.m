@@ -1,8 +1,8 @@
 % sort out distributions etc
 % first time, first distribution, 3rd species
 iTime = 2;
-iDist = 1;
-iSpecies = 3;
+iDist = 2;
+iSpecies = 1;
 
 fxyz = ds100.fxyz(iTime,iDist,iSpecies);
 f = ds100.f(iTime,iDist,iSpecies);
@@ -41,9 +41,13 @@ zdist = (ds.zi1{1}+ds.zi2{1})/2;
 dxdist = ds.xi1{1}-ds.xi2{1};
 dzdist = ds.zi1{1}-ds.zi2{1};
 tdist = repmat(twpe,size(xdist));
-Bx = no02m.twpelim(twpe).get_points(xdist,zdist,tdist,dxdist*0.5*[-1 1],'vExBx'); eval(sprintf('vExBx_z%g = vExBx_tmp;',zpick))
-By = no02m.twpelim(twpe).get_points(xdist,zdist,tdist,dxdist*0.5*[-1 1],'vExBy'); eval(sprintf('vExBy_z%g = vExBy_tmp;',zpick))
-Bz = no02m.twpelim(twpe).get_points(xdist,zdist,tdist,dxdist*0.5*[-1 1],'vExBz'); eval(sprintf('vExBz_z%g = vExBz_tmp;',zpick))
+Bx = no02m.twpelim(twpe).get_points(xdist,zdist,tdist,dxdist*0.5*[-1 1],'Bx');
+By = no02m.twpelim(twpe).get_points(xdist,zdist,tdist,dxdist*0.5*[-1 1],'By');
+Bz = no02m.twpelim(twpe).get_points(xdist,zdist,tdist,dxdist*0.5*[-1 1],'Bz');
+% 
+% Bx = 1;
+% By = 0.5;
+% Bz = 0;
 
 fred_par = ds.reduce_1d_new('x',[iSpecies],[],'vpar',{Bx,By,Bz},'pitch',{Bx,By,Bz});
 
@@ -51,4 +55,54 @@ n_fredpar_dist = sum(fred_par.fvpar(:))*(fred_par.vpar_edges(2)-fred_par.vpar_ed
 
 [n_fxyz_mom n_fxyz_dist n_fredz_dist n_fredpar_dist]
 1;
+
+h = setup_subplots(3,3);
+isub = 1;
+if 1 % fxy
+  hca = h(isub); isub = isub + 1;  
+  imagesc(hca,f.v,f.v,f.fxy')
+  hca.XLabel.String = 'v_x';
+  hca.YLabel.String = 'v_y';
+end
+if 1 % fxz
+  hca = h(isub); isub = isub + 1;  
+  imagesc(hca,f.v,f.v,f.fxy')
+  hca.XLabel.String = 'v_x';
+  hca.YLabel.String = 'v_z';
+end
+if 1 % fyz
+  hca = h(isub); isub = isub + 1;  
+  imagesc(hca,f.v,f.v,f.fyz')
+  hca.XLabel.String = 'v_y';
+  hca.YLabel.String = 'v_z';
+end
+if 1 % fx,fy,fz
+  hca = h(isub); isub = isub + 1;  
+  plot(hca,fred.v,fred.fvx,fred.v,fred.fvy,fred.v,fred.fvz)
+  hca.XLabel.String = 'v';
+  hca.YLabel.String = 'f';
+end
+if 1 % f(E)
+  hca = h(isub); isub = isub + 1;  
+  loglog(hca,fred_par.Epitch_center,squeeze(sum(fred_par.fpitchE,3)))
+  hca.XLabel.String = 'E';
+  hca.YLabel.String = 'f';
+  hca.XGrid = 'on';
+  hca.YGrid = 'on';
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

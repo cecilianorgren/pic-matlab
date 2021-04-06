@@ -151,17 +151,12 @@ for idist = 1:280
 end
 
 %% Write dervied data, for example f(vpar)
-h5FilePath = '/Volumes/Fountain/Data/PIC/no_hot_bg_n02_m100/data_h5/dists.h5';
+h5FilePath
 twpe = 23000;
-iteration = twpe*2;
-str_iteration = sprintf('%010.0f',iteration);
 dspart = ds100.twpelim(twpe).findtag({'A=7.5'}).dxlim([0 0.3]);
-mass_all = no02m.mass;
-charge_all = no02m.charge;
-iSpecies = 3;
 
-for distnumber = 1%:ds.nd{1}
-  ds = dspart.update_inds({distnumber});
+for idist = 1:ds.nd{1}
+  ds = dspart.update_inds({idist});
   xlo = ds.xi1{1};
   xhi = ds.xi2{1};
   zlo = ds.zi1{1};
@@ -172,21 +167,13 @@ for distnumber = 1%:ds.nd{1}
   dxdist = ds.xi1{1}-ds.xi2{1};
   dzdist = ds.zi1{1}-ds.zi2{1};
   tdist = repmat(twpe,size(xdist));
-  Bx = no02m.twpelim(twpe).get_points(xdist,zdist,tdist,dxdist*0.5*[-1 1],'Bx');
-  By = no02m.twpelim(twpe).get_points(xdist,zdist,tdist,dxdist*0.5*[-1 1],'By');
-  Bz = no02m.twpelim(twpe).get_points(xdist,zdist,tdist,dxdist*0.5*[-1 1],'Bz');
-  Bx = 1;
-  By = 0;
-  Bz = 0;
+  Bx = no02m.twpelim(twpe).get_points(xdist,zdist,tdist,dxdist*0.5*[-1 1],'vExBx'); eval(sprintf('vExBx_z%g = vExBx_tmp;',zpick))
+  By = no02m.twpelim(twpe).get_points(xdist,zdist,tdist,dxdist*0.5*[-1 1],'vExBy'); eval(sprintf('vExBy_z%g = vExBy_tmp;',zpick))
+  Bz = no02m.twpelim(twpe).get_points(xdist,zdist,tdist,dxdist*0.5*[-1 1],'vExBz'); eval(sprintf('vExBz_z%g = vExBz_tmp;',zpick))
+
+
   
-  % Calculate reduced distribtuions
-  for iSpecies = 2;1:6
-    fred_tmp = ds.reduce_1d_new('x',[iSpecies],[],'vpar',{Bx,By,Bz},'pitch',{Bx,By,Bz});
-  end
-  
-  % Write data
-  dataset_name_base = ['/data/' str_iteration '/' num2str(distnumber,'%05.0f'),'/fxyz'];
-  dataset_name = ['/data/' str_iteration '/' num2str(distnumber,'%05.0f'),'/fvpar/',num2str(iSpecies,'%1.0f')];
+  dataset_name = ['/data/' str_iteration '/' num2str(distnumber,'%05.0f'),'/fvpar'];
   try
     h5create(h5FilePath, dataset_name, size(fxyz));
   catch
