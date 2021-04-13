@@ -1023,12 +1023,13 @@
     function varargout = plot_boxes(obj,varargin)      
       % PDIST.PLOT_BOXES Plot boxes of distributions.
       
+      doTagColor = 0;
       color = [0 0 0];
       doPlotIntoAxes = 0;
       [ax,args,nargs] = axescheck(varargin{:});
             
       have_options = 0;
-      if not(isempty(args))        
+      if not(isempty(args))
         have_options = 1;
       end
       while have_options
@@ -1036,6 +1037,9 @@
         switch lower(args{1})
           case 'color' % plot a line defined by argument
             color = args{2};
+            if ischar(color) && strcmp(color,'tags')
+              doTagColor = 1;
+            end
             l = 2;
         end
         args = args((1+l):end);
@@ -1065,6 +1069,15 @@
       zmax = max(z2all);
       
       for it = 1:nt
+        savehandle = 1;
+        hsave = [];
+        if doTagColor % set up colors based on tags
+          tags = obj.tags{it};
+          uniquetags = unique(tags);
+          ntags = numel(uniquetags);
+          cmap = pic_colors('pasteljet');
+          colors = interp1((0:size(cmap,1)-1)/size(cmap,1),cmap,(0:ntags-1)/ntags);
+        end
         if doPlotIntoAxes
           hca = ax(it);
           hold(hca,'on')
@@ -1074,10 +1087,22 @@
         for idist = 1:numel(obj.xi1{it})
           xplot = [obj.xi1{it}(idist) obj.xi2{it}(idist) obj.xi2{it}(idist) obj.xi1{it}(idist) obj.xi1{it}(idist)];
           zplot = [obj.zi1{it}(idist) obj.zi1{it}(idist) obj.zi2{it}(idist) obj.zi2{it}(idist) obj.zi1{it}(idist)];
+          if doTagColor % set up colors
+            tag = obj.tags{it}{idist};
+            iuniquetag = find(cellfun(@(s) ~isempty(strfind(tag, s)), uniquetags));
+            color = colors(iuniquetag,:);        
+          end
           hbox(idist) = plot(hca,xplot,zplot,'color',color,'linewidth',1);
+          if doTagColor && savehandle % Save first handle of each tag
+            savehandle = 0;
+            hsave(end+1) = hbox(idist);
+          end
           if idist == 1; hold(hca,'on'); end
         end
         hold(hca,'off');
+        if doTagColor
+          legend(hsave,uniquetags{:})
+        end
       end
       drawnow
       disp('Linking: XLim, YLim.')
@@ -1582,7 +1607,10 @@
         for isum = numel(sumdim):-1:1
           dist_sum{sumdim} = squeeze(sum(dist,sumdim(isum)))*(comAxes(2)-comAxes(1)); % fdv
         end        
-      end
+      end      
+      fx = reshape(squeeze(sum(sum(dist,3),2))*(comAxes(2)-comAxes(1))^2,[size(dist,1),1]); % fdv
+      fy = reshape(squeeze(sum(sum(dist,3),1))*(comAxes(2)-comAxes(1))^2,[size(dist,1),1]); % fdv
+      fz = reshape(squeeze(sum(sum(dist,2),1))*(comAxes(2)-comAxes(1))^2,[size(dist,1),1]); % fdv
       
       x = h5readatt(obj.file,dataset,'x');
       z = h5readatt(obj.file,dataset,'z');
@@ -1596,15 +1624,187 @@
       out.f = dist;
       out.fyz = dist_sum{1};
       out.fxz = dist_sum{2};
-      out.fxy = dist_sum{3};
+      out.fxy = dist_sum{3};      
+      out.fx = fx;
+      out.fy = fy;
+      out.fz = fz;
       out.v = comAxes;
       out.dv = comAxes(2)-comAxes(1);
       out.x = x;
       out.z = z;
       varargout{1} = out;
     end
+    function varargout = fs(obj,it,id,iss,comp,varargin)
+      iSpecies = iss; 
+      if ischar(id) && strcmp(id,':')
+        id = 1:obj.nd{1};
+      end
+      
+      for iDist = 1:numel(id)
+        iSpeciesTmp = iSpecies;
+        ff = fxyz(obj,it,iDist,iSpeciesTmp);
+               
+        switch comp
+          case 'x'
+            fred = sum(sum(ff.f,3),2)*ff.dv^2;
+          case 'y'
+            fred = sum(sum(ff.f,3),1)*ff.dv^2;
+          case 'z'
+            fred = sum(sum(ff.f,2),1)*ff.dv^2;
+        end
+        if iDist == 1 % initialize arrays
+          dist = zeros(numel(fred),numel(id));
+        end
+        dist(:,iDist) = fred;
+        x(:,iDist) = sum(ff.x)/2;
+        z(:,iDist) = sum(ff.z)/2;        
+        x1(:,iDist) = ff.x(1);
+        z1(:,iDist) = ff.z(1);
+        x2(:,iDist) = ff.x(2);
+        z2(:,iDist) = ff.z(2);
+      end
+      % only makes sense if distributions are connected
+      arclength = [0 cumsum(sqrt(diff(x).^2+diff(z).^2))];
+      arc01 = arclength(find(abs(z)==min(abs(z))));
+      arclength_z0 = arclength - arc01(1);
+
+      out.x = x; 
+      out.z = z; 
+      out.x1 = x1; 
+      out.x2 = x2; 
+      out.z1 = z1; 
+      out.z2 = z2; 
+      out.v = ff.v;
+      out.f = dist;
+      out.arc = arclength;      
+      out.arc_z0 = arclength_z0;
+      varargout{1} = out;
+    end
+    function out = fx(obj,it,id,iss,varargin)
+      out = fred(obj,it,id,iss,'x',varargin);
+    end
+    function out = fy(obj,it,id,iss,varargin)
+      out = fred(obj,it,id,iss,'y',varargin);
+    end
+    function out = fz(obj,it,id,iss,varargin)
+      out = fred(obj,it,id,iss,'z',varargin);
+    end
+    function varargout = fpar(obj,it,id,iss,varargin)
+      iSpecies = iss;
+      %twci = obj.twci(it);
+      %twpe = obj.twpe(it);  
+      if ischar(id) && strcmp(id,':')
+        id = 1:obj.nd{1};
+      end
+      dataset1 = ['/data/' num2str(obj.iteration(it(1)),'%010.0f') '/' num2str(obj.indices{it(1)}(id(1)),'%05.0f') '/fpar'];      
+      allAxes = h5readatt(obj.file,dataset1,'axes');
+      datasize = size(allAxes);
+      v = allAxes(:,iSpecies);
+      dist = zeros(numel(v),numel(id));
+      %x = ;
+      %z = ;
+      for iDist = 1:numel(id)
+        iSpeciesTmp = iSpecies;
+        dataset = ['/data/' num2str(obj.iteration(it(1)),'%010.0f') '/' num2str(obj.indices{it(1)}(id(iDist)),'%05.0f') '/fpar'];        
+        data_tmp = h5read(obj.file,dataset,[1,iSpeciesTmp],[datasize(1),1]);
+        x_tmp = h5readatt(obj.file,dataset,'x');
+        z_tmp = h5readatt(obj.file,dataset,'z');
+        
+        dist(:,iDist) = data_tmp;
+        x(:,iDist) = sum(x_tmp)/2;
+        z(:,iDist) = sum(z_tmp)/2;        
+        x1(:,iDist) = x_tmp(1);
+        z1(:,iDist) = z_tmp(1);
+        x2(:,iDist) = x_tmp(2);
+        z2(:,iDist) = z_tmp(2);
+      end
+      % only makes sense if distributions are connected
+      arclength = [0 cumsum(sqrt(diff(x).^2+diff(z).^2))];
+      arc01 = arclength(find(abs(z)==min(abs(z))));
+      arclength_z0 = arclength - arc01(1);
+
+      out.x = x; 
+      out.z = z; 
+      out.x1 = x1; 
+      out.x2 = x2; 
+      out.z1 = z1; 
+      out.z2 = z2; 
+      out.v = v;
+      out.f = dist;
+      out.arc = arclength;      
+      out.arc_z0 = arclength_z0;
+      varargout{1} = out;
+    end
+    function varargout = fred(obj,it,id,iss,comp,varargin)
+      iSpecies = iss;
+      %twci = obj.twci(it);
+      %twpe = obj.twpe(it);  
+      if ischar(id) && strcmp(id,':')
+        id = 1:obj.nd{1};
+      end
+      dataset1 = ['/data/' num2str(obj.iteration(it(1)),'%010.0f') '/' num2str(obj.indices{it(1)}(id(1)),'%05.0f') '/f' comp];      
+      allAxes = h5readatt(obj.file,dataset1,'axes');
+      datasize = size(allAxes);
+      v = allAxes(:,iSpecies);
+      dist = zeros(numel(v),numel(id));
+      %x = ;
+      %z = ;
+      for iDist = 1:numel(id)
+        iSpeciesTmp = iSpecies;
+        dataset_base = ['/data/' num2str(obj.iteration(it(1)),'%010.0f') '/' num2str(obj.indices{it(1)}(id(iDist)),'%05.0f')];        
+        dataset = ['/data/' num2str(obj.iteration(it(1)),'%010.0f') '/' num2str(obj.indices{it(1)}(id(iDist)),'%05.0f') '/f' comp];        
+        data_tmp = h5read(obj.file,dataset,[1,iSpeciesTmp],[datasize(1),1]);
+        %if strcmp(comp,'par')
+          %x_tmp = h5readatt(obj.file,dataset,'x');
+          %z_tmp = h5readatt(obj.file,dataset,'z');
+          x_tmp = h5readatt(obj.file,[dataset_base '/fxyz'],'x');
+          z_tmp = h5readatt(obj.file,[dataset_base '/fxyz'],'z');
+        %else          
+        %end        
+        B_tmp = h5readatt(obj.file,dataset_base,'B');
+        E_tmp = h5readatt(obj.file,dataset_base,'E');
+        
+          
+        dist(:,iDist) = data_tmp;
+        x(:,iDist) = sum(x_tmp)/2;
+        z(:,iDist) = sum(z_tmp)/2;        
+        x1(:,iDist) = x_tmp(1);
+        z1(:,iDist) = z_tmp(1);
+        x2(:,iDist) = x_tmp(2);
+        z2(:,iDist) = z_tmp(2);
+        Bx(:,iDist) = B_tmp(1);
+        By(:,iDist) = B_tmp(2);
+        Bz(:,iDist) = B_tmp(3);
+        Ex(:,iDist) = E_tmp(1);
+        Ey(:,iDist) = E_tmp(2);
+        Ez(:,iDist) = E_tmp(3);
+      end
+      % only makes sense if distributions are connected
+      arclength = [0 cumsum(sqrt(diff(x).^2+diff(z).^2))];
+      arc01 = arclength(find(abs(z)==min(abs(z))));
+      arclength_z0 = arclength - arc01(1);
+
+      out.x = x; 
+      out.z = z; 
+      out.x1 = x1; 
+      out.x2 = x2; 
+      out.z1 = z1; 
+      out.z2 = z2; 
+      out.v = v;
+      out.f = dist;
+      out.arc = arclength;      
+      out.arc_z0 = arclength_z0;
+      out.Bx = Bx;
+      out.By = By;
+      out.Bz = Bz;
+      out.Ex = Ex;
+      out.Ey = Ey;
+      out.Ez = Ez;
+      
+      varargout{1} = out;
+    end
     
-    function varargout = rebin(obj,it,ids,iss,varargin)
+    function varargout = rebin(obj,it,id,iss,varargin)
       % PICDist.rebin Rebin distribution.
       %
       % Options
@@ -1982,6 +2182,7 @@
       doPar = 0;
       doVabs = 0;
       doPitch = 0;
+      doInterp = 0;
       
       % Check for additional input
       args = varargin;
@@ -2000,6 +2201,14 @@
             l = 2;
             doPitch = 1;
             B = args{2};
+          case 'interp'            
+            nInterp = args{2};
+            if nInterp == 0
+              doInterp = 0;
+            else
+              doInterp = 1;              
+            end
+            l = 2;
           otherwise
             error(sprintf('Can not recognize flag ''%s'' ',args{1}))
         end
@@ -2069,7 +2278,7 @@
           z_arr(id_count) = mean(f.z);          
           dv_old = f.v(2)-f.v(1);
           dv_new = vaxes(2)-vaxes(1);
-          % may the interpolation may change the summed up (phase space)
+          % the interpolation may change the summed up (phase space)
           % density? test:
           if 0 
             %%
@@ -2149,18 +2358,32 @@
             def_E_arr(id_count,:) = accum_fvE/(4*pi)./Edelta'; % (eV s-1 m-2)/(sr eV) = eV/(s m2 sr eV)
           end
           if any([doPar doPitch])
-            v_interp = linspace(f.v(1),f.v(end),300);
-            f.f_interp = interp3(f.v,f.v,f.v,f.f,v_interp,v_interp,v_interp);
-            dv = f.v(2)-f.v(1);
+            if doInterp              
+              vv = linspace(f.v(1),f.v(end),nInterp);
+              [VXm,VYm,VZm] = meshgrid(f.v,f.v,f.v);
+              [VXi,VYi,VZi] = meshgrid(vv,vv,vv);
+              ff = interp3(VXm,VYm,VZm,f.f,VXi,VYi,VZi);                            
+            else
+              vv = f.v;
+              ff = f.f;
+            end
+            
+            dv = vv(2)-vv(1);                 
+            %dv = f.v(2)-f.v(1);
             d3v = dv.^3;
+            
             Bx = B{1}; Bx = Bx(id_count);
             By = B{2}; By = By(id_count);
             Bz = B{3}; Bz = Bz(id_count);
-            [VX,VY,VZ] = ndgrid(f.v,f.v,f.v);
+            [VX,VY,VZ] = ndgrid(vv,vv,vv);
             Babs = sqrt(Bx.^2 + By.^2 + Bz.^2);
             bx = Bx./Babs;
             by = By./Babs;
             bz = Bz./Babs;
+            
+            
+            
+%             
             
             VPAR = VX(:).*bx + VY(:).*by + VZ(:).*bz;
             VABS = sqrt(VX(:).^2 + VY(:).^2 + VZ(:).^2);
@@ -2168,10 +2391,11 @@
             PITCH = acosd(VPAR./VABS);
             
             v_par_grid = linspace(min(VPAR(:)),max(VPAR(:)),n_vpar+1);
-            v_par_grid = [f.v(1)-0.5*dv_old f.v+0.5*dv_old];
+            v_par_grid = [vv(1)-0.5*dv_old vv+0.5*dv_old];
+            v_par_grid = linspace(vv(1),vv(end),n_vpar+1);
             dv_par = v_par_grid(2)-v_par_grid(1);
             v_par_center = v_par_grid(1:(end-1)) + 0.5*dv_par;
-            [accum_fvpar edges mid loc] = histcn(VPAR(:),v_par_grid,'AccumData',f.f(:)*d3v);
+            [accum_fvpar edges mid loc] = histcn(VPAR(:),v_par_grid,'AccumData',ff(:)*d3v);
             f_vpar_arr(id_count,:) = accum_fvpar/dv_par; % m-3/(m/s)= s/m4
             
             % Pitch angle distributions
@@ -2184,14 +2408,14 @@
             dv_pitch = v_pitch_grid(2)-v_pitch_grid(1);
             v_pitch_center = v_pitch_grid(1:(end-1)) + dv_pitch;            
             % Distribution of (vabs,pitch)
-            [accum_fpitch edges mid loc] = histcn([VABS(:), PITCH(:)],v_pitch_grid,pitch_grid,'AccumData',f.f(:)*d3v);            
+            [accum_fpitch edges mid loc] = histcn([VABS(:), PITCH(:)],v_pitch_grid,pitch_grid,'AccumData',ff(:)*d3v);            
             
             % Energy grid            
             E_grid = logspace(log10(min(E(:))),log10(max(E(:))),n_E_pitch+1);
             dE = diff(E_grid);
             E_center = E_grid(1:(end-1)) + dE;
             % Distribution of (E,pitch)
-            [accum_fEpitch edges mid loc] = histcn([E(:), PITCH(:)],E_grid,pitch_grid,'AccumData',f.f(:)*d3v); % 1/vol 
+            [accum_fEpitch edges mid loc] = histcn([E(:), PITCH(:)],E_grid,pitch_grid,'AccumData',ff(:)*d3v); % 1/vol 
             
             % need to divide this by the opening solid angle/volume
             solang = -(cosd(pitch_grid(2:end)) - cosd(pitch_grid(1:end-1)))*2*pi;

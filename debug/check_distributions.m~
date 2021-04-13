@@ -1,8 +1,8 @@
 % sort out distributions etc
 % first time, first distribution, 3rd species
 iTime = 2;
-iDist = 50;
-iSpecies = 3;
+iDist = 1;
+iSpecies = 5;
 
 fxyz = ds100.fxyz(iTime,iDist,iSpecies);
 f = ds100.f(iTime,iDist,iSpecies);
@@ -50,10 +50,9 @@ Bz = no02m.twpelim(twpe).get_points(xdist,zdist,tdist,dxdist*0.5*[-1 1],'Bz');
 % Bz = 0;
 
 tic;fred_par = ds.reduce_1d_new('x',[iSpecies],[],'vpar',{Bx,By,Bz},'pitch',{Bx,By,Bz});toc
-tic;fred_par_interp = ds.reduce_1d_new('x',[iSpecies],[],'vpar',{Bx,By,Bz},'pitch',{Bx,By,Bz},'interp',300);toc
+%tic;fred_par_interp = ds.reduce_1d_new('x',[iSpecies],[],'vpar',{Bx,By,Bz},'pitch',{Bx,By,Bz},'interp');toc
 
 n_fredpar_dist = sum(fred_par.fvpar(:))*(fred_par.vpar_edges(2)-fred_par.vpar_edges(1)); % n ~ int fyz*dv2
-n_fredpar_dist_interp = sum(fred_par_interp.fvpar(:))*(fred_par_interp.vpar_edges(2)-fred_par_interp.vpar_edges(1)); % n ~ int fyz*dv2
 
 [n_fxyz_mom n_fxyz_dist n_fredz_dist n_fredpar_dist]
 1;
@@ -73,7 +72,7 @@ if 1 % fxz
   hca.YLabel.String = 'v_z';
 end
 if 1 % fyz
-  hca = h(isub); isub = isub + 1;
+  hca = h(isub); isub = isub + 1;  
   imagesc(hca,f.v,f.v,f.fyz')
   hca.XLabel.String = 'v_y';
   hca.YLabel.String = 'v_z';
@@ -84,10 +83,9 @@ if 1 % fx,fy,fz
   hca.XLabel.String = 'v';
   hca.YLabel.String = 'f';
 end
-if 1 % fpar
+if 1 % fx,fy,fz
   hca = h(isub); isub = isub + 1;  
   plot(hca,fred_par.vpar_center,fred_par.fvpar)
-  irf_legend(hca,{sprintf('B = [%.2f,%.2f,%.2f] ',Bx,By,Bz)},[0.02 0.98])
   hca.XLabel.String = 'v_{||}';
   hca.YLabel.String = 'f';
 end
