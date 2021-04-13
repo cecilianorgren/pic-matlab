@@ -3205,13 +3205,21 @@ c_eval('h(?).Layer = ''top'';',1:npanels)
 
 %% Reduced fxyz distributions, with forces
 twpe = 24000;
-tags = {'A=5.5','A=6.0','A=7.0','A=8.0','A=9.0'};
-pic = no02m.twpelim(twpe).xlim([65 80]).zlim([-2 8]);
+pic = no02m.twpelim(twpe).xlim([60 90]).zlim([-2 8]);
+
+tags = {'A=6.0','A=6.5','A=7.0','A=7.5','A=8.0'};
+tags = tags(end:-1:1);
+nred = numel(tags);
+
+%tags = {'line vertical'}; xpick = [75 80];
+%nred = numel(xpick);
+
 % fpar3 = struct([]);
 % fpar5 = struct([]);
 clear fx3 fx5 fy3 fy5 fz3 fz5
-for itag = 1:numel(tags)
-  ds = ds100.twpelim(twpe).dxlim([0.5 1]).findtag(tags(itag));
+for itag = 1:nred
+  ds = ds100.twpelim(twpe).dxlim([0.5 1]).findtag(tags(itag)).xlim([50 90]);
+  %ds = ds100.twpelim(twpe).dxlim([0.5 1]).findtag(tags).xfind(xpick(itag)).xlim([50 100]);
   dss{itag} = ds;
   fx3_tmp = ds.fx(1,:,3);
   fx5_tmp = ds.fx(1,:,5);
@@ -3226,41 +3234,121 @@ for itag = 1:numel(tags)
   fz3{itag} = fz3_tmp;
   fz5{itag} = fz5_tmp;
 end
-
-contlev = [-1:0.2:0];
+% 
+ExBcol = [0.5 0.5 0.5];
+contlev = [-1:0.5:0];
 forcelim = [-0.5 0.5];
-nrows = 7;
-ncols = numel(tags);
+fclim = [-6 -0.5];
+nrows = 10;
+ncols = nred;
 npanels = nrows*ncols;
 h = setup_subplots(nrows,ncols,'vertical');
 isub = 1;
-for itag = 1:numel(tags)
-  if 1 % By and boxes
+for itag = 1:nred
+  if 1 % n5 and boxes
     hca = h(isub); isub = isub + 1;     
-    pic.plot_map(hca,{'By'},'A',1);
+    pic.plot_map(hca,{'n(5)'},'A',1);
+    colormap(hca,pic_colors('thermal')); 
+    hca.CLim = [0 0.5];
+    hold(hca,'on')
+    dss{itag}.plot_boxes(hca,'color',[0.8 0.8 0.8]);
+    hold(hca,'off')
+  end
+  if 1 % Ex and boxes
+    hca = h(isub); isub = isub + 1;     
+    pic.plot_map(hca,{'Ez'},'A',1);
     colormap(hca,pic_colors('blue_red')); 
-    hca.CLim = [-1 1];
+    hca.CLim = 0.5*[-1 1];
     hold(hca,'on')
     dss{itag}.plot_boxes(hca);
     hold(hca,'off')
   end
-  if 0 % f3
+  if 0 % Bx and boxes
+    hca = h(isub); isub = isub + 1;     
+    pic.plot_map(hca,{'Bx'},'A',1);
+    colormap(hca,pic_colors('blue_red')); 
+    hca.CLim = 0.5*[-1 1];
+    hold(hca,'on')
+    dss{itag}.plot_boxes(hca);
+    hold(hca,'off')
+  end
+  if 0 % By and boxes
+    hca = h(isub); isub = isub + 1;     
+    pic.plot_map(hca,{'By'},'A',1);
+    colormap(hca,pic_colors('blue_red')); 
+    hca.CLim = 0.5*[-1 1];
+    hold(hca,'on')
+    dss{itag}.plot_boxes(hca);
+    hold(hca,'off')
+  end
+  nmaps = isub - 1;
+  if 1 % fx5
     hca = h(isub); isub = isub + 1;
-    ff = fz3{itag};    
-    pcolor(hca,ff.v,ff.z,log10(ff.f)'); 
+    ff1 = fx5{itag};
+    pcolor(hca,ff1.v,ff1.z,log10(ff1.f)'); 
+    shading(hca,'flat'); 
+    if 1 % contour lines
+      hold(hca,'on')      
+      contour(hca,ff1.v,ff1.z,log10(ff1.f)',contlev,'color',[0 0 0])      
+      hold(hca,'off')
+    end
+    if 1 % ExB
+      B2 = ff1.Bx.^2 + ff1.By.^2 + ff1.Bz.^2;
+      ExB = (ff1.Ey.*ff1.Bz - ff1.Ez.*ff1.By)./B2; % x-comp
+      hold(hca,'on')
+      plot(hca,ExB,ff1.z,'color',[1 1 1],'linewidth',1)
+      hold(hca,'off')
+    end
+    colormap(hca,pic_colors('candy4')); 
+    hca.CLim = fclim;    
+    hleg = irf_legend(hca,'f(v_x)',[0.02,0.98],'color',[0 0 0],'backgroundcolor',[1 1 1]); 
+  end
+  if 1 % fy5
+    hca = h(isub); isub = isub + 1;
+    ff1 = fy5{itag};
+    pcolor(hca,ff1.v,ff1.z,log10(ff1.f)'); 
     shading(hca,'flat'); 
     colormap(hca,pic_colors('candy4')); 
-    hca.CLim = [-6 -0.0];
+    hca.CLim = fclim;
+    if 1 % contour lines
+      hold(hca,'on')      
+      contour(hca,ff1.v,ff1.z,log10(ff1.f)',contlev,'color',[0 0 0])      
+      hold(hca,'off')
+    end
+    if 1 % ExB
+      B2 = ff1.Bx.^2 + ff1.By.^2 + ff1.Bz.^2;
+      ExB = (ff1.Ez.*ff1.Bx - ff1.Ex.*ff1.Bz)./B2; % y-comp
+      hold(hca,'on')
+      plot(hca,ExB,ff1.z,'color',[1 1 1],'linewidth',1)
+      hold(hca,'off')
+    end
+    hleg = irf_legend(hca,'f(v_y)',[0.02,0.98],'color',[0 0 0],'backgroundcolor',[1 1 1]); 
   end
-  if 0 % f5
+  if 1 % fz5
     hca = h(isub); isub = isub + 1;
-    ff = fz5{itag};    
-    pcolor(hca,ff.v,ff.z,log10(ff.f)'); 
+    ff1 = fz5{itag};
+    pcolor(hca,ff1.v,ff1.z,log10(ff1.f)'); 
     shading(hca,'flat'); 
     colormap(hca,pic_colors('candy4')); 
-    hca.CLim = [-6 -0.0];
+    hca.CLim = fclim;
+     
+    if 1 % contour lines
+      hold(hca,'on')      
+      contour(hca,ff1.v,ff1.z,log10(ff1.f)',contlev,'color',[0 0 0])      
+      hold(hca,'off')
+    end
+    if 1 % ExB
+      B2 = ff1.Bx.^2 + ff1.By.^2 + ff1.Bz.^2;
+      ExB = (ff1.Ex.*ff1.By - ff1.Ey.*ff1.Bx)./B2; % z-comp
+      hold(hca,'on')
+      plot(hca,ExB,ff1.z,'color',[1 1 1],'linewidth',1)
+      hold(hca,'off')
+    end
+    
+    hleg = irf_legend(hca,'f(v_z)',[0.02,0.98],'color',[0 0 0],'backgroundcolor',[1 1 1]); 
+    
   end
-  if 1 % fx35
+  if 0 % fx35
     hca = h(isub); isub = isub + 1;
     ff1 = fx3{itag};
     ff2 = fx5{itag};
@@ -3271,13 +3359,20 @@ for itag = 1:numel(tags)
       %try
       contour(hca,ff1.v,ff1.z,log10(ff1.f+ff2.f)',contlev,'color',[0 0 0])
       %end
-      hold(hca,'off')      
+      hold(hca,'off')
+    end
+    if 1 % ExB
+      B2 = ff1.Bx.^2 + ff1.By.^2 + ff1.Bz.^2;
+      ExB = (ff1.Ey.*ff1.Bz - ff1.Ez.*ff1.By)./B2; % x-comp
+      hold(hca,'on')
+      plot(hca,ExB,ff1.z,'color',[1 1 1],'linewidth',1)
+      hold(hca,'off')
     end
     colormap(hca,pic_colors('candy4')); 
     hca.CLim = [-6 -0.0];    
     hleg = irf_legend(hca,'f(v_x)',[0.02,0.98],'color',[0 0 0],'backgroundcolor',[1 1 1]); 
   end
-  if 1 % fy35
+  if 0 % fy35
     hca = h(isub); isub = isub + 1;
     ff1 = fy3{itag};
     ff2 = fy5{itag};
@@ -3285,9 +3380,16 @@ for itag = 1:numel(tags)
     shading(hca,'flat'); 
     colormap(hca,pic_colors('candy4')); 
     hca.CLim = [-6 -0.0];
+    if 1 % ExB
+      B2 = ff1.Bx.^2 + ff1.By.^2 + ff1.Bz.^2;
+      ExB = (ff1.Ez.*ff1.Bx - ff1.Ex.*ff1.Bz)./B2; % y-comp
+      hold(hca,'on')
+      plot(hca,ExB,ff1.z,'color',[1 1 1],'linewidth',1)
+      hold(hca,'off')
+    end
     hleg = irf_legend(hca,'f(v_y)',[0.02,0.98],'color',[0 0 0],'backgroundcolor',[1 1 1]); 
   end
-  if 1 % fz35
+  if 0 % fz35
     hca = h(isub); isub = isub + 1;
     ff1 = fz3{itag};
     ff2 = fz5{itag};
@@ -3295,10 +3397,178 @@ for itag = 1:numel(tags)
     shading(hca,'flat'); 
     colormap(hca,pic_colors('candy4')); 
     hca.CLim = [-6 -0.0];
+    
+    if 1 % ExB
+      B2 = ff1.Bx.^2 + ff1.By.^2 + ff1.Bz.^2;
+      ExB = (ff1.Ex.*ff1.By - ff1.Ey.*ff1.Bx)./B2; % z-comp
+      hold(hca,'on')
+      plot(hca,ExB,ff1.z,'color',[1 1 1],'linewidth',1)
+      hold(hca,'off')
+    end
+    
     hleg = irf_legend(hca,'f(v_z)',[0.02,0.98],'color',[0 0 0],'backgroundcolor',[1 1 1]); 
+    
   end
   % Forces
-  if 1 % fzvx35 vxBy
+  % x
+  if 0 % fzvx5 vyBz
+    hca = h(isub); isub = isub + 1;
+    ff1 = fy5{itag};        
+    pcolor(hca,ff1.v,ff1.z,(ff1.v*ff1.Bz)');     
+    shading(hca,'flat'); 
+    if 1 % contour lines
+      hold(hca,'on')
+      try
+      contour(hca,ff1.v,ff1.z,log10(ff1.f)',contlev,'color',[0 0 0])
+      end
+      hold(hca,'off')      
+    end
+    colormap(hca,pic_colors('blue_red')); 
+    hca.CLim = forcelim;
+    hleg = irf_legend(hca,'v_yB_z',[0.02,0.98],'color',[0 0 0],'backgroundcolor',[1 1 1]);    
+  end
+  if 0 % fzvx5 -vzBy
+    hca = h(isub); isub = isub + 1;
+    ff1 = fz5{itag};
+    %ftot = (ff1.f + ff2.f);
+    pcolor(hca,ff1.v,ff1.z,-(ff1.v*ff1.By)'); 
+    shading(hca,'flat'); 
+    if 1 % contour lines      
+      hold(hca,'on')
+      contour(hca,ff1.v,ff1.z,log10(ff1.f)',contlev,'color',[0 0 0])
+      hold(hca,'off')      
+    end
+    colormap(hca,pic_colors('blue_red')); 
+    hca.CLim = forcelim;
+    hleg = irf_legend(hca,'-v_zB_y',[0.02,0.98],'color',0.8*[0 0 0],'backgroundcolor',[1 1 1]);    
+  end
+  if 0 % fzvx5 Ex
+    hca = h(isub); isub = isub + 1;
+    ff1 = fx5{itag};
+    %ftot = (ff1.f + ff2.f);
+    pcolor(hca,ff1.v,ff1.z,(ones(size(ff1.v))*ff1.Ex)'); 
+    shading(hca,'flat'); 
+    colormap(hca,pic_colors('blue_red')); 
+    hca.CLim = forcelim;
+    hleg = irf_legend(hca,'E_x',[0.02,0.98],'color',0.8*[0 0 0],'backgroundcolor',[1 1 1]);    
+  end
+  % y
+  if 1 % fzvx5 vzBx
+    hca = h(isub); isub = isub + 1;
+    ff1 = fz5{itag};        
+    pcolor(hca,ff1.v,ff1.z,(ff1.v*ff1.Bx)');     
+    shading(hca,'flat'); 
+    if 1 % contour lines      
+      hold(hca,'on')
+      try
+      contour(hca,ff1.v,ff1.z,log10(ff1.f)',contlev,'color',[0 0 0])
+      end
+      hold(hca,'off')      
+    end
+    colormap(hca,pic_colors('blue_red')); 
+    hca.CLim = forcelim;
+    hleg = irf_legend(hca,'v_zB_x',[0.02,0.98],'color',[0 0 0],'backgroundcolor',[1 1 1]);    
+  end
+  if 1 % fzvx5 -vxBz
+    hca = h(isub); isub = isub + 1;
+    ff1 = fx5{itag};
+    %ftot = (ff1.f + ff2.f);
+    pcolor(hca,ff1.v,ff1.z,-(ff1.v*ff1.Bz)'); 
+    shading(hca,'flat'); 
+    if 1 % contour lines      
+      hold(hca,'on')
+      contour(hca,ff1.v,ff1.z,log10(ff1.f)',contlev,'color',[0 0 0])
+      hold(hca,'off')      
+    end
+    colormap(hca,pic_colors('blue_red')); 
+    hca.CLim = forcelim;
+    hleg = irf_legend(hca,'-v_xB_z',[0.02,0.98],'color',0.8*[0 0 0],'backgroundcolor',[1 1 1]);    
+  end
+  if 1 % fzvx5 vzBx + 0.5*Ey
+    hca = h(isub); isub = isub + 1;
+    ff1 = fz5{itag};        
+    pcolor(hca,ff1.v,ff1.z,(ff1.v*ff1.Bx)'+0.5*(ones(size(ff1.v))*ff1.Ey)');     
+    shading(hca,'flat'); 
+    if 1 % contour lines      
+      hold(hca,'on')
+      try
+      contour(hca,ff1.v,ff1.z,log10(ff1.f)',contlev,'color',[0 0 0])
+      end
+      hold(hca,'off')      
+    end
+    colormap(hca,pic_colors('blue_red')); 
+    hca.CLim = forcelim;
+    hleg = irf_legend(hca,'v_zB_x+0.5E_y',[0.02,0.98],'color',[0 0 0],'backgroundcolor',[1 1 1]);    
+  end
+  if 1 % fzvx5 -vxBz + 0.5*Ey
+    hca = h(isub); isub = isub + 1;
+    ff1 = fx5{itag};
+    %ftot = (ff1.f + ff2.f);
+    pcolor(hca,ff1.v,ff1.z,-(ff1.v*ff1.Bz)'+0.5*(ones(size(ff1.v))*ff1.Ey)'); 
+    shading(hca,'flat'); 
+    if 1 % contour lines      
+      hold(hca,'on')
+      contour(hca,ff1.v,ff1.z,log10(ff1.f)',contlev,'color',[0 0 0])
+      hold(hca,'off')      
+    end
+    colormap(hca,pic_colors('blue_red')); 
+    hca.CLim = forcelim;
+    hleg = irf_legend(hca,'-v_xB_z+0.5E_y',[0.02,0.98],'color',0.8*[0 0 0],'backgroundcolor',[1 1 1]);    
+  end
+  if 1 % fzvx5 Ey
+    hca = h(isub); isub = isub + 1;
+    ff1 = fx5{itag};
+    %ftot = (ff1.f + ff2.f);
+    pcolor(hca,ff1.v,ff1.z,(ones(size(ff1.v))*ff1.Ey)'); 
+    shading(hca,'flat'); 
+    colormap(hca,pic_colors('blue_red')); 
+    hca.CLim = forcelim;
+    hleg = irf_legend(hca,'E_y',[0.02,0.98],'color',0.8*[0 0 0],'backgroundcolor',[1 1 1]);    
+  end
+  % z
+  if 0 % fzvx5 vxBy
+    hca = h(isub); isub = isub + 1;
+    ff1 = fx5{itag};        
+    pcolor(hca,ff1.v,ff1.z,(ff1.v*ff1.By)');     
+    shading(hca,'flat'); 
+    if 1 % contour lines      
+      hold(hca,'on')
+      try
+      contour(hca,ff1.v,ff1.z,log10(ff1.f)',contlev,'color',[0 0 0])
+      end
+      hold(hca,'off')      
+    end
+    colormap(hca,pic_colors('blue_red')); 
+    hca.CLim = forcelim;
+    hleg = irf_legend(hca,'v_xB_y',[0.02,0.98],'color',[0 0 0],'backgroundcolor',[1 1 1]);    
+  end
+  if 0 % fzvx5 -vyBx
+    hca = h(isub); isub = isub + 1;
+    ff1 = fy5{itag};
+    %ftot = (ff1.f + ff2.f);
+    pcolor(hca,ff1.v,ff1.z,-(ff1.v*ff1.Bx)'); 
+    shading(hca,'flat'); 
+    if 1 % contour lines      
+      hold(hca,'on')
+      contour(hca,ff1.v,ff1.z,log10(ff1.f)',contlev,'color',[0 0 0])
+      hold(hca,'off')      
+    end
+    colormap(hca,pic_colors('blue_red')); 
+    hca.CLim = forcelim;
+    hleg = irf_legend(hca,'-v_yB_x',[0.02,0.98],'color',0.8*[0 0 0],'backgroundcolor',[1 1 1]);    
+  end
+  if 0 % fzvx5 Ez
+    hca = h(isub); isub = isub + 1;
+    ff1 = fx5{itag};
+    %ftot = (ff1.f + ff2.f);
+    pcolor(hca,ff1.v,ff1.z,(ones(size(ff1.v))*ff1.Ez)'); 
+    shading(hca,'flat'); 
+    colormap(hca,pic_colors('blue_red')); 
+    hca.CLim = forcelim;
+    hleg = irf_legend(hca,'E_z',[0.02,0.98],'color',0.8*[0 0 0],'backgroundcolor',[1 1 1]);    
+  end
+  
+  if 0 % fzvx35 vxBy
     hca = h(isub); isub = isub + 1;
     ff1 = fx3{itag};
     ff2 = fx5{itag};
@@ -3316,7 +3586,7 @@ for itag = 1:numel(tags)
     hca.CLim = forcelim;
     hleg = irf_legend(hca,'v_xB_y',[0.02,0.98],'color',[0 0 0],'backgroundcolor',[1 1 1]);    
   end
-  if 1 % fzvx35 -vyBx
+  if 0 % fzvx35 -vyBx
     hca = h(isub); isub = isub + 1;
     ff1 = fy3{itag};
     ff2 = fy5{itag};
@@ -3334,7 +3604,7 @@ for itag = 1:numel(tags)
     hca.CLim = forcelim;
     hleg = irf_legend(hca,'-v_yB_x',[0.02,0.98],'color',0.8*[0 0 0],'backgroundcolor',[1 1 1]);    
   end
-  if 1 % fzvx35 Ez
+  if 0 % fzvx35 Ez
     hca = h(isub); isub = isub + 1;
     ff1 = fx3{itag};
     ff2 = fx5{itag};
@@ -3346,7 +3616,10 @@ for itag = 1:numel(tags)
     hleg = irf_legend(hca,'E_z',[0.02,0.98],'color',0.8*[0 0 0],'backgroundcolor',[1 1 1]);    
   end
 end
+
 firstrow = 1:nrows:(nrows*ncols);
+secondrow = 2:nrows:(nrows*ncols);
+firstrow = sort([firstrow secondrow]);
 remainingrows = setdiff(1:nrows*ncols,firstrow);
 compact_panels(h(firstrow),0.0,0.02)
 compact_panels(h(remainingrows),0.0,0.02)

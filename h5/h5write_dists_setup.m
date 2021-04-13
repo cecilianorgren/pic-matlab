@@ -153,7 +153,7 @@ end
 
 %% Write derived data, for example f(vpar)
 h5FilePath = '/Volumes/Fountain/Data/PIC/no_hot_bg_n02_m100/data_h5/dists.h5';
-twpe = 23000;
+twpe = 24000;
 iteration = twpe*2;
 str_iteration = sprintf('%010.0f',iteration);
 dspart = ds100.twpelim(twpe).findtag({'A=7.5'}).dxlim([0 0.3]);
@@ -176,16 +176,26 @@ for distnumber = 1:dspart.nd{1}
   zhi = ds.zi2{1};  
   xdist = (ds.xi1{1}+ds.xi2{1})/2;
   zdist = (ds.zi1{1}+ds.zi2{1})/2;
-  dxdist = ds.xi1{1}-ds.xi2{1};
-  dzdist = ds.zi1{1}-ds.zi2{1};
+  dxdist = ds.xi2{1}-ds.xi1{1};
+  dzdist = ds.zi2{1}-ds.zi1{1};
   tdist = repmat(twpe,size(xdist));
   
-  Bx = no02m.twpelim(twpe).get_points(xdist,zdist,tdist,dxdist*0.5*[-1 1],'Bx');
-  By = no02m.twpelim(twpe).get_points(xdist,zdist,tdist,dxdist*0.5*[-1 1],'By');
-  Bz = no02m.twpelim(twpe).get_points(xdist,zdist,tdist,dxdist*0.5*[-1 1],'Bz');
-  Ex = no02m.twpelim(twpe).get_points(xdist,zdist,tdist,dxdist*0.5*[-1 1],'Ex');
-  Ey = no02m.twpelim(twpe).get_points(xdist,zdist,tdist,dxdist*0.5*[-1 1],'Ey');
-  Ez = no02m.twpelim(twpe).get_points(xdist,zdist,tdist,dxdist*0.5*[-1 1],'Ez');
+  if 0 % major error was not here, but in how i did dxdist, but using xlo and xhi direclty is better I think
+    % They still differ
+    Bx = no02m.twpelim(twpe).get_points(xdist,zdist,tdist,dxdist*0.5*[-1 1],'Bx');
+    By = no02m.twpelim(twpe).get_points(xdist,zdist,tdist,dxdist*0.5*[-1 1],'By');
+    Bz = no02m.twpelim(twpe).get_points(xdist,zdist,tdist,dxdist*0.5*[-1 1],'Bz');
+    Ex = no02m.twpelim(twpe).get_points(xdist,zdist,tdist,dxdist*0.5*[-1 1],'Ex');
+    Ey = no02m.twpelim(twpe).get_points(xdist,zdist,tdist,dxdist*0.5*[-1 1],'Ey');
+    Ez = no02m.twpelim(twpe).get_points(xdist,zdist,tdist,dxdist*0.5*[-1 1],'Ez');
+  else
+    Bx = mean(mean(no02m.twpelim(twpe).xlim([xlo xhi]).zlim([zlo zhi]).Bx));
+    By = mean(mean(no02m.twpelim(twpe).xlim([xlo xhi]).zlim([zlo zhi]).By));
+    Bz = mean(mean(no02m.twpelim(twpe).xlim([xlo xhi]).zlim([zlo zhi]).Bz));
+    Ex = mean(mean(no02m.twpelim(twpe).xlim([xlo xhi]).zlim([zlo zhi]).Ex));
+    Ey = mean(mean(no02m.twpelim(twpe).xlim([xlo xhi]).zlim([zlo zhi]).Ey));
+    Ez = mean(mean(no02m.twpelim(twpe).xlim([xlo xhi]).zlim([zlo zhi]).Ez));  
+  end
   %disp(sprintf('B = [%.2f,%.2f,%.1f], E = [%.2f,%.2f,%.1f]',Bx,By,Bz,Ex,Ey,Ez))
   %Bx = 1;
   %By = 0;
@@ -235,7 +245,7 @@ for distnumber = 1:dspart.nd{1}
       h5disp(h5FilePath,dataset_name)
     end
   end
-  if 1 % Calculate and write reduced fx,fy,fz
+  if 0 % Calculate and write reduced fx,fy,fz
     tic % check time 
     
     fx = zeros(101,6);
@@ -277,7 +287,7 @@ for distnumber = 1:dspart.nd{1}
     toc
   end
   
-  if 0 % write E, B
+  if 1 % write E, B
     dataset_name = ['/data/' str_iteration '/' num2str(distnumber,'%05.0f')];
     h5writeatt(h5FilePath, dataset_name,'B', [Bx By Bz]);
     h5writeatt(h5FilePath, dataset_name,'E', [Ex Ey Ez]);

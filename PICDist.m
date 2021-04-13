@@ -1074,7 +1074,11 @@
           tags = obj.tags{it};
           uniquetags = unique(tags);
           ntags = numel(uniquetags);
-          cmap = pic_colors('pasteljet');
+          %try
+            cmap = pic_colors('pasteljet');
+          %catch
+          %  cmap = pic_colors('pasteljet');
+          %end
           colors = interp1((0:size(cmap,1)-1)/size(cmap,1),cmap,(0:ntags-1)/ntags);
         end
         if doPlotIntoAxes

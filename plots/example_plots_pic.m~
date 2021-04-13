@@ -3099,14 +3099,285 @@ attstrs = {'Uke'};
 
 %% Reduced parallel distributions
 twpe = 24000;
-tags = {'A=5.0','A=6.0','A=7.0','A=8.0'};
-fpar3 = struct([]);
-fpar5 = struct([]);
-
+tags = {'A=5.5','A=6.0','A=7.0','A=8.0','A=9.0'};
+% fpar3 = struct([]);
+% fpar5 = struct([]);
+clear fpar3 fpar5
 for itag = 1:numel(tags)
   ds = ds100.twpelim(twpe).dxlim([0.5 1]).findtag(tags(itag));
   fpar3_tmp = ds.fpar(1,:,3);
   fpar5_tmp = ds.fpar(1,:,5);
-  fpar3{itagh} = fpar3_tmp;
-  fpar5(itag) = fpar5_tmp;
+  fpar3{itag} = fpar3_tmp;
+  fpar5{itag} = fpar5_tmp;
 end
+
+nrows = numel(tags);
+ncols = 3;
+npanels = nrows*ncols;
+h = setup_subplots(nrows,ncols,'horizontal');
+isub = 1;
+for itag = 1:numel(tags)
+  if 1 % f3
+    hca = h(isub); isub = isub + 1;
+    ff = fpar3{itag};    
+    pcolor(hca,ff.x,ff.v,log10(ff.f)); 
+    shading(hca,'flat'); 
+    colormap(hca,pic_colors('candy4')); 
+    hca.CLim = [-6 -0.0];
+  end
+  if 1 % f5
+    hca = h(isub); isub = isub + 1;
+    ff = fpar5{itag};    
+    pcolor(hca,ff.x,ff.v,log10(ff.f)); 
+    shading(hca,'flat'); 
+    colormap(hca,pic_colors('candy4')); 
+    hca.CLim = [-6 -0.0];
+  end
+  if 1 % f3/f35
+    hca = h(isub); isub = isub + 1;
+    ff1 = fpar3{itag};
+    ff2 = fpar5{itag};
+    pcolor(hca,ff1.x,ff1.v,ff1.f./(ff1.f+ff2.f)); 
+    shading(hca,'flat'); 
+    colormap(hca,pic_colors('pasteljet')); 
+    hca.CLim = [0 1];
+  end
+end
+compact_panels(0.0,0.02)
+hlinks = linkprop(h,{'XLim','YLim'});
+
+c_eval('h(?).XGrid = ''on'';',1:npanels)
+c_eval('h(?).YGrid = ''on'';',1:npanels)
+c_eval('h(?).Layer = ''top'';',1:npanels)
+
+%% Reduced fz distributions
+twpe = 24000;
+tags = {'A=5.5','A=6.0','A=7.0','A=8.0','A=9.0'};
+% fpar3 = struct([]);
+% fpar5 = struct([]);
+clear fz3 fz5
+for itag = 1:numel(tags)
+  ds = ds100.twpelim(twpe).dxlim([0.5 1]).findtag(tags(itag));
+  fz3_tmp = ds.fz(1,:,3);
+  fz5_tmp = ds.fz(1,:,5);
+  fz3{itag} = fz3_tmp;
+  fz5{itag} = fz5_tmp;
+end
+
+nrows = 3;
+ncols = numel(tags);
+npanels = nrows*ncols;
+h = setup_subplots(nrows,ncols,'vertical');
+isub = 1;
+for itag = 1:numel(tags)
+  if 1 % f3
+    hca = h(isub); isub = isub + 1;
+    ff = fz3{itag};    
+    pcolor(hca,ff.v,ff.z,log10(ff.f)'); 
+    shading(hca,'flat'); 
+    colormap(hca,pic_colors('candy4')); 
+    hca.CLim = [-6 -0.0];
+  end
+  if 1 % f5
+    hca = h(isub); isub = isub + 1;
+    ff = fz5{itag};    
+    pcolor(hca,ff.v,ff.z,log10(ff.f)'); 
+    shading(hca,'flat'); 
+    colormap(hca,pic_colors('candy4')); 
+    hca.CLim = [-6 -0.0];
+  end
+  if 1 % f3/f35
+    hca = h(isub); isub = isub + 1;
+    ff1 = fz3{itag};
+    ff2 = fz5{itag};
+    pcolor(hca,ff.v,ff.z,(ff1.f./(ff1.f+ff2.f))'); 
+    shading(hca,'flat'); 
+    colormap(hca,pic_colors('pasteljet')); 
+    hca.CLim = [0 1];
+  end
+end
+compact_panels(0.0,0.02)
+hlinks = linkprop(h,{'XLim','YLim'});
+
+c_eval('h(?).XGrid = ''on'';',1:npanels)
+c_eval('h(?).YGrid = ''on'';',1:npanels)
+c_eval('h(?).Layer = ''top'';',1:npanels)
+
+%% Reduced fxyz distributions, with forces
+twpe = 24000;
+tags = {'A=5.5','A=6.0','A=7.0','A=8.0','A=9.0'};
+tags = tags(end:-1:1);
+pic = no02m.twpelim(twpe).xlim([65 80]).zlim([-2 8]);
+% fpar3 = struct([]);
+% fpar5 = struct([]);
+clear fx3 fx5 fy3 fy5 fz3 fz5
+for itag = 1:numel(tags)
+  ds = ds100.twpelim(twpe).dxlim([0.5 1]).findtag(tags(itag));
+  dss{itag} = ds;
+  fx3_tmp = ds.fx(1,:,3);
+  fx5_tmp = ds.fx(1,:,5);
+  fx3{itag} = fx3_tmp;
+  fx5{itag} = fx5_tmp;
+  fy3_tmp = ds.fy(1,:,3);
+  fy5_tmp = ds.fy(1,:,5);
+  fy3{itag} = fy3_tmp;
+  fy5{itag} = fy5_tmp;
+  fz3_tmp = ds.fz(1,:,3);
+  fz5_tmp = ds.fz(1,:,5);
+  fz3{itag} = fz3_tmp;
+  fz5{itag} = fz5_tmp;
+end
+
+contlev = [-1:1:0];
+forcelim = [-0.5 0.5];
+nrows = 7;
+ncols = numel(tags);
+npanels = nrows*ncols;
+h = setup_subplots(nrows,ncols,'vertical');
+isub = 1;
+for itag = 1:numel(tags)
+  if 1 % By and boxes
+    hca = h(isub); isub = isub + 1;     
+    pic.plot_map(hca,{'By'},'A',1);
+    colormap(hca,pic_colors('blue_red')); 
+    hca.CLim = [-1 1];
+    hold(hca,'on')
+    dss{itag}.plot_boxes(hca);
+    hold(hca,'off')
+  end
+  if 0 % f3
+    hca = h(isub); isub = isub + 1;
+    ff = fz3{itag};    
+    pcolor(hca,ff.v,ff.z,log10(ff.f)'); 
+    shading(hca,'flat'); 
+    colormap(hca,pic_colors('candy4')); 
+    hca.CLim = [-6 -0.0];
+  end
+  if 0 % f5
+    hca = h(isub); isub = isub + 1;
+    ff = fz5{itag};    
+    pcolor(hca,ff.v,ff.z,log10(ff.f)'); 
+    shading(hca,'flat'); 
+    colormap(hca,pic_colors('candy4')); 
+    hca.CLim = [-6 -0.0];
+  end
+  if 1 % fx35
+    hca = h(isub); isub = isub + 1;
+    ff1 = fx5{itag};
+    ff2 = fx5{itag};
+    pcolor(hca,ff1.v,ff1.z,log10(ff1.f+ff2.f)'); 
+    shading(hca,'flat'); 
+    if 1 % contour lines      
+      hold(hca,'on')
+      %try
+      contour(hca,ff1.v,ff1.z,log10(ff1.f+ff2.f)',contlev,'color',[0 0 0])
+      %end
+      hold(hca,'off')
+    end
+    if 1 % ExB
+      B2 = ff1.Bx.^2 + ff1.By.^2 + ff1.Bz.^2;
+      ExB = (ff1.Ey.*ff1.Bz - ff1.Ez.*ff1.By)./B2; % x-comp
+      hold(hca,'on')
+      plot(hca,ExB,ff1.z,'color',[1 1 1],'linewidth',1)
+      hold(hca,'off')
+    end
+    colormap(hca,pic_colors('candy4')); 
+    hca.CLim = [-6 -0.0];    
+    hleg = irf_legend(hca,'f(v_x)',[0.02,0.98],'color',[0 0 0],'backgroundcolor',[1 1 1]); 
+  end
+  if 1 % fy35
+    hca = h(isub); isub = isub + 1;
+    ff1 = fy5{itag};
+    ff2 = fy5{itag};
+    pcolor(hca,ff1.v,ff1.z,log10(ff1.f+ff2.f)'); 
+    shading(hca,'flat'); 
+    colormap(hca,pic_colors('candy4')); 
+    hca.CLim = [-6 -0.0];
+    if 1 % ExB
+      B2 = ff1.Bx.^2 + ff1.By.^2 + ff1.Bz.^2;
+      ExB = (ff1.Ez.*ff1.Bx - ff1.Ex.*ff1.Bz)./B2; % y-comp
+      hold(hca,'on')
+      plot(hca,ExB,ff1.z,'color',[1 1 1],'linewidth',1)
+      hold(hca,'off')
+    end
+    hleg = irf_legend(hca,'f(v_y)',[0.02,0.98],'color',[0 0 0],'backgroundcolor',[1 1 1]); 
+  end
+  if 1 % fz35
+    hca = h(isub); isub = isub + 1;
+    ff1 = fz3{itag};
+    ff2 = fz5{itag};
+    pcolor(hca,ff1.v,ff1.z,log10(ff1.f+ff2.f)'); 
+    shading(hca,'flat'); 
+    colormap(hca,pic_colors('candy4')); 
+    hca.CLim = [-6 -0.0];
+    
+    if 1 % ExB
+      B2 = ff1.Bx.^2 + ff1.By.^2 + ff1.Bz.^2;
+      ExB = (ff1.Ex.*ff1.By - ff1.Ey.*ff1.Bx)./B2; % z-comp
+      hold(hca,'on')
+      plot(hca,ExB,ff1.z,'color',[1 1 1],'linewidth',1)
+      hold(hca,'off')
+    end
+    
+    hleg = irf_legend(hca,'f(v_z)',[0.02,0.98],'color',[0 0 0],'backgroundcolor',[1 1 1]); 
+    
+  end
+  % Forces
+  if 1 % fzvx35 vxBy
+    hca = h(isub); isub = isub + 1;
+    ff1 = fx3{itag};
+    ff2 = fx5{itag};
+    %ftot = (ff1.f + ff2.f);
+    pcolor(hca,ff1.v,ff1.z,(ff1.v*ff1.By)');     
+    shading(hca,'flat'); 
+    if 1 % contour lines      
+      hold(hca,'on')
+      try
+      contour(hca,ff1.v,ff1.z,log10(ff1.f+ff2.f)',contlev,'color',[0 0 0])
+      end
+      hold(hca,'off')      
+    end
+    colormap(hca,pic_colors('blue_red')); 
+    hca.CLim = forcelim;
+    hleg = irf_legend(hca,'v_xB_y',[0.02,0.98],'color',[0 0 0],'backgroundcolor',[1 1 1]);    
+  end
+  if 1 % fzvx35 -vyBx
+    hca = h(isub); isub = isub + 1;
+    ff1 = fy3{itag};
+    ff2 = fy5{itag};
+    %ftot = (ff1.f + ff2.f);
+    pcolor(hca,ff1.v,ff1.z,-(ff1.v*ff1.Bx)'); 
+    shading(hca,'flat'); 
+    if 1 % contour lines      
+      hold(hca,'on')
+      try
+      contour(hca,ff1.v,ff1.z,log10(ff1.f+ff2.f)',contlev,'color',[0 0 0])
+      end
+      hold(hca,'off')      
+    end
+    colormap(hca,pic_colors('blue_red')); 
+    hca.CLim = forcelim;
+    hleg = irf_legend(hca,'-v_yB_x',[0.02,0.98],'color',0.8*[0 0 0],'backgroundcolor',[1 1 1]);    
+  end
+  if 1 % fzvx35 Ez
+    hca = h(isub); isub = isub + 1;
+    ff1 = fx3{itag};
+    ff2 = fx5{itag};
+    %ftot = (ff1.f + ff2.f);
+    pcolor(hca,ff1.v,ff1.z,(ones(size(ff1.v))*ff1.Ez)'); 
+    shading(hca,'flat'); 
+    colormap(hca,pic_colors('blue_red')); 
+    hca.CLim = forcelim;
+    hleg = irf_legend(hca,'E_z',[0.02,0.98],'color',0.8*[0 0 0],'backgroundcolor',[1 1 1]);    
+  end
+end
+firstrow = 1:nrows:(nrows*ncols);
+remainingrows = setdiff(1:nrows*ncols,firstrow);
+compact_panels(h(firstrow),0.0,0.02)
+compact_panels(h(remainingrows),0.0,0.02)
+hlinks1 = linkprop(h(firstrow),{'XLim','YLim'});
+hlinks2 = linkprop(h(remainingrows),{'XLim','YLim'});
+
+c_eval('h(?).XGrid = ''on'';',1:npanels)
+c_eval('h(?).YGrid = ''on'';',1:npanels)
+c_eval('h(?).Layer = ''top'';',1:npanels)
