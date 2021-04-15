@@ -2,7 +2,7 @@
 % small variation in velocities. A bulk velocity with a randomly directed
 % thermal velocity.
 
-%% Pick pounts based on f.
+%% Pick points based on f.
 t0 = 24000;
 t0 = 24000;
 it = 2;

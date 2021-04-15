@@ -67,11 +67,12 @@ charge = [1 -1 1 -1 1 -1];
 h5write_dists(dirData,h5FilePath,distIndRead,nSpecies,mass,charge,timestep,iteration,tags)
 
 %% 
-timestep = 23000;
+timestep = 24000;
 dirData = sprintf('/Volumes/Fountain/Data/PIC/no_hot_bg_n02_m100/distributions/%05.0f/',timestep);
 h5FilePath = '/Volumes/Fountain/Data/PIC/no_hot_bg_n02_m100/data_h5/dists.h5';
-distIndRead = 1:280;%1738
+distIndRead = 1739:2049;%1738
 tags = arrayfun(@(s)sprintf('A=7.5',s),1:280,'UniformOutput',false);
+tags = arrayfun(@(s)sprintf('',s),1:2500,'UniformOutput',false);
 %tags = arrayfun(@(s)sprintf('',s),1:2000,'UniformOutput',false);
 % for itag = 1:numel(all_tags)
 %   tags{distIndRead(itag)} = sprintf('A=%g',all_tags(itag));
@@ -145,9 +146,11 @@ hold(hca,'off')
 h5FilePath = '/Volumes/Fountain/Data/PIC/no_hot_bg_n02_m100/data_h5/dists.h5';
 twpe = 24000;
 tag = 'A=7.5';
-tag = 'A=9.5';
-for idist = 47%1:280
-  dataset = ['/data/' sprintf('%010.0f',2*twpe) '/' sprintf('%05.0f',idist) '/'];  
+%tag = 'A=6.0';
+for idist = 1740%:2049%1:280
+  dataset = ['/data/' sprintf('%010.0f',2*twpe) '/' sprintf('%05.0f',idist) '/'];    
+  h5writeatt(h5FilePath,dataset,'tag',tag)
+  dataset = ['/data/' sprintf('%010.0f',2*twpe) '/' sprintf('%05.0f',idist) '/fxyz'];  
   h5writeatt(h5FilePath,dataset,'tag',tag)
 end
 
@@ -157,18 +160,23 @@ twpe = 24000;
 iteration = twpe*2;
 str_iteration = sprintf('%010.0f',iteration);
 dspart = ds100.twpelim(twpe).findtag({'A=7.5'}).dxlim([0 0.3]);
-dspart = ds100.twpelim(twpe);
+%dspart = ds100.twpelim(twpe);
 mass_all = no02m.mass;
 charge_all = no02m.charge;
 %iSpecies = 3;
 nInterp = 0;
 doInterp = 0;
 % twpe24000 is done until 484
+% need to redo first 311 indices, because they were overwritten when I had
+% the distnumber wrong.
 it = 1;
-for distnumber = 1:dspart.nd{1}
+for distcount = 1:dspart.nd{1}
   %disp(sprintf('id = %g/%g',distnumber,dspart.nd{1}))
+  ds = dspart.update_inds({distcount});
+  distnumber = ds.indices{1};
   dataset_base = ['/data/' str_iteration '/' num2str(distnumber,'%05.0f')];
-  ds = dspart.update_inds({distnumber});
+  disp(sprintf('%s',dataset_base))
+  
   
   xlo = ds.xi1{1};
   xhi = ds.xi2{1};
@@ -203,7 +211,7 @@ for distnumber = 1:dspart.nd{1}
   
   
   doInterp = 0;
-  if 0 % Calculate and write reduced distributions
+  if 1 % Calculate and write reduced distributions
     fpar = zeros(101,6);
     vpar_center = zeros(101,6);  
     vpar_edges = zeros(102,6); 
@@ -215,17 +223,17 @@ for distnumber = 1:dspart.nd{1}
       fred_tmp = ds.reduce_1d_new('x',[iSpecies],[],'vpar',{Bx,By,Bz},'pitch',{Bx,By,Bz},'interp',nInterp);
       fpar(:,iSpecies) = fred_tmp.fvpar;
       vpar_center(:,iSpecies) = fred_tmp.vpar_center;
-      vpar_edges(:,iSpecies) = fred_tmp.vpar_edges;
-
+      vpar_edges(:,iSpecies) = fred_tmp.vpar_edges;      
   %     fred_tmp_nointerp = ds.reduce_1d_new('x',[iSpecies],[],'vpar',{Bx,By,Bz},'pitch',{Bx,By,Bz});   
   %     fpar_nointerp(:,iSpecies) = fred_tmp_nointerp.fvpar;
   %     vpar_center_nointerp(:,iSpecies) = fred_tmp_nointerp.vpar_center;
   %     vpar_edges_nointerp(:,iSpecies) = fred_tmp_nointerp.vpar_edges;
     end
+    %figure(77); plot(vpar_center,fpar)
     toc    
-    if 0 % Write data
-      dataset_name_base = ['/data/' str_iteration '/' num2str(distnumber,'%05.0f'),'/fxyz'];
-      dataset_name = ['/data/' str_iteration '/' num2str(distnumber,'%05.0f'),'/fpar'];
+    if 1 % Write data
+      dataset_name_base = [dataset_base,'/fxyz'];
+      dataset_name = [dataset_base,'/fpar'];
       try
         h5create(h5FilePath, dataset_name, size(fpar));
       catch
@@ -245,7 +253,7 @@ for distnumber = 1:dspart.nd{1}
       h5disp(h5FilePath,dataset_name)
     end
   end
-  if 0 % Calculate and write reduced fx,fy,fz
+  if 1 % Calculate and write reduced fx,fy,fz
     tic % check time 
     
     fx = zeros(101,6);
@@ -263,21 +271,21 @@ for distnumber = 1:dspart.nd{1}
     end
     if 1 % Write data
       % fx
-      dataset_name = ['/data/' str_iteration '/' num2str(distnumber,'%05.0f'),'/fx'];
+      dataset_name = [dataset_base,'/fx'];
       try h5create(h5FilePath, dataset_name, size(fx));
       catch warning('h5 structure %s already exists, overwriting.',dataset_name)      
       end  
       h5write(h5FilePath, dataset_name, fx);
       h5writeatt(h5FilePath, dataset_name,'axes', v_center);
       % fy
-      dataset_name = ['/data/' str_iteration '/' num2str(distnumber,'%05.0f'),'/fy'];
+      dataset_name = [dataset_base,'/fy'];
       try h5create(h5FilePath, dataset_name, size(fy));
       catch warning('h5 structure %s already exists, overwriting.',dataset_name)      
       end  
       h5write(h5FilePath, dataset_name, fy);
       h5writeatt(h5FilePath, dataset_name,'axes', v_center);
       % fz      
-      dataset_name = ['/data/' str_iteration '/' num2str(distnumber,'%05.0f'),'/fz'];
+      dataset_name = [dataset_base,'/fz'];
       try h5create(h5FilePath, dataset_name, size(fz));
       catch warning('h5 structure %s already exists, overwriting.',dataset_name)      
       end  
@@ -288,7 +296,7 @@ for distnumber = 1:dspart.nd{1}
   end
   
   if 1 % write E, B
-    dataset_name = ['/data/' str_iteration '/' num2str(distnumber,'%05.0f')];
+    dataset_name = [dataset_base];
     h5writeatt(h5FilePath, dataset_name,'B', [Bx By Bz]);
     h5writeatt(h5FilePath, dataset_name,'E', [Ex Ey Ez]);
     %h5disp(h5FilePath,dataset_name)

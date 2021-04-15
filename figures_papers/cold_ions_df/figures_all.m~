@@ -606,7 +606,8 @@ if 1 % extra markings and annotations
   annotation('textarrow',[0.78 0.79],[0.17 0.21],'string','cold','fontsize',13) 
   annotation('textarrow',[0.82 0.825],[0.17 0.21],'string','warmer','fontsize',13)
   annotation('textarrow',[0.86 0.870],[0.17 0.19],'string','hot','fontsize',13)
-  annotation('textarrow',[0.885 0.875],[0.17 0.22],'string','cold','fontsize',13)  
+  annotation('textarrow',[0.885 0.875],[0.17 0.22],'string','cold','fontsize',13)
+  
 end
 %% Figure 3, plot, origin fraction
 % What to include
@@ -1506,20 +1507,13 @@ hcb_ = findobj(gcf,'Type','ColorBar');
 twpe = 24000;
 %pic = no02m.twpelim(twpe).xlim([60 90]).zlim([-2 8]);
 ds = ds100.twpelim(twpe).dxlim([0.5 1]).findtag({'line horizontal'}).zfind(0).xlim([50 100]);
-fy3 = ds.fy(1,:,3);
-fz3 = ds.fz(1,:,3);
-fy5 = ds.fy(1,:,5);
-fz5 = ds.fz(1,:,5);
-fy = fy3; fy.f = fy3.f + fy5.f;
-fz = fz3; fz.f = fz3.f + fz5.f;
-
-fy = fy3;
-fz = fz3;
+fy3 = ds.fy(1,:,3); 
+fz3 = ds.fz(1,:,3);  
 
 % Set up trajectories
 times = [90 100 110 120 125];
 flim = [-6 -0.5];
-xlim = [65 99.99];
+xlim = [65 100];
 zlim = [-6 9];
 fontsize = 14;
 
@@ -1532,7 +1526,7 @@ tr1 = tr.find([tr.Ustart]<0.25,[tr.zstart]>0,[tr.vy0]>0,[tr.x0]>85);
 tr = tr100(783:917);
 tr2 = tr.find([tr.Ustart]<0.25,[tr.zstart]>0,[tr.vy0]<0);
 tr = tr100(783:917);
-tr3 = tr.find([tr.Ustart]<0.25,[tr.zstart]>0,[tr.vy0]>0,[tr.x0]<=75,[tr.x0]>=71);
+tr3 = tr.find([tr.Ustart]<0.25,[tr.zstart]>0,[tr.vy0]>0,[tr.x0]<=75);
 tr = tr100(783:917);
 tr4 = tr.find([tr.Ustart]<0.25,[tr.zstart]>0,[tr.vy0]>0,[tr.x0]>75,[tr.x0]<=85);
 tr = tr.find([tr.Ustart]<0.25,[tr.zstart]>0);
@@ -1563,7 +1557,7 @@ doTraj = 1;
 if 1 % f(x,vy,z=0,t=120), with t0 location of particles
   hca = h(isub); isub = isub + 1;
   labstr = 'y';
-  fred = fy;    
+  fred = fy3;    
   fredplot = fred.f;
   pcolor(hca,fred.x,fred.v,log10(fredplot))
   shading(hca,'flat')
@@ -1574,7 +1568,6 @@ if 1 % f(x,vy,z=0,t=120), with t0 location of particles
   irf_legend(hca,{sprintf('z = %g',unique(fred.z))},[0.02 0.98],'color',[0 0 0],'fontsize',14)
   hcb = colorbar('peer',hca,'location','northoutside');  
   hcb.YLabel.String = sprintf('log_{10}f_{ic}(x,v_{%s})',labstr);
-  hcb.FontSize = fontsize;
   %hca.CLim(2) = prctile(fred.fvx(:),99);
   hca.XGrid = 'on';
   hca.YGrid = 'on';
@@ -1638,7 +1631,7 @@ end
 if 1 % f(x,vy,z=0,t=120), with t0 location of particles
   hca = h(isub); isub = isub + 1;
   labstr = 'z';
-  fred = fz;    
+  fred = fz3;    
   fredplot = fred.f;
   pcolor(hca,fred.x,fred.v,log10(fredplot))
   shading(hca,'flat')
@@ -1649,7 +1642,6 @@ if 1 % f(x,vy,z=0,t=120), with t0 location of particles
   irf_legend(hca,{sprintf('z = %g',unique(fred.z))},[0.02 0.98],'color',[0 0 0],'fontsize',14)
   hcb = colorbar('peer',hca,'location','northoutside');  
   hcb.YLabel.String = sprintf('log_{10}f_{ic}(x,v_{%s})',labstr);
-  hcb.FontSize = fontsize;
   %hca.CLim(2) = prctile(fred.fvx(:),99);
   hca.XGrid = 'on';
   hca.YGrid = 'on';
@@ -1714,7 +1706,7 @@ hlinks = linkprop(h,{'XLim'});
 h(1).XLim = [65 100];
 %compact_panels(h,0.01)
 firstrow = 1:nrows:nrows*ncols;
-remainingrows = setdiff(1:nrows*ncols,firstrow);
+remainingrows = setdiff(1:nrows*ncols)
 
 h(nrows+1).Position([2 3 4]) = h(1).Position([2 3 4]);
 
@@ -1727,13 +1719,13 @@ for ip = (nrows+1):npanels
   h(ip).YLabel.String = '';  
   h(ip).YTickLabel = [];  
 end
-
-compact_panels(h(firstrow),0.01,0.01)
-compact_panels(h(remainingrows),0.01,0.01)
+compact_panels(h([2:nrows (nrows+2):npanels]),0.01,0.01)
+compact_panels(h([1 nrows+1]),0.01,0.01)
 drawnow
-c_eval('h(?).Position(4) = h(2).Position(4);',firstrow)
-c_eval('h(?).Position(2) = h(?).Position(2)-0.06;',[firstrow remainingrows])
-c_eval('h(?).Position(2) = h(?).Position(2)+0.04;',firstrow)
+
+c_eval('h(?).Position(4) = h(2).Position(4);',[1 nrows+1])
+c_eval('h(?).Position(2) = h(?).Position(2)-0.08;',1:npanels)
+c_eval('h(?).Position(2) = h(?).Position(2)+0.09;',[1 nrows+1])
 
 %
 % hpos_y_fields = h(2).Position(2);
@@ -1741,58 +1733,7 @@ c_eval('h(?).Position(2) = h(?).Position(2)+0.04;',firstrow)
 % compact_panels(h([2:nrows (nrows+2):npanels]),0.01,0.01)
 % compact_panels(h([1 nrows+1]),0.01,0.01)
 % c_eval('h(?).Position(2) = h(?).Position(2)-0.05;',[2:nrows (nrows+2):npanels])
-if 0 % extra markings and annotations 
-  %%
-  % Add DF locations
-%   itt = no02m.twpelim(twpe).it;  
-%   for ip = 7:9
-%     hold(h(ip),'on')
-%     hDF = plot(h(ip),xDF(1,itt)*[1 1],h(ip).YLim,'k--');
-%     plot(h(ip),xDF(2,itt)*[1 1],h(ip).YLim,'k--');
-%     hold(h(ip),'off')
-%     if ip == 7
-%       hlegdf = legend(hDF,{'DF'},'location','southeast','box','off');
-%       hlegdf.Position(1) = 0.32;
-%     end    
-%   end
-  % inflow/outflow
-  text(h(1),102,2.5,'inflow','fontsize',13,'horizontalalignment','center')
-  text(h(1),128,2.5,'outflow','fontsize',13,'horizontalalignment','center')
-  text(h(1),75,2.5,'outflow','fontsize',13,'horizontalalignment','center')
-  
-  annotation('textarrow',[0.56 0.544],[0.14 0.14],'String','main X line','fontsize',13,'fontweight','light')
-  annotation('textarrow',[0.83 0.84],[0.74 0.76],'String',{'thermalization of','cold inbound ions','at separatrices'},'fontsize',13,'fontweight','light')
-  annotation('textarrow',[0.81 0.825],[0.46 0.48],'String',{'inside separatrix,','inbound ions','are thermalized'},'fontsize',13,'fontweight','light')
-  annotation('textarrow',[0.86 0.87],[0.46 0.50],'String',{'deeper within','exhaust, inbound','ions are still cold'},'fontsize',13,'fontweight','light','horizontalalignment','left')
-  annotation('textarrow',[0.86 0.87],[0.87 0.84],'String',{'heated exhaust ions'},'fontsize',13,'fontweight','light')
-  annotation('textarrow',[0.78 0.78],[0.82 0.79],'String',{'cold inflow'},'fontsize',13,'fontweight','light')  
-  annotation('textarrow',[0.69 0.675],[0.58 0.54],'String',{'cold outbound','beam close to DF'},'fontsize',13,'fontweight','light','horizontalalignment','left')
-  annotation('textarrow',[0.46 0.46],[0.20 0.23],'String',{'inbound ions','with v_y<0'},'fontsize',13,'fontweight','light')
-  %annotation('textarrow',[0.43 0.43],[0.29 0.27],'String',{'inbound ions','with v_y>0'},'fontsize',13,'fontweight','light')
-  %annotation('textarrow',[0.62 0.63],[0.84 0.81],'String',{'inbound ions','with v_y>0'},'fontsize',13,'fontweight','light')
-  annotation('textarrow',[0.61 0.63],[0.86 0.81],'String',{'inbound ions','with v_y>0'},'fontsize',13,'fontweight','light')
-  annotation('textarrow',[0.60 0.60],[0.73 0.77],'String',{'inbound ions','with v_y<0'},'fontsize',13,'fontweight','light')
-  % islands
-  text(h(7),99,2.9,'islands','fontsize',13,'horizontalalignment','center')
-  annotation('arrow',[0.260 0.260],[0.33 0.28])
-  annotation('arrow',[0.235 0.235],[0.33 0.29]) 
-  % secondary X lines
-  text(h(8),95,3.5,'secondary X lines','fontsize',13,'horizontalalignment','center')
-  annotation('arrow',[0.4795 0.4795],[0.33 0.29])
-  annotation('arrow',[0.5117 0.5117],[0.33 0.29])
-  % counterstreaming beams
-  % alt 1
-%   text(h(9),119,-3.25,'counter-streaming beams','fontsize',13,'horizontalalignment','center')
-%   annotation('textarrow',0.79*[1 1],[0.17 0.21],'string','cold','fontsize',13) 
-%   annotation('textarrow',0.825*[1 1],[0.17 0.21],'string','warmer','fontsize',13)
-%   annotation('textarrow',0.875*[1 1],[0.17 0.22],'string','cold','fontsize',13)
-  % alt 2
-  text(h(9),119,-3.35,'counter-streaming beams','fontsize',13,'horizontalalignment','center')
-  annotation('textarrow',[0.78 0.79],[0.17 0.21],'string','cold','fontsize',13) 
-  annotation('textarrow',[0.82 0.825],[0.17 0.21],'string','warmer','fontsize',13)
-  annotation('textarrow',[0.86 0.870],[0.17 0.19],'string','hot','fontsize',13)
-  annotation('textarrow',[0.885 0.875],[0.17 0.22],'string','cold','fontsize',13)  
-end
+
 
 %% Figure 6, ALT1, magnetic curvature
 %% Curvature plot, combined, also including f(vx,vz) at z=2 to illustrate inward vs outward beam temperature

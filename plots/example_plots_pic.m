@@ -3205,10 +3205,13 @@ c_eval('h(?).Layer = ''top'';',1:npanels)
 
 %% Reduced fxyz distributions, with forces
 twpe = 24000;
-pic = no02m.twpelim(twpe).xlim([60 90]).zlim([-2 8]);
+pic = no02m.twpelim(twpe).xlim([60 90]).zlim([-8 8]);
 
-tags = {'A=6.0','A=6.5','A=7.0','A=7.5','A=8.0'};
+tags = {'A=5.5','A=6.0','A=6.5','A=7.0','A=7.5','A=8.0'};
+tags = {'A=6.0','A=7.5'};
 tags = tags(end:-1:1);
+%tags = {'A=6.0'};
+
 nred = numel(tags);
 
 %tags = {'line vertical'}; xpick = [75 80];
@@ -3216,9 +3219,9 @@ nred = numel(tags);
 
 % fpar3 = struct([]);
 % fpar5 = struct([]);
-clear fx3 fx5 fy3 fy5 fz3 fz5
+clear fx3 fx5 fy3 fy5 fz3 fz5 dss
 for itag = 1:nred
-  ds = ds100.twpelim(twpe).dxlim([0.5 1]).findtag(tags(itag)).xlim([50 90]);
+  ds = ds100.twpelim(twpe).dxlim([0.1 0.3]).findtag(tags(itag)).xlim([50 90]);
   %ds = ds100.twpelim(twpe).dxlim([0.5 1]).findtag(tags).xfind(xpick(itag)).xlim([50 100]);
   dss{itag} = ds;
   fx3_tmp = ds.fx(1,:,3);
@@ -3235,14 +3238,19 @@ for itag = 1:nred
   fz5{itag} = fz5_tmp;
 end
 % 
+doExB = 0;
 ExBcol = [0.5 0.5 0.5];
 contlev = [-1:0.5:0];
 forcelim = [-0.5 0.5];
 fclim = [-6 -0.5];
-nrows = 10;
+nrows = 5;
 ncols = nred;
+%nrows = 7;
+%ncols = 4;
+plotxstr = 'arc_z0';
 npanels = nrows*ncols;
 h = setup_subplots(nrows,ncols,'vertical');
+%h = setup_subplots(nrows,ncols,'horizontal');
 isub = 1;
 for itag = 1:nred
   if 1 % n5 and boxes
@@ -3253,6 +3261,7 @@ for itag = 1:nred
     hold(hca,'on')
     dss{itag}.plot_boxes(hca,'color',[0.8 0.8 0.8]);
     hold(hca,'off')
+    hleg = irf_legend(hca,tags{itag},[0.98,0.98],'color',[0 0 0],'backgroundcolor',[1 1 1]); 
   end
   if 1 % Ex and boxes
     hca = h(isub); isub = isub + 1;     
@@ -3285,18 +3294,19 @@ for itag = 1:nred
   if 1 % fx5
     hca = h(isub); isub = isub + 1;
     ff1 = fx5{itag};
-    pcolor(hca,ff1.v,ff1.z,log10(ff1.f)'); 
+    pcolor(hca,ff1.v,ff1.(plotxstr),log10(ff1.f)'); 
     shading(hca,'flat'); 
+    hca.XLabel.String = 'v (v_A)'; 
     if 1 % contour lines
       hold(hca,'on')      
-      contour(hca,ff1.v,ff1.z,log10(ff1.f)',contlev,'color',[0 0 0])      
+      contour(hca,ff1.v,ff1.(plotxstr),log10(ff1.f)',contlev,'color',[0 0 0])      
       hold(hca,'off')
     end
-    if 1 % ExB
+    if doExB % ExB
       B2 = ff1.Bx.^2 + ff1.By.^2 + ff1.Bz.^2;
       ExB = (ff1.Ey.*ff1.Bz - ff1.Ez.*ff1.By)./B2; % x-comp
       hold(hca,'on')
-      plot(hca,ExB,ff1.z,'color',[1 1 1],'linewidth',1)
+      plot(hca,ExB,ff1.(plotxstr),'color',[1 1 1],'linewidth',1)
       hold(hca,'off')
     end
     colormap(hca,pic_colors('candy4')); 
@@ -3306,20 +3316,21 @@ for itag = 1:nred
   if 1 % fy5
     hca = h(isub); isub = isub + 1;
     ff1 = fy5{itag};
-    pcolor(hca,ff1.v,ff1.z,log10(ff1.f)'); 
+    pcolor(hca,ff1.v,ff1.(plotxstr),log10(ff1.f)'); 
     shading(hca,'flat'); 
     colormap(hca,pic_colors('candy4')); 
     hca.CLim = fclim;
+    hca.XLabel.String = 'v (v_A)'; 
     if 1 % contour lines
       hold(hca,'on')      
-      contour(hca,ff1.v,ff1.z,log10(ff1.f)',contlev,'color',[0 0 0])      
+      contour(hca,ff1.v,ff1.(plotxstr),log10(ff1.f)',contlev,'color',[0 0 0])      
       hold(hca,'off')
     end
-    if 1 % ExB
+    if doExB % ExB
       B2 = ff1.Bx.^2 + ff1.By.^2 + ff1.Bz.^2;
       ExB = (ff1.Ez.*ff1.Bx - ff1.Ex.*ff1.Bz)./B2; % y-comp
       hold(hca,'on')
-      plot(hca,ExB,ff1.z,'color',[1 1 1],'linewidth',1)
+      plot(hca,ExB,ff1.(plotxstr),'color',[1 1 1],'linewidth',1)
       hold(hca,'off')
     end
     hleg = irf_legend(hca,'f(v_y)',[0.02,0.98],'color',[0 0 0],'backgroundcolor',[1 1 1]); 
@@ -3327,45 +3338,43 @@ for itag = 1:nred
   if 1 % fz5
     hca = h(isub); isub = isub + 1;
     ff1 = fz5{itag};
-    pcolor(hca,ff1.v,ff1.z,log10(ff1.f)'); 
+    pcolor(hca,ff1.v,ff1.(plotxstr),log10(ff1.f)'); 
     shading(hca,'flat'); 
     colormap(hca,pic_colors('candy4')); 
     hca.CLim = fclim;
-     
+    hca.XLabel.String = 'v (v_A)'; 
     if 1 % contour lines
       hold(hca,'on')      
-      contour(hca,ff1.v,ff1.z,log10(ff1.f)',contlev,'color',[0 0 0])      
+      contour(hca,ff1.v,ff1.(plotxstr),log10(ff1.f)',contlev,'color',[0 0 0])      
       hold(hca,'off')
     end
-    if 1 % ExB
+    if doExB % ExB
       B2 = ff1.Bx.^2 + ff1.By.^2 + ff1.Bz.^2;
       ExB = (ff1.Ex.*ff1.By - ff1.Ey.*ff1.Bx)./B2; % z-comp
       hold(hca,'on')
-      plot(hca,ExB,ff1.z,'color',[1 1 1],'linewidth',1)
+      plot(hca,ExB,ff1.(plotxstr),'color',[1 1 1],'linewidth',1)
       hold(hca,'off')
-    end
-    
-    hleg = irf_legend(hca,'f(v_z)',[0.02,0.98],'color',[0 0 0],'backgroundcolor',[1 1 1]); 
-    
+    end    
+    hleg = irf_legend(hca,'f(v_z)',[0.02,0.98],'color',[0 0 0],'backgroundcolor',[1 1 1]);     
   end
   if 0 % fx35
     hca = h(isub); isub = isub + 1;
     ff1 = fx3{itag};
     ff2 = fx5{itag};
-    pcolor(hca,ff1.v,ff1.z,log10(ff1.f+ff2.f)'); 
+    pcolor(hca,ff1.v,ff1.(plotxstr),log10(ff1.f+ff2.f)'); 
     shading(hca,'flat'); 
     if 1 % contour lines      
       hold(hca,'on')
       %try
-      contour(hca,ff1.v,ff1.z,log10(ff1.f+ff2.f)',contlev,'color',[0 0 0])
+      contour(hca,ff1.v,ff1.(plotxstr),log10(ff1.f+ff2.f)',contlev,'color',[0 0 0])
       %end
       hold(hca,'off')
     end
-    if 1 % ExB
+    if doExB % ExB
       B2 = ff1.Bx.^2 + ff1.By.^2 + ff1.Bz.^2;
       ExB = (ff1.Ey.*ff1.Bz - ff1.Ez.*ff1.By)./B2; % x-comp
       hold(hca,'on')
-      plot(hca,ExB,ff1.z,'color',[1 1 1],'linewidth',1)
+      plot(hca,ExB,ff1.(plotxstr),'color',[1 1 1],'linewidth',1)
       hold(hca,'off')
     end
     colormap(hca,pic_colors('candy4')); 
@@ -3376,15 +3385,15 @@ for itag = 1:nred
     hca = h(isub); isub = isub + 1;
     ff1 = fy3{itag};
     ff2 = fy5{itag};
-    pcolor(hca,ff1.v,ff1.z,log10(ff1.f+ff2.f)'); 
+    pcolor(hca,ff1.v,ff1.(plotxstr),log10(ff1.f+ff2.f)'); 
     shading(hca,'flat'); 
     colormap(hca,pic_colors('candy4')); 
     hca.CLim = [-6 -0.0];
-    if 1 % ExB
+    if doExB % ExB
       B2 = ff1.Bx.^2 + ff1.By.^2 + ff1.Bz.^2;
       ExB = (ff1.Ez.*ff1.Bx - ff1.Ex.*ff1.Bz)./B2; % y-comp
       hold(hca,'on')
-      plot(hca,ExB,ff1.z,'color',[1 1 1],'linewidth',1)
+      plot(hca,ExB,ff1.(plotxstr),'color',[1 1 1],'linewidth',1)
       hold(hca,'off')
     end
     hleg = irf_legend(hca,'f(v_y)',[0.02,0.98],'color',[0 0 0],'backgroundcolor',[1 1 1]); 
@@ -3393,16 +3402,16 @@ for itag = 1:nred
     hca = h(isub); isub = isub + 1;
     ff1 = fz3{itag};
     ff2 = fz5{itag};
-    pcolor(hca,ff1.v,ff1.z,log10(ff1.f+ff2.f)'); 
+    pcolor(hca,ff1.v,ff1.(plotxstr),log10(ff1.f+ff2.f)'); 
     shading(hca,'flat'); 
     colormap(hca,pic_colors('candy4')); 
     hca.CLim = [-6 -0.0];
     
-    if 1 % ExB
+    if doExB % ExB
       B2 = ff1.Bx.^2 + ff1.By.^2 + ff1.Bz.^2;
       ExB = (ff1.Ex.*ff1.By - ff1.Ey.*ff1.Bx)./B2; % z-comp
       hold(hca,'on')
-      plot(hca,ExB,ff1.z,'color',[1 1 1],'linewidth',1)
+      plot(hca,ExB,ff1.(plotxstr),'color',[1 1 1],'linewidth',1)
       hold(hca,'off')
     end
     
@@ -3414,12 +3423,12 @@ for itag = 1:nred
   if 0 % fzvx5 vyBz
     hca = h(isub); isub = isub + 1;
     ff1 = fy5{itag};        
-    pcolor(hca,ff1.v,ff1.z,(ff1.v*ff1.Bz)');     
+    pcolor(hca,ff1.v,ff1.(plotxstr),(ff1.v*ff1.Bz)');     
     shading(hca,'flat'); 
     if 1 % contour lines
       hold(hca,'on')
       try
-      contour(hca,ff1.v,ff1.z,log10(ff1.f)',contlev,'color',[0 0 0])
+      contour(hca,ff1.v,ff1.(plotxstr),log10(ff1.f)',contlev,'color',[0 0 0])
       end
       hold(hca,'off')      
     end
@@ -3431,11 +3440,11 @@ for itag = 1:nred
     hca = h(isub); isub = isub + 1;
     ff1 = fz5{itag};
     %ftot = (ff1.f + ff2.f);
-    pcolor(hca,ff1.v,ff1.z,-(ff1.v*ff1.By)'); 
+    pcolor(hca,ff1.v,ff1.(plotxstr),-(ff1.v*ff1.By)'); 
     shading(hca,'flat'); 
     if 1 % contour lines      
       hold(hca,'on')
-      contour(hca,ff1.v,ff1.z,log10(ff1.f)',contlev,'color',[0 0 0])
+      contour(hca,ff1.v,ff1.(plotxstr),log10(ff1.f)',contlev,'color',[0 0 0])
       hold(hca,'off')      
     end
     colormap(hca,pic_colors('blue_red')); 
@@ -3446,22 +3455,22 @@ for itag = 1:nred
     hca = h(isub); isub = isub + 1;
     ff1 = fx5{itag};
     %ftot = (ff1.f + ff2.f);
-    pcolor(hca,ff1.v,ff1.z,(ones(size(ff1.v))*ff1.Ex)'); 
+    pcolor(hca,ff1.v,ff1.(plotxstr),(ones(size(ff1.v))*ff1.Ex)'); 
     shading(hca,'flat'); 
     colormap(hca,pic_colors('blue_red')); 
     hca.CLim = forcelim;
     hleg = irf_legend(hca,'E_x',[0.02,0.98],'color',0.8*[0 0 0],'backgroundcolor',[1 1 1]);    
   end
   % y
-  if 1 % fzvx5 vzBx
+  if 0 % fzvx5 vzBx
     hca = h(isub); isub = isub + 1;
     ff1 = fz5{itag};        
-    pcolor(hca,ff1.v,ff1.z,(ff1.v*ff1.Bx)');     
+    pcolor(hca,ff1.v,ff1.(plotxstr),(ff1.v*ff1.Bx)');     
     shading(hca,'flat'); 
     if 1 % contour lines      
       hold(hca,'on')
       try
-      contour(hca,ff1.v,ff1.z,log10(ff1.f)',contlev,'color',[0 0 0])
+      contour(hca,ff1.v,ff1.(plotxstr),log10(ff1.f)',contlev,'color',[0 0 0])
       end
       hold(hca,'off')      
     end
@@ -3469,30 +3478,30 @@ for itag = 1:nred
     hca.CLim = forcelim;
     hleg = irf_legend(hca,'v_zB_x',[0.02,0.98],'color',[0 0 0],'backgroundcolor',[1 1 1]);    
   end
-  if 1 % fzvx5 -vxBz
+  if 0 % fzvx5 -vxBz
     hca = h(isub); isub = isub + 1;
     ff1 = fx5{itag};
     %ftot = (ff1.f + ff2.f);
-    pcolor(hca,ff1.v,ff1.z,-(ff1.v*ff1.Bz)'); 
+    pcolor(hca,ff1.v,ff1.(plotxstr),-(ff1.v*ff1.Bz)'); 
     shading(hca,'flat'); 
     if 1 % contour lines      
       hold(hca,'on')
-      contour(hca,ff1.v,ff1.z,log10(ff1.f)',contlev,'color',[0 0 0])
+      contour(hca,ff1.v,ff1.(plotxstr),log10(ff1.f)',contlev,'color',[0 0 0])
       hold(hca,'off')      
     end
     colormap(hca,pic_colors('blue_red')); 
     hca.CLim = forcelim;
     hleg = irf_legend(hca,'-v_xB_z',[0.02,0.98],'color',0.8*[0 0 0],'backgroundcolor',[1 1 1]);    
   end
-  if 1 % fzvx5 vzBx + 0.5*Ey
+  if 0 % fzvx5 vzBx + 0.5*Ey
     hca = h(isub); isub = isub + 1;
     ff1 = fz5{itag};        
-    pcolor(hca,ff1.v,ff1.z,(ff1.v*ff1.Bx)'+0.5*(ones(size(ff1.v))*ff1.Ey)');     
+    pcolor(hca,ff1.v,ff1.(plotxstr),(ff1.v*ff1.Bx)'+0.5*(ones(size(ff1.v))*ff1.Ey)');     
     shading(hca,'flat'); 
     if 1 % contour lines      
       hold(hca,'on')
       try
-      contour(hca,ff1.v,ff1.z,log10(ff1.f)',contlev,'color',[0 0 0])
+      contour(hca,ff1.v,ff1.(plotxstr),log10(ff1.f)',contlev,'color',[0 0 0])
       end
       hold(hca,'off')      
     end
@@ -3500,26 +3509,26 @@ for itag = 1:nred
     hca.CLim = forcelim;
     hleg = irf_legend(hca,'v_zB_x+0.5E_y',[0.02,0.98],'color',[0 0 0],'backgroundcolor',[1 1 1]);    
   end
-  if 1 % fzvx5 -vxBz + 0.5*Ey
+  if 0 % fzvx5 -vxBz + 0.5*Ey
     hca = h(isub); isub = isub + 1;
     ff1 = fx5{itag};
     %ftot = (ff1.f + ff2.f);
-    pcolor(hca,ff1.v,ff1.z,-(ff1.v*ff1.Bz)'+0.5*(ones(size(ff1.v))*ff1.Ey)'); 
+    pcolor(hca,ff1.v,ff1.(plotxstr),-(ff1.v*ff1.Bz)'+0.5*(ones(size(ff1.v))*ff1.Ey)'); 
     shading(hca,'flat'); 
     if 1 % contour lines      
       hold(hca,'on')
-      contour(hca,ff1.v,ff1.z,log10(ff1.f)',contlev,'color',[0 0 0])
+      contour(hca,ff1.v,ff1.(plotxstr),log10(ff1.f)',contlev,'color',[0 0 0])
       hold(hca,'off')      
     end
     colormap(hca,pic_colors('blue_red')); 
     hca.CLim = forcelim;
     hleg = irf_legend(hca,'-v_xB_z+0.5E_y',[0.02,0.98],'color',0.8*[0 0 0],'backgroundcolor',[1 1 1]);    
   end
-  if 1 % fzvx5 Ey
+  if 0 % fzvx5 Ey
     hca = h(isub); isub = isub + 1;
     ff1 = fx5{itag};
     %ftot = (ff1.f + ff2.f);
-    pcolor(hca,ff1.v,ff1.z,(ones(size(ff1.v))*ff1.Ey)'); 
+    pcolor(hca,ff1.v,ff1.(plotxstr),(ones(size(ff1.v))*ff1.Ey)'); 
     shading(hca,'flat'); 
     colormap(hca,pic_colors('blue_red')); 
     hca.CLim = forcelim;
@@ -3529,12 +3538,12 @@ for itag = 1:nred
   if 0 % fzvx5 vxBy
     hca = h(isub); isub = isub + 1;
     ff1 = fx5{itag};        
-    pcolor(hca,ff1.v,ff1.z,(ff1.v*ff1.By)');     
+    pcolor(hca,ff1.v,ff1.(plotxstr),(ff1.v*ff1.By)');     
     shading(hca,'flat'); 
     if 1 % contour lines      
       hold(hca,'on')
       try
-      contour(hca,ff1.v,ff1.z,log10(ff1.f)',contlev,'color',[0 0 0])
+      contour(hca,ff1.v,ff1.(plotxstr),log10(ff1.f)',contlev,'color',[0 0 0])
       end
       hold(hca,'off')      
     end
@@ -3546,11 +3555,11 @@ for itag = 1:nred
     hca = h(isub); isub = isub + 1;
     ff1 = fy5{itag};
     %ftot = (ff1.f + ff2.f);
-    pcolor(hca,ff1.v,ff1.z,-(ff1.v*ff1.Bx)'); 
+    pcolor(hca,ff1.v,ff1.(plotxstr),-(ff1.v*ff1.Bx)'); 
     shading(hca,'flat'); 
     if 1 % contour lines      
       hold(hca,'on')
-      contour(hca,ff1.v,ff1.z,log10(ff1.f)',contlev,'color',[0 0 0])
+      contour(hca,ff1.v,ff1.(plotxstr),log10(ff1.f)',contlev,'color',[0 0 0])
       hold(hca,'off')      
     end
     colormap(hca,pic_colors('blue_red')); 
@@ -3561,7 +3570,7 @@ for itag = 1:nred
     hca = h(isub); isub = isub + 1;
     ff1 = fx5{itag};
     %ftot = (ff1.f + ff2.f);
-    pcolor(hca,ff1.v,ff1.z,(ones(size(ff1.v))*ff1.Ez)'); 
+    pcolor(hca,ff1.v,ff1.(plotxstr),(ones(size(ff1.v))*ff1.Ez)'); 
     shading(hca,'flat'); 
     colormap(hca,pic_colors('blue_red')); 
     hca.CLim = forcelim;
@@ -3573,12 +3582,12 @@ for itag = 1:nred
     ff1 = fx3{itag};
     ff2 = fx5{itag};
     %ftot = (ff1.f + ff2.f);
-    pcolor(hca,ff1.v,ff1.z,(ff1.v*ff1.By)');     
+    pcolor(hca,ff1.v,ff1.(plotxstr),(ff1.v*ff1.By)');     
     shading(hca,'flat'); 
     if 1 % contour lines      
       hold(hca,'on')
       try
-      contour(hca,ff1.v,ff1.z,log10(ff1.f+ff2.f)',contlev,'color',[0 0 0])
+      contour(hca,ff1.v,ff1.(plotxstr),log10(ff1.f+ff2.f)',contlev,'color',[0 0 0])
       end
       hold(hca,'off')      
     end
@@ -3591,12 +3600,12 @@ for itag = 1:nred
     ff1 = fy3{itag};
     ff2 = fy5{itag};
     %ftot = (ff1.f + ff2.f);
-    pcolor(hca,ff1.v,ff1.z,-(ff1.v*ff1.Bx)'); 
+    pcolor(hca,ff1.v,ff1.(plotxstr),-(ff1.v*ff1.Bx)'); 
     shading(hca,'flat'); 
     if 1 % contour lines      
       hold(hca,'on')
       try
-      contour(hca,ff1.v,ff1.z,log10(ff1.f+ff2.f)',contlev,'color',[0 0 0])
+      contour(hca,ff1.v,ff1.(plotxstr),log10(ff1.f+ff2.f)',contlev,'color',[0 0 0])
       end
       hold(hca,'off')      
     end
@@ -3609,7 +3618,7 @@ for itag = 1:nred
     ff1 = fx3{itag};
     ff2 = fx5{itag};
     %ftot = (ff1.f + ff2.f);
-    pcolor(hca,ff1.v,ff1.z,(ones(size(ff1.v))*ff1.Ez)'); 
+    pcolor(hca,ff1.v,ff1.(plotxstr),(ones(size(ff1.v))*ff1.Ez)'); 
     shading(hca,'flat'); 
     colormap(hca,pic_colors('blue_red')); 
     hca.CLim = forcelim;
@@ -3629,3 +3638,222 @@ hlinks2 = linkprop(h(remainingrows),{'XLim','YLim'});
 c_eval('h(?).XGrid = ''on'';',1:npanels)
 c_eval('h(?).YGrid = ''on'';',1:npanels)
 c_eval('h(?).Layer = ''top'';',1:npanels)
+
+if strcmp(plotxstr,'arc_z0'), c_eval('h(?).YDir = ''reverse'';',remainingrows); end
+%% Forces on trajectory particles
+tr100 = PICTraj('/Volumes/Fountain/Data/PIC/no_hot_bg_n02_m100/data_h5/trajectories.h5');
+colors_matlab = pic_colors('matlab');
+colors_tr = [colors_matlab(5,:); 1 1 1;colors_matlab(3,:); 0 0 0];
+colors_tr = [colors_matlab(5,:); .5 .5 .5;colors_matlab(3,:); 0 0 0]; % gray instead of white
+xlims = [75 85];
+
+tr = tr100(783:917);
+tr1 = tr.find([tr.Ustart]<0.25,[tr.zstart]>0,[tr.vy0]>0,[tr.x0]>85);
+tr = tr100(783:917);
+tr2 = tr.find([tr.Ustart]<0.25,[tr.zstart]>0,[tr.vy0]<0);
+tr = tr100(783:917);
+tr3 = tr.find([tr.Ustart]<0.25,[tr.zstart]>0,[tr.vy0]>0,[tr.x0]<=75,[tr.x0]>=71);
+tr = tr100(783:917);
+tr4 = tr.find([tr.Ustart]<0.25,[tr.zstart]>0,[tr.vy0]>0,[tr.x0]>75,[tr.x0]<=85);
+tr = tr.find([tr.Ustart]<0.25,[tr.zstart]>0);
+clear tr_cell
+if 1
+  tr_cell{1} = tr3;
+  tr_cell{2} = tr4;
+  colors_tr = colors_tr([3 4],:);
+else  
+  tr_cell{1} = tr1;
+  tr_cell{2} = tr2;
+  tr_cell{3} = tr3;
+  tr_cell{4} = tr4;
+end
+nGroups = numel(tr_cell);
+
+% Plot
+nrows = 5;
+ncols = 2;
+npanels = nrows*ncols;
+h = setup_subplots(nrows,ncols,'vertical');
+isub = 1;
+
+iForce = [];
+nSmoothE = 40;
+
+if 1 % Ey, smoothed
+  hca = h(isub); isub = isub + 1;  
+  iForce(end+1) = isub - 1;
+  holdon = 0;
+  for iGroup = 1:nGroups
+    tr = tr_cell{iGroup};    
+    for iTraj = 1:numel(tr)
+      var = tr(iTraj).Ey;
+      plot(hca,tr(iTraj).t,smooth(var,nSmoothE),'color',colors_tr(iGroup,:));      
+      if not(holdon), hold(hca,'on'); end
+    end
+    hca.XLabel.String = 't\omega_{ci}';
+    hca.YLabel.String = 'E_y';
+  end
+  hold(hca,'off')
+end
+if 1 % Ey
+  hca = h(isub); isub = isub + 1;  
+  iForce(end+1) = isub - 1;
+  holdon = 0;
+  for iGroup = 1:nGroups
+    tr = tr_cell{iGroup};    
+    for iTraj = 1:numel(tr)
+      var = tr(iTraj).Ey;
+      plot(hca,tr(iTraj).t,var,'color',colors_tr(iGroup,:));      
+      if not(holdon), hold(hca,'on'); end
+    end
+    hca.XLabel.String = 't\omega_{ci}';
+    hca.YLabel.String = 'E_y';
+  end
+  hold(hca,'off')
+end
+if 1 % v_zB_x
+  hca = h(isub); isub = isub + 1;  
+  iForce(end+1) = isub - 1;
+  holdon = 0;
+  for iGroup = 1:nGroups
+    tr = tr_cell{iGroup};
+    var_struct = tr.vB('zx');
+    for iTraj = 1:numel(var_struct)      
+      var = var_struct(iTraj).vB;
+      plot(hca,tr(iTraj).t,var,'color',colors_tr(iGroup,:));      
+      if not(holdon), hold(hca,'on'); end
+    end
+    hca.XLabel.String = 't\omega_{ci}';
+    hca.YLabel.String = 'v_zB_x';
+  end
+  hold(hca,'off')
+end
+if 1 % -v_xB_z
+  hca = h(isub); isub = isub + 1;  
+  iForce(end+1) = isub - 1;
+  holdon = 0;
+  for iGroup = 1:nGroups
+    tr = tr_cell{iGroup};
+    var_struct = tr.vB('xz');
+    for iTraj = 1:numel(var_struct)      
+      var = -var_struct(iTraj).vB;
+      plot(hca,tr(iTraj).t,var,'color',colors_tr(iGroup,:));      
+      if not(holdon), hold(hca,'on'); end
+    end
+    hca.XLabel.String = 't\omega_{ci}';
+    hca.YLabel.String = '-v_xB_z';
+  end
+  hold(hca,'off')
+end
+if 1 % Ey+v_zB_x-v_xB_z
+  hca = h(isub); isub = isub + 1;  
+  iForce(end+1) = isub - 1;
+  holdon = 0;
+  for iGroup = 1:nGroups
+    tr = tr_cell{iGroup};
+    var_struct1 = tr.vB('zx');
+    var_struct2 = tr.vB('xz');
+    for iTraj = 1:numel(var_struct1)
+      var1 = var_struct1(iTraj).vB;
+      var2 = -var_struct2(iTraj).vB;
+      var3 = tr(iTraj).Ey;
+      plot(hca,tr(iTraj).t,var1+var2+var3,'color',colors_tr(iGroup,:));      
+      if not(holdon), hold(hca,'on'); end
+    end
+    hca.XLabel.String = 't\omega_{ci}';
+    hca.YLabel.String = 'E_y+v_zB_x-v_xB_z';
+  end
+  hold(hca,'off')
+end
+
+if 1 % Ez, smoothed
+  hca = h(isub); isub = isub + 1;  
+  iForce(end+1) = isub - 1;
+  holdon = 0;
+  for iGroup = 1:nGroups
+    tr = tr_cell{iGroup};    
+    for iTraj = 1:numel(tr)
+      var = tr(iTraj).Ez;
+      plot(hca,tr(iTraj).t,smooth(var,nSmoothE),'color',colors_tr(iGroup,:));      
+      if not(holdon), hold(hca,'on'); end
+    end
+    hca.XLabel.String = 't\omega_{ci}';
+    hca.YLabel.String = 'E_z';
+  end
+  hold(hca,'off')
+end
+if 1 % Ez
+  hca = h(isub); isub = isub + 1;  
+  iForce(end+1) = isub - 1;
+  holdon = 0;
+  for iGroup = 1:nGroups
+    tr = tr_cell{iGroup};    
+    for iTraj = 1:numel(tr)
+      var = tr(iTraj).Ez;
+      plot(hca,tr(iTraj).t,var,'color',colors_tr(iGroup,:));      
+      if not(holdon), hold(hca,'on'); end
+    end
+    hca.XLabel.String = 't\omega_{ci}';
+    hca.YLabel.String = 'E_z';
+  end
+  hold(hca,'off')
+end
+if 1 % v_xB_y
+  hca = h(isub); isub = isub + 1;  
+  iForce(end+1) = isub - 1;
+  holdon = 0;
+  for iGroup = 1:nGroups
+    tr = tr_cell{iGroup};
+    var_struct = tr.vB('xy');
+    for iTraj = 1:numel(var_struct)      
+      var = -var_struct(iTraj).vB;
+      plot(hca,tr(iTraj).t,var,'color',colors_tr(iGroup,:));      
+      if not(holdon), hold(hca,'on'); end
+    end
+    hca.XLabel.String = 't\omega_{ci}';
+    hca.YLabel.String = 'v_xB_y';
+  end
+  hold(hca,'off')
+end
+if 1 % -v_yB_x
+  hca = h(isub); isub = isub + 1;  
+  iForce(end+1) = isub - 1;
+  holdon = 0;
+  for iGroup = 1:nGroups
+    tr = tr_cell{iGroup};
+    var_struct = tr.vB('yx');
+    for iTraj = 1:numel(var_struct)      
+      var = -var_struct(iTraj).vB;
+      plot(hca,tr(iTraj).t,var,'color',colors_tr(iGroup,:));      
+      if not(holdon), hold(hca,'on'); end
+    end
+    hca.XLabel.String = 't\omega_{ci}';
+    hca.YLabel.String = '-v_yB_x';
+  end
+  hold(hca,'off')
+end
+if 1 % Ez+v_xB_y-v_yB_x
+  hca = h(isub); isub = isub + 1;  
+  iForce(end+1) = isub - 1;
+  holdon = 0;
+  for iGroup = 1:nGroups
+    tr = tr_cell{iGroup};
+    var_struct1 = tr.vB('xy');
+    var_struct2 = tr.vB('yx');
+    for iTraj = 1:numel(var_struct1)
+      var1 = var_struct1(iTraj).vB;
+      var2 = -var_struct2(iTraj).vB;
+      var3 = tr(iTraj).Ez;
+      plot(hca,tr(iTraj).t,var1+var2+var3,'color',colors_tr(iGroup,:));      
+      if not(holdon), hold(hca,'on'); end
+    end
+    hca.XLabel.String = 't\omega_{ci}';
+    hca.YLabel.String = 'E_z+v_xB_y-v_yB_x';
+  end
+  hold(hca,'off')
+end
+
+compact_panels(h,0.0)
+hlinks_all = linkprop(h,{'XLim'});
+hlinks_force = linkprop(h(iForce),{'YLim'});
+c_eval('h(?).XGrid = ''on''; h(?).YGrid = ''on'';',1:npanels)

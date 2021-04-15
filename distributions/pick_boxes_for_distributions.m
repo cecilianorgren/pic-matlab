@@ -530,13 +530,16 @@ xlim = [075 105]; zlim = [-0 10]; Avals = -10.0:0.5:-4.5; % 21000
 xlim = [080 105]; zlim = [-0 10]; Avals = -7.0:0.25:-4.75; % 20000
 xlim = [061 105]; zlim = [-10 10]; Avals = 7.5; % 24000
 xlim = [065 105]; zlim = [-10 10]; Avals = 7.5; % 23000
+xlim = [065 90]; zlim = [-10 10]; Avals = 6.0; % 24000
 
-twpe = 7000;
-pic = no02m.twpelim(23000).xlim(xlim).zlim(zlim);
+twpe = 24000;
+pic = no02m.twpelim(twpe).xlim(xlim).zlim(zlim);
 %ind = 26;
 A = squeeze(pic.A);
 Bz = squeeze(pic.Bz);
 ni = squeeze(pic.n([1 3 5]));
+ntop = squeeze(pic.n([3]));
+nbot = squeeze(pic.n([5]));
 vex = squeeze(pic.vex);
 viz = squeeze(pic.viz);
 viy = squeeze(pic.viy);
@@ -609,9 +612,59 @@ n_boxes = size(keep_boxes,1);%size(keep_boxes,1);
 
 % Plot
 figure(401)
-h = setup_subplots(4,1);
+h = setup_subplots(6,1);
 isub = 1;
 
+if 1 % ntop
+  hca = h(isub); isub = isub + 1;
+  imagesc(hca,pic.xi,pic.zi,abs(ntop)')
+    hca.YDir = 'normal';
+  %imagesc(hca,x,z,pi1.scalar')
+  %hca.XLim = [60 240];
+  %hca.YLim = [-10 10];
+  hca.Title.String = sprintf('twci = %g, twpe = %g, n_boxes = %g',pic.twci,pic.twpe,n_boxes);
+  hca.Title.Interpreter = 'none';
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'n_{i,top}';
+  colormap(hca,pic_colors('thermal'))
+  %colormap(hca,pic_colors('blue_red'))
+  hca.CLim = [0 0.5];
+
+  hold(hca,'on')
+  for ibox = 1:n_boxes
+    %hstar = plot(hca,[xlo xlo xhi xhi],[zlo zhi zhi zlo],'*k');
+    %hpatch = patch(hca,[keep_boxes(ibox,1) keep_boxes(ibox,1) keep_boxes(ibox,2) keep_boxes(ibox,2)],[keep_boxes(ibox,1) keep_boxes(ibox,2) keep_boxes(ibox,2) keep_boxes(ibox,1)],'w');
+    hpatch = patch(hca,keep_boxes(ibox,[1 1 2 2]),keep_boxes(ibox,[3 4 4 3]),'w');
+    hpatch.FaceAlpha = 0;
+    hpatch.LineWidth = 1;   
+  end
+  hold(hca,'off')
+end
+if 1 % nbot
+  hca = h(isub); isub = isub + 1;
+  imagesc(hca,pic.xi,pic.zi,abs(nbot)')
+    hca.YDir = 'normal';
+  %imagesc(hca,x,z,pi1.scalar')
+  %hca.XLim = [60 240];
+  %hca.YLim = [-10 10];
+  hca.Title.String = sprintf('twci = %g, twpe = %g, n_boxes = %g',pic.twci,pic.twpe,n_boxes);
+  hca.Title.Interpreter = 'none';
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = 'n_{i,bot}';
+  colormap(hca,pic_colors('thermal'))
+  %colormap(hca,pic_colors('blue_red'))
+  hca.CLim = [0 0.5];
+
+  hold(hca,'on')
+  for ibox = 1:n_boxes
+    %hstar = plot(hca,[xlo xlo xhi xhi],[zlo zhi zhi zlo],'*k');
+    %hpatch = patch(hca,[keep_boxes(ibox,1) keep_boxes(ibox,1) keep_boxes(ibox,2) keep_boxes(ibox,2)],[keep_boxes(ibox,1) keep_boxes(ibox,2) keep_boxes(ibox,2) keep_boxes(ibox,1)],'w');
+    hpatch = patch(hca,keep_boxes(ibox,[1 1 2 2]),keep_boxes(ibox,[3 4 4 3]),'w');
+    hpatch.FaceAlpha = 0;
+    hpatch.LineWidth = 1;   
+  end
+  hold(hca,'off')
+end
 if 1 % ni
   hca = h(isub); isub = isub + 1;
   imagesc(hca,pic.xi,pic.zi,log10(abs(ni))')
@@ -712,7 +765,7 @@ hlinks = linkprop(h,{'XLim','YLim'});
 
 %% Along aline, typically a field line
 %pic = nobg.twpelim(10000).xlim([129 210]).zlim([-15 20]);
-pic = no02m.twpelim(20000).xlim([040 110]).zlim([-12 12]);
+pic = no02m.twpelim(24000).xlim([040 110]).zlim([-12 12]);
 % Load data
 x = pic.xi;
 z = pic.zi;

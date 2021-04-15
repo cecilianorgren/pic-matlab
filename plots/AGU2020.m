@@ -359,10 +359,10 @@ tr4 = tr.find([tr.Ustart]<0.25,[tr.zstart]>0,[tr.vy0]>0,[tr.x0]>75,[tr.x0]<=85);
 tr = tr.find([tr.Ustart]<0.25,[tr.zstart]>0);
 
 trajcolordot = nan(tr100.ntr,3);
-trajcolordot([tr1.id],:) = repmat(colors(1,:),tr1.ntr,1);
-trajcolordot([tr2.id],:) = repmat(colors(2,:),tr2.ntr,1);
-trajcolordot([tr3.id],:) = repmat(colors(3,:),tr3.ntr,1);
-trajcolordot([tr4.id],:) = repmat(colors(4,:),tr4.ntr,1);
+trajcolordot([tr1.id],:) = repmat(colors_tr(1,:),tr1.ntr,1);
+trajcolordot([tr2.id],:) = repmat(colors_tr(2,:),tr2.ntr,1);
+trajcolordot([tr3.id],:) = repmat(colors_tr(3,:),tr3.ntr,1);
+trajcolordot([tr4.id],:) = repmat(colors_tr(4,:),tr4.ntr,1);
 trajcolordot(isnan(trajcolordot)) = [];
 trajcolordot = reshape(trajcolordot,numel(trajcolordot)/3,3);
 

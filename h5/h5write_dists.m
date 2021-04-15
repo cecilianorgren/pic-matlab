@@ -116,6 +116,7 @@ function h5write_dists_single(datFilePath,h5FilePath,distnumber,nSpecies,iterati
     %h5write(filePath, dataset_name, fxyz);
     
     dataset_name = ['/data/' str_iteration '/' num2str(distnumber,'%05.0f'),'/fxyz'];
+    dataset_name_base = ['/data/' str_iteration '/' num2str(distnumber,'%05.0f'),''];
     try
       h5create(h5FilePath, dataset_name, size(fxyz));
     catch
@@ -133,8 +134,9 @@ function h5write_dists_single(datFilePath,h5FilePath,distnumber,nSpecies,iterati
     h5writeatt(h5FilePath, dataset_name,'charge', charge);
     if iscell(tag)
       h5writeatt(h5FilePath, dataset_name,'tag', tag{id});
+      h5writeatt(h5FilePath, dataset_name_base,'tag', tag{id});
     else
-      h5writeatt(h5FilePath, dataset_name,'tag', tag);
+      h5writeatt(h5FilePath, dataset_name_base,'tag', tag);
     end
     h5writeatt(h5FilePath, ['/data/' str_iteration],'twpe', timestep);    
     h5writeatt(h5FilePath, ['/data/' str_iteration],'twci', timestep/(mass(1)*2));
