@@ -3209,6 +3209,7 @@ pic = no02m.twpelim(twpe).xlim([60 90]).zlim([-8 8]);
 
 tags = {'A=5.5','A=6.0','A=6.5','A=7.0','A=7.5','A=8.0'};
 tags = {'A=6.0','A=7.5'};
+tags = {'A=6.0','A=7.5','A=8.0'};
 tags = tags(end:-1:1);
 %tags = {'A=6.0'};
 
@@ -3223,27 +3224,29 @@ clear fx3 fx5 fy3 fy5 fz3 fz5 dss
 for itag = 1:nred
   ds = ds100.twpelim(twpe).dxlim([0.1 0.3]).findtag(tags(itag)).xlim([50 90]);
   %ds = ds100.twpelim(twpe).dxlim([0.5 1]).findtag(tags).xfind(xpick(itag)).xlim([50 100]);
+  iSpecies3 = 3;
+  iSpecies5 = 5;
   dss{itag} = ds;
-  fx3_tmp = ds.fx(1,:,3);
-  fx5_tmp = ds.fx(1,:,5);
+  fx3_tmp = ds.fx(1,:,iSpecies3);
+  fx5_tmp = ds.fx(1,:,iSpecies5);
   fx3{itag} = fx3_tmp;
   fx5{itag} = fx5_tmp;
-  fy3_tmp = ds.fy(1,:,3);
-  fy5_tmp = ds.fy(1,:,5);
+  fy3_tmp = ds.fy(1,:,iSpecies3);
+  fy5_tmp = ds.fy(1,:,iSpecies5);
   fy3{itag} = fy3_tmp;
   fy5{itag} = fy5_tmp;
-  fz3_tmp = ds.fz(1,:,3);
-  fz5_tmp = ds.fz(1,:,5);
+  fz3_tmp = ds.fz(1,:,iSpecies3);
+  fz5_tmp = ds.fz(1,:,iSpecies5);
   fz3{itag} = fz3_tmp;
   fz5{itag} = fz5_tmp;
 end
 % 
-doExB = 0;
+doExB = 1;
 ExBcol = [0.5 0.5 0.5];
 contlev = [-1:0.5:0];
 forcelim = [-0.5 0.5];
 fclim = [-6 -0.5];
-nrows = 5;
+nrows = 6;
 ncols = nred;
 %nrows = 7;
 %ncols = 4;
@@ -3281,7 +3284,7 @@ for itag = 1:nred
     dss{itag}.plot_boxes(hca);
     hold(hca,'off')
   end
-  if 0 % By and boxes
+  if 1 % By and boxes
     hca = h(isub); isub = isub + 1;     
     pic.plot_map(hca,{'By'},'A',1);
     colormap(hca,pic_colors('blue_red')); 
@@ -3290,7 +3293,7 @@ for itag = 1:nred
     dss{itag}.plot_boxes(hca);
     hold(hca,'off')
   end
-  nmaps = isub - 1;
+  if itag == 1; nmaps = isub - 1; end
   if 1 % fx5
     hca = h(isub); isub = isub + 1;
     ff1 = fx5{itag};
@@ -3457,9 +3460,25 @@ for itag = 1:nred
     %ftot = (ff1.f + ff2.f);
     pcolor(hca,ff1.v,ff1.(plotxstr),(ones(size(ff1.v))*ff1.Ex)'); 
     shading(hca,'flat'); 
+    
+    if 1 % contour lines
+      hold(hca,'on')
+      try
+      contour(hca,ff1.v,ff1.(plotxstr),log10(ff1.f)',contlev,'color',[0 0 0])
+      end
+      hold(hca,'off')      
+    end
     colormap(hca,pic_colors('blue_red')); 
     hca.CLim = forcelim;
     hleg = irf_legend(hca,'E_x',[0.02,0.98],'color',0.8*[0 0 0],'backgroundcolor',[1 1 1]);    
+    
+    if 1 % contour lines
+      hold(hca,'on')
+      try
+      contour(hca,ff1.v,ff1.(plotxstr),log10(ff1.f)',contlev,'color',[0 0 0])
+      end
+      hold(hca,'off')      
+    end
   end
   % y
   if 0 % fzvx5 vzBx
@@ -3526,13 +3545,21 @@ for itag = 1:nred
   end
   if 0 % fzvx5 Ey
     hca = h(isub); isub = isub + 1;
-    ff1 = fx5{itag};
+    ff1 = fy5{itag};
     %ftot = (ff1.f + ff2.f);
     pcolor(hca,ff1.v,ff1.(plotxstr),(ones(size(ff1.v))*ff1.Ey)'); 
     shading(hca,'flat'); 
     colormap(hca,pic_colors('blue_red')); 
     hca.CLim = forcelim;
     hleg = irf_legend(hca,'E_y',[0.02,0.98],'color',0.8*[0 0 0],'backgroundcolor',[1 1 1]);    
+    
+    if 1 % contour lines
+      hold(hca,'on')
+      try
+      contour(hca,ff1.v,ff1.(plotxstr),log10(ff1.f)',contlev,'color',[0 0 0])
+      end
+      hold(hca,'off')      
+    end
   end
   % z
   if 0 % fzvx5 vxBy
@@ -3568,13 +3595,21 @@ for itag = 1:nred
   end
   if 0 % fzvx5 Ez
     hca = h(isub); isub = isub + 1;
-    ff1 = fx5{itag};
+    ff1 = fz5{itag};
     %ftot = (ff1.f + ff2.f);
     pcolor(hca,ff1.v,ff1.(plotxstr),(ones(size(ff1.v))*ff1.Ez)'); 
     shading(hca,'flat'); 
     colormap(hca,pic_colors('blue_red')); 
     hca.CLim = forcelim;
     hleg = irf_legend(hca,'E_z',[0.02,0.98],'color',0.8*[0 0 0],'backgroundcolor',[1 1 1]);    
+    
+    if 1 % contour lines
+      hold(hca,'on')
+      try
+      contour(hca,ff1.v,ff1.(plotxstr),log10(ff1.f)',contlev,'color',[0 0 0])
+      end
+      hold(hca,'off')      
+    end
   end
   
   if 0 % fzvx35 vxBy
@@ -3626,9 +3661,13 @@ for itag = 1:nred
   end
 end
 
-firstrow = 1:nrows:(nrows*ncols);
-secondrow = 2:nrows:(nrows*ncols);
-firstrow = sort([firstrow secondrow]);
+firstrow = [];
+for imap = 1:nmaps  
+  firstrow_new = imap:nrows:(nrows*ncols);
+  firstrow = [firstrow firstrow_new];
+end
+%secondrow = 2:nrows:(nrows*ncols);
+%firstrow = sort([firstrow secondrow]);
 remainingrows = setdiff(1:nrows*ncols,firstrow);
 compact_panels(h(firstrow),0.0,0.02)
 compact_panels(h(remainingrows),0.0,0.02)
@@ -3640,6 +3679,7 @@ c_eval('h(?).YGrid = ''on'';',1:npanels)
 c_eval('h(?).Layer = ''top'';',1:npanels)
 
 if strcmp(plotxstr,'arc_z0'), c_eval('h(?).YDir = ''reverse'';',remainingrows); end
+
 %% Forces on trajectory particles
 tr100 = PICTraj('/Volumes/Fountain/Data/PIC/no_hot_bg_n02_m100/data_h5/trajectories.h5');
 colors_matlab = pic_colors('matlab');

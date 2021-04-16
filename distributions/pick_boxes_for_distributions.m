@@ -530,7 +530,7 @@ xlim = [075 105]; zlim = [-0 10]; Avals = -10.0:0.5:-4.5; % 21000
 xlim = [080 105]; zlim = [-0 10]; Avals = -7.0:0.25:-4.75; % 20000
 xlim = [061 105]; zlim = [-10 10]; Avals = 7.5; % 24000
 xlim = [065 105]; zlim = [-10 10]; Avals = 7.5; % 23000
-xlim = [065 90]; zlim = [-10 10]; Avals = 6.0; % 24000
+xlim = [065 90]; zlim = [-10 10]; Avals = 8.0; % 24000
 
 twpe = 24000;
 pic = no02m.twpelim(twpe).xlim(xlim).zlim(zlim);

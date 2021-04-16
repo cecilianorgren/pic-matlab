@@ -70,9 +70,9 @@ h5write_dists(dirData,h5FilePath,distIndRead,nSpecies,mass,charge,timestep,itera
 timestep = 24000;
 dirData = sprintf('/Volumes/Fountain/Data/PIC/no_hot_bg_n02_m100/distributions/%05.0f/',timestep);
 h5FilePath = '/Volumes/Fountain/Data/PIC/no_hot_bg_n02_m100/data_h5/dists.h5';
-distIndRead = 1739:2049;%1738
-tags = arrayfun(@(s)sprintf('A=7.5',s),1:280,'UniformOutput',false);
-tags = arrayfun(@(s)sprintf('',s),1:2500,'UniformOutput',false);
+distIndRead = 2051:2243;%1738
+tags = arrayfun(@(s)sprintf('A=8.0',s),1:3000,'UniformOutput',false);
+%tags = arrayfun(@(s)sprintf('',s),1:2500,'UniformOutput',false);
 %tags = arrayfun(@(s)sprintf('',s),1:2000,'UniformOutput',false);
 % for itag = 1:numel(all_tags)
 %   tags{distIndRead(itag)} = sprintf('A=%g',all_tags(itag));
@@ -159,7 +159,7 @@ h5FilePath = '/Volumes/Fountain/Data/PIC/no_hot_bg_n02_m100/data_h5/dists.h5';
 twpe = 24000;
 iteration = twpe*2;
 str_iteration = sprintf('%010.0f',iteration);
-dspart = ds100.twpelim(twpe).findtag({'A=7.5'}).dxlim([0 0.3]);
+dspart = ds100.twpelim(twpe).findtag({'A=8.0'}).dxlim([0 0.3]);
 %dspart = ds100.twpelim(twpe);
 mass_all = no02m.mass;
 charge_all = no02m.charge;
