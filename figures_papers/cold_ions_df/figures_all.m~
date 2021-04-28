@@ -1674,11 +1674,7 @@ hcb_ = findobj(gcf,'Type','ColorBar');
 % Set up reduced distrbutions
 twpe = 24000;
 %pic = no02m.twpelim(twpe).xlim([60 90]).zlim([-2 8]);
-<<<<<<< HEAD
-ds = ds100.twpelim(twpe).dxlim([0.5 1]).findtag({'line horizontal'}).z0find(0).xlim([50 100]);
-=======
 ds = ds100.twpelim(twpe).dxlim([0.5 1]).findtag({'line horizontal'}).zfind(0).xlim([50 100]);
->>>>>>> d06e8cb68c3554c14bc642254832b3998ad2f471
 fy3 = ds.fy(1,:,3);
 fz3 = ds.fz(1,:,3);
 fy5 = ds.fy(1,:,5);
@@ -2233,7 +2229,7 @@ forcelim = [-0.5 0.5];
 fclim = [-6 -0.5];
 
 % Prepare plot
-clear h;
+clear h hpos;
 nrows = 4;
 ncols = 5;
 nmaps = 3;
@@ -2257,13 +2253,17 @@ legends = {'a)','b)','c)','d)','e)','f)','g)','h)','i)','k)','l)','m)','n)','o)'
 ds = ds100.twpelim(twpe).findtag({'line horizontal'}).xlim([71 80]).zfind(0).xfind(xpos);
 ds2 = ds100.twpelim(twpe).findtag({'line horizontal'}).xlim([71 80]).zfind(2).xfind(xpos);
 ds2 = ds100.twpelim(twpe).findtag({'line horizontal'}).xlim([50 80]).zfind(2).xfind(xpos2);
+ds = ds100.twpelim(twpe).findtag({'line horizontal'}).xlim([71 80]).zfind(0).xfind(xpos);
+ds2 = ds100.twpelim(twpe).findtag({'line horizontal'}).xlim([71 80]).zfind(2).xfind(xpos);
+ds2 = ds100.twpelim(twpe).findtag({'line horizontal'}).xlim([50 80]).zfind(2).xfind(xpos2);
+
 pic = no02m.twpelim(twpe).xlim(xlim).zlim([-7 7]);
 
 isub = 1;
 
 hca = h(isub); isub = isub + 1;
 hmap = pic.plot_map(hca,{'n(3)'},'A',1,'cmap',pic_colors('thermal'),'cbarlabels',{'n_{ic}^{top}'},'smooth',2);
-hmap.CLim = [0 0.4999];
+hmap.CLim = [0.0000 0.4999];
 hca.Position = hpos{isub-1};
 hold(hca,'on')
 ds.plot_boxes(hca,'color',[1 1 1]);
@@ -2272,7 +2272,7 @@ hold(hca,'off')
 
 hca = h(isub); isub = isub + 1;
 hmap = pic.plot_map(hca,{'log10(curvbrad)'},'A',1,'cmap',pic_colors('blue_red'),'cbarlabels',{'log_{10}r_B'},'smooth',2);
-hmap.CLim = [-1 3];
+hmap.CLim = [-1 2.99];
 hca.Position = hpos{isub-1};
 hold(hca,'on')
 ds.plot_boxes(hca,'color',[1 1 1]);
@@ -2285,7 +2285,7 @@ hline = pic.xlim([63 xlim(2)]).zlim([-0.25 0.25]).plot_line(hca,comp,{{'Babs','c
 hca.Position = hpos{isub-1};
 hca.YLim = [0 3.99];
 %legend(hca,{'|B|','r_B','r_B\omega_{ci}'},'location','north','orientation','horizontal')
-legend(hca,{'|B|','r_B','r_B\omega_{ci}'},'location','north','orientation','horizontal','box','off')
+hlegLlines = legend(hca,{'|B|','r_B','v_{i,\perp}^{\kappa=1}=r_B\omega_{ci}'},'location','north','orientation','horizontal','box','off');
 hca.Title.String = [];
 hca.XLim = xlim;
 ycompr = 0.03;
@@ -2297,6 +2297,7 @@ compact_panels(h(1:nmaps),0)
 % make this panel slightly smaller
 h(3).Position(2) = h(3).Position(2) + ycompr;
 h(3).Position(4) = h(3).Position(4) - ycompr;
+c_eval('h(?).Position(1) = h(?).Position(1) - 0.05;',1:numel(h))
 
 
 for ids = 1:numel(dss)
@@ -2403,6 +2404,7 @@ c_eval('h(?).Position(2) = h(?).Position(2)-sum(dh)+0.02;',(nmaps)+[1:ncols]);
 h(1).Title.String = '';
 %
 c_eval('h(?).FontSize = fontsize;',1:numel(h));
+c_eval('h(?).FontSize = 12;',1:numel(h));
 %c_eval('h(?).Position(1) = h(?).Position(1)-0.04;',1:numel(h));
 %c_eval('h(?).Position(4) = h(end).Position(4);',3:numel(h))
 %drawnow
@@ -2410,7 +2412,8 @@ c_eval('h(?).FontSize = fontsize;',1:numel(h));
 %compact_panels(h(3:end),0.0,0)
 
 %irf_legend(h(8),{'B'},[0.92 0.27],'color',0.5+[0 0 0],'fontsize',16)
-annotation('textarrow',[0.24 0.22],[0.140 0.15]-sum(dh)+0.02,'String',{'v_{i,\perp}^{\kappa=1}'},'fontsize',13,'fontweight','light')
+%annotation('textarrow',[0.24 0.22],[0.140 0.15]-sum(dh)+0.02,'String',{'v_{i,\perp}^{\kappa=1}'},'fontsize',13,'fontweight','light')
+annotation('textarrow',[0.24 0.22]-0.05,[0.140 0.15]-sum(dh)+0.02,'String',{'v_{i,\perp}^{\kappa=1}'},'fontsize',13,'fontweight','light')
 
 %c_eval('h().Position')
 htmp = h(end-1);
@@ -2419,6 +2422,9 @@ tmppos = htmp.Position;
 hs = findobj(htmp,'type','scatter');
 hleg_dist = legend([hs],{'v_{ExB}','v_{bulk}'},'location','south','orientation','horizontal','edgecolor',[1 1 1]);
 htmp.Position = tmppos;
+
+set(gcf,'position',[1304         582         616         610])
+
 %% Second part, with reduced distributions along field line
 % Prepare 1D reduced distributions
 twpe = 24000;
@@ -2639,16 +2645,20 @@ hcb = colorbar('peer',h(end));
 hcb.Position(4) = hpos(4)*3;
 hcb.Position(1) = hpos(1)+hpos(3)+0.01;
 hcb.Position(3) = 0.015;
-hcb.YLabel.String = 'f_{ic}^{top}(s,v)';
+hcb.YLabel.String = 'log_{10}f_{ic}^{top}(s,v)';
 
 c_eval('h(?).XGrid = ''on'';',1:npanels)
 c_eval('h(?).YGrid = ''on'';',1:npanels)
 c_eval('h(?).Layer = ''top'';',1:npanels)
 
 legends = {'a)','b)','c)','d)','e)','f)','g)','h)','i)','j)','k)','l)'};
+legends = {'i)','j)','k)','l)','m)','n)','o)'};
 for ip = 1:npanels
-  irf_legend(h(ip))
+  irf_legend(h(ip),{legends{ip}},[0.02 0.98],'color',[0 0 0],'fontsize',12)
 end
+
+hl_exb = findobj(h(1),'type','line');
+legend(hl_exb,'v_{E\times B}','Box','off','location','southwest')
 
 hleg = irf_legend(h(1),{'north';'B_x>0'},[0.08,0.98],'color',[0 0 0]);
 hleg = irf_legend(h(1),{'south';'B_x<0'},[0.98,0.98],'color',[0 0 0]);
@@ -2658,20 +2668,21 @@ hleg = irf_legend(h(4),{'south';'B_x<0'},[0.98,0.98],'color',[0 0 0]);
 delete(findall(gcf,'type','annotation'))
 an_fontsize = 11;
 hleg = irf_legend(h(2),{'stronger';'magnetization:';'complete gyromotion'},[0.02,0.04],'color',[0 0 0],'fontsize',11);
-annotation('textarrow',[0.30 0.30],[0.59 0.54],'String',{'v_y>0 \rightarrow -v_yB_x<0'},'fontsize',an_fontsize,'fontweight','light')
-annotation('textarrow',[0.34 0.33],[0.46 0.50],'String',{'v_y<0 \rightarrow -v_yB_x>0'},'fontsize',an_fontsize,'fontweight','light','horizontalalignment','center')
-annotation('textarrow',[0.29 0.29],[0.31 0.27],'String',{'reflection due to -v_yB_x<0'},'fontsize',an_fontsize,'fontweight','light','horizontalalignment','left')
+annotation('textarrow',[0.30 0.30],[0.59 0.54],'String',{'v_y>0 \rightarrow -v_yB_x>0'},'fontsize',an_fontsize,'fontweight','light')
+annotation('textarrow',[0.34 0.33],[0.46 0.50],'String',{'v_y<0 \rightarrow -v_yB_x<0'},'fontsize',an_fontsize,'fontweight','light','horizontalalignment','center')
+annotation('textarrow',[0.29 0.29],[0.31 0.27],'String',{'reflection due to -v_yB_x>0'},'fontsize',an_fontsize,'fontweight','light','horizontalalignment','left')
 annotation('textarrow',[0.32 0.32],[0.17 0.21],'String',{'outward force due to -v_yB_x<0'},'fontsize',an_fontsize,'fontweight','light','horizontalalignment','left')
 
 hleg = irf_legend(h(5),{'weaker magnetization:';'incomplete gyromotion'},[0.02,0.04],'color',[0 0 0],'fontsize',11);
-annotation('textarrow',[0.68 0.68],[0.59 0.55],'String',{'v_y>0 \rightarrow -v_yB_x<0'},'fontsize',an_fontsize,'fontweight','light','horizontalalignment','left')
+annotation('textarrow',[0.68 0.68],[0.59 0.55],'String',{'v_y>0 \rightarrow -v_yB_x>0'},'fontsize',an_fontsize,'fontweight','light','horizontalalignment','left')
 %annotation('textarrow',[0.70 0.7],[0.17 0.21],'String',{'reflection due to -v_yB_x<0'},'fontsize',an_fontsize,'fontweight','light','horizontalalignment','left')
 %annotation('textarrow',[0.72 0.7],[0.30 0.28],'String',{'reflection due to','-v_yB_x<0'},'fontsize',an_fontsize,'fontweight','light','horizontalalignment','center')
 %annotation('textarrow',[0.73 0.72],[0.22 0.24],'String',{'simultaneous','scattering'},'fontsize',an_fontsize,'fontweight','light','horizontalalignment','center')
-annotation('textarrow',[0.74 0.72],[0.25 0.25],'String',{'reflection','due to','-v_yB_x<0','+','simultaneous','scattering'},'fontsize',an_fontsize,'fontweight','light','horizontalalignment','center')
+annotation('textarrow',[0.74 0.72],[0.25 0.25],'String',{'reflection','due to','-v_yB_x>0','+','simultaneous','scattering'},'fontsize',an_fontsize,'fontweight','light','horizontalalignment','center')
 
 %annotation('textarrow',[0.30 0.30],[0.15 0.2],'String',{'-v_y+B_x<0'},'fontsize',12,'fontweight','light')
 %if strcmp(plotxstr,'arc_z0'), %c_eval('h(?).YDir = ''reverse'';',remainingrows); end
+set(gcf,'position',[1304         782         616         331])
 
 %% Figure 7, f(vy), py
 %% Reduced distributions, plot

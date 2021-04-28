@@ -974,7 +974,7 @@ classdef PICDist
               v1 = vExB1+curvbrad*Babs*kCurv(iCurvV)*cosd(0:360);
               v2 = vExB2+curvbrad*Babs*kCurv(iCurvV)*sind(0:360);
               hCurvV = plot(hca,v1,v2,'color',[0 0 0]);
-              scatter(hca,vExB1,vExB2,40,[0 0 0],'marker','.');
+              scatter(hca,vExB1,vExB2,20,[0 0 0],'marker','*');
               %plot(hca,vExB1,vExB2,'marker','*','color',[0 0 0],'markersize',3);
             end
             hold(hca,'off')            
@@ -1795,15 +1795,11 @@ classdef PICDist
       % only makes sense if distributions are connected
       arclength = [0 cumsum(sqrt(diff(x).^2+diff(z).^2))];
       % does this needs to be interpolated?
-      if 0 % closest
-        arc01 = arclength(find(abs(z)==min(abs(z))));
-      else % interpolation
-        i1 = find(z>0,1,'last');
-        i2 = find(z<0,1,'first');
-        arc01 = interp1(z([i1 i2]),arclength([i1 i2]),0);
-      end
-      %arc01 = arclength(find(abs(z)==min(abs(z))));      
-      %z0_offs = z(find(abs(z)==min(abs(z))));
+      arc01 = arclength(find(abs(z)==min(abs(z))));
+      i_twoclosest = find(min(abs(z)),2,'first');
+      arc01 = arclength(find(abs(z)==min(abs(z))));
+      
+      z0_offs = z(find(abs(z)==min(abs(z))));
       arclength_z0 = arclength - arc01(1);
 
       out.x = x; 

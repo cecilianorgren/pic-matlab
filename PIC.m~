@@ -1026,24 +1026,24 @@ classdef PIC
             for ivar = 1:nvars
               varstr = varstrs{ivar};
               if 1
-                var = obj_tmp.get_exp(varstrs{ivar});
+              var = tmp_obj.get_exp(varstrs{ivar});
               else
-                if strcmp(varstr(1),'-')
-                  varmult = -1;
-                  varstr = varstr(2:end);
-                else
-                  varmult = 1;
-                end
-                if strfind(varstr,'(')
-                  ind1 = strfind(varstr,'(');
-                  ind2 = strfind(varstr,')');            
-                  indstr = varstr(ind1+1:ind2-1);
-                  varstr =  varstr(1:ind1-1);
-                  var = varmult*obj_tmp.(varstr)(eval(indstr));
-                else
-                  var = varmult*obj_tmp.(varstr);
-                end
+              if strcmp(varstr(1),'-')
+                varmult = -1;
+                varstr = varstr(2:end);
+              else
+                varmult = 1;
               end
+              if strfind(varstr,'(')
+                ind1 = strfind(varstr,'(');
+                ind2 = strfind(varstr,')');            
+                indstr = varstr(ind1+1:ind2-1);
+                varstr =  varstr(1:ind1-1);
+                var = varmult*obj_tmp.(varstr)(eval(indstr));
+              else
+                var = varmult*obj_tmp.(varstr);
+              end
+end
               displayname = [varstrs{ivar}];
               
               var = squeeze(mean(var,sum_dim));

@@ -2229,7 +2229,7 @@ forcelim = [-0.5 0.5];
 fclim = [-6 -0.5];
 
 % Prepare plot
-clear h;
+clear h hpos;
 nrows = 4;
 ncols = 5;
 nmaps = 3;
@@ -2250,16 +2250,20 @@ xpos2 = [69 71 73 75 77 79];
 xpos2 = [71 73 75 77 79];
 legends = {'a)','b)','c)','d)','e)','f)','g)','h)','i)','k)','l)','m)','n)','o)'};
 
-ds = ds100.twpelim(twpe).findtag({'line horizontal'}).xlim([71 80]).zfind(0).xfind(xpos);
-ds2 = ds100.twpelim(twpe).findtag({'line horizontal'}).xlim([71 80]).zfind(2).xfind(xpos);
-ds2 = ds100.twpelim(twpe).findtag({'line horizontal'}).xlim([50 80]).zfind(2).xfind(xpos2);
+%ds = ds100.twpelim(twpe).findtag({'line horizontal'}).xlim([71 80]).zfind(0).xfind(xpos);
+%ds2 = ds100.twpelim(twpe).findtag({'line horizontal'}).xlim([71 80]).zfind(2).xfind(xpos);
+%ds2 = ds100.twpelim(twpe).findtag({'line horizontal'}).xlim([50 80]).zfind(2).xfind(xpos2);
+ds = ds100.twpelim(twpe).findtag({'line horizontal'}).xlim([65 80]).zfind(0).xfind(xpos);
+%ds2 = ds100.twpelim(twpe).findtag({'line horizontal'}).xlim([71 80]).zfind(2).xfind(xpos);
+ds2 = ds100.twpelim(twpe).findtag({'line horizontal'}).xlim([65 80]).zfind(2).xfind(xpos2);
+
 pic = no02m.twpelim(twpe).xlim(xlim).zlim([-7 7]);
 
 isub = 1;
 
 hca = h(isub); isub = isub + 1;
 hmap = pic.plot_map(hca,{'n(3)'},'A',1,'cmap',pic_colors('thermal'),'cbarlabels',{'n_{ic}^{top}'},'smooth',2);
-hmap.CLim = [0 0.4999];
+hmap.CLim = [0.0000 0.4999];
 hca.Position = hpos{isub-1};
 hold(hca,'on')
 ds.plot_boxes(hca,'color',[1 1 1]);
@@ -2268,7 +2272,7 @@ hold(hca,'off')
 
 hca = h(isub); isub = isub + 1;
 hmap = pic.plot_map(hca,{'log10(curvbrad)'},'A',1,'cmap',pic_colors('blue_red'),'cbarlabels',{'log_{10}r_B'},'smooth',2);
-hmap.CLim = [-1 3];
+hmap.CLim = [-1 2.99];
 hca.Position = hpos{isub-1};
 hold(hca,'on')
 ds.plot_boxes(hca,'color',[1 1 1]);
@@ -2281,7 +2285,7 @@ hline = pic.xlim([63 xlim(2)]).zlim([-0.25 0.25]).plot_line(hca,comp,{{'Babs','c
 hca.Position = hpos{isub-1};
 hca.YLim = [0 3.99];
 %legend(hca,{'|B|','r_B','r_B\omega_{ci}'},'location','north','orientation','horizontal')
-legend(hca,{'|B|','r_B','r_B\omega_{ci}'},'location','north','orientation','horizontal','box','off')
+hlegLlines = legend(hca,{'|B|','r_B','v_{i,\perp}^{\kappa=1}=r_B\omega_{ci}'},'location','north','orientation','horizontal','box','off');
 hca.Title.String = [];
 hca.XLim = xlim;
 ycompr = 0.03;
@@ -2293,12 +2297,13 @@ compact_panels(h(1:nmaps),0)
 % make this panel slightly smaller
 h(3).Position(2) = h(3).Position(2) + ycompr;
 h(3).Position(4) = h(3).Position(4) - ycompr;
+c_eval('h(?).Position(1) = h(?).Position(1) - 0.05;',1:numel(h))
 
-
+dsslimmin = [65.0 70.8];
 for ids = 1:numel(dss)
   ds_tmp = dss{ids}; 
-  ds_tmp.plot_boxes(h(1),'color',[1 1 1]);
-  ds_tmp.plot_boxes(h(2),'color',[1 1 1]);
+  ds_tmp.xlim([dsslimmin(ids) 100]).plot_boxes(h(1),'color',[1 1 1]);
+  ds_tmp.xlim([dsslimmin(ids) 100]).plot_boxes(h(2),'color',[1 1 1]);
   %ds_tmp.plot_map(h(1)'color',[1 1 1]);
 end
 %
@@ -2399,6 +2404,7 @@ c_eval('h(?).Position(2) = h(?).Position(2)-sum(dh)+0.02;',(nmaps)+[1:ncols]);
 h(1).Title.String = '';
 %
 c_eval('h(?).FontSize = fontsize;',1:numel(h));
+c_eval('h(?).FontSize = 12;',1:numel(h));
 %c_eval('h(?).Position(1) = h(?).Position(1)-0.04;',1:numel(h));
 %c_eval('h(?).Position(4) = h(end).Position(4);',3:numel(h))
 %drawnow
@@ -2406,7 +2412,8 @@ c_eval('h(?).FontSize = fontsize;',1:numel(h));
 %compact_panels(h(3:end),0.0,0)
 
 %irf_legend(h(8),{'B'},[0.92 0.27],'color',0.5+[0 0 0],'fontsize',16)
-annotation('textarrow',[0.24 0.22],[0.140 0.15]-sum(dh)+0.02,'String',{'v_{i,\perp}^{\kappa=1}'},'fontsize',13,'fontweight','light')
+%annotation('textarrow',[0.24 0.22],[0.140 0.15]-sum(dh)+0.02,'String',{'v_{i,\perp}^{\kappa=1}'},'fontsize',13,'fontweight','light')
+annotation('textarrow',[0.24 0.22]-0.05,[0.140 0.15]-sum(dh)+0.02,'String',{'v_{i,\perp}^{\kappa=1}'},'fontsize',13,'fontweight','light')
 
 %c_eval('h().Position')
 htmp = h(end-1);
@@ -2415,6 +2422,9 @@ tmppos = htmp.Position;
 hs = findobj(htmp,'type','scatter');
 hleg_dist = legend([hs],{'v_{ExB}','v_{bulk}'},'location','south','orientation','horizontal','edgecolor',[1 1 1]);
 htmp.Position = tmppos;
+
+set(gcf,'position',[1304         582         616         610])
+
 %% Second part, with reduced distributions along field line
 % Prepare 1D reduced distributions
 twpe = 24000;
@@ -2431,10 +2441,12 @@ nred = numel(tags);
 
 % fpar3 = struct([]);
 % fpar5 = struct([]);
-if 0
+dsslimmin = [65.0 70.8];
+if 1
 clear fx3 fx5 fy3 fy5 fz3 fz5 dss
 for itag = 1:nred
-  ds = ds100.twpelim(twpe).dxlim([0.1 0.3]).findtag(tags(itag)).xlim([50 90]);
+  %ds = ds100.twpelim(twpe).dxlim([0.1 0.3]).findtag(tags(itag)).xlim([50 90]);
+  ds = ds100.twpelim(twpe).xlim([dsslimmin(itag) 100]).dxlim([0.1 0.3]).findtag(tags(itag)).xlim([50 90]);
   %ds = ds100.twpelim(twpe).dxlim([0.5 1]).findtag(tags).xfind(xpick(itag)).xlim([50 100]);
   iSpecies3 = 3;
   iSpecies5 = 3;
@@ -2464,6 +2476,7 @@ forcelim = [-0.5 0.5];
 fclim = [-5 -0.0];
 ncols = nred;
 nrows = 3;
+doPlotSurf = 0;
 %nrows = 7;
 %ncols = 4;
 cmap = pic_colors('pasteljet');
@@ -2549,7 +2562,19 @@ for itag = 1:nred
       ff1 = fx5{itag};
       plotf = log10(ff1.f);
       plotf(plotf==-Inf) = NaN;
-      pcolor(hca,ff1.(plotxstr),ff1.v,plotf); 
+      if doPlotSurf
+        xx = ff1.(plotxstr);
+        dxx = diff(xx);
+        xx_edges = [xx(1)-0.5*dxx(1) xx(1:end-1)+0.5*dxx xx(end)+0.5*dxx(end)];
+        yy = ff1.v';
+        dyy = diff(yy);
+        yy_edges = [yy(1)-0.5*dyy(1) yy(1:end-1)+0.5*dyy yy(end)+0.5*dyy(end)];
+        [XX,YY] = meshgrid(xx_edges,yy_edges);            
+        surf(hca,XX,YY,YY*0,plotf); 
+        view(hca,[0 0 1])
+      else
+        pcolor(hca,ff1.(plotxstr),ff1.v,plotf); 
+      end
       shading(hca,'flat'); 
       hca.YLabel.String = 'v_x'; 
       if doCont % contour lines
@@ -2626,9 +2651,11 @@ c_eval('h(?).YTickLabels = [];',4:npanels)
 c_eval('h(?).Position(1) = h(?).Position(1)-0.05;',1:npanels)
 %c_eval('colormap(h(?),pic_colors(''pasteljet''));',1:npanels) 
 compact_panels(h,0.0,0.02)
-hlinks = linkprop(h,{'XLim','YLim'});
+hlinks = linkprop(h,{'XLim','YLim','XTick'});
 h(1).YLim = [-2.5 2.5];
 h(1).YLim = 1.9*[-1 1];
+h(1).XTick = [-10:2:10];
+h(1).XLim = 9.5*[-1 1];
 
 hpos = h(end).Position;
 hcb = colorbar('peer',h(end));
@@ -2981,6 +3008,7 @@ twpe = 24000; xlim = [130 110]; zlim = [-8 8]; % later time
 twpe = 23000; xlim = [64 80]; zlim = [-8 8]; % earlier time
 
 ds = ds100.twpelim(twpe).findtag({'A=7.5'});
+fpar3 = ds.fpar()
 
 xdist = (ds.xi1{1}+ds.xi2{1})/2;
 zdist = (ds.zi1{1}+ds.zi2{1})/2;
@@ -2997,13 +3025,17 @@ Bz = interpfield(pic.xi,pic.zi,Bz_,xdist,zdist);
 %get_points(obj,x,z,t,range,field,varargin)
 
 % reduced distributions
-if 1 % saved reduced distributions
+if 0 % saved reduced distributions
   % save('/Volumes/Fountain/Data/PIC/no_hot_bg_n02_m100/matlab/fred_twpe23000_A75.mat','fred35_A75','fred46_A75','fred3_A75')
   load('/Volumes/Fountain/Data/PIC/no_hot_bg_n02_m100/matlab//fred_twpe23000_A75.mat')
-else % make reduced distributions
+elseif 0 % make reduced distributions
   fred35_A75 = ds.reduce_1d_new('x',[3 5],[],'vpar',{Bx,By,Bz},'pitch',{Bx,By,Bz});
   fred3_A75 = ds.reduce_1d_new('x',[3],[],'vpar',{Bx,By,Bz},'pitch',{Bx,By,Bz});
   fred46_A75 = ds.reduce_1d_new('x',[4 6],[],'vpar',{Bx,By,Bz},'pitch',{Bx,By,Bz});  
+elseif  
+  fpar3 = ds.fpar(1,:,3);
+  fpar5 = ds.fpar(1,:,5);
+  fpar35 = ds.fpar(1,:,[3 5]);
 end
 
 % Scalar quantities
@@ -3082,7 +3114,7 @@ end
 end
 ve = f_rot(iEle(1)).v;    
 iSpecies = 2; fehot = squeeze(sum(sum(f_rot(iSpecies).f,3),2))*f_rot(iSpecies).dv^2;
-iSpecies = 4; f1ecoldtop = squeeze(sum(sum(f_rot(iSpecies).f,3),2))*f_rot(iSpecies).dv^2;
+iSpecies = 4; fecoldtop = squeeze(sum(sum(f_rot(iSpecies).f,3),2))*f_rot(iSpecies).dv^2;
 iSpecies = 6; fecoldbot = squeeze(sum(sum(f_rot(iSpecies).f,3),2))*f_rot(iSpecies).dv^2;
 fetot = fehot + fecoldtop + fecoldbot;
 vi = f_rot(iIon(1)).v;   
@@ -3238,7 +3270,7 @@ if 1 % log 10 fi35(vpar)
   hca.YGrid = 'on';
   hca.Layer = 'top';
   hca.YLim = [-2.5 2.5];
-  hca.CLim = [-6 -1];
+  hca.CLim = [-5 -0];
   if doE
     hold(hca,'on')
     %plot(hca,arclength,Epar*max(abs(hca.YLim))/max(abs(Epar)),'color',colorE)    
@@ -3295,7 +3327,7 @@ if 1 % fi3/fi35(vpar)
   if 1 % contour level for reference
     hold(hca,'on')
     clim = hca.CLim;
-    contour(hca,arclength,fred.vpar_center,log10(fredall.fvpar)',[-2 -2],'k')
+    contour(hca,arclength,fred.vpar_center,log10(fredall.fvpar)',[-1 -1],'k')
     hca.CLim = clim;
     hold(hca,'off')
   end
@@ -3375,7 +3407,7 @@ if 1 % log 10 fe(vpar)
   hca.YGrid = 'on';
   hca.Layer = 'top';
   hca.YLim = [-7 7];
-  hca.CLim = [-4 -1.8];
+  hca.CLim = [-3 -0.8];
   irf_legend(hca,{'v_{ec,||}'},[0.02 0.4],'color',[0 0 0])
   if doE
     hold(hca,'on')

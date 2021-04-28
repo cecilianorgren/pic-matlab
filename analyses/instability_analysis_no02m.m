@@ -25,7 +25,7 @@ arcval = 4; % twpe=24000
 arcval = 4.3; % twpe=24000
 arcval = 5.2; % twpe=24000
 arcval = 4.5; % twpe=24000
-arcval = -7; % twpe=23000
+arcval = 7; % twpe=23000
 %arcval = 1; % twpe=23000, at neutral plane
 arccenter = (arclength(end)-arclength(1))/2;
 idist = find(abs(arclength-arcval-arccenter)==min(abs(arclength-arcval-arccenter)));
@@ -382,7 +382,7 @@ wi_store = nan(1,nk);
 fval_store = nan(1,nk);
 h = setup_subplots(4,1);
 %x = 0.5;-400;x=k_min*mean(vd);
-x = 0.5;
+x = 1;
 %close all
 clear Dsep_all
 colors = pic_colors('matlab');
@@ -397,7 +397,7 @@ for ik = 1:nk
   %xguess = vd(1)*kvec(ik);
   %allIncl = [1:4];
   allIncl = [1 2 3 4 5 6];
-  allIncl = [1 3 5];
+  %allIncl = [1 3 5];
   af = @(temp) D_streaming(temp,kvec(ik),vt(allIncl),wp(allIncl),vd(allIncl));   
   options = optimset('GradObj','on','display','off','TolFun',1e-4);  
   [x,FVAL,EXITFLAG] = fsolve(af,xguess,options);    
