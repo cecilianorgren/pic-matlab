@@ -4017,3 +4017,43 @@ end
 hlinks_forces = linkprop(h(4:end),{'XLim','YLim','CLim'});
 
 hlinks_forces.Targets(1).CLim = [-0.4 0.4];
+
+%% Figure, last, illustration/sketch of thermalization process
+nv = 1000;
+v = linspace(-3,4,nv);
+nf = 5;
+n = [1 1 1 1 1];
+vdstep = 0.5;
+vd = 0.0:vdstep:nf*vdstep;
+vt = [0.2 0.3 0.4 0.5 0.6];
+
+fcold = fmax1D(v,n(1),0,vt(1));
+fhot = fmax1D(v,n(1),0,vt(3));
+clear f
+for ii = 1:nf
+  f(ii,:) = fmax1D(v,n(ii),vd(ii),vt(ii));
+end
+
+% Plot
+h(1) = subplot(1,3,1);
+h(2) = subplot(1,3,[2 3]);
+
+% Illustration of single population thermalization
+hca = h(1);
+plot(hca,v,fcold,v,fhot,'linewidth',1.5)
+hca.Box = 'off';
+hca.Visible = 'off';
+hca.XLim = 1.1*[-1 1];
+hca.YLim = [0 3];
+hca.Position(3) = 0.25;
+
+hca = h(2);
+plot(hca,v,f,'linewidth',1.5)
+hold(hca,'on')
+plot(hca,v,sum(f(1:end,:),1),'linestyle','-','linewidth',1.5,'color',[0 0 0]+0.5)
+hold(hca,'off')
+hca.Box = 'off';
+hca.XLim = [-1 3.5];
+hca.YLim = [0 3];
+hca.Visible = 'off';
+
