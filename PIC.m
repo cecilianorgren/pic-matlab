@@ -992,7 +992,17 @@ classdef PIC
         args = args(l+1:end);  
         if isempty(args), break, end    
       end
-      
+          
+      if exist([fileName '.mp4'],'file')
+        question = 'File already exists, do you want to overwrite it? [1/0] >';
+        print_flag = irf_ask(question,[],1);
+        if print_flag == 0
+          disp('Aborting.')
+          varargout{1} = [];
+          return;
+        end
+      end       
+  
       [nrows,ncols] = size(varstrs_all);    
       npanels = nrows*ncols;
       ip = 0;

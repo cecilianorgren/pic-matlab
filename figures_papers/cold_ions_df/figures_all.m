@@ -3008,7 +3008,7 @@ twpe = 24000; xlim = [130 110]; zlim = [-8 8]; % later time
 twpe = 23000; xlim = [64 80]; zlim = [-8 8]; % earlier time
 
 ds = ds100.twpelim(twpe).findtag({'A=7.5'});
-fpar3 = ds.fpar()
+%fpar3 = ds.fpar()
 
 xdist = (ds.xi1{1}+ds.xi2{1})/2;
 zdist = (ds.zi1{1}+ds.zi2{1})/2;
@@ -3032,7 +3032,7 @@ elseif 0 % make reduced distributions
   fred35_A75 = ds.reduce_1d_new('x',[3 5],[],'vpar',{Bx,By,Bz},'pitch',{Bx,By,Bz});
   fred3_A75 = ds.reduce_1d_new('x',[3],[],'vpar',{Bx,By,Bz},'pitch',{Bx,By,Bz});
   fred46_A75 = ds.reduce_1d_new('x',[4 6],[],'vpar',{Bx,By,Bz},'pitch',{Bx,By,Bz});  
-elseif  
+elseif 1 
   fpar3 = ds.fpar(1,:,3);
   fpar5 = ds.fpar(1,:,5);
   fpar35 = ds.fpar(1,:,[3 5]);
@@ -3045,8 +3045,12 @@ fredi = eval(['fred' fredi_str '_A75']);
 frede = eval(['fred' frede_str '_A75']);
 
 arclength = [0; cumsum(sqrt(diff(fredi.x).^2 + diff(fredi.z).^2))];
+arclength = fpar3.arc;
 %arclength = arclength(end:-1:1);
 if 1; arclength = arclength - arclength(find(abs(fredi.z)==min(abs(fredi.z)))); end
+
+arclength = fpar3.arc_z0;
+
 darc = arclength(2)-arclength(1);
 arcedges = [arclength(1)-0.5*darc; arclength+0.5*darc];
 narc = 1800; % 900
@@ -3428,6 +3432,580 @@ if 1 % line position on map, Epar
   %imagesc(hca,pic_lim.xi,pic_lim.zi,smooth2(pic_lim.Epar,3)');
   %imagesc(hca,pic_lim.xi,pic_lim.zi,pic_lim.Epar');
   imagesc(hca,pic_lim.xi,pic_lim.zi,pic_lim.n(5)');
+  colormap(hca,pic_colors('blue_red'));
+  hcb = colorbar('peer',hca);
+  hca.CLim = max(max(get(findobj(hca.Children,'type','Image'),'CData')))*[-1 1];
+  hcb.YLabel.String = 'E_{||}';
+  hca.XLabel.String = 'x (d_i)';
+  hca.YLabel.String = 'z (d_i)';
+  hca.YDir = 'normal';
+  hca.XGrid = 'on';
+  hca.YGrid = 'on';
+  hca.CLim = 0.5*[-1 1];
+  if 1 % plot_boxes
+    %%
+    hold(hca,'on')
+    plot(hca,xdist,zdist,'k','linewidth',1)
+    %ds.plot_boxes(hca)
+    %ds_pick.plot_boxes(hca,'color',colors(3,:),'linewidth',1)
+    %ds_pick.plot_boxes(hca)
+    hl = plot(hca,xval,zval,'Marker','s','MarkerFaceColor',[0 0 0],'Color',[0 0 0]);
+    hold(hca,'off')
+  end
+  if 1 % plot A
+    hold(hca,'on')
+    A = pic_lim.A;
+    clim = hca.CLim;
+    contour(hca,pic_lim.xi,pic_lim.zi,A',[0:1:25],'color',0.5*[1 1 1])
+    hca.CLim = clim;
+    hold(hca,'off')
+  end
+end
+
+% Distributions
+if 1 % f(vpar), ions
+  hca = h(isub); isub = isub + 1;
+  
+  plot(hca,vi,fihot,vi,ficoldtop,vi,ficoldbot,vi,fitot,vi,fifit,'--','linewidth',1)  
+  hca.XLabel.String = 'v_{||} (v_{A0})';
+  hca.XLabel.String = 'v_{||}';
+  hca.YLabel.String = 'f_i(v_{||}) (d_{i0}^3v_{A0})';
+  hca.YLabel.String = 'f_i(v_{||})';
+  %legend(hca,{'f_{hot}','f_{cold}^{top}','f_{cold}^{top}','f_{tot}','f_{fit}'},'location','northeast','box','off')
+  irf_legend(hca,{'hot','cold, top','cold, bot','tot','fit'}',[0.95 0.95])
+  hca.XLim = 0.99*[-1 2];
+  irf_legend(hca,{'ions'},[0.02 0.98],'color',[0 0 0])
+  hca.XGrid = 'on';
+  hca.YGrid = 'on';
+  hca.YLim = [0 1.2];
+  hca.XLim = [-0.5 1.9];
+end
+if 1 % f(vpar), electrons
+  hca = h(isub); isub = isub + 1;
+  plot(hca,ve,fehot,ve,fecoldtop,ve,fecoldbot,ve,fetot,ve,fefit,'--','linewidth',1) 
+  hca.XLabel.String = 'v_{||} (v_{A0})';
+  hca.XLabel.String = 'v_{||}';
+  %hca.YLabel.String = 'f_e(v_{||}) (d_{i0}^3v_{A0})';
+  hca.YLabel.String = 'f_e(v_{||})';
+  %legend(hca,{'f_{hot}','f_{cold}^{top}','f_{cold}^{top}','f_{tot}','f_{fit}'},'location','east','box','off')  
+  hca.XLim = 0.99*[-10 10];
+  irf_legend(hca,{'electrons'},[0.02 0.98],'color',[0 0 0])
+  hca.XGrid = 'on';
+  hca.YGrid = 'on';
+end
+
+% Solution to dispersion relation
+if 1 % 
+  hca = h(isub); isub = isub + 1;
+  vph_extrap = interp1(kvec, vph_store, [0 kvec], 'spline', 'extrap');
+
+  plot(hca,[0 kvec],[0 wr_store/10],[0 kvec],[0 wi_store],[0 kvec],vph_extrap,'linewidth',1)
+  hca.XLabel.String = 'k (d_i^{-1})';
+  hca.YLabel.String = '\omega, v_{ph}';
+  hleg_disp = legend(hca,{'\omega_r/10','\gamma','v_{ph}'},'location','east','box','off');
+  %hca.XLim = [-1 2];
+  irf_legend(hca,{'dispersion relation'},[0.02 0.98],'color',[0 0 0]);
+  hca.XGrid = 'on';
+  hca.YGrid = 'on';
+end
+
+
+legends = {'a)','b)','c)','d)','e)','f)','g)','h)','i)','j)'};
+for ip = [1 2 3 4 5 6 8]
+  irf_legend(h(ip),legends{ip},[-0.15 0.99],'fontsize',14,'color','k')
+end
+for ip = 7
+  irf_legend(h(7),legends{ip},[-0.2 0.99],'fontsize',14,'color','k')
+end
+compact_panels(h(1:4),0.005,0)
+%h(1).Title.String = ['nobg, t\omega_{pe} = ' num2str(twpe,'%05.0f')];
+%fig = gcf; h_ = findobj(fig.Children,'type','axes');
+%hlinks_dist = linkprop(h(setdiff(1:nrows*ncols,isMap)),{'XLim'});
+h_all = findobj(get(gcf,'Children'));
+c_eval('try; h_all(?).FontSize = 12; end',1:numel(h_all))
+hleg_disp.FontSize = 10;
+
+hlinks_arc = linkprop(h(1:4),{'XLim'});
+hlinks_arc.Targets(1).XLim = 14.0*[-1 1];
+
+%hlinks.Targets(1).XLim = arclength([1 end]);
+%irf_plot_axis_align
+for ip = 1:npanels
+  h(ip).FontSize = 13;
+end
+for ip = 1:4
+  h(ip).Position(1) = 0.08;
+  h(ip).Position(3) = 0.4;
+end
+for ip = 6:8
+  h(ip).Position(1) = 0.70;
+  h(ip).Position(3) = 0.25;
+end
+h(5).Position(1) = 0.58;
+h(5).Position(3) = 0.25;
+
+for ip = 1:4 % mark single distribution location
+  hold(h(ip),'on');
+  plot(h(ip),arcval*[1 1],h(ip).YLim,'k--')
+  hold(h(ip),'off');
+end
+if 1 % plot vphmax  and lambda max
+  %%
+%   hold(h(2),'on')
+%   hvph2 = plot(h(2),arcval,vphmax,'k*');
+%   hold(h(2),'off')
+%   hold(h(3),'on')
+%   hvph3 = plot(h(3),arcval,vphmax,'k*');
+%   hold(h(3),'off')
+  lambdamax = 2*pi/kmax;
+  hold(h(2),'on')
+  hlam2 = errorbar(h(2),arcval,vphmax,lambdamax/2,...
+    'horizontal','color',[0 0 0],'linewidth',1.5);  
+  hold(h(2),'off')
+  hold(h(3),'on')
+%   hlam_dummy = errorbar(h(3),arcval,vphmax,lambdamax/2,...
+%     'horizontal','color',[0 0 0]);
+%   hvph3 = plot(h(3),arcval,vphmax,'k*');
+  hold(h(3),'off')
+  
+  %htext = text(h(2),0.6,0.2,'v_{ph} and \lambda at \gamma_{max}','Units','normalized','fontsize',13);
+  %annotation('arrow',0.38*[1 1],[0.58 0.61])
+  %htext = annotation('textarrow',0.38*[1 1],[0.58 0.61],'String','v_{ph} and \lambda at \gamma_{max}','fontsize',13);
+  htext = annotation('textarrow',0.38*[1 1],[0.68 0.65],'String','v_{ph} and \lambda at \gamma_{max}','fontsize',13);
+%   hold(h(2),'on')
+%   quiver(h(2),arcval,-1,0,0.8,10)
+%   hold(h(2),'off')
+  %hlegvph = legend([hvph2 hlam2],{'v_{ph} at \gamma_{max}','\lambda at \gamma_{max}'},'edgecolor','white','location','southeast');
+end
+
+if 1 % annotations
+  %%
+  hann_trap = annotation('textarrow',0.40*[1 1],[0.38 0.4],'String',{'only cold ions','from the bottom'},'fontsize',13);
+  hann_cbot = annotation('textarrow',0.40*[1 1],[0.38 0.4],'String',{'only cold ions','from the bottom'},'fontsize',13);
+  hann_ctop = annotation('textarrow',0.152*[1 1],[0.45 0.43],'String',{'only cold ions','from the top'},'fontsize',13);
+  hann_trap = annotation('textarrow',0.365*[1 1],[0.58 0.61],'String',{'ion-wave','interaction'},'fontsize',13);
+  hann_esw = annotation('textarrow',[0.33 0.36],[0.826 0.81],'String',{'ESWs'},'fontsize',13);
+  hann_esw2 = annotation('arrow',[0.27 0.25],[0.826 0.81]);
+  
+end
+if 0 % potential velocity in fipar plot
+  %%
+  hold(h(2),'on')
+  plot(h(2),arclength_interp,sqrt(2*abs(intEpar)))
+  hold(h(2),'off')
+end
+% for ip = 1:nrows*ncols
+%   axwidth(ip) = h(ip).Position(3); 
+% end
+% for ip = 1:nrows*ncols
+%   h(ip).Position(3) = min(axwidth);
+% end
+if 1 % compact figure to ake Epar arcpanel shorter, waves show off better like that
+  %%
+  h(1).Position(4) = 0.12;
+  
+  h(5).Position(4) = 0.14;
+  h(6).Position(4) = 0.13;
+  h(7).Position(4) = 0.13;
+  h(8).Position(4) = 0.13;
+  
+  h(5).Position(2) = 0.71;
+  h(6).Position(2) = 0.51;
+  h(7).Position(2) = 0.31;
+  h(8).Position(2) = 0.11;
+  
+end
+%% Figure 9, prepare data, with premade fpar
+twpe = 24000; xlim = [130 110]; zlim = [-8 8]; % later time
+twpe = 23000; xlim = [64 80]; zlim = [-8 8]; % earlier time
+
+ds = ds100.twpelim(twpe).findtag({'A=7.5'});
+%fpar3 = ds.fpar()
+
+xdist = (ds.xi1{1}+ds.xi2{1})/2;
+zdist = (ds.zi1{1}+ds.zi2{1})/2;
+
+pic_lim = no02m.xlim(xlim).zlim(zlim).twpelim(twpe);
+pic = no02m.twpelim(twpe);
+Bx_ = pic.Bx;
+By_ = pic.By;
+Bz_ = pic.Bz;
+
+Bx = interpfield(pic.xi,pic.zi,Bx_,xdist,zdist); 
+By = interpfield(pic.xi,pic.zi,By_,xdist,zdist); 
+Bz = interpfield(pic.xi,pic.zi,Bz_,xdist,zdist);
+
+% reduced distributions
+fpar3 = ds.fpar(1,:,3);
+fpar5 = ds.fpar(1,:,5);
+fpar35 = ds.fpar(1,:,[3 5]);
+
+% Scalar quantities
+arclength = fpar3.arc_z0;
+
+darc = arclength(2)-arclength(1);
+arcedges = [arclength(1)-0.5*darc; arclength+0.5*darc];
+narc = 1800; % 900
+arclength_interp = linspace(arclength(1),arclength(end),narc);
+darc_interp = (arclength_interp(end)-arclength_interp(1))/narc;
+xinterp = interp1(arclength,xdist,arclength_interp);
+zinterp = interp1(arclength,zdist,arclength_interp);
+
+ni = interpfield(pic.xi,pic.zi,pic.ni,xinterp,zinterp); 
+ne = interpfield(pic.xi,pic.zi,pic.ne,xinterp,zinterp); 
+vepar = interpfield(pic.xi,pic.zi,pic.vpar([3 5]),xinterp,zinterp); 
+Epar = interpfield(pic.xi,pic.zi,pic.Epar,xinterp,zinterp);
+Babs = interpfield(pic.xi,pic.zi,pic.Babs,xinterp,zinterp); 
+intEpar = [-cumsum(Epar*darc_interp)];
+
+% % Set up for instability analysis
+arcval = 7; % twpe=23000, at neutral plane
+%arccenter = (arclength(end)-arclength(1))/2;
+%idist = find(abs(arclength-arcval-arccenter)==min(abs(arclength-arcval-arccenter)));
+idist = find(abs(arclength-arcval)==min(abs(arclength-arcval)));
+xzarcdist = [xdist' zdist' arclength];
+xval = xdist(idist);
+zval = zdist(idist);
+ds_pick = ds.twpelim(twpe).xfind(xval).zfind(zval);
+%
+% Fit to distribution
+qe = 1;
+n = [0.05 0.08 0.15 0.11 0.13 0.04]; % n0
+vd = [0.5 1.15 0.05 -2.1 2.7 0.5]; % vA0
+vt = [1.5 0.3 0.07 2.8 3.0 4.0]; % vA0
+m = [1 1 1 1/100 1/100 1/100]*1; % m0
+q = [1 1 1 -1 -1 -1]*qe;
+iIncl = [1 2 3];
+eIncl = [4 5 6];
+% n = sqrt(n*e^2/m*eps0)
+wpewce = 2;
+mime = 200;
+eps0 = 1/(wpewce^2*mime);
+wp = sqrt(n./m)*sqrt(1/eps0);
+
+% Prepare simulation distributions
+clear fpar_pick
+c_eval('fpar_pick{?} = ds_pick.fpar(1,:,?);',1:6)
+
+ve_hot = fpar_pick{2}.v;
+ve_cold = fpar_pick{4}.v;
+iSpecies = 2; fehot = fpar_pick{iSpecies}.f;
+iSpecies = 4; fecoldtop = fpar_pick{iSpecies}.f;
+iSpecies = 6; fecoldbot = fpar_pick{iSpecies}.f;
+fetot = fehot + fecoldtop + fecoldbot;
+
+vi_hot = fpar_pick{1}.v;
+vi_cold = fpar_pick{3}.v;
+iSpecies = 1; fihot = fpar_pick{iSpecies}.f;
+iSpecies = 3; ficoldtop = fpar_pick{iSpecies}.f;
+iSpecies = 5; ficoldbot = fpar_pick{iSpecies}.f;
+fitot = fehot + ficoldtop + ficoldbot;
+
+fefit = fmax1D(ve_cold,n(eIncl),vd(eIncl),vt(eIncl));
+fifit = fmax1D(vi_cold,n(iIncl),vd(iIncl),vt(iIncl));
+    
+% Plot 
+fi_clim = [0 0.0499];
+fe_clim = [0 1.3e-2];
+colors = pic_colors('matlab');
+
+nrows = 4;
+ncols = 2;
+h = setup_subplots(nrows,ncols,'vertical');
+%[h,h2] = initialize_combined_plot(nrows,2,2,0.4,'vertical')
+isub = 1;
+doE = 0; colorE = [0.0 0.0 0.0];
+doV = 0; colorV = 0*[1 1 1];
+doN = 1; colorN = [0 0 0];
+doExB = 1; colorExB = 0*[1 1 1]+0.5;
+isMap = [];
+
+
+if 1 % Epar
+  hca = h(isub); isub = isub + 1;  
+  %plot(hca,arclength_interp,Epar_,arclength_interp,ni_,arclength_interp,ne_,arclength_interp,(ni_-ne_)*10)  
+  %legend(hca,{'E_{||}','n_{i,cold}','n_{e,cold}','ni-ne'},'location','eastoutside')   
+  plot(hca,arclength_interp,Epar,'k')  
+  hold(hca,'on')
+  %plot(hca,smooth(arclength_interp,50),smooth(Epar,50)*1,'linewidth',2,'color',colors(6,:))
+  hold(hca,'off')
+  %plot(hca,arclength_interp,Epar,'k',smooth(arclength_interp,100),smooth(Epar,100),'linewidth',1)  
+  %plot(hca,arclength_interp,Epar,'k',arclength_interp,intEpar*3,arclength,Babs/2)  
+  %legend(hca,{'E_{||}'},'location','eastoutside')   
+  hca.YLabel.String = 'E_{||}';   
+  hca.XLabel.String = 's_{||} (d_i)';  
+  hca.XGrid = 'on';
+  hca.YGrid = 'on';
+  hca.YLim = 0.399*[-1 1];
+end
+
+if 0 % dn
+  hca = h(isub); isub = isub + 1;  
+  %plot(hca,arclength_interp,Epar_,arclength_interp,ni_,arclength_interp,ne_,arclength_interp,(ni_-ne_)*10)  
+  %legend(hca,{'E_{||}','n_{i,cold}','n_{e,cold}','ni-ne'},'location','eastoutside')   
+  plot(hca,arclength_interp,(ni_-ne_))  
+  legend(hca,{'n_{i,cold}-n_{e,cold}'},'location','eastoutside')   
+  hca.YLabel.String = 'n';   
+  hca.XLabel.String = 'arclength (d_i)';  
+  hca.XGrid = 'on';
+  hca.YGrid = 'on';
+end
+if 0 % Epar, n
+  hca = h(isub); isub = isub + 1;  
+  %plot(hca,arclength_interp,Epar_,arclength_interp,ni_,arclength_interp,ne_,arclength_interp,(ni_-ne_)*10)  
+  %legend(hca,{'E_{||}','n_{i,cold}','n_{e,cold}','ni-ne'},'location','eastoutside')   
+  plot(hca,arclength_interp,Epar_,arclength_interp,(ni_-ne_)*10)  
+  legend(hca,{'E_{||}','n_{i,cold}-n_{e,cold}'},'location','eastoutside')   
+  hca.YLabel.String = 'E_{||}, n';   
+  hca.XLabel.String = 'arclength (d_i)';  
+  hca.XGrid = 'on';
+  hca.YGrid = 'on';
+end
+if 0 % fi35(vpar)
+  hca = h(isub); isub = isub + 1;
+  fred = fred35_A75;
+  %pcolor(hca,arclength,fred.vpar_center,fred.fvpar')
+  surf(hca,arcedges,fred.vpar_edges,zeros(numel(arcedges),numel(fred.vpar_edges))',fred.fvpar')
+  view(hca,[0 0 1]); 
+  shading(hca,'flat')
+  hca.XLabel.String = 'arclength (d_i)';
+  hca.YLabel.String = 'v_{||}';
+  colormap(hca,pic_colors('candy'))  
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = ['f_{i,cold}(l_{||},v_{||})'];
+  hca.CLim(2) = prctile(fred.fvpar(:),99);
+  hca.CLim = fi_clim;
+  hca.XGrid = 'on';
+  hca.YGrid = 'on';
+  hca.Layer = 'top';
+  hca.YLim = [-2 2];
+  if doE
+    hold(hca,'on')
+    %plot(hca,arclength,Epar*max(abs(hca.YLim))/max(abs(Epar)),'color',colorE)
+    plot(hca,arclength_interp,Epar_*max(abs(hca.YLim))/max(abs(Epar_)),'color',colorE+0.2)
+    hold(hca,'off')
+  end
+  if doV
+    hold(hca,'on')
+    plot(hca,arclength,vipar,'color',colorV,'linewidth',1.5)
+    hold(hca,'off')
+  end
+end
+if 0 % fi3(vpar)
+  hca = h(isub); isub = isub + 1;
+  fred = fred3_A75;
+  %pcolor(hca,arclength,fred.vpar_center,fred.fvpar')
+  surf(hca,arcedges,fred.vpar_edges,zeros(numel(arcedges),numel(fred.vpar_edges))',fred.fvpar')
+  view(hca,[0 0 1]); 
+  shading(hca,'flat')
+  hca.XLabel.String = 'arclength (d_i)';
+  hca.YLabel.String = 'v_{||}';
+  colormap(hca,pic_colors('candy'))  
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = ['f_{i,cold}^{top}(l_{||},v_{||})'];
+  hca.CLim(2) = prctile(fred.fvpar(:),99);
+  hca.CLim = fi_clim;
+  hca.XGrid = 'on';
+  hca.YGrid = 'on';
+  hca.Layer = 'top';
+  hca.YLim = [-2 2];
+  if doE
+    hold(hca,'on')
+    %plot(hca,arclength,Epar*max(abs(hca.YLim))/max(abs(Epar)),'color',colorE)
+    plot(hca,arclength_interp,Epar_*max(abs(hca.YLim))/max(abs(Epar_)),'color',colorE+0.2)
+    hold(hca,'off')
+  end
+  if doV
+    hold(hca,'on')
+    plot(hca,arclength,vipar,'color',colorV,'linewidth',1.5)
+    hold(hca,'off')
+  end
+end
+if 1 % log 10 fi35(vpar)
+  hca = h(isub); isub = isub + 1;
+  fred = fred35_A75;
+  %pcolor(hca,arclength,fred.vpar_center,fred.fvpar')
+  surf(hca,arcedges,fred.vpar_edges,zeros(numel(arcedges),numel(fred.vpar_edges))',log10(fred.fvpar)')
+  view(hca,[0 0 1]); 
+  shading(hca,'flat')
+  
+  if 0 % contour level for reference
+    hold(hca,'on')
+    clim = hca.CLim;
+    contour(hca,arclength,fred.vpar_center,log10(fred.fvpar)',[-2 -2],'k')
+    hca.CLim = clim;
+    hold(hca,'off')
+  end
+  hca.XLabel.String = 'arclength (d_i)';
+  hca.YLabel.String = 'v_{||}';
+  colormap(hca,pic_colors('candy4'))  
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = ['log_{10}f_{i,cold}(s_{||},v_{||})'];
+  hcb.YLabel.String = ['log_{10}f_{ic}'];
+  %hca.CLim(2) = prctile(fred.fvpar(:),99);
+  %hca.CLim = fi_clim;
+  hca.XGrid = 'on';
+  hca.YGrid = 'on';
+  hca.Layer = 'top';
+  hca.YLim = [-2.5 2.5];
+  hca.CLim = [-5 -0];
+  if doE
+    hold(hca,'on')
+    %plot(hca,arclength,Epar*max(abs(hca.YLim))/max(abs(Epar)),'color',colorE)    
+    %plot(hca,arclength_interp,smooth(Epar,100)*max(abs(hca.YLim))/max(abs(smooth(Epar,100))),'color',colorE+0.2)
+    plot(hca,arclength_interp,Epar_*max(abs(hca.YLim))/max(abs(Epar_)),'color',colorE+0.2)
+    hold(hca,'off')
+  end
+  if doV
+    hold(hca,'on')
+    plot(hca,arclength,vipar,'color',colorV,'linewidth',1.5)
+    hold(hca,'off')
+  end
+end
+if 0 % log 10 fi3(vpar)
+  hca = h(isub); isub = isub + 1;
+  fred = fred3_A75;
+  %pcolor(hca,arclength,fred.vpar_center,fred.fvpar')
+  surf(hca,arcedges,fred.vpar_edges,zeros(numel(arcedges),numel(fred.vpar_edges))',log10(fred.fvpar)')
+  view(hca,[0 0 1]); 
+  shading(hca,'flat')
+  hca.XLabel.String = 'arclength (d_i)';
+  hca.YLabel.String = 'v_{||}';
+  colormap(hca,pic_colors('candy4'))  
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = ['log_{10}f_{i,cold}^{top}(l_{||},v_{||})'];
+  %hca.CLim(2) = prctile(fred.fvpar(:),99);
+  %hca.CLim = fi_clim;
+  hca.XGrid = 'on';
+  hca.YGrid = 'on';
+  hca.Layer = 'top';
+  hca.YLim = [-2.5 2.5];
+  hca.CLim = [-6 -1];
+  if doE
+    hold(hca,'on')
+    %plot(hca,arclength,Epar*max(abs(hca.YLim))/max(abs(Epar)),'color',colorE)
+    plot(hca,arclength_interp,Epar_*max(abs(hca.YLim))/max(abs(Epar_)),'color',colorE+0.2)
+    hold(hca,'off')
+  end
+  if doV
+    hold(hca,'on')
+    plot(hca,arclength,vipar,'color',colorV,'linewidth',1.5)
+    hold(hca,'off')
+  end
+end
+if 1 % fi3/fi35(vpar)
+  hca = h(isub); isub = isub + 1;
+  fredall = fred35_A75;
+  fred = fred3_A75;
+  fplot = (fred.fvpar./fredall.fvpar);
+  %pcolor(hca,arclength,fred.vpar_center,fred.fvpar')
+  surf(hca,arcedges,fred.vpar_edges,zeros(numel(arcedges),numel(fred.vpar_edges))',fplot')
+  view(hca,[0 0 1]);   
+  shading(hca,'flat')
+  if 1 % contour level for reference
+    hold(hca,'on')
+    clim = hca.CLim;
+    contour(hca,arclength,fred.vpar_center,log10(fredall.fvpar)',[-1 -1],'k')
+    hca.CLim = clim;
+    hold(hca,'off')
+  end
+  hca.XLabel.String = 's_{||} (d_i)';
+  hca.YLabel.String = 'v_{||}';
+  %colormap(hca,pic_colors('candy')) 
+  %colormap(hca,pic_colors('blue_red'))
+  colormap(hca,pic_colors('pasteljet'))
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = ['f_{i,cold}^{top}/f_{i,cold}^{tot}(s_{||},v_{||})'];
+  hcb.YLabel.String = ['f_{ic}^{top}/f_{ic}^{tot}'];
+  %hca.CLim(2) = prctile(fred.fvpar(:),99);
+  %hca.CLim = fi_clim;
+  hca.CLim = [0 1];
+  hca.XGrid = 'on';
+  hca.YGrid = 'on';
+  hca.Layer = 'top';
+  hca.YLim = [-2 2];
+  if doE
+    hold(hca,'on')
+    %plot(hca,arclength,Epar*max(abs(hca.YLim))/max(abs(Epar)),'color',colorE)
+    plot(hca,arclength_interp,Epar_*max(abs(hca.YLim))/max(abs(Epar_)),'color',colorE+0.2)
+    hold(hca,'off')
+  end
+  if doV
+    hold(hca,'on')
+    plot(hca,arclength,vipar,'color',colorV,'linewidth',1.5)
+    hold(hca,'off')
+  end
+end
+if 0 % fe(vpar)
+  hca = h(isub); isub = isub + 1;
+  fred = fred46_A75;
+  %pcolor(hca,arclength,fred.vpar_center,fred.fvpar')  
+  surf(hca,arcedges,fred.vpar_edges,zeros(numel(arcedges),numel(fred.vpar_edges))',fred.fvpar')
+  view(hca,[0 0 1]);  
+  shading(hca,'flat')
+  hca.XLabel.String = 'arclength (d_i)';
+  hca.YLabel.String = 'v_{||}';
+  colormap(hca,pic_colors('candy4'))  
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = ['f_{e,cold}(l_{||},v_{||})'];
+  hca.CLim(2) = prctile(fred.fvpar(:),99);
+  hca.CLim = fe_clim;
+  hca.XGrid = 'on';
+  hca.YGrid = 'on';
+  hca.Layer = 'top';
+  hca.YLim = [-7 7];
+  if doE
+    hold(hca,'on')
+    %plot(hca,arclength,Epar*max(abs(hca.YLim))/max(abs(Epar)),'color',colorE)
+    plot(hca,arclength_interp,Epar_*max(abs(hca.YLim))/max(abs(Epar_)),'color',colorE+0.2)
+    hold(hca,'off')
+  end
+  if doV
+    hold(hca,'on')
+    plot(hca,arclength,vepar,'color',colorV,'linewidth',1.5)
+    hold(hca,'off')
+  end
+end
+if 1 % log 10 fe(vpar)
+  hca = h(isub); isub = isub + 1;
+  fred = fred46_A75;
+  %pcolor(hca,arclength,fred.vpar_center,fred.fvpar')  
+  surf(hca,arcedges,fred.vpar_edges,zeros(numel(arcedges),numel(fred.vpar_edges))',log10(fred.fvpar)')
+  view(hca,[0 0 1]);  
+  shading(hca,'flat')
+  hca.XLabel.String = 's_{||} (d_i)';
+  hca.YLabel.String = 'v_{||}';
+  colormap(hca,pic_colors('candy4'))  
+  hcb = colorbar('peer',hca);
+  hcb.YLabel.String = ['f_{e,cold}(s_{||},v_{||})'];
+  hcb.YLabel.String = ['log_{10}f_{ec}'];
+  %hca.CLim(2) = prctile(fred.fvpar(:),99);
+  %hca.CLim = fe_clim;
+  hca.XGrid = 'on';
+  hca.YGrid = 'on';
+  hca.Layer = 'top';
+  hca.YLim = [-7 7];
+  hca.CLim = [-3 -0.8];
+  irf_legend(hca,{'v_{ec,||}'},[0.02 0.4],'color',[0 0 0])
+  if doE
+    hold(hca,'on')
+    %plot(hca,arclength,Epar*max(abs(hca.YLim))/max(abs(Epar)),'color',colorE)
+    plot(hca,arclength_interp,Epar_*max(abs(hca.YLim))/max(abs(Epar_)),'color',colorE+0.2)
+    hold(hca,'off')
+  end
+  if 1%doV
+    hold(hca,'on')
+    plot(hca,arclength_interp,vepar,'color',colorV,'linewidth',1.5)
+    hold(hca,'off')
+  end
+end
+
+if 1 % line position on map, Epar
+  isMap(end+1) = isub; 
+  hca = h(isub); isub = isub + 1;
+  %imagesc(hca,pic_lim.xi,pic_lim.zi,smooth2(pic_lim.Epar,3)');
+  imagesc(hca,pic_lim.xi,pic_lim.zi,pic_lim.Epar');
+  %imagesc(hca,pic_lim.xi,pic_lim.zi,pic_lim.n(5)');
   colormap(hca,pic_colors('blue_red'));
   hcb = colorbar('peer',hca);
   hca.CLim = max(max(get(findobj(hca.Children,'type','Image'),'CData')))*[-1 1];

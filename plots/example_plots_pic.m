@@ -625,7 +625,7 @@ ylim = {[-1 1]*0.99;[-2 0]*0.99;[-0.1 0.4]*0.99;[-0.1 0.4]*0.99;[-0.1 0.1]*0.99;
 varstrs = {{'abs(Bz)','Jx'}};
  
 
-h = pic.movie_line(comp,varstrs,'ylim',ylim,'smooth',7,'linewidth',1.5,'filename',[printpath 'Ey_z=0_smoothpm7']);
+h = pic.movie_line(comp,varstrs,'ylim',ylim,'smooth',2,'linewidth',1.5,'filename',[printpath 'Ey_z=0_smoothpm7']);
 
 %% movie
 twpe = 7000:1000:12000;
