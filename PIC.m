@@ -1458,7 +1458,7 @@ classdef PIC
     function varargout = plot_line(obj,varargin)
      % function varargout = plot_line(obj,dim,varstrs_all,varargin)
       % Plots variables directly loaded from file
-      % h = pic.plotline(dim,{{'Ex','Ey','Ez'},{'Bx','By','Bx'}})
+      % h = pic.plot_line(dim,{{'Ex','Ey','Ez'},{'Bx','By','Bx'}})
       % Plot variables as a function of dim: 'x' or 'z'
        
       doSmooth = 0;

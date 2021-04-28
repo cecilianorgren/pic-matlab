@@ -960,7 +960,7 @@ c_eval('h(?).Position(3) = [0.7];',1:npanels)
 %% Figure 4, reduced vertical distribution 
 %ds100 = PICDist('/Volumes/Fountain/Data/PIC/no_hot_bg_n02_m100/data_h5/dists.h5');
 %% Figure 4, prepare data
-for xpick = 75:5:95  
+for xpick = 75:10:85  
   ds = ds100.twpelim(twpe).xfind(xpick).findtag({'line vertical'});
   xdist = (ds.xi1{1}+ds.xi2{1})/2;
   zdist = (ds.zi1{1}+ds.zi2{1})/2;
@@ -1018,10 +1018,10 @@ cmap_dist = pic_colors('waterfall');
 
 %freds = {fred35_z4,fred35_z4,fred35_z4,fred35_z2,fred35_z2,fred35_z2,fred35_z0,fred35_z0,fred35_z0};
 %freds = {fred35_x75,fred35_x80,fred35_x85,fred35_x90,fred35_x95};
-freds = {fred35_x75,fred35_x85,fred35_x95,fred35_x75,fred35_x85,fred35_x95,fred35_x75,fred35_x85,fred35_x95};
-freds = {fred35_x75,fred35_x80,fred35_x85,fred35_x90,fred35_x95,...
-         fred35_x75,fred35_x80,fred35_x85,fred35_x90,fred35_x95,...
-         fred35_x75,fred35_x80,fred35_x85,fred35_x90,fred35_x95};
+% freds = {fred35_x75,fred35_x85,fred35_x95,fred35_x75,fred35_x85,fred35_x95,fred35_x75,fred35_x85,fred35_x95};
+% freds = {fred35_x75,fred35_x80,fred35_x85,fred35_x90,fred35_x95,...
+%          fred35_x75,fred35_x80,fred35_x85,fred35_x90,fred35_x95,...
+%          fred35_x75,fred35_x80,fred35_x85,fred35_x90,fred35_x95};
 freds = {fred35_x75,fred35_x85,...
          fred35_x75,fred35_x85,...
          fred35_x75,fred35_x85};
@@ -1175,6 +1175,8 @@ hleg = legend(hl([2 1 3]),{'v_{ExB}','\phi_z','separatrix'},'edgecolor',[1 1 1],
 %compact_panels(0.005,0.01)
 h(1).CLim = 0.99*[-4 2];
 h(1).CLim = [-3.5 1.8];
+h(1).CLim = [-6 0];
+h(1).YLim = [-1 8];
 %h(1).CLim = 0.99*[-6 0]; % electrons
 h(1).XLim = 0.99*3*[-1 1];
 for ip = [2:ncols (ncols+2):(2*ncols) (2*ncols+2):(3*ncols)]
@@ -1202,11 +1204,178 @@ end
 compact_panels(h,0.002,0.002)
 hleg.FontSize = 11;
 hcb_ = findobj(gcf,'Type','ColorBar');
+if 1 % notations
+  annotation('textarrow',[0.56 0.544],[0.14 0.14],'String','main X line','fontsize',13,'fontweight','light')
+  annotation('textarrow',[0.83 0.84],[0.74 0.76],'String',{'thermalization of','cold inbound ions','at separatrices'},'fontsize',13,'fontweight','light')  
+end
+%% Figure 4, plot, only f(vz)
+% What to include
+% - overview of where boxes are
+fi_clim = [0 0.13];
+fe_clim = [0 0.02];
+fe_clim = [-4 log10(0.02)];
+
+nrows = 1;
+ncols = 2;
+npanels = nrows*ncols;
+h = setup_subplots(nrows,ncols,'horizontal');
+isub = 1; 
+doE = 0; colorE = [0 0.8 0.8];
+doV = 0; colorV = 0*[1 1 1];
+doVe = 0; colorV = 0*[1 1 1];
+doN = 0; colorN = [0 0 0];
+doExB = 1; colorExB = 0*[1 1 1]+0;
+doPhi = 1; colorPhi = [0.5 0.5 0];
+doSep = 1;
+% if doSep
+%   xline_pos = no02m.twpelim(twpe).xline_position;
+%   sep = no02m.twpelim(twpe).separatrix_location;
+% end
+hleg = gobjects(0);
+
+cmap_dist = pic_colors('waterfall');
+freds = {fred35_x75,fred35_x85};
+freds = {fred3_x75,fred3_x85};
+xpicks = [75 85];
+labstrs = {'z','z'};
+legends = {'a)','b)','c)','d)','e)','f)','g)','h)','i)','j)','k)','l)','m)','n)','o)','p)','q)','r)'};
+
+for ifred = 1:numel(freds)
+  if 1 % fi(v_) z_
+    hca = h(isub); isub = isub + 1;
+    fred = freds{ifred};
+    labstr = labstrs{ifred};
+    fredplot = eval(['fred.fv' labstr]);
+    pcolor(hca,fred.v,fred.z,log10(fredplot))
+    shading(hca,'flat')
+    hca.YLabel.String = 'z (d_i)';
+    hca.XLabel.String = sprintf('v_{%s}',labstr);
+    colormap(hca,pic_colors('candy4')) 
+    %irf_legend(hca,{sprintf('f_{cold}(x,v_%s)',labstr)},[0.02 0.98],'color',[0 0 0],'fontsize',14)
+    irf_legend(hca,{sprintf('%s x = %g',legends{isub-1},unique(fred.x))},[0.02 0.98],'color',[0 0 0],'fontsize',14)
+    %irf_legend(hca,{sprintf('%s',legends{isub-1})},[0.02 0.98],'color',[0 0 0],'fontsize',14)
+    %hcb = colorbar('peer',hca);  
+    %hcb.YLabel.String = sprintf('f_{i,cold}(l_{||},v_{%s})',labstr);
+    %hca.CLim(2) = prctile(fred.fvx(:),99);
+    hca.XGrid = 'on';
+    hca.YGrid = 'on';
+    hca.Layer = 'top';
+    hca.FontSize = 12;
+    if doE
+      hold(hca,'on')
+      %plot(hca,arclength,Ey*max(abs(hca.YLim))/max(abs(Ey)),'color',colorE)
+      zz = eval(['z_x' num2str(unique(fred.x))]);
+      vv = eval(['E' labstr '_x' num2str(unique(fred.x))]);
+      hE = plot(hca,smooth(vv,50),zz,'color',colorE,'linewidth',1,'linestyle',':');      
+      hold(hca,'off')
+    end
+    if doSep
+      hold(hca,'on')      
+      xx = unique(fred.x);
+      [~,ix] = min(abs(sep.x-xx));
+      zz = sep.z(ix);
+      hSep = plot(hca,hca.XLim,zz*[1 1],'color',0*colorExB,'linewidth',1,'linestyle',':');      
+      hold(hca,'off')      
+    end
+    if doV
+      hold(hca,'on')
+      zz = eval(['z_x' num2str(unique(fred.x))]);
+      vv = eval(['vi' labstr '_x' num2str(unique(fred.x))]);      
+      hv = plot(hca,vv,zz,'color',colorV,'linewidth',1.5);
+      hold(hca,'off')
+      hleg()
+    end
+    if doVe
+      hold(hca,'on')
+      zz = eval(['z_x' num2str(unique(fred.x))]);
+      vv = eval(['ve' labstr '_x' num2str(unique(fred.x))]);      
+      hv = plot(hca,vv,zz,'color',colorV,'linewidth',1.5);
+      hold(hca,'off')
+      hleg()
+    end
+    if doExB
+      hold(hca,'on')
+      unique(fred.x);
+      zz = eval(['z_x' num2str(unique(fred.x))]);
+      vv = eval(['vExB' labstr '_x' num2str(unique(fred.x))]);
+      hExB = plot(hca,smooth(vv,50),zz,'color',colorExB,'linewidth',1,'linestyle','-');
+      %plot(hca,pic_sm.zi,mean(pic_sm.vExBy,1),'color',colorExB,'linewidth',1.5)
+      hold(hca,'off')
+    end  
+    if doPhi && ifred == 2
+      hold(hca,'on')
+      unique(fred.x);
+      %if 1
+      try
+      zz = eval(['z_x' num2str(unique(fred.x))]);
+      pp = eval(['phi' labstr '_x' num2str(unique(fred.x))]);
+      vv0 = eval(['vExB' labstr '_x' num2str(unique(fred.x))]);
+      vv0 = vv0(end);
+      vv_phi = sqrt(2*(abs(pp-pp(end-150)))).*sign(pp-pp(end-150));
+      %(smooth(vv,10)+vv0-vv(end));
+      hphi = plot(hca,vv_phi,zz,'color',0*[1 1 1],'linewidth',1,'linestyle','--');
+      %plot(hca,pic_sm.zi,mean(pic_sm.vExBy,1),'color',colorExB,'linewidth',1.5)
+      end
+      hold(hca,'off')
+    end   
+  end
+end
+drawnow
+compact_panels(h(1:end),0.002,0.002)
+
+%h(1).Title.String = ['nobg, t\omega_{pe} = ' num2str(twpe,'%05.0f')];
+fig = gcf; h_ = findobj(fig.Children,'type','axes');
+hlinks = linkprop(h(1:end),{'XLim','YLim','CLim'});
+% Colorbar
+ip = ncols;
+position_hcb_peer = h(ip).Position;
+hcb = colorbar('peer',h(ip));
+h(ip).Position = position_hcb_peer;
+hcb.YLabel.String = sprintf('f_{i,c}(z,v_{%s})','z');
+hcb.YLabel.FontSize = 14;
+%hcb.Position(3)=0.02;
+ 
+hl = findobj(h(ncols),'type','line');
+hleg = legend(hl,{'v_{ExB}','separatrix'},'edgecolor',[1 1 1],'location','northeast');
+hleg = legend(hl([2 1 3]),{'v_{ExB}','v_{\phi_z}','separatrix'},'edgecolor',[1 1 1],'location','northeast');
+
+h(1).CLim = [-6 -0.2];
+h(1).YLim = [-1 8];
+h(1).XLim = 0.99*3*[-1 1];
+
+for ip = [2:ncols]
+  h(ip).YTickLabels = '';
+  h(ip).YLabel.String = '';  
+end
+for ip = 1:npanels
+  h(ip).FontSize = 14;
+  %h(ip).Position(2) = 0.17;
+end
+c_eval('h(?).Position(1) = h(?).Position(1)-0.05;',1:npanels)
+c_eval('h(?).Position(2) = h(?).Position(2)+0.05;',1:npanels)
+% %xpicks = xpicks;
+% for ip = ((nrows-1)*ncols+1):nrows*ncols
+%   h(ip).XLabel.String = 'v';  
+% end
+% for ip = [2 4 6]
+%   h(ip).Position(1) = 0.4;
+% end
+compact_panels(h,0.002,0.002)
+hleg.FontSize = 11;
+hcb_ = findobj(gcf,'Type','ColorBar');
+if 1 % notations
+  annotation('textarrow',[0.55 0.6]+0.025,[0.5 0.5]+0.05,'String',{'thermalization','begin at','separatrices'},'fontsize',13,'fontweight','light','horizontalalignment','center')
+  annotation('textarrow',[0.55 0.6]+0.02,[0.35 0.35]+0.05,'String',{'inbound ions','follow v_{\phi_z}'},'fontsize',13,'fontweight','light','horizontalalignment','center')
+  %annotation('textarrow',[0.55 0.6]+0.02,[0.35 0.35],'String',{'inbound ions','follow v_{\phi_z} and','are gradually','thermalized'},'fontsize',13,'fontweight','light')
+  annotation('textarrow',[0.56 0.6]-0.35,[0.4 0.4]+0.05,'String',{'inbound ions','remain','cold and','follow v_{ExB,z}','deep within','the exhaust'},'fontsize',13,'fontweight','light','horizontalalignment','center')
+  %annotation('textarrow',[0.56 0.6]-0.35,[0.4 0.4]+0.05,'String',{'thermal ions','follow v_{ExB,z}','deep within','the exhaust'},'fontsize',13,'fontweight','light','horizontalalignment','center')
+  %annotation('textarrow',[0.83 0.84],[0.74 0.76],'String',{'thermalization of','cold inbound ions','at separatrices'},'fontsize',13,'fontweight','light')  
+end
 
 %% Figure 4, ALT 2, prepare data
 twpe = 24000;
 pic = no02m.twpelim(twpe);
-for xpick = 75
+for xpick = [75 85]
   ds = ds100.twpelim(twpe).xfind(xpick).findtag({'line vertical'});
   fred35_tmp = ds.reduce_1d_new('x',[3 5],[]); 
   
@@ -2050,6 +2219,460 @@ c_eval('h(?).Position(2) = h(?).Position(2)+0.06;',3:(2+ncols));
 hl = findobj(h(2+ncols),'type','line');
 hs = findobj(h(2+ncols),'type','scatter');
 legend([hl;hs],{'B','v_{bulk}','v_{ExB}'},'box','off','location','northoutside','orientation','horizontal')
+
+%% Figure 6, ALT3, Curvature plot, combined, fred along two selected field lines
+
+doExB = 1;
+ExBcol = [0.5 0.5 0.5];
+contlev = [-1:0.5:0];
+forcelim = [-0.5 0.5];
+fclim = [-6 -0.5];
+
+% Prepare plot
+clear h;
+nrows = 4;
+ncols = 5;
+nmaps = 3;
+h(1) = subplot(nrows,ncols,0*ncols+1:ncols);
+hpos{1} = h(1).Position;
+h(2) = subplot(nrows,ncols,1*ncols+(1:ncols));
+hpos{2} = h(2).Position;
+h(3) = subplot(nrows,ncols,2*ncols+(1:ncols));
+hpos{3} = h(3).Position;
+
+c_eval('h(?-ncols*nmaps+nmaps) = subplot(nrows,ncols,?)',(ncols*3+1):nrows*ncols);
+twpe = 24000;
+xpos = [72:2:80];
+fontsize = 14;
+legfontsize = 12;
+xlim = [60 110];
+xpos2 = [69 71 73 75 77 79];
+xpos2 = [71 73 75 77 79];
+legends = {'a)','b)','c)','d)','e)','f)','g)','h)','i)','k)','l)','m)','n)','o)'};
+
+ds = ds100.twpelim(twpe).findtag({'line horizontal'}).xlim([71 80]).zfind(0).xfind(xpos);
+ds2 = ds100.twpelim(twpe).findtag({'line horizontal'}).xlim([71 80]).zfind(2).xfind(xpos);
+ds2 = ds100.twpelim(twpe).findtag({'line horizontal'}).xlim([50 80]).zfind(2).xfind(xpos2);
+pic = no02m.twpelim(twpe).xlim(xlim).zlim([-7 7]);
+
+isub = 1;
+
+hca = h(isub); isub = isub + 1;
+hmap = pic.plot_map(hca,{'n(3)'},'A',1,'cmap',pic_colors('thermal'),'cbarlabels',{'n_{ic}^{top}'},'smooth',2);
+hmap.CLim = [0 0.4999];
+hca.Position = hpos{isub-1};
+hold(hca,'on')
+ds.plot_boxes(hca,'color',[1 1 1]);
+%ds2.plot_boxes(hca,'color',[0 0 0]);
+hold(hca,'off')
+
+hca = h(isub); isub = isub + 1;
+hmap = pic.plot_map(hca,{'log10(curvbrad)'},'A',1,'cmap',pic_colors('blue_red'),'cbarlabels',{'log_{10}r_B'},'smooth',2);
+hmap.CLim = [-1 3];
+hca.Position = hpos{isub-1};
+hold(hca,'on')
+ds.plot_boxes(hca,'color',[1 1 1]);
+%ds2.plot_boxes(hca,'color',[0 0 0]);
+hold(hca,'off')
+
+hca = h(isub); isub = isub + 1;
+comp = 'x';
+hline = pic.xlim([63 xlim(2)]).zlim([-0.25 0.25]).plot_line(hca,comp,{{'Babs','curvbrad','curvbrad.*Babs'}},'smooth',10);
+hca.Position = hpos{isub-1};
+hca.YLim = [0 3.99];
+%legend(hca,{'|B|','r_B','r_B\omega_{ci}'},'location','north','orientation','horizontal')
+legend(hca,{'|B|','r_B','r_B\omega_{ci}'},'location','north','orientation','horizontal','box','off')
+hca.Title.String = [];
+hca.XLim = xlim;
+ycompr = 0.03;
+%compact_panels(h(1:2),0)
+%c_eval('h(?).Position(2) = h(?).Position(2) + 0.03;',1:2)
+irf_legend(hca,{'z=0\pm0.25'},[0.98 0.98],'color',[0 0 0],'fontsize',fontsize)
+
+compact_panels(h(1:nmaps),0)
+% make this panel slightly smaller
+h(3).Position(2) = h(3).Position(2) + ycompr;
+h(3).Position(4) = h(3).Position(4) - ycompr;
+
+
+for ids = 1:numel(dss)
+  ds_tmp = dss{ids}; 
+  ds_tmp.plot_boxes(h(1),'color',[1 1 1]);
+  ds_tmp.plot_boxes(h(2),'color',[1 1 1]);
+  %ds_tmp.plot_map(h(1)'color',[1 1 1]);
+end
+%
+xlim = 3.5*0.99*[-1 1];
+ylim = 3.5*0.99*[-1 1];
+fclim2d = [-7 0];
+ih0 = nmaps;
+if 1 % f(v_x,v_y)
+  sumdim = 3;
+  clim = [-4 1];
+  xlim = 3.5*0.99*[-1 1];
+  ylim = 3.5*0.99*[-1 1];
+  x0 = (ds.xi1{1}+ds.xi2{1})/2;
+  hds = ds.plot_map(h(ih0+(1:ncols)),[3],sumdim,'v',no02m,'log','curv',{no02m,1},'nolabel'); % 
+  hlinks = linkprop(hds.ax,{'XLim','YLim','CLim','XTick','YTick'});
+  %c_eval('hds.ax(?).Position(2) = hds.ax(?).Position(2) + 0.10;',1:ncols)
+  hds.ax(1).Position(1) = h(1).Position(1);
+  compact_panels(hds.ax,0.00,0.00)
+  c_eval('irf_legend(hds.ax(?),sprintf(''%s x = %g, z = 0'',legends{?+ih0},x0(?)),[0.02 0.98],''color'',[0 0 0],''fontsize'',legfontsize);',1:ncols);
+  %[hax,hlab] = label_panels(hds.ax);
+  hds.ax(1).CLim = fclim2d;
+  %h.ax(1).CLim = [0 1];
+  hds.ax(1).XLim = xlim;
+  hds.ax(1).YLim = ylim;
+  %c_eval('hds.ax(?).XLabel.String = []; hds.ax(?).XTickLabels = [];',[1 2 3]);
+  c_eval('hds.ax(?).YLabel.String = []; hds.ax(?).YTickLabels = [];',2:ncols);
+  pos = hds.ax(end).Position;
+  hcb = colorbar('peer',hds.ax(end));
+  hcb.YLabel.String = 'log_{10}f_{ic}^{top}(v_x,v_y)';
+  hds.ax(end).Position = pos;
+end
+
+
+%ih0 = nmaps;
+if 0 % f(v_x,v_z)
+  sumdim = 2;
+  hds2 = ds2.plot_map(h(ih0+(1:ncols)),[5],sumdim,'v',no02m,'bline',no02m,'nolabel','log','nan','exb',no02m); % 
+  hlinks2 = linkprop(hds2.ax,{'XLim','YLim','CLim','XTick','YTick'});
+  x0 = (ds2.xi1{1}+ds2.xi2{1})/2;
+  c_eval('irf_legend(hds2.ax(?),sprintf(''%s x = %g, z = 2'',legends{?+ih0},x0(?)),[0.02 0.98],''color'',[0 0 0],''fontsize'',legfontsize);',1:ncols);
+  hds2.ax(1).Position(1) = h(1).Position(1);
+  %c_eval('hds2.ax(?).Position(2) = hds2.ax(?).Position(2) + 0.10;',1:3)
+  compact_panels(hds2.ax,0.00,0.00)
+  c_eval('hds2.ax(?).YLabel.String = []; hds2.ax(?).YTickLabels = [];',2:ncols);
+  hds2.ax(1).CLim = fclim2d;
+  %hds2.ax(1).CLim = [0 1];
+  %h.ax(1).CLim = [0 1];
+  hds2.ax(1).XLim = xlim;
+  hds2.ax(1).YLim = ylim;
+  pos = hds2.ax(end).Position;
+  hcb = colorbar('peer',hds2.ax(end));
+  hcb.YLabel.String = 'log_{10}f(v_x,v_z)';
+  hds2.ax(end).Position = pos;
+  %c_eval('colormap(hds2.ax(?),pic_colors(''pasteljet''));',1:numel(hds2.ax))
+end
+%ih0 = 2+ncols;
+if 0 % f(v_x,v_z)
+  sumdim = 2;
+  hds3 = ds2.plot_map(h(ih0+(1:ncols)),[3],sumdim,'ratio',[3 5],'v',no02m,'bline',no02m,'nolabel','nan','exb',no02m); % 
+  hlinks2 = linkprop(hds2.ax,{'XLim','YLim','CLim','XTick','YTick'});
+  x0 = (ds2.xi1{1}+ds2.xi2{1})/2;
+  c_eval('irf_legend(hds3.ax(?),sprintf(''%s x = %g, z = 2'',legends{?+ih0},x0(?)),[0.02 0.98],''color'',[0 0 0],''fontsize'',legfontsize);',1:ncols);
+  hds3.ax(1).Position(1) = h(1).Position(1);
+  %c_eval('hds2.ax(?).Position(2) = hds2.ax(?).Position(2) + 0.10;',1:3)
+  compact_panels(hds3.ax,0.00,0.00)
+  c_eval('hds3.ax(?).YLabel.String = []; hds3.ax(?).YTickLabels = [];',2:ncols);
+  %hds3.ax(1).CLim = clim;
+  hds3.ax(1).CLim = [0 1];
+  %h.ax(1).CLim = [0 1];
+  hds3.ax(1).XLim = xlim;
+  hds3.ax(1).YLim = ylim;
+  pos = hds3.ax(end).Position;
+  hcb = colorbar('peer',hds3.ax(end));
+  hcb.YLabel.String = 'f(v_x,v_z)';
+  hds3.ax(end).Position = pos;
+  c_eval('colormap(hds3.ax(?),pic_colors(''pasteljet''));',1:numel(hds3.ax))
+end
+
+for ip = 1:nmaps
+  irf_legend(h(ip),{legends{ip}},[0.01 0.99],'color',[0 0 0],'fontsize',fontsize)
+end
+%irf_legend(h(2),{'b)'},[0.02 0.98],'color',[0 0 0],'fontsize',fontsize)
+
+heigths = [0.12 0.12 0.08];
+clear dh
+for ih = 1:nmaps
+  dh(ih) = heigths(ih) - h(ih).Position(4);
+  h(ih).Position(4) = heigths(ih);
+  h(ih).Position(2) = h(ih).Position(2) - sum(dh);
+end
+drawnow
+c_eval('h(?).Position(2) = h(?).Position(2)-sum(dh)+0.02;',(nmaps)+[1:ncols]);
+%h(1).Position(4)  = heigths(1);
+%h(1).Position(2)  = heigths(2);
+%h(1).Position(3)  = heigths(3);
+
+%hlinks = linkprop(h(3:end),{'XLim','YLim','CLim'});
+h(1).Title.String = '';
+%
+c_eval('h(?).FontSize = fontsize;',1:numel(h));
+%c_eval('h(?).Position(1) = h(?).Position(1)-0.04;',1:numel(h));
+%c_eval('h(?).Position(4) = h(end).Position(4);',3:numel(h))
+%drawnow
+%c_eval('h(?).Position(2) = h(?).Position(2)+0.06;',3:(2+ncols));
+%compact_panels(h(3:end),0.0,0)
+
+%irf_legend(h(8),{'B'},[0.92 0.27],'color',0.5+[0 0 0],'fontsize',16)
+annotation('textarrow',[0.24 0.22],[0.140 0.15]-sum(dh)+0.02,'String',{'v_{i,\perp}^{\kappa=1}'},'fontsize',13,'fontweight','light')
+
+%c_eval('h().Position')
+htmp = h(end-1);
+tmppos = htmp.Position;
+%hl = findobj(htmp,'type','line');
+hs = findobj(htmp,'type','scatter');
+hleg_dist = legend([hs],{'v_{ExB}','v_{bulk}'},'location','south','orientation','horizontal','edgecolor',[1 1 1]);
+htmp.Position = tmppos;
+%% Second part, with reduced distributions along field line
+% Prepare 1D reduced distributions
+twpe = 24000;
+pic = no02m.twpelim(twpe).xlim([60 90]).zlim([-8 8]);
+tags = {'A=6.0','A=8.0'};
+%tags = {'A=6.0','A=7.5','A=8.0'};
+tags = tags(end:-1:1);
+%tags = {'A=6.0'};
+
+nred = numel(tags);
+
+%tags = {'line vertical'}; xpick = [75 80];
+%nred = numel(xpick);
+
+% fpar3 = struct([]);
+% fpar5 = struct([]);
+if 0
+clear fx3 fx5 fy3 fy5 fz3 fz5 dss
+for itag = 1:nred
+  ds = ds100.twpelim(twpe).dxlim([0.1 0.3]).findtag(tags(itag)).xlim([50 90]);
+  %ds = ds100.twpelim(twpe).dxlim([0.5 1]).findtag(tags).xfind(xpick(itag)).xlim([50 100]);
+  iSpecies3 = 3;
+  iSpecies5 = 3;
+  dss{itag} = ds;
+  fx3_tmp = ds.fx(1,:,iSpecies3);
+  fx5_tmp = ds.fx(1,:,iSpecies5);
+  fx3{itag} = fx3_tmp;
+  fx5{itag} = fx5_tmp;
+  fy3_tmp = ds.fy(1,:,iSpecies3);
+  fy5_tmp = ds.fy(1,:,iSpecies5);
+  fy3{itag} = fy3_tmp;
+  fy5{itag} = fy5_tmp;
+  fz3_tmp = ds.fz(1,:,iSpecies3);
+  fz5_tmp = ds.fz(1,:,iSpecies5);
+  fz3{itag} = fz3_tmp;
+  fz5{itag} = fz5_tmp;
+end
+end
+
+% 
+doExB = 1;
+ExBcol = [0.5 0.5 0.5]*0+0;
+ExBlinewidth = 0.5;
+doCont = 0;
+contlev = [-1:0.5:0];
+forcelim = [-0.5 0.5];
+fclim = [-5 -0.0];
+ncols = nred;
+nrows = 3;
+%nrows = 7;
+%ncols = 4;
+cmap = pic_colors('pasteljet');
+cmap = pic_colors('candy4');
+plotxstr = 'arc_z0';
+npanels = nrows*ncols;
+h = setup_subplots(nrows,ncols,'vertical');
+%h = setup_subplots(nrows,ncols,'horizontal');
+isub = 1;
+% Distributions
+for itag = 1:nred
+  if 0 % arclength on vertical axis
+    if 1 % fx5
+      hca = h(isub); isub = isub + 1;
+      ff1 = fx5{itag};
+      pcolor(hca,ff1.v,ff1.(plotxstr),log10(ff1.f)'); 
+      shading(hca,'flat'); 
+      hca.XLabel.String = 'v (v_A)'; 
+      if 1 % contour lines
+        hold(hca,'on')      
+        contour(hca,ff1.v,ff1.(plotxstr),log10(ff1.f)',contlev,'color',[0 0 0])      
+        hold(hca,'off')
+      end
+      if doExB % ExB
+        B2 = ff1.Bx.^2 + ff1.By.^2 + ff1.Bz.^2;
+        ExB = (ff1.Ey.*ff1.Bz - ff1.Ez.*ff1.By)./B2; % x-comp
+        hold(hca,'on')
+        plot(hca,ExB,ff1.(plotxstr),'color',[1 1 1],'linewidth',1)
+        hold(hca,'off')
+      end
+      colormap(hca,pic_colors('candy4')); 
+      hca.CLim = fclim;    
+      hleg = irf_legend(hca,'f(v_x)',[0.02,0.98],'color',[0 0 0],'backgroundcolor',[1 1 1]); 
+    end
+    if 1 % fy5
+      hca = h(isub); isub = isub + 1;
+      ff1 = fy5{itag};
+      pcolor(hca,ff1.v,ff1.(plotxstr),log10(ff1.f)'); 
+      shading(hca,'flat'); 
+      colormap(hca,pic_colors('candy4')); 
+      hca.CLim = fclim;
+      hca.XLabel.String = 'v (v_A)'; 
+      if 1 % contour lines
+        hold(hca,'on')      
+        contour(hca,ff1.v,ff1.(plotxstr),log10(ff1.f)',contlev,'color',[0 0 0])      
+        hold(hca,'off')
+      end
+      if doExB % ExB
+        B2 = ff1.Bx.^2 + ff1.By.^2 + ff1.Bz.^2;
+        ExB = (ff1.Ez.*ff1.Bx - ff1.Ex.*ff1.Bz)./B2; % y-comp
+        hold(hca,'on')
+        plot(hca,ExB,ff1.(plotxstr),'color',[1 1 1],'linewidth',1)
+        hold(hca,'off')
+      end
+      hleg = irf_legend(hca,'f(v_y)',[0.02,0.98],'color',[0 0 0],'backgroundcolor',[1 1 1]); 
+    end
+    if 1 % fz5
+    hca = h(isub); isub = isub + 1;
+    ff1 = fz5{itag};
+    pcolor(hca,ff1.v,ff1.(plotxstr),log10(ff1.f)'); 
+    shading(hca,'flat'); 
+    colormap(hca,pic_colors('candy4')); 
+    hca.CLim = fclim;
+    hca.XLabel.String = 'v (v_A)'; 
+    if 1 % contour lines
+      hold(hca,'on')      
+      contour(hca,ff1.v,ff1.(plotxstr),log10(ff1.f)',contlev,'color',[0 0 0])      
+      hold(hca,'off')
+    end
+    if doExB % ExB
+      B2 = ff1.Bx.^2 + ff1.By.^2 + ff1.Bz.^2;
+      ExB = (ff1.Ex.*ff1.By - ff1.Ey.*ff1.Bx)./B2; % z-comp
+      hold(hca,'on')
+      plot(hca,ExB,ff1.(plotxstr),'color',[1 1 1],'linewidth',1)
+      hold(hca,'off')
+    end    
+    hleg = irf_legend(hca,'f(v_z)',[0.02,0.98],'color',[0 0 0],'backgroundcolor',[1 1 1]);     
+  end
+  end
+  if 1 % arclength on horizontal axis
+    if 1 % fx5
+      hca = h(isub); isub = isub + 1;
+      ff1 = fx5{itag};
+      plotf = log10(ff1.f);
+      plotf(plotf==-Inf) = NaN;
+      pcolor(hca,ff1.(plotxstr),ff1.v,plotf); 
+      shading(hca,'flat'); 
+      hca.YLabel.String = 'v_x'; 
+      if doCont % contour lines
+        hold(hca,'on')      
+        contour(hca,ff1.v,ff1.(plotxstr),log10(ff1.f)',contlev,'color',[0 0 0])      
+        hold(hca,'off')
+      end
+      if doExB % ExB
+        B2 = ff1.Bx.^2 + ff1.By.^2 + ff1.Bz.^2;
+        ExB = (ff1.Ey.*ff1.Bz - ff1.Ez.*ff1.By)./B2; % x-comp
+        hold(hca,'on')
+        plot(hca,ff1.(plotxstr),ExB,'color',ExBcol,'linewidth',ExBlinewidth)
+        hold(hca,'off')
+      end
+      colormap(hca,cmap); 
+      hca.CLim = fclim;    
+      %hleg = irf_legend(hca,'f(v_x)',[0.02,0.98],'color',[0 0 0],'backgroundcolor',[1 1 1]); 
+    end
+    if 1 % fy5
+      hca = h(isub); isub = isub + 1;
+      ff1 = fy5{itag};
+      plotf = log10(ff1.f);
+      plotf(plotf==-Inf) = NaN;
+      pcolor(hca,ff1.(plotxstr),ff1.v,plotf); 
+      shading(hca,'flat'); 
+      colormap(hca,cmap); 
+      hca.CLim = fclim;
+      hca.YLabel.String = 'v _y'; 
+      if doCont % contour lines
+        hold(hca,'on')      
+        contour(hca,ff1.(plotxstr),ff1.v,log10(ff1.f),contlev,'color',[0 0 0])      
+        hold(hca,'off')
+      end
+      if doExB % ExB
+        B2 = ff1.Bx.^2 + ff1.By.^2 + ff1.Bz.^2;
+        ExB = (ff1.Ez.*ff1.Bx - ff1.Ex.*ff1.Bz)./B2; % y-comp
+        hold(hca,'on')
+        plot(hca,ff1.(plotxstr),ExB,'color',ExBcol,'linewidth',ExBlinewidth)
+        hold(hca,'off')
+      end
+      %hleg = irf_legend(hca,'f(v_y)',[0.02,0.98],'color',[0 0 0],'backgroundcolor',[1 1 1]); 
+    end
+    if 1 % fz5
+      hca = h(isub); isub = isub + 1;
+      ff1 = fz5{itag};
+      plotf = log10(ff1.f);
+      plotf(plotf==-Inf) = NaN;
+      pcolor(hca,ff1.(plotxstr),ff1.v,plotf); 
+      shading(hca,'flat'); 
+      colormap(hca,cmap); 
+      hca.CLim = fclim;
+      hca.YLabel.String = 'v_z'; 
+      if doCont % contour lines
+        hold(hca,'on')      
+        contour(hca,ff1.(plotxstr),ff1.v,log10(ff1.f),contlev,'color',[0 0 0])      
+        hold(hca,'off')
+      end
+      if doExB % ExB
+        B2 = ff1.Bx.^2 + ff1.By.^2 + ff1.Bz.^2;
+        ExB = (ff1.Ex.*ff1.By - ff1.Ey.*ff1.Bx)./B2; % z-comp
+        hold(hca,'on')
+        plot(hca,ff1.(plotxstr),ExB,'color',ExBcol,'linewidth',ExBlinewidth)
+        hold(hca,'off')
+      end    
+      %hleg = irf_legend(hca,'f(v_z)',[0.02,0.98],'color',[0 0 0],'backgroundcolor',[1 1 1]);     
+    end
+  end
+end
+
+
+c_eval('h(?).XLabel.String = ''s'';',1:npanels)
+c_eval('h(?).YLabel.String = '''';',4:npanels)
+c_eval('h(?).YTickLabels = [];',4:npanels)
+c_eval('h(?).Position(1) = h(?).Position(1)-0.05;',1:npanels)
+%c_eval('colormap(h(?),pic_colors(''pasteljet''));',1:npanels) 
+compact_panels(h,0.0,0.02)
+hlinks = linkprop(h,{'XLim','YLim'});
+h(1).YLim = [-2.5 2.5];
+h(1).YLim = 1.9*[-1 1];
+
+hpos = h(end).Position;
+hcb = colorbar('peer',h(end));
+hcb.Position(4) = hpos(4)*3;
+hcb.Position(1) = hpos(1)+hpos(3)+0.01;
+hcb.Position(3) = 0.015;
+hcb.YLabel.String = 'log_{10}f_{ic}^{top}(s,v)';
+
+c_eval('h(?).XGrid = ''on'';',1:npanels)
+c_eval('h(?).YGrid = ''on'';',1:npanels)
+c_eval('h(?).Layer = ''top'';',1:npanels)
+
+legends = {'a)','b)','c)','d)','e)','f)','g)','h)','i)','j)','k)','l)'};
+legends = {'i)','j)','k)','l)','m)','n)','o)'};
+for ip = 1:npanels
+  irf_legend(h(ip),{legends{ip}},[0.02 0.98],'color',[0 0 0],'fontsize',12)
+end
+
+hl_exb = findobj(h(1),'type','line');
+legend(hl_exb,'v_{E\times B}','Box','off','location','southwest')
+
+hleg = irf_legend(h(1),{'north';'B_x>0'},[0.08,0.98],'color',[0 0 0]);
+hleg = irf_legend(h(1),{'south';'B_x<0'},[0.98,0.98],'color',[0 0 0]);
+hleg = irf_legend(h(4),{'north';'B_x>0'},[0.08,0.98],'color',[0 0 0]);
+hleg = irf_legend(h(4),{'south';'B_x<0'},[0.98,0.98],'color',[0 0 0]);
+
+delete(findall(gcf,'type','annotation'))
+an_fontsize = 11;
+hleg = irf_legend(h(2),{'stronger';'magnetization:';'complete gyromotion'},[0.02,0.04],'color',[0 0 0],'fontsize',11);
+annotation('textarrow',[0.30 0.30],[0.59 0.54],'String',{'v_y>0 \rightarrow -v_yB_x>0'},'fontsize',an_fontsize,'fontweight','light')
+annotation('textarrow',[0.34 0.33],[0.46 0.50],'String',{'v_y<0 \rightarrow -v_yB_x<0'},'fontsize',an_fontsize,'fontweight','light','horizontalalignment','center')
+annotation('textarrow',[0.29 0.29],[0.31 0.27],'String',{'reflection due to -v_yB_x>0'},'fontsize',an_fontsize,'fontweight','light','horizontalalignment','left')
+annotation('textarrow',[0.32 0.32],[0.17 0.21],'String',{'outward force due to -v_yB_x<0'},'fontsize',an_fontsize,'fontweight','light','horizontalalignment','left')
+
+hleg = irf_legend(h(5),{'weaker magnetization:';'incomplete gyromotion'},[0.02,0.04],'color',[0 0 0],'fontsize',11);
+annotation('textarrow',[0.68 0.68],[0.59 0.55],'String',{'v_y>0 \rightarrow -v_yB_x>0'},'fontsize',an_fontsize,'fontweight','light','horizontalalignment','left')
+%annotation('textarrow',[0.70 0.7],[0.17 0.21],'String',{'reflection due to -v_yB_x<0'},'fontsize',an_fontsize,'fontweight','light','horizontalalignment','left')
+%annotation('textarrow',[0.72 0.7],[0.30 0.28],'String',{'reflection due to','-v_yB_x<0'},'fontsize',an_fontsize,'fontweight','light','horizontalalignment','center')
+%annotation('textarrow',[0.73 0.72],[0.22 0.24],'String',{'simultaneous','scattering'},'fontsize',an_fontsize,'fontweight','light','horizontalalignment','center')
+annotation('textarrow',[0.74 0.72],[0.25 0.25],'String',{'reflection','due to','-v_yB_x>0','+','simultaneous','scattering'},'fontsize',an_fontsize,'fontweight','light','horizontalalignment','center')
+
+%annotation('textarrow',[0.30 0.30],[0.15 0.2],'String',{'-v_y+B_x<0'},'fontsize',12,'fontweight','light')
+%if strcmp(plotxstr,'arc_z0'), %c_eval('h(?).YDir = ''reverse'';',remainingrows); end
+set(gcf,'position',[1304         782         616         331
 
 %% Figure 7, f(vy), py
 %% Reduced distributions, plot

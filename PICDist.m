@@ -970,11 +970,12 @@ classdef PICDist
             curvbrad = mean(mean(pic.twpelim(obj.twpe,'exact').xlim(f.x).zlim(f.z).curvbrad));
             vExB1 = mean(mean(pic.twpelim(obj.twpe,'exact').xlim(f.x).zlim(f.z).(['vExB' xaxstr])));
             vExB2 = mean(mean(pic.twpelim(obj.twpe,'exact').xlim(f.x).zlim(f.z).(['vExB' yaxstr])));            
-            for iCurvV = 1:numel(kCurv)              
+            for iCurvV = 1:numel(kCurv)
               v1 = vExB1+curvbrad*Babs*kCurv(iCurvV)*cosd(0:360);
               v2 = vExB2+curvbrad*Babs*kCurv(iCurvV)*sind(0:360);
               hCurvV = plot(hca,v1,v2,'color',[0 0 0]);
-              scatter(hca,vExB1,vExB2,20,[0 0 0]);
+              scatter(hca,vExB1,vExB2,20,[0 0 0],'marker','*');
+              %plot(hca,vExB1,vExB2,'marker','*','color',[0 0 0],'markersize',3);
             end
             hold(hca,'off')            
           end
@@ -1070,16 +1071,20 @@ classdef PICDist
       
       for it = 1:nt
         ihsave = [];
+        skipTagColor = 0;
         if doTagColor % set up colors based on tags
           tags = obj.tags{it};
-          uniquetags = unique(tags);
-          ntags = numel(uniquetags);
-          %try
+          emptyCell = find(cellfun(@(s) isempty(s), tags));
+          tags(emptyCell) = repmat({' '},numel(emptyCell),1);
+          if isempty([tags{:}])
+            color = [0 0 0];
+            skipTagColor = 1;
+          else
+            uniquetags = unique(tags);
+            ntags = numel(uniquetags);
             cmap = pic_colors('pasteljet');
-          %catch
-          %  cmap = pic_colors('pasteljet');
-          %end
-          colors = interp1((0:size(cmap,1)-1)/size(cmap,1),cmap,(0:ntags-1)/ntags);
+            colors = interp1((0:size(cmap,1)-1)/size(cmap,1),cmap,(0:ntags-1)/ntags);          
+          end
         end
         if doPlotIntoAxes
           hca = ax(it);
@@ -1090,19 +1095,19 @@ classdef PICDist
         for idist = 1:numel(obj.xi1{it})
           xplot = [obj.xi1{it}(idist) obj.xi2{it}(idist) obj.xi2{it}(idist) obj.xi1{it}(idist) obj.xi1{it}(idist)];
           zplot = [obj.zi1{it}(idist) obj.zi1{it}(idist) obj.zi2{it}(idist) obj.zi2{it}(idist) obj.zi1{it}(idist)];
-          if doTagColor % set up colors
-            tag = obj.tags{it}{idist};
+          if doTagColor && not(skipTagColor) % set up colors
+            tag = tags{idist};
             iuniquetag = find(cellfun(@(s) ~isempty(strfind(tag, s)), uniquetags));
             color = colors(iuniquetag,:);        
           end
           hbox(idist) = plot(hca,xplot,zplot,'color',color,'linewidth',1);
-          if doTagColor % Save first handle of each tag            
+          if doTagColor && not(skipTagColor)% Save first handle of each tag            
             ihsave(iuniquetag) = idist;
           end
           if idist == 1; hold(hca,'on'); end
         end
         hold(hca,'off');
-        if doTagColor
+        if doTagColor && not(skipTagColor)
           legend(hbox(ihsave),uniquetags{:})
         end
       end
@@ -1311,6 +1316,9 @@ classdef PICDist
             else
               all_tags{iIter}{iDist} = fileInfo.Groups(iGroup).Groups(iIter).Groups(iDist).Attributes(iAtt).Value;
             end
+          end
+          if isempty(all_tags{iIter}{iDist})
+            all_tags{iIter}{iDist} = ' ';
           end
 %           iAtt =      find(contains({fileInfo.Groups(iGroup).Groups(iIter).Groups(iDist).Datasets(1).Attributes.Name},'tag')); 
 %           if isempty(iAtt)

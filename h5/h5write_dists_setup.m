@@ -144,10 +144,10 @@ hold(hca,'off')
 
 %% Write tags, write
 h5FilePath = '/Volumes/Fountain/Data/PIC/no_hot_bg_n02_m100/data_h5/dists.h5';
-twpe = 24000;
-tag = 'A=7.5';
+twpe = 21000;
+tag = '';
 %tag = 'A=6.0';
-for idist = 1740%:2049%1:280
+for idist = 1:ds100.twpelim(twpe).nd{1}%1740%:2049%1:280
   dataset = ['/data/' sprintf('%010.0f',2*twpe) '/' sprintf('%05.0f',idist) '/'];    
   h5writeatt(h5FilePath,dataset,'tag',tag)
   dataset = ['/data/' sprintf('%010.0f',2*twpe) '/' sprintf('%05.0f',idist) '/fxyz'];  
