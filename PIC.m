@@ -959,7 +959,8 @@ classdef PIC
         error(sprintf('Unknown dependent dimension %s. Must be ''x'' or ''z''.',dim))
       end
             
-      % Check additional input      
+      % Check additional input   
+      varargin_plot = {};
       have_options = 0;
       nargs = numel(varargin);      
       if nargs > 0, have_options = 1; args = varargin(:); end      
@@ -981,6 +982,10 @@ classdef PIC
             l = 2;
             doSmooth = 1;
             npSmooth = args{2};
+          case {'linewidth'}
+            l = 2;
+            varargin_plot{end+1} = args{1};
+            varargin_plot{end+1} = args{2};
           otherwise 
             warning(sprintf('Unknown argument %s.',args{1}))
         end
@@ -1000,7 +1005,8 @@ classdef PIC
       
         
       if doVideo
-        vidObj = VideoWriter([fileName '.mp4'],'MPEG-4');
+        vidObj = VideoWriter([fileName '.mp4'],'MPEG-4');        
+        vidObj.FrameRate = 10;
         open(vidObj);
       end
       if doGif
@@ -1050,7 +1056,7 @@ classdef PIC
               if doSmooth
                 var = smooth(var,npSmooth);
               end
-              plot(hca,plot_dep,var,'DisplayName',displayname);
+              plot(hca,plot_dep,var,'DisplayName',displayname,varargin_plot{:});
               if doYLim
                 hca.YLim = ylims{ip};
               end

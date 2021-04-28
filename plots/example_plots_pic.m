@@ -514,10 +514,10 @@ h = pic.plot_line(comp,varstrs);
 
 %% plotline, vertical, Ez balance
 comp = 'z';
-twpe = [1000];
-xlim = 50+0.2*[-1 1];
+twpe = [24000];
+xlim = 100+0.2*[-1 1];
 zlim = [-10 10];
-pic = nobg.twpelim(twpe,'exact').xlim(xlim).zlim(zlim);
+pic = no02m.twpelim(twpe).xlim(xlim).zlim(zlim);
 
 % twpe = 10000;
 % xlim = 160+1*[-1 1];
@@ -528,6 +528,8 @@ varstrs = {{'Bx','Bz','Ey'};{'Ez','-vxBz([1 3 5])','divpz([1 3 5])','dvzdt([1 3 
 varstrs = {{'n(1)','n([3 5])','n(2)','n([4 6])'};{'Ez','-vxBz([1 3 5])','-vxBz([3 5])','-vxBz([2])','-vxBz([4 6])'};{'Ez','-vxBz([1 3 5])','divpz([1 3 5])','dvzdt([1 3 5])','vdvz([1 3 5])','-vxBz([1 3 5])+divpz([1 3 5])+dvzdt([1 3 5])+vdvz([1 3 5])'};{'Ez','-vxBz([2 4 6])','-divpz([2 4 6])'}};
 varstrs = {{'PB','pi','pe','PB+pi+pe'};{'n(1)','n([3 5])','n(2)','n([4 6])'};{'Ez','-vxBz([1 3 5])','-vxBz([3 5])','-vxBz([2])','-vxBz([4 6])'};{'Ez','-vxBz([1])','divpz([1])','dvzdt([1])','vdvz([1])','-vxBz([1])+divpz([1])+dvzdt([1])+vdvz([1])'};{'Ez','-vxBz([3 5])','divpz([3 5])','dvzdt([3 5])','vdvz([3 5])','-vxBz([3 5])+divpz([3 5])+dvzdt([3 5])+vdvz([3 5])'};{'Ez','-vxBz([2 4 6])','-divpz([2 4 6])'}};
 varstrs = {{'n(1)','n([3 5])','n([1 3 5])'};{'t(1)','t([3 5])'}};
+varstrs = {{'abs(Bx)','By','abs(viz)'};{'viz.*Bx','Ey'}};
+%varstrs = {{'abs(Bx)','By','abs(viz)'}};
 
 h = pic.plot_line(comp,varstrs,'smooth',10);
 
@@ -623,7 +625,7 @@ ylim = {[-1 1]*0.99;[-2 0]*0.99;[-0.1 0.4]*0.99;[-0.1 0.4]*0.99;[-0.1 0.1]*0.99;
 varstrs = {{'abs(Bz)','Jx'}};
  
 
-h = pic.movie_line(comp,varstrs,'ylim',ylim,'smooth',7,'filename',[printpath 'Ey_z=0_smoothpm7']);
+h = pic.movie_line(comp,varstrs,'ylim',ylim,'smooth',7,'linewidth',1.5,'filename',[printpath 'Ey_z=0_smoothpm7']);
 
 %% movie
 twpe = 7000:1000:12000;
