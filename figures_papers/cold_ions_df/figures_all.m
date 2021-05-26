@@ -421,7 +421,7 @@ end
 %% Figure 3, prepare data
 twpe = 24000; xlim = [50 155]; zlim = [-15 15];
 sep = no02m.twpelim(twpe).separatrix_location;
-for zpick = 0;[0 2 4];
+for zpick = [0 2 4]
   ds = ds100.twpelim(twpe).zfind(zpick).xlim(xlim).findtag({'line horizontal'});
   
   xdist = (ds.xi1{1}+ds.xi2{1})/2;
@@ -438,12 +438,12 @@ for zpick = 0;[0 2 4];
   Bx = interpfield(pic.xi,pic.zi,Bx_,xdist,zdist); 
   By = interpfield(pic.xi,pic.zi,By_,xdist,zdist); 
   Bz = interpfield(pic.xi,pic.zi,Bz_,xdist,zdist); 
-  %fred5_tmp = ds.reduce_1d_new('x',[5],[],'vpar',{Bx,By,Bz},'pitch',{Bx,By,Bz}); eval(sprintf('fred5_z%g = fred5_tmp;',zpick))
+  fred5_tmp = ds.reduce_1d_new('x',[5],[],'vpar',{Bx,By,Bz},'pitch',{Bx,By,Bz}); eval(sprintf('fred5_z%g = fred5_tmp;',zpick))
   fred3_tmp = ds.reduce_1d_new('x',[3],[],'vpar',{Bx,By,Bz},'pitch',{Bx,By,Bz}); eval(sprintf('fred3_z%g = fred3_tmp;',zpick))
-  %fred35_tmp = ds.reduce_1d_new('x',[3 5],[],'vpar',{Bx,By,Bz},'pitch',{Bx,By,Bz}); eval(sprintf('fred35_z%g = fred35_tmp;',zpick))
+  fred35_tmp = ds.reduce_1d_new('x',[3 5],[],'vpar',{Bx,By,Bz},'pitch',{Bx,By,Bz}); eval(sprintf('fred35_z%g = fred35_tmp;',zpick))
   %fred46_tmp = ds.reduce_1d_new('x',[4 6],[],'vpar',{Bx,By,Bz},'pitch',{Bx,By,Bz}); eval(sprintf('fred46_z%g = fred46_tmp;',zpick))    
 end
-%[xDF,vDF,aDF,BDF] = pic.xva_df;
+%[xDF,vDF,aDF,BDF] = no02m.xva_df;
 %% Figure 3, plot
 % What to include
 % - overview of where boxes are
@@ -554,6 +554,7 @@ compact_panels(h,0.002,0.002)
 %hlinks.Targets(1).XLim = arclength([1 end]);
 %irf_plot_axis_align
 h(1).CLim = 0.99*[-4 2];
+h(1).CLim = 0.99*[-6 0];
 h(1).YLim = 0.99*4*[-1 1];
 
 if 1 % extra markings and annotations 
@@ -976,6 +977,9 @@ for xpick = 75:10:85
   eval(sprintf('vExBx_x%g = squeeze(mean(pic.xlim(xlim_fred).zlim(zlim_fred).vExBx,1));',xpick))
   eval(sprintf('vExBy_x%g = squeeze(mean(pic.xlim(xlim_fred).zlim(zlim_fred).vExBy,1));',xpick))
   eval(sprintf('vExBz_x%g = squeeze(mean(pic.xlim(xlim_fred).zlim(zlim_fred).vExBz,1));',xpick))
+  eval(sprintf('Bx_x%g = squeeze(mean(pic.xlim(xlim_fred).zlim(zlim_fred).Bx,1));',xpick))
+  eval(sprintf('By_x%g = squeeze(mean(pic.xlim(xlim_fred).zlim(zlim_fred).By,1));',xpick))
+  eval(sprintf('Bz_x%g = squeeze(mean(pic.xlim(xlim_fred).zlim(zlim_fred).Bz,1));',xpick))
 %   eval(sprintf('vix_x%g = squeeze(mean(pic.xlim(xlim_fred).zlim(zlim_fred).vx([3 5]),1));',xpick))
 %   eval(sprintf('viy_x%g = squeeze(mean(pic.xlim(xlim_fred).zlim(zlim_fred).vy([3 5]),1));',xpick))
 %   eval(sprintf('viz_x%g = squeeze(mean(pic.xlim(xlim_fred).zlim(zlim_fred).vz([3 5]),1));',xpick))
@@ -1227,6 +1231,7 @@ doN = 0; colorN = [0 0 0];
 doExB = 1; colorExB = 0*[1 1 1]+0;
 doPhi = 1; colorPhi = [0.5 0.5 0];
 doSep = 1;
+doB = 1;
 % if doSep
 %   xline_pos = no02m.twpelim(twpe).xline_position;
 %   sep = no02m.twpelim(twpe).separatrix_location;
@@ -1235,7 +1240,7 @@ hleg = gobjects(0);
 
 cmap_dist = pic_colors('waterfall');
 freds = {fred35_x75,fred35_x85};
-freds = {fred3_x75,fred3_x85};
+%freds = {fred3_x75,fred3_x85};
 xpicks = [75 85];
 labstrs = {'z','z'};
 legends = {'a)','b)','c)','d)','e)','f)','g)','h)','i)','j)','k)','l)','m)','n)','o)','p)','q)','r)'};
@@ -1267,6 +1272,16 @@ for ifred = 1:numel(freds)
       zz = eval(['z_x' num2str(unique(fred.x))]);
       vv = eval(['E' labstr '_x' num2str(unique(fred.x))]);
       hE = plot(hca,smooth(vv,50),zz,'color',colorE,'linewidth',1,'linestyle',':');      
+      hold(hca,'off')
+    end
+    if doB
+      hold(hca,'on')
+      %plot(hca,arclength,Ey*max(abs(hca.YLim))/max(abs(Ey)),'color',colorE)
+      zz = eval(['z_x' num2str(unique(fred.x))]);
+      vvx = eval(['Bx_x' num2str(unique(fred.x))]);
+      vvy = eval(['By_x' num2str(unique(fred.x))]);
+      vvz = eval(['Bz_x' num2str(unique(fred.x))]);
+      hB = plot(hca,smooth(vvx,50),zz,smooth(vvy,50),zz,smooth(vvz,50),zz,'color',colorE,'linewidth',1,'linestyle',':');      
       hold(hca,'off')
     end
     if doSep
@@ -1311,7 +1326,9 @@ for ifred = 1:numel(freds)
       pp = eval(['phi' labstr '_x' num2str(unique(fred.x))]);
       vv0 = eval(['vExB' labstr '_x' num2str(unique(fred.x))]);
       vv0 = vv0(end);
-      vv_phi = sqrt(2*(abs(pp-pp(end-150)))).*sign(pp-pp(end-150));
+      refind = 150; % old
+      refind = 400;
+      vv_phi = sqrt(2*(abs(pp-pp(end-refind)))).*sign(pp-pp(end-refind));
       %(smooth(vv,10)+vv0-vv(end));
       hphi = plot(hca,vv_phi,zz,'color',0*[1 1 1],'linewidth',1,'linestyle','--');
       %plot(hca,pic_sm.zi,mean(pic_sm.vExBy,1),'color',colorExB,'linewidth',1.5)
@@ -1903,6 +1920,17 @@ drawnow
 c_eval('h(?).Position(4) = h(2).Position(4);',firstrow)
 c_eval('h(?).Position(2) = h(?).Position(2)-0.06;',[firstrow remainingrows])
 c_eval('h(?).Position(2) = h(?).Position(2)+0.04;',firstrow)
+
+% legends
+legends = {'(a)','(b)','(c)','(d)','(e)','(f)','(g)','(h)','(i)','(j)','(k)','(l)','(m)','(n)','o)'};
+legends_left = legends([1 3:7]);
+legends_right = legends([2 8:12]);
+for ip = 1:6
+  irf_legend(h(ip),legends_left{ip},[-0.1 0.98],'color',[0 0 0],'fontsize',15)
+end
+for ip = 7:12
+  irf_legend(h(ip),legends_right{ip-6},[1.02 0.98],'color',[0 0 0],'fontsize',15)
+end
 
 %
 % hpos_y_fields = h(2).Position(2);
@@ -2700,6 +2728,16 @@ annotation('textarrow',[0.74 0.72],[0.25 0.25],'String',{'reflection','due to','
 %annotation('textarrow',[0.30 0.30],[0.15 0.2],'String',{'-v_y+B_x<0'},'fontsize',12,'fontweight','light')
 %if strcmp(plotxstr,'arc_z0'), %c_eval('h(?).YDir = ''reverse'';',remainingrows); end
 set(gcf,'position',[1304         782         616         331])
+
+%% Figure 6.5. 2D reduced distributions, showing beams in different perspective
+% Pick distributions
+twpe = 24000;
+ds = ds100.twpelim(twpe).xlim([70 70]).zlim([0 8]).dxlim([0.3 0.7]).findtag('line horizontal');
+nrows = 3;
+ncols = 2;
+npanels = nrows*ncols;
+h = setup_subplots(nrows,ncols);
+
 
 %% Figure 7, f(vy), py
 %% Reduced distributions, plot
@@ -3615,7 +3653,7 @@ if 1 % compact figure to ake Epar arcpanel shorter, waves show off better like t
   h(8).Position(2) = 0.11;
   
 end
-%% Figure 9, prepare data, with premade fpar
+%% Figure 9, ALT2, prepare data + plot, with premade fpar
 twpe = 24000; xlim = [130 110]; zlim = [-8 8]; % later time
 twpe = 23000; xlim = [64 80]; zlim = [-8 8]; % earlier time
 
@@ -3638,13 +3676,15 @@ Bz = interpfield(pic.xi,pic.zi,Bz_,xdist,zdist);
 % reduced distributions
 fpar3 = ds.fpar(1,:,3);
 fpar5 = ds.fpar(1,:,5);
-fpar35 = ds.fpar(1,:,[3 5]);
+fepar3 = ds.fpar(1,:,4);
+fepar5 = ds.fpar(1,:,6);
+
 
 % Scalar quantities
 arclength = fpar3.arc_z0;
 
 darc = arclength(2)-arclength(1);
-arcedges = [arclength(1)-0.5*darc; arclength+0.5*darc];
+arcedges = [arclength(1)-0.5*darc, arclength+0.5*darc];
 narc = 1800; % 900
 arclength_interp = linspace(arclength(1),arclength(end),narc);
 darc_interp = (arclength_interp(end)-arclength_interp(1))/narc;
@@ -3663,7 +3703,7 @@ arcval = 7; % twpe=23000, at neutral plane
 %arccenter = (arclength(end)-arclength(1))/2;
 %idist = find(abs(arclength-arcval-arccenter)==min(abs(arclength-arcval-arccenter)));
 idist = find(abs(arclength-arcval)==min(abs(arclength-arcval)));
-xzarcdist = [xdist' zdist' arclength];
+xzarcdist = [xdist' zdist' arclength'];
 xval = xdist(idist);
 zval = zdist(idist);
 ds_pick = ds.twpelim(twpe).xfind(xval).zfind(zval);
@@ -3701,16 +3741,19 @@ iSpecies = 3; ficoldtop = fpar_pick{iSpecies}.f;
 iSpecies = 5; ficoldbot = fpar_pick{iSpecies}.f;
 fitot = fehot + ficoldtop + ficoldbot;
 
-fefit = fmax1D(ve_cold,n(eIncl),vd(eIncl),vt(eIncl));
-fifit = fmax1D(vi_cold,n(iIncl),vd(iIncl),vt(iIncl));
+fefit = fmax1D(ve_cold',n(eIncl),vd(eIncl),vt(eIncl));
+fifit = fmax1D(vi_cold',n(iIncl),vd(iIncl),vt(iIncl));
     
-% Plot 
+%% Plot 
 fi_clim = [0 0.0499];
 fe_clim = [0 1.3e-2];
+fcontlevel = [-1 1];
 colors = pic_colors('matlab');
 
 nrows = 4;
 ncols = 2;
+npanels = nrows*ncols;
+clear h;
 h = setup_subplots(nrows,ncols,'vertical');
 %[h,h2] = initialize_combined_plot(nrows,2,2,0.4,'vertical')
 isub = 1;
@@ -3733,7 +3776,7 @@ if 1 % Epar
   %plot(hca,arclength_interp,Epar,'k',arclength_interp,intEpar*3,arclength,Babs/2)  
   %legend(hca,{'E_{||}'},'location','eastoutside')   
   hca.YLabel.String = 'E_{||}';   
-  hca.XLabel.String = 's_{||} (d_i)';  
+  hca.XLabel.String = 's (d_i)';  
   hca.XGrid = 'on';
   hca.YGrid = 'on';
   hca.YLim = 0.399*[-1 1];
@@ -3823,10 +3866,13 @@ if 0 % fi3(vpar)
 end
 if 1 % log 10 fi35(vpar)
   hca = h(isub); isub = isub + 1;
-  fred = fred35_A75;
-  %pcolor(hca,arclength,fred.vpar_center,fred.fvpar')
-  surf(hca,arcedges,fred.vpar_edges,zeros(numel(arcedges),numel(fred.vpar_edges))',log10(fred.fvpar)')
-  view(hca,[0 0 1]); 
+  ff1 = fpar3;
+  ff2 = fpar5;  
+  fplot = ff1.f + 1*ff2.f;
+  fplot = log10(fplot);
+  pcolor(hca,ff1.arc_z0,ff1.v,fplot)
+  %surf(hca,arcedges,ff.vpar_edges,zeros(numel(arcedges),numel(fred.vpar_edges))',log10(fred.fvpar)')
+  %view(hca,[0 0 1]); 
   shading(hca,'flat')
   
   if 0 % contour level for reference
@@ -3848,7 +3894,7 @@ if 1 % log 10 fi35(vpar)
   hca.YGrid = 'on';
   hca.Layer = 'top';
   hca.YLim = [-2.5 2.5];
-  hca.CLim = [-5 -0];
+  hca.CLim = [-4.99 -0];
   if doE
     hold(hca,'on')
     %plot(hca,arclength,Epar*max(abs(hca.YLim))/max(abs(Epar)),'color',colorE)    
@@ -3895,17 +3941,18 @@ if 0 % log 10 fi3(vpar)
 end
 if 1 % fi3/fi35(vpar)
   hca = h(isub); isub = isub + 1;
-  fredall = fred35_A75;
-  fred = fred3_A75;
-  fplot = (fred.fvpar./fredall.fvpar);
+  ff1 = fpar3;
+  ff2 = fpar5;  
+  fplot = ff1.f./(ff1.f + ff2.f);  
+  pcolor(hca,ff1.arc_z0,ff1.v,fplot)  
   %pcolor(hca,arclength,fred.vpar_center,fred.fvpar')
-  surf(hca,arcedges,fred.vpar_edges,zeros(numel(arcedges),numel(fred.vpar_edges))',fplot')
-  view(hca,[0 0 1]);   
+  %surf(hca,arcedges,fred.vpar_edges,zeros(numel(arcedges),numel(fred.vpar_edges))',fplot')
+  %view(hca,[0 0 1]);   
   shading(hca,'flat')
   if 1 % contour level for reference
     hold(hca,'on')
     clim = hca.CLim;
-    contour(hca,arclength,fred.vpar_center,log10(fredall.fvpar)',[-1 -1],'k')
+    contour(hca,ff1.arc_z0,ff1.v,log10(ff1.f + ff2.f),fcontlevel,'k')
     hca.CLim = clim;
     hold(hca,'off')
   end
@@ -3967,13 +4014,14 @@ if 0 % fe(vpar)
   end
 end
 if 1 % log 10 fe(vpar)
-  hca = h(isub); isub = isub + 1;
-  fred = fred46_A75;
-  %pcolor(hca,arclength,fred.vpar_center,fred.fvpar')  
-  surf(hca,arcedges,fred.vpar_edges,zeros(numel(arcedges),numel(fred.vpar_edges))',log10(fred.fvpar)')
-  view(hca,[0 0 1]);  
+  hca = h(isub); isub = isub + 1;  
+  ff1 = fepar3;
+  ff2 = fepar5;  
+  fplot = ff1.f + 1*ff2.f;
+  fplot = log10(fplot);
+  pcolor(hca,ff1.arc_z0,ff1.v,fplot)
   shading(hca,'flat')
-  hca.XLabel.String = 's_{||} (d_i)';
+  hca.XLabel.String = 's';
   hca.YLabel.String = 'v_{||}';
   colormap(hca,pic_colors('candy4'))  
   hcb = colorbar('peer',hca);
@@ -3985,7 +4033,9 @@ if 1 % log 10 fe(vpar)
   hca.YGrid = 'on';
   hca.Layer = 'top';
   hca.YLim = [-7 7];
-  hca.CLim = [-3 -0.8];
+  hca.CLim = [-6 -0.8];
+  hca.CLim = [-2 -1.4]; % high saturation to show off structures at low v
+  
   irf_legend(hca,{'v_{ec,||}'},[0.02 0.4],'color',[0 0 0])
   if doE
     hold(hca,'on')
@@ -4003,8 +4053,8 @@ end
 if 1 % line position on map, Epar
   isMap(end+1) = isub; 
   hca = h(isub); isub = isub + 1;
-  %imagesc(hca,pic_lim.xi,pic_lim.zi,smooth2(pic_lim.Epar,3)');
-  imagesc(hca,pic_lim.xi,pic_lim.zi,pic_lim.Epar');
+  imagesc(hca,pic_lim.xi,pic_lim.zi,smooth2(pic_lim.Epar,3)');
+  %imagesc(hca,pic_lim.xi,pic_lim.zi,pic_lim.Epar');
   %imagesc(hca,pic_lim.xi,pic_lim.zi,pic_lim.n(5)');
   colormap(hca,pic_colors('blue_red'));
   hcb = colorbar('peer',hca);
@@ -4040,7 +4090,7 @@ end
 if 1 % f(vpar), ions
   hca = h(isub); isub = isub + 1;
   
-  plot(hca,vi,fihot,vi,ficoldtop,vi,ficoldbot,vi,fitot,vi,fifit,'--','linewidth',1)  
+  hlines = plot(hca,vi_hot,fihot,vi_cold,ficoldtop,vi_cold,ficoldbot,vi_cold,fitot,vi_cold,fifit,'--','linewidth',1);
   hca.XLabel.String = 'v_{||} (v_{A0})';
   hca.XLabel.String = 'v_{||}';
   hca.YLabel.String = 'f_i(v_{||}) (d_{i0}^3v_{A0})';
@@ -4056,7 +4106,7 @@ if 1 % f(vpar), ions
 end
 if 1 % f(vpar), electrons
   hca = h(isub); isub = isub + 1;
-  plot(hca,ve,fehot,ve,fecoldtop,ve,fecoldbot,ve,fetot,ve,fefit,'--','linewidth',1) 
+  plot(hca,ve_hot,fehot,ve_cold,fecoldtop,ve_cold,fecoldbot,ve_cold,fetot,ve_cold,fefit,'--','linewidth',1) 
   hca.XLabel.String = 'v_{||} (v_{A0})';
   hca.XLabel.String = 'v_{||}';
   %hca.YLabel.String = 'f_e(v_{||}) (d_{i0}^3v_{A0})';
@@ -4104,9 +4154,7 @@ hlinks_arc.Targets(1).XLim = 14.0*[-1 1];
 
 %hlinks.Targets(1).XLim = arclength([1 end]);
 %irf_plot_axis_align
-for ip = 1:npanels
-  h(ip).FontSize = 13;
-end
+c_eval('h(ip).FontSize = 12;',1:npanels)
 for ip = 1:4
   h(ip).Position(1) = 0.08;
   h(ip).Position(3) = 0.4;
@@ -4151,13 +4199,18 @@ if 1 % plot vphmax  and lambda max
 %   hold(h(2),'off')
   %hlegvph = legend([hvph2 hlam2],{'v_{ph} at \gamma_{max}','\lambda at \gamma_{max}'},'edgecolor','white','location','southeast');
 end
+drawnow
 
 if 1 % annotations
   %%
-  hann_trap = annotation('textarrow',0.40*[1 1],[0.38 0.4],'String',{'only cold ions','from the bottom'},'fontsize',13);
+  annotation('textarrow',[0.67 0.71],[0.765 0.74]+0.005,'string',{'input to','dispersion','analysis'},'fontsize',12);
+  annotation('textarrow',0.38*[1 1],[0.87 0.85],'string',{'input to dispersion analysis'},'fontsize',13);
+  irf_legend(h(1),{'north'},[0.02 0.98],'color',[0 0 0],'fontsize',13)
+  irf_legend(h(1),{'south'},[0.98 0.98],'color',[0 0 0],'fontsize',13)  
   hann_cbot = annotation('textarrow',0.40*[1 1],[0.38 0.4],'String',{'only cold ions','from the bottom'},'fontsize',13);
   hann_ctop = annotation('textarrow',0.152*[1 1],[0.45 0.43],'String',{'only cold ions','from the top'},'fontsize',13);
   hann_trap = annotation('textarrow',0.365*[1 1],[0.58 0.61],'String',{'ion-wave','interaction'},'fontsize',13);
+  hann_etrap = annotation('textarrow',0.365*[1 1],[0.14 0.16],'String',{'electron-wave interaction'},'fontsize',13);
   hann_esw = annotation('textarrow',[0.33 0.36],[0.826 0.81],'String',{'ESWs'},'fontsize',13);
   hann_esw2 = annotation('arrow',[0.27 0.25],[0.826 0.81]);
   
@@ -4189,6 +4242,15 @@ if 1 % compact figure to ake Epar arcpanel shorter, waves show off better like t
   h(8).Position(2) = 0.11;
   
 end
+
+hcball=findall(gcf,'type','colorbar');
+c_eval('hcball(?).Position(3) = 0.012;',1:numel(hcball))
+h(5).Position(3) = 0.28;
+hcball(end).Position(1) = h(5).Position(1) + h(5).Position(3)+0.004;
+hcball(end).Position(2) = h(5).Position(2);
+hcball(end).Position(4) = h(5).Position(4);
+
+h(5).CLim = 0.399*[-1 1];
 
 %% Figure 9.2 reduced parallel ion distributiona at two different times
 %% Figure 9.2 prepare data

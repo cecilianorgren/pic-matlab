@@ -5543,6 +5543,14 @@ classdef PIC
       % Never mind, jsut pick 0.
       
       nt = obj.nt;
+      if nt == 1
+        disp('PIC object has only one time. Not implemented yet.')
+        x = [];
+        v = [];
+        a = [];
+        B = [];
+        return;
+      end
       tlim = obj.twci([1 end]);
       zlim = [-0.2 0.2];
       xlims = {[obj.xi(1) obj.xi(fix(obj.nx/2))],[obj.xi(fix(obj.nx/2)) obj.xi(end)]};

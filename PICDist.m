@@ -518,7 +518,7 @@ classdef PICDist
     end
     function varargout = plot_map(obj,varargin)
       % PICDist.plot_map Plots a map of all distributions in new figure.
-      %   h = plot_map(obj,iSpecies,sumdim);
+      %   h = plot_map(obj,iSpecies,sumdim,options);
       %
       %   Output:
       %     h.ax - handle to all axes
@@ -1795,7 +1795,7 @@ classdef PICDist
       % only makes sense if distributions are connected
       arclength = [0 cumsum(sqrt(diff(x).^2+diff(z).^2))];
       % does this needs to be interpolated?
-      if 0 % closest
+      if 1 % closest
         arc01 = arclength(find(abs(z)==min(abs(z))));
       else % interpolation
         i1 = find(z>0,1,'last');
