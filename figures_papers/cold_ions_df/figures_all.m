@@ -2249,6 +2249,7 @@ hs = findobj(h(2+ncols),'type','scatter');
 legend([hl;hs],{'B','v_{bulk}','v_{ExB}'},'box','off','location','northoutside','orientation','horizontal')
 
 %% Figure 6, ALT3, Curvature plot, combined, fred along two selected field lines
+% OBS, need to runs econd part to get locations of reduced distributions
 
 doExB = 1;
 ExBcol = [0.5 0.5 0.5];
@@ -2317,6 +2318,7 @@ hlegLlines = legend(hca,{'|B|','r_B','v_{i,\perp}^{\kappa=1}=r_B\omega_{ci}'},'l
 hca.Title.String = [];
 hca.XLim = xlim;
 ycompr = 0.03;
+h(2).Title.String = [];
 %compact_panels(h(1:2),0)
 %c_eval('h(?).Position(2) = h(?).Position(2) + 0.03;',1:2)
 irf_legend(hca,{'z=0\pm0.25'},[0.98 0.98],'color',[0 0 0],'fontsize',fontsize)
@@ -2453,7 +2455,7 @@ htmp.Position = tmppos;
 
 set(gcf,'position',[1304         582         616         610])
 
-%% Second part, with reduced distributions along field line
+%% SECOND PART, with reduced distributions along field line
 % Prepare 1D reduced distributions
 twpe = 24000;
 pic = no02m.twpelim(twpe).xlim([60 90]).zlim([-8 8]);
