@@ -358,7 +358,7 @@ if 1 % 2x2
   hcbar(1).FontSize = 12;
   h(1).Title.String = '';
 end
-%% Figure 2, ALT2, overview at t=120
+%% Figure 2, ALT2, overview at t=120, n,p
 % what do we want to show here?
 varstrs = {'n(1)','n([3 5])';'p(1)','p([3 5])'};
 %varstrs = {'n([3 5])','n(3)','t([3 5])','t(3)'}';
@@ -406,6 +406,70 @@ if 1 % 2x2
   c_eval('h(?).Position(2) = h(?).Position(2) + 0.04;',[1 2 3 4])
   c_eval('h(?).CLim = [0 0.499];',[1 3])
   c_eval('h(?).CLim = [0 0.099];',[2 4])
+  %c_eval('h(?).Position(4) = h(?).Position(4) - 0.05;',[1 3])
+%   for ip = 1:numel(h)
+%     %h(ip).Position(2) = h(ip).Position(2) + 0.05;
+%     h(ip).Position(4) = h(ip).Position(4) - 0.05;
+%   end
+  %hcbar(1).Position(2) = hcbar(1).Position(2) + 0.05;
+  h(1).Title.String = '';
+  compact_panels(h,0.002,0.002)
+end
+%% Figure 2, ALT3, overview at t=120, n,p,t
+% what do we want to show here?
+varstrs = {'n(1)','n([3 5])';'p(1)','p([3 5])';'t(1)','t([3 5])'};
+%varstrs = {'n([3 5])','n(3)','t([3 5])','t(3)'}';
+clims = {[0 0.5],[0 0.5],[0 0.5],[0 0.5],[0 0.5],[0 0.5]};
+
+xlim = [40 165];
+xlim = [61 119];
+zlim = 0.99*[-10 10];
+cmapth = pic_colors('thermal');
+cmaps = {cmapth,cmapth,cmapth,cmapth,cmapth,cmapth};
+cbarlabels = {'n_{ih}','n_{ic}';'P_{ih}','P_{ic}';'T_{ih}','T_{ic}'};
+%cbarlabels = {'n_{i}','n_{i}';'P_{i}','P_{i}'};
+pic = no02m.twpelim(24000).xlim(xlim).zlim(zlim);
+h = pic.plot_map(varstrs,'A',1,'clim',clims,'cmap',cmaps,'cbarlabels',cbarlabels);
+
+for ip = 1:numel(h)
+  h(ip).FontSize = 12;
+  h(ip).XGrid = 'on';
+  h(ip).YGrid = 'on';
+end
+hl = findobj(gcf,'Type','Contour');
+c_eval('hl(?).Color = 0.5 + [0 0 0];',1:numel(hl))
+
+legends = {'a)','b)','c)','d)','e)','f)'};
+legends = {'a)','c)','e)','b)','d)','f)'};
+if 1 % 2x2
+  %%
+  compact_panels(h,0.002,0.002)
+  for ip = 1:numel(h)
+    irf_legend(h(ip),{[legends{ip} ' ' cbarlabels{ip}]},[0.8 0.98],'color',[1 1 1],'fontweight','bold','fontsize',12)
+  end
+  delete(findobj(gcf,'Type','ColorBar'))
+  hcbar(1) = colorbar('peer',h(1,2),'location','eastoutside');
+  hcbar(2) = colorbar('peer',h(2,2),'location','eastoutside');
+  hcbar(3) = colorbar('peer',h(3,2),'location','eastoutside');
+  hcbar(1).YLabel.String = 'n';
+  hcbar(2).YLabel.String = 'P';
+  hcbar(3).YLabel.String = 'T';
+  %hcbar = findobj(gcf,'Type','ColorBar');
+  hcbar(1).FontSize = 12;
+  hcbar(2).FontSize = 12;
+  hcbar(3).FontSize = 12;
+  
+  h(1,2).YTickLabels = [];
+  h(1,2).YLabel.String = [];
+  h(2,2).YTickLabels = [];
+  h(2,2).YLabel.String = [];  
+  h(3,2).YTickLabels = [];
+  h(3,2).YLabel.String = [];    
+  %c_eval('h(?).Position(2) = h(?).Position(2) + 0.05;',[2 4])
+  %c_eval('h(?).Position(2) = h(?).Position(2) + 0.04;',[1 2 3 4])
+  c_eval('h(1,?).CLim = [0 0.499];',1:2)
+  c_eval('h(2,?).CLim = [0 0.099];',1:2)
+  c_eval('h(3,?).CLim = [0 0.699];',1:2)
   %c_eval('h(?).Position(4) = h(?).Position(4) - 0.05;',[1 3])
 %   for ip = 1:numel(h)
 %     %h(ip).Position(2) = h(ip).Position(2) + 0.05;
@@ -3752,7 +3816,7 @@ fe_clim = [0 1.3e-2];
 fcontlevel = [-1 1];
 colors = pic_colors('matlab');
 
-nrows = 4;
+nrows = 4; 
 ncols = 2;
 npanels = nrows*ncols;
 clear h;

@@ -35,9 +35,6 @@ classdef PIC
     it_
     ix_
     iz_
-%    wpewce_ = [];
-%    mime_ = [];
-    
   end
   
   properties (Dependent = true)
@@ -57,18 +54,6 @@ classdef PIC
     it
     ix
     iz
-    %wpewce
-    %mime
-    
-  end
-  
-  properties (Constant = true)
-  end
-  
-  properties (Constant = true, Hidden = true)
-    %MAX_TENSOR_ORDER = 2;
-    %BASIS = {'xyz','xzy'}; % in order to use, need to define transformations between these
-    %BASIS_NAMES = {'smilei','michael'};
   end
 
   properties (SetAccess = protected)

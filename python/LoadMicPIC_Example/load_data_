@@ -1,0 +1,208 @@
+from scipy.io import FortranFile
+import numpy
+
+def readFile(file):
+    # This is where the reading of the binary file is taken care of
+
+    #Contains a list of all the fields-files
+    nss = 6
+    with open(file, 'r') as f:
+        header, time  = np.fromfile(f, dtype='<i4', count=2)
+        dt, teti, xmax, zmax,  = np.fromfile(f, dtype='<f4', count=4)
+        nnx, nnz = np.fromfile(f, dtype='<i4', count=2)
+
+        vxs = np.reshape(np.fromfile(f, dtype = '<f4', count = nnx*nnz*nss),(nss,nnz,nnx))#(nnx,nnz,nss))
+        vys = np.reshape(np.fromfile(f, dtype = '<f4', count = nnx*nnz*nss),(nss,nnz,nnx))#(nnx,nnz,nss))
+        vzs = np.reshape(np.fromfile(f, dtype = '<f4', count = nnx*nnz*nss),(nss,nnz,nnx))#(nnx,nnz,nss))
+
+        bx = np.reshape(np.fromfile(f, dtype = '<f4', count = nnx*nnz),(nnz,nnx))
+        by = np.reshape(np.fromfile(f, dtype = '<f4', count = nnx*nnz),(nnz,nnx))
+        bz = np.reshape(np.fromfile(f, dtype = '<f4', count = nnx*nnz),(nnz,nnx))
+
+        ex = np.reshape(np.fromfile(f, dtype = '<f4', count = nnx*nnz),(nnz,nnx))
+        ey = np.reshape(np.fromfile(f, dtype = '<f4', count = nnx*nnz),(nnz,nnx))
+        ez = np.reshape(np.fromfile(f, dtype = '<f4', count = nnx*nnz),(nnz,nnx))
+
+        dns = np.reshape(np.fromfile(f, dtype = '<f4', count = nnx*nnz*nss),(nss,nnz,nnx))
+
+        xe = np.fromfile(f, dtype = '<f4', count = nnx)
+        ze = np.fromfile(f, dtype = '<f4', count = nnz)
+
+        mass = np.fromfile(f, dtype = '<f4', count = nss)
+        q = np.fromfile(f, dtype = '<f4', count = nss)
+
+        time = np.fromfile(f, dtype = '<f8', count = 1)
+        wpewce =  np.fromfile(f, dtype = '<f4', count = 1)
+        dfac =  np.fromfile(f, dtype = '<f4', count = nss)
+
+        vxx =  np.reshape(np.fromfile(f, dtype = '<f4', count = nnx*nnz*nss),(nss,nnz,nnx))
+        vyy =  np.reshape(np.fromfile(f, dtype = '<f4', count = nnx*nnz*nss),(nss,nnz,nnx))
+        vzz =  np.reshape(np.fromfile(f, dtype = '<f4', count = nnx*nnz*nss),(nss,nnz,nnx))
+        vxy =  np.reshape(np.fromfile(f, dtype = '<f4', count = nnx*nnz*nss),(nss,nnz,nnx))
+        vxz =  np.reshape(np.fromfile(f, dtype = '<f4', count = nnx*nnz*nss),(nss,nnz,nnx))
+        vyz =  np.reshape(np.fromfile(f, dtype = '<f4', count = nnx*nnz*nss),(nss,nnz,nnx))
+
+    print("Done reading {}".format(file))
+
+    xe = xe/np.sqrt(mass[0])
+    ze = ze/np.sqrt(mass[0])
+
+    coords = [xe,ze]
+    bx = bx*wpewce[0]
+    by = by*wpewce[0]
+    bz = bz*wpewce[0]
+
+    ex = ex*np.sqrt(mass[0])*wpewce[0]**2
+    ey = ey*np.sqrt(mass[0])*wpewce[0]**2
+    ez = ez*np.sqrt(mass[0])*wpewce[0]**2
+
+##### Load data for plasma species ind-1 (ind=0 is plasma species 1)
+
+    ind = 1;
+    n = dns[ind,:,:].squeeze()*dfac[ind]
+
+    jx_unnorm = vxs[ind,:,:].squeeze()*dfac[ind]
+    jy_unnorm = vys[ind,:,:].squeeze()*dfac[ind]
+    jz_unnorm = vzs[ind,:,:].squeeze()*dfac[ind]
+
+    jx = jx_unnorm*np.sqrt(mass[ind])*wpewce[0]
+    jy = jy_unnorm*np.sqrt(mass[ind])*wpewce[0]
+    jz = jz_unnorm*np.sqrt(mass[ind])*wpewce[0]
+
+    vx_unnorm = jx_unnorm/n
+    vy_unnorm = jy_unnorm/n
+    vz_unnorm = jz_unnorm/n
+    vx_unnorm[n < 0.005] = 0
+    vy_unnorm[n < 0.005] = 0
+    vz_unnorm[n < 0.005] = 0
+
+    vx = jx/n
+    vy = jy/n
+    vz = jz/n
+    vx[n < 0.005] = 0
+    vy[n < 0.005] = 0
+    vz[n < 0.005] = 0
+
+    vxx_unnorm = vxx[ind,:,:].squeeze()*dfac[ind]
+    vyy_unnorm = vyy[ind,:,:].squeeze()*dfac[ind]
+    vzz_unnorm = vzz[ind,:,:].squeeze()*dfac[ind]
+    vxy_unnorm = vxy[ind,:,:].squeeze()*dfac[ind]
+    vxz_unnorm = vxz[ind,:,:].squeeze()*dfac[ind]
+    vyz_unnorm = vyz[ind,:,:].squeeze()*dfac[ind]
+
+    pxz = (vxz_unnorm - vx_unnorm*jz_unnorm)*mass[ind]*wpewce[0]**2
+    pxx = (vxx_unnorm - vx_unnorm*jx_unnorm)*mass[ind]*wpewce[0]**2
+    pxy = (vxy_unnorm - vx_unnorm*jy_unnorm)*mass[ind]*wpewce[0]**2
+    pyy = (vyy_unnorm - vy_unnorm*jy_unnorm)*mass[ind]*wpewce[0]**2
+    pyz = (vyz_unnorm - vy_unnorm*jz_unnorm)*mass[ind]*wpewce[0]**2
+    pzz = (vzz_unnorm - vz_unnorm*jz_unnorm)*mass[ind]*wpewce[0]**2
+
+    p = (pxx+pyy+pzz)/3
+    t = p/n
+
+    ####  Load data for all ions combined ind = 0,2,4
+
+    ni = dns[0,:,:].squeeze()*dfac[0] + dns[2,:,:].squeeze()*dfac[2] + dns[4,:,:].squeeze()*dfac[4]
+
+    jix_unnorm = vxs[0,:,:].squeeze()*dfac[0] + vxs[2,:,:].squeeze()*dfac[2] + vxs[4,:,:].squeeze()*dfac[4]
+    jiy_unnorm = vys[0,:,:].squeeze()*dfac[0] + vys[2,:,:].squeeze()*dfac[2] + vys[4,:,:].squeeze()*dfac[4]
+    jiz_unnorm = vzs[0,:,:].squeeze()*dfac[0] + vzs[2,:,:].squeeze()*dfac[2] + vzs[4,:,:].squeeze()*dfac[4]
+    
+    jix = jix_unnorm*np.sqrt(mass[0])*wpewce[0]
+    jiy = jiy_unnorm*np.sqrt(mass[0])*wpewce[0]
+    jiz = jiz_unnorm*np.sqrt(mass[0])*wpewce[0]
+
+    vix_unnorm = jix_unnorm/ni
+    viy_unnorm = jiy_unnorm/ni
+    viz_unnorm = jiz_unnorm/ni
+    vix_unnorm[ni < 0.005] = 0
+    viy_unnorm[ni < 0.005] = 0
+    viz_unnorm[ni < 0.005] = 0
+
+    vix = jix/ni
+    viy = jiy/ni
+    viz = jiz/ni
+    vix[ni < 0.005] = 0
+    viy[ni < 0.005] = 0
+    viz[ni < 0.005] = 0
+
+    vixx_unnorm = vxx[0,:,:].squeeze()*dfac[0] + vxx[2,:,:].squeeze()*dfac[2] + vxx[4,:,:].squeeze()*dfac[4]
+    viyy_unnorm = vyy[0,:,:].squeeze()*dfac[0] + vyy[2,:,:].squeeze()*dfac[2] + vyy[4,:,:].squeeze()*dfac[4]
+    vizz_unnorm = vzz[0,:,:].squeeze()*dfac[0] + vzz[2,:,:].squeeze()*dfac[2] + vzz[4,:,:].squeeze()*dfac[4]
+    vixy_unnorm = vxy[0,:,:].squeeze()*dfac[0] + vxy[2,:,:].squeeze()*dfac[2] + vxy[4,:,:].squeeze()*dfac[4]
+    vixz_unnorm = vxz[0,:,:].squeeze()*dfac[0] + vxz[2,:,:].squeeze()*dfac[2] + vxz[4,:,:].squeeze()*dfac[4]
+    viyz_unnorm = vyz[0,:,:].squeeze()*dfac[0] + vyz[2,:,:].squeeze()*dfac[2] + vyz[4,:,:].squeeze()*dfac[4]
+
+    pixz = (vixz_unnorm - vix_unnorm*jiz_unnorm)*mass[0]*wpewce[0]**2
+    pixx = (vixx_unnorm - vix_unnorm*jix_unnorm)*mass[0]*wpewce[0]**2
+    pixy = (vixy_unnorm - vix_unnorm*jiy_unnorm)*mass[0]*wpewce[0]**2
+    piyy = (viyy_unnorm - viy_unnorm*jiy_unnorm)*mass[0]*wpewce[0]**2
+    piyz = (viyz_unnorm - viy_unnorm*jiz_unnorm)*mass[0]*wpewce[0]**2
+    pizz = (vizz_unnorm - viz_unnorm*jiz_unnorm)*mass[0]*wpewce[0]**2
+
+    pi = (pixx+piyy+pizz)/3
+    ti = pi/ni
+
+    dx = xe[1]-xe[0]
+    dz = ze[1]-ze[0]
+
+    ixm = 10-1
+    a = np.zeros((nnz,nnx))
+    a[ixm,1] = 0
+    for j in range(1,nnz):
+        a[j,ixm] = a[j-1,ixm] + dz*bx[j-1,ixm]
+    for ix in range(ixm+1,nnx):
+        a[:,ix]= a[:,ix-1] - bz[:,ix-1]*dx
+    for ix in range(ixm,0,-1):
+        a[:,ix]= a[:,ix+1] + bz[:,ix]*dx
+
+    # Proceed with the plotting
+
+    testDict = {}
+    testDict.update({"dnH":dnH})#,testDict.update({"dnO":dnO})
+    #testDict.update({"dneH":dneH}),testDict.update({"dneO":dneO})
+
+    varDictionary = {}
+        
+    varDictionary.update({"ex":ex}), varDictionary.update({"bx":bx})
+    varDictionary.update({"ey":ey}), varDictionary.update({"by":by})
+    varDictionary.update({"ez":ez}), varDictionary.update({"bz":bz})
+
+    varDictionary.update({"n":n}), varDictionary.update({"ni":ni})
+
+    varDictionary.update({"vx":vx}), varDictionary.update({"vix":vix})
+    varDictionary.update({"vy":vy}), varDictionary.update({"viy":viy})
+    varDictionary.update({"vz":vz}), varDictionary.update({"viz":viz})
+    
+    varDictionary.update({"pxx":pxx}), varDictionary.update({"pixx":pixx})
+    varDictionary.update({"pyy":pyy}), varDictionary.update({"piyy":piyy})
+    varDictionary.update({"pzz":pzz}), varDictionary.update({"pizz":pizz})
+    varDictionary.update({"pxy":pxy}), varDictionary.update({"pixy":pixy})
+    varDictionary.update({"pxz":pxz}), varDictionary.update({"pixz":pixz})
+    varDictionary.update({"pyz":pyz}), varDictionary.update({"piyz":piyz})
+
+    varDictionary.update({"p":pi}), varDictionary.update({"pi":pi})
+    varDictionary.update({"t":ti}), varDictionary.update({"ti":ti})    
+
+    #quiverDictionary = {}
+    #quiverDictionary.update({"dnH":[vHx,vHz,"Hydrogen"]})
+    #quiverDictionary.update({"dnO":[vOx,vOz,"Oxygen"]})
+    #quiverDictionary.update({"dneH":[veHx,veHz,"Hydrogen Electrons"]})
+    #quiverDictionary.update({"dneO":[veOx,veOz,"Oxygen Electrons"]})
+
+    varDictionaryPanel = {}
+    varDictionaryPanel.update({"dnH":dnH}),varDictionaryPanel.update({"dnO":dnO})
+    varDictionaryPanel.update({"dneH":dneH}),varDictionaryPanel.update({"dneO":dneO})
+    varDictionary.update({"ey":ey}),varDictionary.update({"by":by})
+
+    data = []
+    fluxField = a
+    time = round(float(file[-9:-4])/wpewce[0]/mass[0],2)
+
+    data.append(varDictionary),
+    data.append(fluxField),
+    data.append(coords), 
+    data.append(time), 
+    data.append([mass,wpewce])
+    data.append(varDictionaryPanel)
+    return data
