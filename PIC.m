@@ -2986,14 +2986,29 @@ classdef PIC
       str_box_size = strrep(str_box_size,'m.','');
       str_box_size = strrep(str_box_size,'mime','out.mime');
       eval([str_box_size,';']);
-      resx = str2double(regexpi(buffer, '(?<=resx\s*=\s*)\d*', 'match'));
-      resy = str2double(regexpi(buffer, '(?<=resy\s*=\s*)\d*', 'match'));
-      cell_length = [1./resx, 1./resy];
-      grid_length = box_size;
-      out.nx = box_size(1)/cell_length(1);
-      out.nz = box_size(2)/cell_length(2);
-      out.xe = 0:cell_length(1):(box_size(1));
-      out.ze = 0:cell_length(2):(box_size(2));
+      ndim = numel(box_size);
+      if ndim == 2
+        resx = str2double(regexpi(buffer, '(?<=resx\s*=\s*)\d*', 'match'));
+        resy = str2double(regexpi(buffer, '(?<=resy\s*=\s*)\d*', 'match'));
+        cell_length = [1./resx, 1./resy];
+        grid_length = box_size;
+        out.nx = box_size(1)/cell_length(1);
+        out.ny = box_size(2)/cell_length(2);
+        out.xe = 0:cell_length(1):(box_size(1));
+        out.ye = 0:cell_length(2):(box_size(2));
+      elseif ndim == 3
+        resx = str2double(regexpi(buffer, '(?<=resx\s*=\s*)\d*', 'match'));
+        resy = str2double(regexpi(buffer, '(?<=resy\s*=\s*)\d*', 'match'));
+        resz = str2double(regexpi(buffer, '(?<=resz\s*=\s*)\d*', 'match'));
+        cell_length = [1./resx, 1./resy, 1./resz];
+        grid_length = box_size;
+        out.nx = box_size(1)/cell_length(1);
+        out.ny = box_size(2)/cell_length(2);
+        out.nz = box_size(3)/cell_length(3);
+        out.xe = 0:cell_length(1):(box_size(1));
+        out.ye = 0:cell_length(2):(box_size(2));
+        out.ze = 0:cell_length(3):(box_size(3));
+      end     
       
       % particle binning
       deposited_quantity = regexpi(buffer, '(?<=deposited_quantity\s*=\s*)("\w*")', 'match');      
