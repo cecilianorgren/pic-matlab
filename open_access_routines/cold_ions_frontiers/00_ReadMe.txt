@@ -7,9 +7,11 @@ E-mail: cecilia.norgren@uib.no
 ORCID ID of author: https://orcid.org/0000-0002-6561-2337
 
 Data file description:
-This data set contains 5 files of binary data describing the output of the particle-in-cell simulation of magnetic reconnection. The data includes electric and magnetic fields, current density and density. The documentation of the variables and arrays are given below. The dat files are made using Fortran 90. They are named fields-*.dat, for which the * has the usual meaning in a linux environment. The name "fields" refers to the all quantities in Maxwells equations. The number behind the fields, e.g. 00200, refer to the time in units of the inverse of the electron cyclotron frequency. The variables are structured identically in each file, only the time of evaluation is of difference.
+This data set contains 5 files of binary data describing the output of the particle-in-cell simulation of magnetic reconnection. The data includes electric and magnetic fields, current density and density. The documentation of the variables and arrays are given below. The dat files are made using Fortran 90. They are named fields-*.dat, for which the * has the usual meaning in a linux environment. The name "fields" refers to the all quantities in Maxwells equations. The number behind the fields, e.g. 24000, refer to the time in units of the inverse of the electron cyclotron frequency. The variables are structured identically in each file, only the time of evaluation is of difference.
 
-Because the dat files contain binary data, they can not be viewed in a text editor. Instead, the variables and arrays can be read into e.g. Python, an open source programming language. The file 01_ReadData.py is the code for reading the fields-*.dat files into Python. 01_ReadData.py can be opened in any text editor.
+Because the dat files contain binary data, they can not be viewed in a text editor. Instead, the variables and arrays can be read into e.g. Matlab, or an open source programming language like Python. The example loading files we provide are written in the Matlab programming language, but the files can be opened in any text editor, and the code can easily be translated to another language. 
+
+The file example_script.m loads the data into a data structure (described below) using the function function_load_data.m, and then plots some example quantities. The data is accessed using dot-indexing (see example_script.m).
 
 The simulation setup and units are described in "On the presence and thermalization of cold ions in the exhaust of antiparallel symmetric reconnection' by Norgren et al., 2021.
 
@@ -22,68 +24,60 @@ The simulation setup and units are described in "On the presence and thermalizat
 ########################################################################
 ########################################################################
 
-header # Binary file information
-time # Current timestep
-dt # Distance from one timestep to another
-teti # Ratio of the temperatures for the electron vs protons
-xmax # Max value of the x-position of the simulation domain
-zmax # Max value of the z-position of the simulation domain
-nnx, nnz # nnx and nnz denote the number of grid cells in the x and z direction, respectively.
-nns # number of species = 6
-
+species  # description of plasma species (6 in total)
+time_wpe # timestep in units of inverse electron plasma frequencies
+time_wci # timestep in units of inverse ion cyclotron frequencies
+nx, nz   # number of grid cells in the x and z directions, respectively
+mass     # mass of plasma species
+q        # charge of plasma species
+wpewce   # Ratio of plasma frequency (wpe) to cyclotron frequency (wce) for the electrons
 
 ########################################################################
-###################### Arrays of size (nnx * nnz) ######################
+###################### Arrays of size nx or nz #########################
 ########################################################################
 
-bx # Magnetic field in the x-direction
-by # Magnetic field in the y-direction
-bz # Magnetic field in the z-direction
-
-ex # Electric field in the x-direction
-ey # Electric field in the y-direction
-ez # Electric field in the z-direction
-
+x_de # x-grid in units of electron inertial lengths
+z_de # z-grid in units of electron inertial lengths
+x_di # x-grid in units of ion inertial lengths
+z_di # z-grid in units of ion inertial lengths
 
 ########################################################################
-############## Arrays of size nnx (xe) and nnz (ze) ####################
+###################### Arrays of size (nx * nz) ########################
 ########################################################################
 
-xe # Grid layout in the x-direction
-ze # Grid layout in the z-direction
+Bx # Magnetic field in the x-direction
+By # Magnetic field in the y-direction
+Bz # Magnetic field in the z-direction
 
-wpewce # Ratio of plasma frequency to cyclotron frequency for the electrons
+Ex # Electric field in the x-direction
+Ey # Electric field in the y-direction
+Ez # Electric field in the z-direction
 
+# Plasma moments 
+# The plasma moments are provided for all individual species in sub structures:
+#   hot_ion      - ion species of hot Harris sheet
+#   hot_ele.     - electron of hot Harris sheet
+#   cold_ion_top - cold ions originating from the north
+#   cold_ele_top - cold electrons originating from the north
+#   cold_ion_bot - cold ions originating from the south
+#   cold_ele_bot - cold electrons originating from the south
+# and for the cold species combined:
+#   cold_ion     - cold ions originating from the north and south
+#   cold_ele     - cold electrons originating from the north and south
 
-########################################################################
-######################## Arrays of size nns ############################
-########################################################################
+n   # density
+jx  # particle flux in x direction
+jy  # particle flux in y direction
+jz  # particle flux in z direction
+vx  # particle speed in x direction, vx = jx/n
+vy  # particle speed in y direction, vy = jy/n
+vz  # particle speed in z direction, vz = jz/n
+pxx # pressure tensor components
+pyy # pressure tensor components
+pzz # pressure tensor components
+pxy # pressure tensor components
+pxz # pressure tensor components
+pyz # pressure tensor components
+p   # scalar pressure p = (pxx+pyy+pzz)/3 
+t   # scalar temperature t = p/n
 
-# For python: Index position [0,1,2,3,4,5] corresponds to different species
-# 0: Ion species of hot Harris sheet
-# 1: Electron of hot Harris sheet
-# 2: Cold ions originating from the north
-# 3: Cold electrons originating from the north
-# 4: Cold ions originating from the south
-# 5: Cold electrons originating from the south
-
-mass # Mass for the different species
-q # Charge
-
-
-########################################################################
-################# Arrays of size (nss * nnx * nnz) #####################
-########################################################################
-
-dns # Information about the density for each species.
-dfac # Density factor
-pxx # Pressure tensor components
-pyy # Pressure tensor components
-pzz # Pressure tensor components
-pxy # Pressure tensor components
-pxz # Pressure tensor components
-pyz # Pressure tensor components
-
-vxs # Velocity for the different species in the x-direction
-vys # Velocity for the different species in the y-direction
-vzs # Velocity for the different species in the z-direction
