@@ -116,22 +116,7 @@ end
 
 
 %%
-Bn_fun = @(lat,long) long;
+Bn = @(lat,long) lat;
 
-long = linspace(0,360,100);
-lat = linspace(0,90,50);
-[LAT,LONG] = meshgrid(lat,long);
-Bn = Bn_fun(LAT,LONG);
-
-pcolor(lat,long,Bn)
-shading flat
-
-boundary_lat_fun = @(long) 70+10*cosd(long);
-
-boundary_lat = boundary_lat_fun(long);
-hold on;
-plot(long,boundary_lat)
-
-[BOUND,LONG] = meshgrid(boundary_lat,long);
-
-
+lat = linspace(0,360,100);
+lat = linspace(0,90,)
