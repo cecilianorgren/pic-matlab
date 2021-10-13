@@ -441,11 +441,12 @@ c_eval('hl(?).Color = 0.5 + [0 0 0];',1:numel(hl))
 
 legends = {'a)','b)','c)','d)','e)','f)'};
 legends = {'a)','c)','e)','b)','d)','f)'};
-if 1 % 2x2
+if 1 % 3x2
   %%
   compact_panels(h,0.002,0.002)
   for ip = 1:numel(h)
-    irf_legend(h(ip),{[legends{ip} ' ' cbarlabels{ip}]},[0.8 0.98],'color',[1 1 1],'fontweight','bold','fontsize',12)
+    %irf_legend(h(ip),{[legends{ip} ' ' cbarlabels{ip}]},[0.8 0.98],'color',[1 1 1],'fontweight','bold','fontsize',12)
+    irf_legend(h(ip),{[' ' cbarlabels{ip}]},[0.98 0.98],'color',[1 1 1],'fontweight','bold','fontsize',12)
   end
   delete(findobj(gcf,'Type','ColorBar'))
   hcbar(1) = colorbar('peer',h(1,2),'location','eastoutside');
@@ -1929,7 +1930,7 @@ for itime = 1:numel(times)
   hca.YDir = 'normal';
   if itime == 1
     hcb = colorbar('peer',hca,'location','northoutside');  
-    hcb.YLabel.String = 'n_{cold}^{top}';
+    hcb.YLabel.String = 'n_{ic}^{top}';
   end
   if 1 % A
     A = pic.A;
@@ -1987,13 +1988,14 @@ c_eval('h(?).Position(2) = h(?).Position(2)+0.04;',firstrow)
 
 % legends
 legends = {'(a)','(b)','(c)','(d)','(e)','(f)','(g)','(h)','(i)','(j)','(k)','(l)','(m)','(n)','o)'};
+legends = {'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O)'};
 legends_left = legends([1 3:7]);
 legends_right = legends([2 8:12]);
 for ip = 1:6
-  irf_legend(h(ip),legends_left{ip},[-0.1 0.98],'color',[0 0 0],'fontsize',15)
+  irf_legend(h(ip),legends_left{ip},[-0.12 0.98],'color',[0 0 0],'fontsize',17,'verticalalignment','middle','fontweight','bold')
 end
 for ip = 7:12
-  irf_legend(h(ip),legends_right{ip-6},[1.02 0.98],'color',[0 0 0],'fontsize',15)
+  irf_legend(h(ip),legends_right{ip-6},[1.02 0.98],'color',[0 0 0],'fontsize',17,'verticalalignment','middle','fontweight','bold')
 end
 
 %
@@ -2055,6 +2057,14 @@ if 0 % extra markings and annotations
   annotation('textarrow',[0.885 0.875],[0.17 0.22],'string','cold','fontsize',13)  
 end
 
+h(1).XTickLabels = [];
+h(7).XTickLabels = [];
+h(7).XLabel = [];
+h(1).XLabel = [];
+hcb = findobj(gcf,'type','colorbar');
+c_eval('hcb(?).YLabel.FontSize = 14;',1:4)
+c_eval('hcb(?).FontSize = 14;',1:4)
+%c_eval('h(?).Position(2) = h(?).Position(2)+0.02;',[2:nrows (nrows+2):npanels])
 %% Figure 6, ALT1, magnetic curvature
 %% Curvature plot, combined, also including f(vx,vz) at z=2 to illustrate inward vs outward beam temperature
 clear h;
@@ -2342,6 +2352,7 @@ xlim = [60 110];
 xpos2 = [69 71 73 75 77 79];
 xpos2 = [71 73 75 77 79];
 legends = {'a)','b)','c)','d)','e)','f)','g)','h)','i)','k)','l)','m)','n)','o)'};
+legends = {'A','B','C','D','E','F','G','H','I','J','K','L','M','N'};
 
 %ds = ds100.twpelim(twpe).findtag({'line horizontal'}).xlim([71 80]).zfind(0).xfind(xpos);
 %ds2 = ds100.twpelim(twpe).findtag({'line horizontal'}).xlim([71 80]).zfind(2).xfind(xpos);
@@ -2416,7 +2427,9 @@ if 1 % f(v_x,v_y)
   %c_eval('hds.ax(?).Position(2) = hds.ax(?).Position(2) + 0.10;',1:ncols)
   hds.ax(1).Position(1) = h(1).Position(1);
   compact_panels(hds.ax,0.00,0.00)
-  c_eval('irf_legend(hds.ax(?),sprintf(''%s x = %g, z = 0'',legends{?+ih0},x0(?)),[0.02 0.98],''color'',[0 0 0],''fontsize'',legfontsize);',1:ncols);
+  c_eval('irf_legend(hds.ax(?),sprintf(''%s'',legends{?+ih0}),[0.02 0.99],''color'',[0 0 0],''fontsize'',19,''fontweight'',''bold'');',1:ncols);
+  c_eval('irf_legend(hds.ax(?),sprintf(''x = %g, z = 0'',x0(?)),[0.98 0.98],''color'',[0 0 0],''fontsize'',legfontsize);',1:ncols);
+  %c_eval('irf_legend(hds.ax(?),sprintf(''%s x = %g, z = 0'',legends{?+ih0},x0(?)),[0.02 0.98],''color'',[0 0 0],''fontsize'',legfontsize);',1:ncols);
   %[hax,hlab] = label_panels(hds.ax);
   hds.ax(1).CLim = fclim2d;
   %h.ax(1).CLim = [0 1];
@@ -2477,7 +2490,8 @@ if 0 % f(v_x,v_z)
 end
 
 for ip = 1:nmaps
-  irf_legend(h(ip),{legends{ip}},[0.01 0.99],'color',[0 0 0],'fontsize',fontsize)
+  %irf_legend(h(ip),{legends{ip}},[0.01 0.99],'color',[0 0 0],'fontsize',fontsize)
+  irf_legend(h(ip),{legends{ip}},[0.01 0.99],'color',[0 0 0],'fontsize',19,'fontweight','bold')
 end
 %irf_legend(h(2),{'b)'},[0.02 0.98],'color',[0 0 0],'fontsize',fontsize)
 
@@ -2517,7 +2531,7 @@ hs = findobj(htmp,'type','scatter');
 hleg_dist = legend([hs],{'v_{ExB}','v_{bulk}'},'location','south','orientation','horizontal','edgecolor',[1 1 1]);
 htmp.Position = tmppos;
 
-set(gcf,'position',[1304         582         616         610])
+set(gcf,'position',[104         582         616*1.2         610*1.2])
 
 %% SECOND PART, with reduced distributions along field line
 % Prepare 1D reduced distributions
@@ -2764,27 +2778,32 @@ c_eval('h(?).Layer = ''top'';',1:npanels)
 
 legends = {'a)','b)','c)','d)','e)','f)','g)','h)','i)','j)','k)','l)'};
 legends = {'i)','j)','k)','l)','m)','n)','o)'};
+legends = {'I','J','K','L','M','N','O'};
 for ip = 1:npanels
-  irf_legend(h(ip),{legends{ip}},[0.02 0.98],'color',[0 0 0],'fontsize',12)
+  %irf_legend(h(ip),{legends{ip}},[0.02 0.98],'color',[0 0 0],'fontsize',12)
+  irf_legend(h(ip),{legends{ip}},[0.02 0.98],'color',[0 0 0],'fontsize',19,'fontweight','bold')
 end
 
 hl_exb = findobj(h(1),'type','line');
-legend(hl_exb,'v_{E\times B}','Box','off','location','southwest')
+hleg_exb = legend(hl_exb,'v_{E\times B}','Box','off','location','southwest');
+hleg_exb.Box = 'off';
+%
+an_fontsize = 12;
 
-hleg = irf_legend(h(1),{'north';'B_x>0'},[0.08,0.98],'color',[0 0 0]);
-hleg = irf_legend(h(1),{'south';'B_x<0'},[0.98,0.98],'color',[0 0 0]);
-hleg = irf_legend(h(4),{'north';'B_x>0'},[0.08,0.98],'color',[0 0 0]);
-hleg = irf_legend(h(4),{'south';'B_x<0'},[0.98,0.98],'color',[0 0 0]);
+hleg = irf_legend(h(1),{'north';'B_x>0'},[0.10,0.98],'color',[0 0 0],'fontsize',an_fontsize);
+hleg = irf_legend(h(1),{'south';'B_x<0'},[0.98,0.98],'color',[0 0 0],'fontsize',an_fontsize);
+hleg = irf_legend(h(4),{'north';'B_x>0'},[0.10,0.98],'color',[0 0 0],'fontsize',an_fontsize);
+hleg = irf_legend(h(4),{'south';'B_x<0'},[0.98,0.98],'color',[0 0 0],'fontsize',an_fontsize);
 
 delete(findall(gcf,'type','annotation'))
-an_fontsize = 11;
-hleg = irf_legend(h(2),{'stronger';'magnetization:';'complete gyromotion'},[0.02,0.04],'color',[0 0 0],'fontsize',11);
+
+hleg = irf_legend(h(2),{'stronger';'magnetization:';'complete gyromotion'},[0.02,0.04],'color',[0 0 0],'fontsize',an_fontsize);
 annotation('textarrow',[0.30 0.30],[0.59 0.54],'String',{'v_y>0 \rightarrow -v_yB_x>0'},'fontsize',an_fontsize,'fontweight','light')
 annotation('textarrow',[0.34 0.33],[0.46 0.50],'String',{'v_y<0 \rightarrow -v_yB_x<0'},'fontsize',an_fontsize,'fontweight','light','horizontalalignment','center')
 annotation('textarrow',[0.29 0.29],[0.31 0.27],'String',{'reflection due to -v_yB_x>0'},'fontsize',an_fontsize,'fontweight','light','horizontalalignment','left')
 annotation('textarrow',[0.32 0.32],[0.17 0.21],'String',{'outward force due to -v_yB_x<0'},'fontsize',an_fontsize,'fontweight','light','horizontalalignment','left')
 
-hleg = irf_legend(h(5),{'weaker magnetization:';'incomplete gyromotion'},[0.02,0.04],'color',[0 0 0],'fontsize',11);
+hleg = irf_legend(h(5),{'weaker magnetization:';'incomplete gyromotion'},[0.02,0.04],'color',[0 0 0],'fontsize',an_fontsize);
 annotation('textarrow',[0.68 0.68],[0.59 0.55],'String',{'v_y>0 \rightarrow -v_yB_x>0'},'fontsize',an_fontsize,'fontweight','light','horizontalalignment','left')
 %annotation('textarrow',[0.70 0.7],[0.17 0.21],'String',{'reflection due to -v_yB_x<0'},'fontsize',an_fontsize,'fontweight','light','horizontalalignment','left')
 %annotation('textarrow',[0.72 0.7],[0.30 0.28],'String',{'reflection due to','-v_yB_x<0'},'fontsize',an_fontsize,'fontweight','light','horizontalalignment','center')
@@ -2793,7 +2812,7 @@ annotation('textarrow',[0.74 0.72],[0.25 0.25],'String',{'reflection','due to','
 
 %annotation('textarrow',[0.30 0.30],[0.15 0.2],'String',{'-v_y+B_x<0'},'fontsize',12,'fontweight','light')
 %if strcmp(plotxstr,'arc_z0'), %c_eval('h(?).YDir = ''reverse'';',remainingrows); end
-set(gcf,'position',[1304         782         616         331])
+set(gcf,'position',[104         782         616*1.2         331*1.2])
 
 %% Figure 6.5. 2D reduced distributions, showing beams in different perspective
 % Pick distributions
@@ -2874,7 +2893,7 @@ if 1 % fi(v_y)
   colormap(hca,pic_colors('candy4'))   
   irf_legend(hca,{sprintf('z = %g',unique(fred.z))},[0.02 0.98],'color',[0 0 0],'fontsize',14)
   hcb = colorbar('peer',hca,'fontsize',14);  
-  hcb.YLabel.String = 'f_{i,cold}(x,v_{y})';  
+  hcb.YLabel.String = 'f_{ic}(x,v_{y})';  
   
   hca.XGrid = 'on';
   hca.YGrid = 'on';

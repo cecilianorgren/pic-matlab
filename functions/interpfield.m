@@ -6,6 +6,7 @@ function [bout] = interpfield(x,z,f,xq,zq)
 %   xq, zq - point to interpolate to, can be scalar values or two vectors
 %
 nq = numel(xq);
+bout = zeros(1,nq);
 for iq = 1:nq  
   % find two closest grid points in x and z
   %   11 ------- 21

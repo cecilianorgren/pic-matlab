@@ -89,7 +89,7 @@ f_Ee = matlabFunction(Ee(3));
 f_N = matlabFunction(n);
 
 % Plot
-zvec = linspace(-5,5,100);
+zvec = linspace(-50,50,1000);
 nrows = 8; ncols = 1; npanels = nrows*ncols;
 h = setup_subplots(nrows,ncols);
 isub = 1;
@@ -140,6 +140,7 @@ compact_panels(0.01)
 for ip = 1:npanels
   h(ip).XGrid = 'on';
   h(ip).YGrid = 'on';
+  h(ip).XLim = zvec([1 end]);
 end
 
 %% Get v's from gradP/n and E

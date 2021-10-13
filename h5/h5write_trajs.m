@@ -56,8 +56,8 @@ end
 
 doAppend = 1; % for future
 
-m = 1; % hardcoded for now, need to change
-q = 1;
+%m = 1; % hardcoded for now, need to change
+%q = 1;
 
 if h5exist && doLoadExisting
   iTr0 = traj.ntr; % add number to append correctly.
@@ -80,7 +80,7 @@ for iTr = 1:numel(tr_arr)
   Bx = tr.Bx;
   By = tr.By;
   Bz = tr.Bz;
-  Ay = tr.Ay;
+%  Ay = tr.Ay;
   %vxB = cross_product(tr.vx,tr.vy,tr.vz,Bx,By,Bz,'components',1); % calculate force
   
   if doFPeaks % Information about how initial r0, v0 were chosen  
@@ -116,7 +116,7 @@ for iTr = 1:numel(tr_arr)
     h5create(filePath, [group_name 'Bx'], size(tr.t));
     h5create(filePath, [group_name 'By'], size(tr.t));
     h5create(filePath, [group_name 'Bz'], size(tr.t));
-    h5create(filePath, [group_name 'Ay'], size(tr.t));
+    %h5create(filePath, [group_name 'Ay'], size(tr.t));
   %catch
   %  warning('h5 structure %s already exists, overwriting.',[group_name 't'])      
   %end
@@ -134,7 +134,7 @@ for iTr = 1:numel(tr_arr)
   h5write(filePath, [group_name 'Bx'], Bx);
   h5write(filePath, [group_name 'By'], By);
   h5write(filePath, [group_name 'Bz'], Bz);
-  h5write(filePath, [group_name 'Ay'], Ay);
+  %h5write(filePath, [group_name 'Ay'], Ay);
     
   h5writeatt(filePath, group_name,'t0', tr.t0); % tr.t0
   h5writeatt(filePath, group_name,'x0', tr.x0);
@@ -143,8 +143,8 @@ for iTr = 1:numel(tr_arr)
   h5writeatt(filePath, group_name,'vx0', tr.vx0);
   h5writeatt(filePath, group_name,'vy0', tr.vy0);
   h5writeatt(filePath, group_name,'vz0', tr.vz0);  
-  h5writeatt(filePath, group_name,'m', m);
-  h5writeatt(filePath, group_name,'q', q);
+  h5writeatt(filePath, group_name,'m', tr.m);
+  h5writeatt(filePath, group_name,'q', tr.q);
   %h5writeatt(filePath, group_name,'tags', tags);
   if doFPeaks
     h5writeatt(filePath, group_name,'fpeaks_f', fpeaks_info.f);

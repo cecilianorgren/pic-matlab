@@ -187,15 +187,15 @@ varstrs = {'vix';'ni';'Babs'};
 clims = {[-1 1],[0 1.2],[0 1]};
 
 
-varstrs = {'Ez','ni','te','Babs','Bz'}';
-clims = {[-1 1],[0 1],[0 1],[0 0.5],[-1 1]};
-cmaps = {cmapbr,cmapth,cmapwa,cmapwa,cmapbr,cmapbr,cmapbr};
+varstrs = {'Ez','ni','Babs','Bz',}';
+clims = {[-1 1],[0 1],[0 0.5],[-1 1]};
+cmaps = {cmapbr,cmapth,cmapwa,cmapbr,cmapbr,cmapbr};
 
 
 cmapbr = pic_colors('blue_red');
 cmapwa = pic_colors('waterfall');
 cmapth = pic_colors('thermal');
-cmaps = {cmapbr,cmapth,cmapwa,cmapwa,cmapbr,cmapbr}';
+cmaps = {cmapbr,cmapth,cmapwa,cmap,cmapbr}';
 %pic = gf05(gf05.nt);
 pic = no02m.twpelim(21700).xlim(xlim).zlim(zlim);
 h = pic.plot_map(varstrs,'A',1,'clim',clims,'cmap',cmaps);

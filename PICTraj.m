@@ -70,7 +70,7 @@
           obj(itraj_).Bx = read_trajectories(itraj,1,'Bx');
           obj(itraj_).By = read_trajectories(itraj,1,'By');
           obj(itraj_).Bz = read_trajectories(itraj,1,'Bz');
-          obj(itraj_).A = read_trajectories(itraj,1,'Ay');
+          %obj(itraj_).A = read_trajectories(itraj,1,'Ay');
 
           obj(itraj_).nt = numel(obj(itraj_).t);
           

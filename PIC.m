@@ -533,6 +533,8 @@ classdef PIC
       %       1x3 numeric array
       %       Ntrajx3 numeric array      
       %       string with PICTraj quantity as color (only implemented for scalars I think, e.g. 'x0')
+      %     'backgroundcolor' - 
+      %     'axescolor' - 
       %
       % Examples:
       %   pic.MOVIE({'Ey'})
@@ -564,9 +566,12 @@ classdef PIC
       print_flag = 1;
       doSmooth = 0;
       npSmooth = 1;
-      colorMapTraj = pic_colors('waterfall');
-      
+      doDark = 0; 
+      colorMapTraj = pic_colors('waterfall');      
+      darkAxisColor = [0.8 0.8 0.8];
+      darkBackgroundColor = [33 33 33]/255;
       ntimes = obj.length;
+      
       
       have_options = 0;
       nargs = numel(varargin);      
@@ -574,7 +579,8 @@ classdef PIC
       
       while have_options
         l = 1;
-        %lower(args{1})
+        %lower(args{1})        
+        %args{1}
         switch(lower(args{1}))
           case {'traj','trajectories','tr','orbits'}
             doTrajectories = 1;
@@ -620,7 +626,10 @@ classdef PIC
           case 'gif'
             l = 1;
             doGif = 1;
-            doVideo = 0;            
+            doVideo = 0;      
+          case 'dark'
+            l = 1;
+            doDark = 1;            
           otherwise
             warning(sprintf('Input ''%s'' not recognized.',args{1}))            
         end        
@@ -657,7 +666,7 @@ classdef PIC
             colorTrajDot = reshape(cTrajDot,tr.ntr,1);
           end
         else
-          colorTrajDot = cTrajDot
+          colorTrajDot = cTrajDot;
         end
       end
       % setup figure
@@ -683,6 +692,14 @@ classdef PIC
         iframe = 0;
       end
       
+      if doDark
+        fig.Color = darkBackgroundColor;
+        ax = findobj(fig,'type','axes');
+        for iax = 1:numel(ax)
+          ax(iax).XAxis.Color = darkAxisColor;
+          ax(iax).YAxis.Color = darkAxisColor;          
+        end
+      end
       disp('Adjust figure size, then hit any key to continue.')
       pause
       
@@ -717,9 +734,16 @@ classdef PIC
                 var = smooth2(var,npSmooth);
               end
               imagesc(hca,tmp_obj.xi,tmp_obj.zi,var');
+              if doDark
+                hca.YAxis.Color = darkAxisColor;
+                hca.XAxis.Color = darkAxisColor;
+              end
               %contourf(hca,tmp_obj.xi,tmp_obj.zi,var',0:0.25:25);
               %contourf(hca,tmp_obj.xi,tmp_obj.zi,var',2:0.2:8);
               hb(ivar) = colorbar('peer',hca);
+              if doDark
+                hb(ivar).Color = darkAxisColor;
+              end
               if doCBarLabels
                 hb(ivar).YLabel.String = cBarLabels{ivar};
               else
@@ -769,15 +793,17 @@ classdef PIC
                   znow = zz(1); 
                   xtail = NaN;
                   ztail = NaN;
-                elseif tmp_obj.twci == tt(end)
-                  xnow = xx(end);
-                  znow = zz(end);
-                  xtail = NaN;
-                  ztail = NaN;
                 else
-                  if 1
-                    xnow = interp1(tt,xx,tmp_obj.twci);
-                    znow = interp1(tt,zz,tmp_obj.twci);
+                  if 1 % current position
+                    if tmp_obj.twci == tt(end)
+                      xnow = xx(end);
+                      znow = zz(end);
+                      %xtail = NaN;
+                      %ztail = NaN;
+                    else
+                      xnow = interp1(tt,xx,tmp_obj.twci);
+                      znow = interp1(tt,zz,tmp_obj.twci);
+                    end
 %                   else
 %                     ind_ = itime + [-5:0];
 %                     ind_ = ind_(ind_ > 0);
@@ -822,9 +848,9 @@ classdef PIC
                 end
                 
                 if doColorTrajLine
-                  sc = scatter(hca,tr(itr).x,tr(itr).z,20,coldot,'Marker','o','MarkerFaceColor','flat');
+                  %sc = scatter(hca,tr(itr).x,tr(itr).z,20,coldot,'Marker','o','MarkerFaceColor','flat');
                 else
-                  plot(hca,tr(itr).x,tr(itr).z,'k')
+                  %plot(hca,tr(itr).x,tr(itr).z,'k')
                 end               
                 if doColorTrajDot
                   if ischar(colorTrajDot)
@@ -862,12 +888,19 @@ classdef PIC
         end 
         %drawnow;
         h(1).Title.String = sprintf('twpe = %.0f, twci = %.1f',tmp_obj.twpe,tmp_obj.twci);
+        if doDark
+          h(1).Title.Color = darkAxisColor;
+        end
         compact_panels(0.01)
 %        h(3).Position(3) = h(2).Position(3);
         % Collect frames
         pause(1)
         if doVideo
-          set(gcf,'color','white');
+          if doDark
+            set(gcf,'color',darkBackgroundColor);          
+          else
+            set(gcf,'color','white');
+          end
           currFrame = getframe(gcf);
           writeVideo(vidObj,currFrame);
         end
@@ -876,7 +909,11 @@ classdef PIC
             iframe = iframe + 1;    
             nframes = obj.nt;
             currentBackgroundColor = get(gcf,'color');
-            set(gcf,'color',[1 1 1]);
+            if doDark
+              set(gcf,'color',darkBackgroundColor);          
+            else
+              set(gcf,'color','white');
+            end
             drawnow      
             tmp_frame = getframe(gcf);
             %cell_movies{imovie}(itime) = tmp_frame;
@@ -1081,7 +1118,7 @@ classdef PIC
         % Collect frames
         pause(1)
         if doVideo
-          set(gcf,'color','white');
+          set(gcf,'color','black');
           currFrame = getframe(gcf);
           writeVideo(vidObj,currFrame);
         end
@@ -1090,7 +1127,7 @@ classdef PIC
             iframe = iframe + 1;    
             nframes = pic0.nt;
             currentBackgroundColor = get(gcf,'color');
-            set(gcf,'color',[1 1 1]);
+            set(gcf,'color',[0 0 0]);
             drawnow      
             tmp_frame = getframe(gcf);
             %cell_movies{imovie}(itime) = tmp_frame;
@@ -1266,13 +1303,13 @@ classdef PIC
             %colormap(cmap)
           end
           if doAdjustCMap
-          if isa(cmaps,'cell')
-            colormap(hca,cmaps{ip});
-          elseif isnumeric(cmaps)
-            colormap(hca,cmaps)
-          end
+            if isa(cmaps,'cell')
+              colormap(hca,cmaps{ip});
+            elseif isnumeric(cmaps)
+              colormap(hca,cmaps)
+            end
           %colormap(cmap)
-        end
+          end
           if doCBarLabels
             hb(ivar).YLabel.String = cBarLabels{ivar};
           else
@@ -1280,6 +1317,7 @@ classdef PIC
           end
           %hb(ivar).FontSize = 14;
          % drawnow;
+         %hb(ivar).Color = [0.8 0.8 0.8];
         end
       end 
       %drawnow;
@@ -2440,7 +2478,7 @@ classdef PIC
       % Default values
       doPrintInfo = 0;            
       method = 'spline';
-      %method = 'linear';
+      method = 'linear';
       
 %       if numel(varargin) > 0
 %         have_options = 1;
@@ -2576,6 +2614,8 @@ classdef PIC
       out.vx0 = v0(1);
       out.vy0 = v0(2);
       out.vz0 = v0(3);
+      out.m = m;
+      out.q = q;
       out.options = options;   
       
       function  x_res = eom_pic_internal(t,x_vect,pic,m,q)
