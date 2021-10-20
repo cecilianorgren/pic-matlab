@@ -39,6 +39,11 @@ xp = 2*l; % scale length of perturbation
 zp = 1*l; % scale length of perturbation
 ap = 1.0*ah; % amplitude of perturbation
 
+% adapted to LH=1di
+xp = 2*l; % scale length of perturbation
+zp = 1*l; % scale length of perturbation
+ap = 0.75*ah; % amplitude of perturbation
+
 % no_hot_bg_test, calm start, but kind of slow
 % xp = 1*l; % scale length of perturbation
 % zp = 1*l; % scale length of perturbation
@@ -53,7 +58,7 @@ TeTi = 1/5; % not used, implement to get densities
 Ttot = 0.5; % not used, implement to get densities
 
 nx = 640;
-nz = 160;
+nz = 160*2;
 x0 = 0.5*(xmax-xmin);
 xvec = linspace(xmin,xmax,nx)-x0;
 zvec = linspace(zmin,zmax,nz);
@@ -155,20 +160,20 @@ Bz = B(3);
 Jx = J(1);
 Jy = J(2);
 Jz = J(3);
-Viy = Vi(2);
-Vey = Ve(2);
-VixBx = VixB(1);
-VixBy = VixB(2);
-VixBz = VixB(3);
-VexBx = VixB(1);
-VexBy = VixB(2);
-VexBz = VixB(3);
-Ex = E(1);
-Ey = E(2);
-Ez = E(3);
-GradPix = GradPi(1);
-GradPiy = GradPi(2);
-GradPiz = GradPi(3);
+% Viy = Vi(2);
+% Vey = Ve(2);
+% VixBx = VixB(1);
+% VixBy = VixB(2);
+% VixBz = VixB(3);
+% VexBx = VixB(1);
+% VexBy = VixB(2);
+% VexBz = VixB(3);
+% Ex = E(1);
+% Ey = E(2);
+% Ez = E(3);
+% GradPix = GradPi(1);
+% GradPiy = GradPi(2);
+% GradPiz = GradPi(3);
 
 fA = symfun(A,[x y z]);
 fAx = symfun(Ax,[x y z]);
@@ -203,36 +208,36 @@ matJx = mfJx(X,0,Z); if isscalar(matJx); matJx = repmat(matJx,nz,nx); end
 matJy = mfJy(X,0,Z); if isscalar(matJy); matJy = repmat(matJy,nz,nx); end
 matJz = mfJz(X,0,Z); if isscalar(matJz); matJz = repmat(matJz,nz,nx); end
 
-fVi = symfun(Vi,[x y z]);
-fViy = symfun(Viy,[x y z]);
-mfViy = matlabFunction(fViy);
-matViy = mfViy(X,0,Z); if isscalar(matViy); matViy = repmat(matViy,nz,nx); end
-fVe = symfun(Ve,[x y z]);
-fVey = symfun(Vey,[x y z]);
-mfVey = matlabFunction(fVey);
-matVey = mfVey(X,0,Z); if isscalar(matVey); matVey = repmat(matVey,nz,nx); end
+% fVi = symfun(Vi,[x y z]);
+% fViy = symfun(Viy,[x y z]);
+% mfViy = matlabFunction(fViy);
+% matViy = mfViy(X,0,Z); if isscalar(matViy); matViy = repmat(matViy,nz,nx); end
+% fVe = symfun(Ve,[x y z]);
+% fVey = symfun(Vey,[x y z]);
+% mfVey = matlabFunction(fVey);
+% matVey = mfVey(X,0,Z); if isscalar(matVey); matVey = repmat(matVey,nz,nx); end
 
-fVixB = symfun(VixB,[x y z]);
-fVixBx = symfun(VixBx,[x y z]);
-fVixBy = symfun(VixBy,[x y z]);
-fVixBz = symfun(VixBz,[x y z]);
-mfVixBx = matlabFunction(fVixBx);
-mfVixBy = matlabFunction(fVixBy);
-mfVixBz = matlabFunction(fVixBz);
-matVixBx = mfVixBx(X,0,Z); if isscalar(matVixBx); matVixBx = repmat(matVixBx,nz,nx); end
-matVixBy = mfVixBy(X,0,Z); if isscalar(matVixBy); matVixBy = repmat(matVixBy,nz,nx); end
-matVixBz = mfVixBz(X,0,Z); if isscalar(matVixBz); matVixBz = repmat(matVixBz,nz,nx); end
+% fVixB = symfun(VixB,[x y z]);
+% fVixBx = symfun(VixBx,[x y z]);
+% fVixBy = symfun(VixBy,[x y z]);
+% fVixBz = symfun(VixBz,[x y z]);
+% mfVixBx = matlabFunction(fVixBx);
+% mfVixBy = matlabFunction(fVixBy);
+% mfVixBz = matlabFunction(fVixBz);
+% matVixBx = mfVixBx(X,0,Z); if isscalar(matVixBx); matVixBx = repmat(matVixBx,nz,nx); end
+% matVixBy = mfVixBy(X,0,Z); if isscalar(matVixBy); matVixBy = repmat(matVixBy,nz,nx); end
+% matVixBz = mfVixBz(X,0,Z); if isscalar(matVixBz); matVixBz = repmat(matVixBz,nz,nx); end
 
-fVexB = symfun(VexB,[x y z]);
-fVexBx = symfun(VexBx,[x y z]);
-fVexBy = symfun(VexBy,[x y z]);
-fVexBz = symfun(VexBz,[x y z]);
-mfVexBx = matlabFunction(fVexBx);
-mfVexBy = matlabFunction(fVexBy);
-mfVexBz = matlabFunction(fVexBz);
-matVexBx = mfVexBx(X,0,Z); if isscalar(matVexBx); matVexBx = repmat(matVexBx,nz,nx); end
-matVexBy = mfVexBy(X,0,Z); if isscalar(matVexBy); matVexBy = repmat(matVexBy,nz,nx); end
-matVexBz = mfVexBz(X,0,Z); if isscalar(matVexBz); matVexBz = repmat(matVexBz,nz,nx); end
+% fVexB = symfun(VexB,[x y z]);
+% fVexBx = symfun(VexBx,[x y z]);
+% fVexBy = symfun(VexBy,[x y z]);
+% fVexBz = symfun(VexBz,[x y z]);
+% mfVexBx = matlabFunction(fVexBx);
+% mfVexBy = matlabFunction(fVexBy);
+% mfVexBz = matlabFunction(fVexBz);
+% matVexBx = mfVexBx(X,0,Z); if isscalar(matVexBx); matVexBx = repmat(matVexBx,nz,nx); end
+% matVexBy = mfVexBy(X,0,Z); if isscalar(matVexBy); matVexBy = repmat(matVexBy,nz,nx); end
+% matVexBz = mfVexBz(X,0,Z); if isscalar(matVexBz); matVexBz = repmat(matVexBz,nz,nx); end
 
 fN = symfun(n,[x y z]);
 mfN = matlabFunction(fN);
@@ -242,38 +247,38 @@ fPi = symfun(PTi,[x y z]);
 mfPi = matlabFunction(fPi);
 matPi = mfPi(X,0,Z); if isscalar(matPi); matPi = repmat(matPi,nz,nx); end
 
-fGradPi = symfun(GradPi,[x y z]);
-fGradPix = symfun(GradPix,[x y z]);
-fGradPiy = symfun(GradPiy,[x y z]);
-fGradPiz = symfun(GradPiz,[x y z]);
-mfGradPix = matlabFunction(fGradPix);
-mfGradPiy = matlabFunction(fGradPiy);
-mfGradPiz = matlabFunction(fGradPiz);
-matGradPix = mfGradPix(X,0,Z); if isscalar(matGradPix); matGradPix = repmat(matGradPix,nz,nx); end
-matGradPiy = mfGradPiy(X,0,Z); if isscalar(matGradPiy); matGradPiy = repmat(matGradPiy,nz,nx); end
-matGradPiz = mfGradPiz(X,0,Z); if isscalar(matGradPiz); matGradPiz = repmat(matGradPiz,nz,nx); end
+% fGradPi = symfun(GradPi,[x y z]);
+% fGradPix = symfun(GradPix,[x y z]);
+% fGradPiy = symfun(GradPiy,[x y z]);
+% fGradPiz = symfun(GradPiz,[x y z]);
+% mfGradPix = matlabFunction(fGradPix);
+% mfGradPiy = matlabFunction(fGradPiy);
+% mfGradPiz = matlabFunction(fGradPiz);
+% matGradPix = mfGradPix(X,0,Z); if isscalar(matGradPix); matGradPix = repmat(matGradPix,nz,nx); end
+% matGradPiy = mfGradPiy(X,0,Z); if isscalar(matGradPiy); matGradPiy = repmat(matGradPiy,nz,nx); end
+% matGradPiz = mfGradPiz(X,0,Z); if isscalar(matGradPiz); matGradPiz = repmat(matGradPiz,nz,nx); end
 
-fE = symfun(E,[x y z]);
-fEx = symfun(Ex,[x y z]);
-fEy = symfun(Ey,[x y z]);
-fEz = symfun(Ez,[x y z]);
-mfEx = matlabFunction(fEx);
-mfEy = matlabFunction(fEy);
-mfEz = matlabFunction(fEz);
-matEx = mfEx(X,0,Z); if isscalar(matEx); matEx = repmat(matEx,nz,nx); end
-matEy = mfEy(X,0,Z); if isscalar(matEy); matEy = repmat(matEy,nz,nx); end
-matEz = mfEz(X,0,Z); if isscalar(matEz); matEz = repmat(matEz,nz,nx); end
+% fE = symfun(E,[x y z]);
+% fEx = symfun(Ex,[x y z]);
+% fEy = symfun(Ey,[x y z]);
+% fEz = symfun(Ez,[x y z]);
+% mfEx = matlabFunction(fEx);
+% mfEy = matlabFunction(fEy);
+% mfEz = matlabFunction(fEz);
+% matEx = mfEx(X,0,Z); if isscalar(matEx); matEx = repmat(matEx,nz,nx); end
+% matEy = mfEy(X,0,Z); if isscalar(matEy); matEy = repmat(matEy,nz,nx); end
+% matEz = mfEz(X,0,Z); if isscalar(matEz); matEz = repmat(matEz,nz,nx); end
 
-fE = symfun(E,[x y z]);
-fEx = symfun(Ex,[x y z]);
-fEy = symfun(Ey,[x y z]);
-fEz = symfun(Ez,[x y z]);
-mfEx = matlabFunction(fEx);
-mfEy = matlabFunction(fEy);
-mfEz = matlabFunction(fEz);
-matEx = mfEx(X,0,Z); if isscalar(matEx); matEx = repmat(matEx,nz,nx); end
-matEy = mfEy(X,0,Z); if isscalar(matEy); matEy = repmat(matEy,nz,nx); end
-matEz = mfEz(X,0,Z); if isscalar(matEz); matEz = repmat(matEz,nz,nx); end
+% fE = symfun(E,[x y z]);
+% fEx = symfun(Ex,[x y z]);
+% fEy = symfun(Ey,[x y z]);
+% fEz = symfun(Ez,[x y z]);
+% mfEx = matlabFunction(fEx);
+% mfEy = matlabFunction(fEy);
+% mfEz = matlabFunction(fEz);
+% matEx = mfEx(X,0,Z); if isscalar(matEx); matEx = repmat(matEx,nz,nx); end
+% matEy = mfEy(X,0,Z); if isscalar(matEy); matEy = repmat(matEy,nz,nx); end
+% matEz = mfEz(X,0,Z); if isscalar(matEz); matEz = repmat(matEz,nz,nx); end
 
 
 
@@ -291,7 +296,7 @@ if doLocal
 end
 
 % Plot
-nrows = 6;
+nrows = 3;
 ncols = 1;
 npanels = nrows*ncols;
 %for ipanel = 1:npanels
@@ -329,7 +334,7 @@ if 0 % Az
   colorbar('peer',hca)
   hca.Title.String = 'Az';
 end
-if 1 % Bx
+if 0 % Bx
   hca = h(isub); isub = isub + 1;
   pcolor(hca,X,Z,matBx);
   shading(hca,'flat')
@@ -345,7 +350,7 @@ if 0 % By
   colorbar('peer',hca)
   hca.Title.String = 'By';
 end
-if 1 % Bz
+if 0 % Bz
   hca = h(isub); isub = isub + 1;
   pcolor(hca,X,Z,matBz);
   shading(hca,'flat')
@@ -395,7 +400,7 @@ if 0 % Jz
   colorbar('peer',hca)
   hca.Title.String = 'Jz';
 end
-if 1 % n
+if 0 % n
   hca = h(isub); isub = isub + 1;
   pcolor(hca,X,Z,matN);
   shading(hca,'flat')
