@@ -5285,7 +5285,8 @@ classdef PIC
     function out = xline_position(obj)
       % X line position
       xz_xline = obj.get_timeline_attributes('xline_position');
-      out = xz_xline(obj.indices,:);
+      %out = xz_xline(obj.indices,:);
+      out = xz_xline;
     end
     function out = x_xline(obj)
       % X line position
