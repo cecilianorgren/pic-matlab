@@ -1,3 +1,16 @@
+%% Reconnection onset, susannes
+timestep = 2400;
+dirData = '/Users/cecilia/Data/PIC/rec_onset/distributions/t2400/';
+h5FilePath = '/Users/cecilia/Data/PIC/rec_onset/h5data/dists.h5';
+distIndRead = 1:5;
+nSpecies = 2;
+iteration = timestep*2;
+mass = [25 1];
+charge = [1 -1];
+tag = 'map_recsite';
+h5write_dists(dirData,h5FilePath,distIndRead,nSpecies,mass,charge,timestep,iteration,tag)
+
+%%
 timestep = 10000;
 dirData = sprintf('/Volumes/Fountain/Data/PIC/no_hot_bg_test/distributions/%05.0f/',timestep);
 h5FilePath = '/Volumes/Fountain/Data/PIC/no_hot_bg_test/data_h5/dists.h5';

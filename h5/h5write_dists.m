@@ -45,7 +45,7 @@ else
   newh5file = 1;
   %h5writeatt(h5FilePath,'/','test',1)
   h5writeatt(h5FilePath,'/','software','micPIC')
-  h5writeatt(h5FilePath,'/','nSpecies', 6);
+  h5writeatt(h5FilePath,'/','nSpecies', nSpecies);
 end
 
 % data_dir can both be overarching directory with subdirectories for each
@@ -84,7 +84,8 @@ id = distIndRead(1)-1;
 
 for iFile = distIndRead
   id = id + 1;
-  distFilePath = sprintf('%s%04.0f.dat',dirData,iFile);
+  %distFilePath = sprintf('%s%04.0f.dat',dirData,iFile);
+  distFilePath = sprintf('%s%.0f.dat',dirData,iFile);
   h5write_dists_single(distFilePath,h5FilePath,id,nSpecies,iteration)
   
   %if h5exist && not(isempty(find(timestep==pic.twpe)))
