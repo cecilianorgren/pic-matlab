@@ -92,7 +92,7 @@ switch dist_param
     % are correct...?
     % n = sqrt(ne^2/meps0)
     wpewce = 2;
-    mime = 200;
+    mime = 200; % WHY IS MIME = 200 ?????
     eps0 = 1/(wpewce^2*mime);
     wp = sqrt(n./m)*sqrt(1/eps0); % normalization? wci? write in units of wci?
     x = 0.1;
