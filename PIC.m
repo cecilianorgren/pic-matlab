@@ -887,7 +887,7 @@ classdef PIC
           end
         end 
         %drawnow;
-        h(1).Title.String = sprintf('twpe = %.0f, twci = %.1f',tmp_obj.twpe,tmp_obj.twci);
+        h(1).Title.String = sprintf('twpe = %5.2f, twci = %5.2f',tmp_obj.twpe,tmp_obj.twci);
         if doDark
           h(1).Title.Color = darkAxisColor;
         end
@@ -4247,6 +4247,23 @@ classdef PIC
       out = t;
     end
     function out = t_tens(obj,species)
+      % PIC.T_TENS Temperature tensor.
+      %   T = PIC_obj.T_TENS(species);
+      %   T = T_TENS(PIC_obj,species);
+      %
+      %   PIC_obj - PIC object.
+      %   species - plasma species, scalar, e.g. 1 or vector array e.g.
+      %             [1 3]. must be only ions or electron.
+      %   T - structure array with tensor components, i.e.:
+      %       Txx = T.xx;
+      %       Txy = T.xy;
+      %       Txz = T.xz;
+      %       Tyy = T.yy;
+      %       Tyz = T.yz;
+      %       Tzz = T.zz;
+      %
+      % See also PIC.T_DIAG, PIC.TI, PIC.TE, PIC.T
+
       n = obj.n(species);
       pxx = obj.pxx(species);
       pxy = obj.pxy(species);
@@ -4264,14 +4281,31 @@ classdef PIC
     end
     function out = t_fac(obj,species)
       % PIC.T_FAC Load t_tens, and rotate to field aligned coordinate system
-      % tfac = PIC.T_FAC(species)
-      % r1 = B/|B|;
-      % r2 = r1 x [0 1 0] - in inflow, without guide field, this is then
-      %                     close to z
-      % r3 = r1 x r2
+      %   tfac = PIC.T_FAC(species)
+      %   r1 = B/|B|;
+      %   r2 = r1 x [0 1 0] - in inflow, without guide field, this is then
+      %                       close to z
+      %   r3 = r1 x r2
+      %
+      %   tfac - structure array with fiels
+      %     tfac.fac - structure with fields in new coordinate system      
+      %       T_par         = tfac.fac.xx;
+      %       T_par_perp1   = tfac.fac.xy;
+      %       T_par_perp2   = tfac.fac.xz;
+      %       T_perp1_perp1 = tfac.fac.yy;
+      %       T_perp1_perp2 = tfac.fac.yz;
+      %       T_perp2_perp2 = tfac.fac.zz;
+      %     tfac.perp - perpendicular scalar temperature 
+      %       T_perp = tfac.perp; % calculated as (tfac.fac.yy + tfac.fac.zz)/2
+      %     tfac.par - parallel scalar temperature 
+      %       T_par = tfac.par; % same as tfac.fac.xx
+      %     tfac.scal - total scalar temperature 
+      %       T_par = tfac.par; % calculated as (tfac.fac.xx + tfac.fac.yy + tfac.fac.zz)/3
+      %            
       
       % Temperature
       t = obj.t_tens(species);
+      
       % Magnetic field
       Bx = obj.Bx;
       By = obj.By;
@@ -4280,17 +4314,22 @@ classdef PIC
       b.x =  Bx./Babs;
       b.y =  By./Babs;
       b.z =  Bz./Babs;
+      
       % New coordinate system
       r1 = b; % magnetic field unit vector
-      r2 = cross_product(r1.x,r1.y,r1.z,0,1,0);
-      r2.abs = sqrt(r2.x.^2 + r2.y.^2 + r2.z.^2);
-      r2.x = r2.x./r2.abs;
+      r2 = cross_product(r1.x,r1.y,r1.z,0,1,0);      
+      r2.abs = sqrt(r2.x.^2 + r2.y.^2 + r2.z.^2); % make sure it's a unit vector
+      r2.x = r2.x./r2.abs; 
       r2.y = r2.y./r2.abs;
       r2.z = r2.z./r2.abs;
       r2.abs = sqrt(r2.x.^2 + r2.y.^2 + r2.z.^2);
       r2 = cross_product(r2.x,r2.y,r2.z,r1.x,r1.y,r1.z);
       r3 = cross_product(r1.x,r1.y,r1.z,r2.x,r2.y,r2.z);
       r3.abs = sqrt(r3.x.^2 + r3.y.^2 + r3.z.^2);
+      % for making sure they are all unit vectors 
+      % >> imagesc(r1.abs); colorbar;
+      % >> imagesc(r2.abs); colorbar;
+      % >> imagesc(r3.abs); colorbar;      
       
       % Rotate tensor
       % To get fac, we dont really need the entire tensor, do we? The 
@@ -4302,13 +4341,18 @@ classdef PIC
       out.fac = t_fac;
       out.perp = t_perp;
       out.par = t_par;
-      out.scal = t_scal;
+      out.scal = t_scal; % needs to be the same as in non-rotated system
+      % >> imagesc()
     end
     function out = tperp(obj,species)
+      % PIC.TPAR Perpendicular temperature.
+      %   T_perp =  PIC_obj.tperp(species);
       tfac = obj.t_fac(species);
       out = tfac.perp;       
     end
     function out = tpar(obj,species)
+      % PIC.TPAR {arallel temperature
+      %   T_par =  PIC_obj.tpar(species);
       tfac = obj.t_fac(species);
       out = tfac.par;       
     end

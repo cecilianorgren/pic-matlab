@@ -2,7 +2,7 @@
 timestep = 2400;
 dirData = '/Users/cecilia/Data/PIC/rec_onset/distributions/t2400/';
 h5FilePath = '/Users/cecilia/Data/PIC/rec_onset/h5data/dists.h5';
-distIndRead = 1:5;
+distIndRead = 1:117;
 nSpecies = 2;
 iteration = timestep*2;
 mass = [25 1];

@@ -520,6 +520,18 @@ classdef PICDist
       % PICDist.plot_map Plots a map of all distributions in new figure.
       %   h = plot_map(obj,iSpecies,sumdim,options);
       %
+      %   Options:
+      %     'bline',PICobj - draw in plane magnetic field line
+      %     'v',PICobj - plot in plane velocity moment
+      %     'exb',PICobj - plot in plane ExB velocity
+      %     'log' - plot log10(data)
+      %     'diff',ispecies - plot difference between phase space density
+      %           of two species, e.g. obj.plot_map(ispecies,sumdim,diffSpecies) plots f_ispecies-f_diffspecies (or maybe f_diffspecies-f_ispecies, verify)
+      %     'ratio',ispecies - same as 'diff', but just divide them two
+      %           instead, e.g. obj.plot_map(ispecies,sumdim,diffSpecies) 
+      %           plots f_ispecies/f_diffspecies, so obj.plot_map(1,sumdim,[1 3])
+      %           is f1/(f1+f3)
+      %
       %   Output:
       %     h.ax - handle to all axes
       %     h.leg - handle to all text labels (showing location)
@@ -566,7 +578,7 @@ classdef PICDist
       end
       
       have_options = 0;
-      if not(isempty(args))        
+      if not(isempty(args))
         have_options = 1;
       end
       while have_options
@@ -1021,7 +1033,7 @@ classdef PICDist
       
       
     end
-    function varargout = plot_boxes(obj,varargin)      
+    function varargout = plot_boxes(obj,varargin)
       % PDIST.PLOT_BOXES Plot boxes of distributions.
       
       doTagColor = 0;

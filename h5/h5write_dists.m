@@ -34,14 +34,15 @@ end
 
 str_iteration = sprintf('%010.0f',iteration);
   
-if exist(h5FilePath,'file')
+file_info = dir(h5FilePath);
+if exist(h5FilePath,'file') && file_info.bytes>0  
   h5exist = 1;
   disp(sprintf('File %s exists. Loading file to obtain existing distributions.',h5FilePath))
   dist = PICDist(h5FilePath);
   newh5file = 0;   % if I want to add some ovearching information later
 else
   H5F.create(h5FilePath); % does not work in older matlab versions
-  info = h5info(h5FilePath);
+  %info = h5info(h5FilePath);
   newh5file = 1;
   %h5writeatt(h5FilePath,'/','test',1)
   h5writeatt(h5FilePath,'/','software','micPIC')
