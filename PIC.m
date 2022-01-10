@@ -1238,6 +1238,8 @@ classdef PIC
         end        
         [saddle_locations,saddle_values] = saddle(A,'sort');
         sepA = saddle_values(1);
+        iAx = 1:5:obj.nx;
+        iAz = 1:5:obj.nz;
       end
       
       [nrows,ncols] = size(varstrs);      
