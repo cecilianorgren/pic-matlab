@@ -2021,8 +2021,7 @@ classdef PICDist
       %energy_edges = logspace(-3,log10(1.0*max(f.v.^2/2)),30);
       nEnergy = nE;
       %energy_edges = logspace(-3,log10(1*max(f.v.^2/2)),nEnergy);
-      energy_edges = logspace(-3,5,nEnergy);
-      denergy = diff(energy_edges);
+      energy_edges = logspace(-3,1,nEnergy);
       %energy_edges = linspace(1e-4,1e1,nEnergy);
       
       % Initialize variable(s)
@@ -2051,28 +2050,24 @@ classdef PICDist
         nbins = (numel(energy_edges)-1);
         for ibin = 1:nbins
           ind_bin = find(BIN==ibin);      
-          E_dist_tmp = f.f(ind_bin).*VV2(ind_bin).^2/2/denergy(ibin); % IS THIS RIGHT NOW ??? No, need to divide by bin size i guess
-          E_dist_mean(ibin,1) = mean(E_dist_tmp);
-          P_dist_tmp = f.f(ind_bin).*VV2(ind_bin)/denergy(ibin); % IS THIS RIGHT NOW ???
-          P_dist_mean(ibin,1) = mean(P_dist_tmp);
+          E_dist_tmp = f.f(ind_bin).*VV2(ind_bin).^2/2; % IS THIS RIGHT NOW ???
+          E_dist_mean(ibin,1) = mean(f_dist_tmp);
+          P_dist_tmp = f.f(ind_bin).*VV2(ind_bin); % IS THIS RIGHT NOW ???
+          P_dist_mean(ibin,1) = mean(f_dist_tmp);
           f_dist_tmp = f.f(ind_bin); % IS THIS RIGHT NOW ???
           f_dist_mean(ibin,1) = mean(f_dist_tmp);
           %f_dist_sum(ibin,1) = sum(f_dist_tmp)/f_denergy(ibin);
         end
 
   
-        dEF_all(id,:) = E_dist_mean; % NEED TO MULTIPLY WITH V^4/2
-        dPF_all(id,:) = P_dist_mean; % NEED TO MULTIPLY WITH V^4/2
-        f_all(id,:) = f_dist_mean; % NEED TO MULTIPLY WITH V^4/2
+        dEF_all(id,:) = f_dist_mean; % NEED TO MULTIPLY WITH V^4/2
         x_all(id) = mean(f.x);
         z_all(id) = mean(f.z);
       end
       if nargout == 1
         varargout{1}.energy = f_energy_centers;
         varargout{1}.energy_edges = f_energy_edges;
-        varargout{1}.f = f_all;
         varargout{1}.dEF = dEF_all;
-        varargout{1}.dPF = dPF_all;
         varargout{1}.x = x_all;
         varargout{1}.z = z_all;
       elseif nargout == 2        
