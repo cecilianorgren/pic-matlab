@@ -1005,6 +1005,8 @@
       if isempty(hca)
         hca = gca; % current or new axes
       end
+      tf = ishold(hca);
+      
       
       % Check input
       if nargs > 0; have_input = 1; args = args; end
@@ -1090,7 +1092,12 @@
         
         if itr == 1, hold(hca,'on'); end
       end
-      hold(hca,'off')
+      % Go back to original hold on axes: tf = ishold(hca);
+      if tf 
+        hold(hca,'on')
+      else
+        hold(hca,'off')
+      end
       %hca=gca;      
       hca.XGrid = 'on';
       hca.YGrid = 'on';
