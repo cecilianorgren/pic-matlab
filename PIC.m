@@ -1118,7 +1118,7 @@ classdef PIC
         % Collect frames
         pause(1)
         if doVideo
-          set(gcf,'color','black');
+          set(gcf,'color','white');
           currFrame = getframe(gcf);
           writeVideo(vidObj,currFrame);
         end
@@ -4672,11 +4672,11 @@ classdef PIC
       for icomp = 1:numel(comp)
         switch comp(icomp)
           case 'x'
-            var = x - parx;
+            var = x - sign(bx).*parx;
           case 'y'
-            var = y - pary;
+            var = y - sign(by).*pary;
           case 'z'
-            var = z - parz;
+            var = z - sign(bz).*parz;
         end
         varargout{end+1} = var;
       end
@@ -4714,6 +4714,18 @@ classdef PIC
     function out = jipar(obj)
       iSpecies = find(obj.get_charge == 1); % negatively charge particles are electrons
       out = obj.par('j',iSpecies);
+    end 
+    function out = viparx(obj,iSpecies)
+      iSpecies = find(obj.get_charge == 1); % negatively charge particles are electrons
+      out = obj.parx('v',iSpecies);
+    end
+    function out = vpary(obj,iSpecies)
+      iSpecies = find(obj.get_charge == 1); % negatively charge particles are electrons
+      out = obj.pary('v',iSpecies);
+    end
+    function out = vparz(obj,iSpecies)
+      iSpecies = find(obj.get_charge == 1); % negatively charge particles are electrons
+      out = obj.pary('v',iSpecies);
     end 
     function out = vperpx(obj,iSpecies)      
       out = obj.perp('v','x',iSpecies);

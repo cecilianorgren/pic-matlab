@@ -4672,11 +4672,11 @@ classdef PIC
       for icomp = 1:numel(comp)
         switch comp(icomp)
           case 'x'
-            var = x - parx;
+            var = x - sign(bx).*parx;
           case 'y'
-            var = y - pary;
+            var = y - sign(by).*pary;
           case 'z'
-            var = z - parz;
+            vwhar = z - sign(bz).*parz;
         end
         varargout{end+1} = var;
       end
@@ -4714,15 +4714,52 @@ classdef PIC
     function out = jipar(obj)
       iSpecies = find(obj.get_charge == 1); % negatively charge particles are electrons
       out = obj.par('j',iSpecies);
-    end  
-    function out = viperpx(obj)
-      iSpecies = find(obj.get_charge == 1); % negatively charge particles are electrons
-      out = obj.perp('v','x',iSpecies);
     end 
-    function out = vperpx(obj)
+    function out = viparx(obj,iSpecies)
       iSpecies = find(obj.get_charge == 1); % negatively charge particles are electrons
+      out = obj.parx('v',iSpecies);
+    end
+    function out = vpary(obj,iSpecies)
+      iSpecies = find(obj.get_charge == 1); % negatively charge particles are electrons
+      out = obj.pary('v',iSpecies);
+    end
+    function out = vparz(obj,iSpecies)
+      iSpecies = find(obj.get_charge == 1); % negatively charge particles are electrons
+      out = obj.pary('v',iSpecies);
+    end 
+    function out = vperpx(obj,iSpecies)      
       out = obj.perp('v','x',iSpecies);
     end
+    function out = vperpy(obj,iSpecies)      
+      out = obj.perp('v','y',iSpecies);
+    end
+    function out = vperpz(obj,iSpecies)      
+      out = obj.perp('v','z',iSpecies);
+    end 
+    function out = viperpx(obj)
+      iSpecies = find(obj.get_charge == 1); % negatively charge particles are electrons
+      out = obj.vperpx(iSpecies);
+    end 
+    function out = viperpy(obj)
+      iSpecies = find(obj.get_charge == 1); % negatively charge particles are electrons
+      out = obj.vperpy(iSpecies);
+    end 
+    function out = viperpz(obj)
+      iSpecies = find(obj.get_charge == 1); % negatively charge particles are electrons
+      out = obj.vperpz(iSpecies);
+    end 
+    function out = veperpx(obj)
+      iSpecies = find(obj.get_charge == -1); % negatively charge particles are electrons
+      out = obj.vperpx(iSpecies);
+    end 
+    function out = veperpy(obj)
+      iSpecies = find(obj.get_charge == -1); % negatively charge particles are electrons
+      out = obj.vperpy(iSpecies);
+    end 
+    function out = veperpz(obj)
+      iSpecies = find(obj.get_charge == -1); % negatively charge particles are electrons
+      out = obj.vperpz(iSpecies);
+    end 
     function out = dvdt(obj,comp,species)
       % How to deal with dt when nt == 1, i added a parent property to the 
       % PIC class. In that way one can have access to original properties.
