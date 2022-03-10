@@ -1,5 +1,6 @@
 function varargout = calculate_moments(fin)
 % CALCULATE_MOMENTS Calculate moments of distribution f.
+% [n,v,p] = calculate_moments(f3D)
 
 v = fin.v;
 f = fin.f;
@@ -39,7 +40,6 @@ VABS_cent = sqrt(VX_cent.^2+VY_cent.^2+VZ_cent.^2);
 
 p = sum(sum(sum(f.*VABS_cent.^2)))*dv^3;
 t = p/n;
-
 
 
 varargout{1} = n;

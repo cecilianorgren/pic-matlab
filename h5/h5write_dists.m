@@ -85,8 +85,11 @@ id = distIndRead(1)-1;
 
 for iFile = distIndRead
   id = id + 1;
-  %distFilePath = sprintf('%s%04.0f.dat',dirData,iFile);
-  distFilePath = sprintf('%s%.0f.dat',dirData,iFile);
+  try % two different formats to write the distribution files 1.dat or 0001.dat
+    distFilePath = sprintf('%s%04.0f.dat',dirData,iFile);
+  catch
+    distFilePath = sprintf('%s%.0f.dat',dirData,iFile);
+  end
   h5write_dists_single(distFilePath,h5FilePath,id,nSpecies,iteration)
   
   %if h5exist && not(isempty(find(timestep==pic.twpe)))
