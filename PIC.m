@@ -4284,7 +4284,7 @@ classdef PIC
     function out = t_fac(obj,species)
       % PIC.T_FAC Load t_tens, and rotate to field aligned coordinate system
       %   tfac = PIC.T_FAC(species)
-      %   r1 = B/|B|;
+      %   r1 n= B/|B|;
       %   r2 = r1 x [0 1 0] - in inflow, without guide field, this is then
       %                       close to z
       %   r3 = r1 x r2
@@ -5657,9 +5657,15 @@ classdef PIC
       for it = 1:obj.nt
         A = obj.twcilim(times(it)).A;
         [inds,vals] = saddle(A,'sort');
-        inds_x_all(it) = inds(1,1);
-        inds_z_all(it) = inds(1,2);
-        vals_all(it) = vals(1);
+        if not(isempty(inds))
+          inds_x_all(it) = inds(1,1);
+          inds_z_all(it) = inds(1,2);
+          vals_all(it) = vals(1);
+        else
+          inds_x_all(it) = NaN;
+          inds_z_all(it) = NaN;
+          vals_all(it) = NaN;
+        end
       end
       
       varargout{1} = times;

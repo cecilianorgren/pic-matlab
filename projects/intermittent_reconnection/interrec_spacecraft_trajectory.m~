@@ -1,0 +1,15 @@
+%no02m = PIC('/Volumes/Fountain/Data/PIC/no_hot_bg_n02_m100/data_h5/fields.h5');
+
+
+t = no02m.twci;
+x = 125*ones(numel(t),1);
+z = 3*ones(numel(t),1);
+
+Ez = no02m.interp(x,z,t,'Ez');
+ni = no02m.interp(x,z,t,'ni');
+vix = no02m.interp(x,z,t,'vix');
+nih = no02m.interp(x,z,t,'n(1)');
+nic = no02m.interp(x,z,t,'n([3 5])');
+
+plot(t,Ez,t,ni,t,vix,t,nih,t,nic)
+
