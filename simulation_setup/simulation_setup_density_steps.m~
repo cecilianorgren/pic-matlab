@@ -152,18 +152,10 @@ switch iPert
     f5 = +0.5*dn*(1 + tanh((abs(z)-z5)/lin));
     f6 = -0.5*dn*(1 + tanh((abs(z)-z6)/lin));
     f = f1 + f2 + f3 + f4 + f5 + f6;
-  case 2 % ok for L = 2di;
-    f1a = +0.5*dn*(1 - tanh((abs(z)-6)/lin).^1);
-    f1b = -0.5*dn*(1 - tanh((abs(z)-4)/(lin*4)).^1);
-    f2a = +0.5*dn*(1 - tanh((abs(z)-9)/lin).^1);
-    f2b = -0.5*dn*(1 - tanh((abs(z)-4)/(lin*4)).^1);
-    f = f1a + f1b + f2a + f2b;
-  case 3 % ok for L = 1di;
-    f1a = +0.5*dn*(1 - tanh((abs(z)-5)/lin).^1);
-    f1b = -0.5*dn*(1 - tanh((abs(z)-2)/(lin*4)).^1);
-    f2a = +0.5*dn*(1 - tanh((abs(z)-8)/lin).^1);
-    f2b = -0.5*dn*(1 - tanh((abs(z)-2)/(lin*4)).^1);
-    f = f1a + f1b + f2a + f2b;
+  case 2
+    f1 = +0.5*dn*(1 - tanh((abs(z)-7)/lin));
+    f2 = +0.5*dn*(1 - tanh((abs(z)-10)/lin));
+    f = f1 + f2;
 end
 n_pert = f;
 
@@ -445,7 +437,7 @@ end
 if 1 % n_cut
   hca = h(isub); isub = isub + 1;  
   plot(hca,zvec,fN(20,0,zvec),zvec,fNh(20,0,zvec),zvec,fNp(20,0,zvec))  
-  legend(hca,{'n_{tot}','n_{hot}','n_{cold}'})
+  legend(hca,{'h_{hot}','n'})
   %hca.YLim = hca.YLim+diff(hca.YLim)*0.05*[-1 1];
 end
 
