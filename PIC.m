@@ -107,7 +107,7 @@ classdef PIC
           obj.namelist = nameList;
           namelist = parse_namelist(obj);
           obj.species = namelist.name;
-          obj.charge = namelist.charge;
+          obj.charge = namelist.charge; 
           obj.mass = namelist.mass;
           obj.mime = namelist.mime;
           obj.wpewce = namelist.wpewce;

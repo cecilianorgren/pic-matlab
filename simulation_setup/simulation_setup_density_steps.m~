@@ -1,12 +1,23 @@
 %
+mtot = 1.4e10/4;
+M_target = [1e9 3e9 3e9]/4;
+M_target = mtot*[0.05 0.23 0.21];
+
 nSimp = 50;
-wpewce = 2;
-mime = 25;
+wpewce = 4;
+mime = 100;
+resx = 2;
+resz = 3;
 % de, sixe of box
 xemin = 0; 
-xemax = 0.25*2048; 
-zemin = -128;
-zemax = 128;
+xemax = 3000;256*sqrt(mime); 
+zemin = 0;
+zemax = 2*256;48*sqrt(mime);
+zemean = (zemin+zemax)/2;
+zemin = zemin-zemean;
+zemax = zemax-zemean;
+zemean = (zemin+zemax)/2;
+
 %zemax = 56;
 %zemin = 0;
 % di/de = (c/wpi)/(c/wpe) = wpe/wpi = sqrt(mi/me) 
@@ -21,7 +32,7 @@ zmin = zimin;
 zmax = zimax;
 
 nb = 0.1;
-Lhe = 10; % Harris sheet width in de, 5de = 1di
+Lhe = 10*2; % Harris sheet width in de, 5de = 1di
 Lhi = Lhe/sqrt(mime); % Harris sheet width in di
 l = Lhi; % harris sheet width
 zh = l;
@@ -57,13 +68,13 @@ ap = 0.5*ah; % amplitude of perturbation
 TeTi = 1/5; % not used, implement to get densities
 Ttot = 0.5; % not used, implement to get densities
 
-nx = 640;
-nz = 160*2;
+nx = (xmax-xmin)*sqrt(mime)*resx;
+nz = (zmax-zmin)*sqrt(mime)*resz;
 x0 = 0.5*(xmax-xmin);
 xvec = linspace(xmin,xmax,nx)-x0;
 zvec = linspace(zmin,zmax,nz);
 [X,Z] = meshgrid(xvec,zvec);
-
+%
 % If you want to get the expressions in terms of all parameters (zh,zp,xp,
 % ah,ap, etc), you need to add these as syms here.
 % syms x y z zh xp zp ah ap
@@ -142,7 +153,7 @@ R = [x; y; z];
 %Btot = B0*tanh(z/l);
 BH = B0*tanh(z/l);
 Btot = B0;
-iPert = 2;
+iPert = 4;
 switch iPert
   case 1
     f1 = +0.5*dn*(1 + tanh((abs(z)-z1)/lin));
@@ -152,16 +163,85 @@ switch iPert
     f5 = +0.5*dn*(1 + tanh((abs(z)-z5)/lin));
     f6 = -0.5*dn*(1 + tanh((abs(z)-z6)/lin));
     f = f1 + f2 + f3 + f4 + f5 + f6;
-  case 2
-    f1 = +0.5*dn*(1 - tanh((abs(z)-7)/lin));
-    f2 = +0.5*dn*(1 - tanh((abs(z)-10)/lin));
-    f = f1 + f2;
+  case 2 % ok for L = 2di;
+    f1a = +0.5*dn*(1 - tanh((abs(z)-6)/lin).^1);
+    f1b = -0.5*dn*(1 - tanh((abs(z)-4)/(lin*4)).^1);
+    f2a = +0.5*dn*(1 - tanh((abs(z)-9)/lin).^1);
+    f2b = -0.5*dn*(1 - tanh((abs(z)-4)/(lin*4)).^1);
+    f = f1a + f1b + f2a + f2b;
+  case 3 % ok for L = 1di;
+    f1a = +0.5*dn*(1 - tanh((abs(z)-5)/lin).^1);
+    f1b = -0.5*dn*(1 - tanh((abs(z)-2)/(lin*4)).^1);
+    f2a = +0.5*dn*(1 - tanh((abs(z)-8)/lin).^1);
+    f2b = -0.5*dn*(1 - tanh((abs(z)-2)/(lin*4)).^1);
+    f = f1a + f1b + f2a + f2b;
+  case 4 % 
+    % From t top (z>0)
+    f1a = +4*0.5*dn*(1 + tanh(((z)-3.5)/1.4).^1);
+    f1b = -1.0*0.5*dn*(1 + tanh(((z)-6)/0.5).^1);
+    f1c = -1.0*0.5*dn*(1 + tanh(((z)-9)/0.5).^1);
+    
+    
+    f2a = +2*0.5*dn*(1 + tanh(((-z)-3.8)/1.4).^1);
+    f2b = -1*0.5*dn*(1 + tanh(((-z)-6)/0.5).^1);
+    f2c = -1*0.5*dn*(1 + tanh(((-z)-9)/0.5).^1);
+    %f1a = +0.5*dn*(1 - tanh((abs(z)-5)/lin).^1);
+    %f1b = -0.5*dn*(1 - tanh((abs(z)-2)/(lin*4)).^1);
+    %f2a = +0.5*dn*(1 - tanh((abs(z)-8)/lin).^1);
+    %f2b = -0.5*dn*(1 - tanh((abs(z)-2)/(lin*4)).^1);
+    %f = f1a + f1b + f2a + f2b;
+    %f = f1a + f1b + f2a + f2b;
+    ftop = f1a + f1b + f1c + 0.001;
+    fbot = f2a + 0.001; % + f2b + f2c;
+    f = ftop + fbot;
+  case 5 
+    % From t top (z>0)
+    f1a = +3*0.5*dn*(1 + tanh(((z)-4)/1.4).^1);
+    %f1b = -1*0.5*dn*(1 + tanh(((z)-6)/0.5).^1);
+    %f1c = -1*0.5*dn*(1 + tanh(((z)-9)/0.5).^1);
+    
+    
+    f2a = +1*0.5*dn*(1 + tanh(((-z)-6)/1.4).^1);
+    %f2b = -1*0.5*dn*(1 + tanh(((-z)-6)/0.5).^1);
+    %f2c = -1*0.5*dn*(1 + tanh(((-z)-9)/0.5).^1);
+    %f1a = +0.5*dn*(1 - tanh((abs(z)-5)/lin).^1);
+    %f1b = -0.5*dn*(1 - tanh((abs(z)-2)/(lin*4)).^1);
+    %f2a = +0.5*dn*(1 - tanh((abs(z)-8)/lin).^1);
+    %f2b = -0.5*dn*(1 - tanh((abs(z)-2)/(lin*4)).^1);
+    %f = f1a + f1b + f2a + f2b;
+    %f = f1a + f1b + f2a + f2b;
+    ftop = f1a + 0.001;
+    fbot = f2a + 0.001; % + f2b + f2c;
+    f = ftop + fbot;
 end
-n_pert = f;
+n_pert = symfun(f,[x z]);
+n_top = symfun(ftop,[x z]);
+n_bot = symfun(fbot,[x z]);
 
-nb = 0.05*tanh(abs(z))^2;
+nb = 0.05*tanh(abs(z)/4)^2;
 
-n = nh + nb + 1*n_pert;
+n = nh + 0*nb + 1*n_pert;
+n1 = nh;
+%n2 = nh;
+n2 = n_top;
+n3 = n_bot;
+%n5 =
+%n6 =
+% Construct function for the number of particles given density profile and
+% target number of particles for each species.
+% for i in np.arange(0,int(nx)-1):
+%         for j in np.arange(0,int(ny)-1):
+% #            n_center[i,j] = nfun(x_center[i],y_center[j]) # make this a sum directly to save memory
+%             Ntot = Ntot + nfun(x_center[i],y_center[j]) # make sum directly to save memory    
+% #    Ntot = sum(n_center.flatten())*dx*dy # approximate total number of micro particles
+%     def mfun(x,y):
+%         return m.ceil(nfun(x,y))*(Mtot_target/Ntot) # at least one per cell, unless it's absolutely zero
+%     return mfun
+
+%mfun = @(Mtot_target,nfun) nfun(X,Z)*(Mtot_target/);
+c_eval('mf_n? = matlabFunction(n?);',1:numel(M_target))
+c_eval('sum_n? = sum(sum(mf_n?(X,Z)));',1:numel(M_target))
+c_eval('mf_mfun? = matlabFunction(n?*M_target(?)/sum_n?);',1:numel(M_target))
 
 % How to add a polarized inflow current sheet, such that the electrons are
 % drifting, and not the ions?
@@ -262,9 +342,21 @@ fNh = symfun(nh,[x y z]);
 mfNh = matlabFunction(fNh);
 matNh = mfNh(X,0,Z); if isscalar(matNh); matNh = repmat(matNh,nz,nx); end
 
-fNp = symfun(n_pert,[x y z]);
-mfNp = matlabFunction(fNp);
-matNp = mfNp(X,0,Z); if isscalar(matNp); matNp = repmat(matNp,nz,nx); end
+fNtop = symfun(n_top,[x y z]);
+mfNtop = matlabFunction(fNtop);
+matNtop = mfNtop(X,0,Z); if isscalar(matNtop); matNtop = repmat(matNtop,nz,nx); end
+
+fNbot = symfun(n_bot,[x y z]);
+mfNbot = matlabFunction(fNbot);
+matNbot = mfNbot(X,0,Z); if isscalar(matNbot); matNbot = repmat(matNbot,nz,nx); end
+
+% fNp = symfun(n_pert,[x y z]);
+% mfNp = matlabFunction(fNp);
+% matNp = mfNp(X,0,Z); if isscalar(matNp); matNp = repmat(matNp,nz,nx); end
+% 
+% fNb = symfun(nb,[x y z]);
+% mfNb = matlabFunction(fNb);
+% matNb = mfNb(X,0,Z); if isscalar(matNb); matNb = repmat(matNb,nz,nx); end
 
 fPi = symfun(PTi,[x y z]);
 mfPi = matlabFunction(fPi);
@@ -318,8 +410,9 @@ if doLocal
   matJz(any([abs(X(:))>xp abs(Z(:))>xp],2)) = 0;
 end
 
-% Plot
-nrows = 5;
+%% Plot
+figure(101)
+nrows = 1;
 ncols = 1;
 npanels = nrows*ncols;
 %for ipanel = 1:npanels
@@ -336,7 +429,7 @@ if 0 % Ax
   colorbar('peer',hca)
   hca.Title.String = 'Ax';
 end
-if 1 % Ay
+if 1*0 % Ay
   hca = h(isub); isub = isub + 1;
   pcolor(hca,X,Z,matAy);
   shading(hca,'flat')
@@ -365,7 +458,7 @@ if 0 % Bx
   colorbar('peer',hca)
   hca.Title.String = 'Bx';
 end
-if 1 % By
+if 1*0 % By
   hca = h(isub); isub = isub + 1;
   pcolor(hca,X,Z,matBy);
   shading(hca,'flat')
@@ -389,7 +482,7 @@ if 0 % Jx
   colorbar('peer',hca)
   hca.Title.String = 'Jx';
 end
-if 1 % Jy
+if 1*0 % Jy
   hca = h(isub); isub = isub + 1;
   pcolor(hca,X,Z,matJy);
   shading(hca,'flat')
@@ -423,7 +516,7 @@ if 0 % Jz
   colorbar('peer',hca)
   hca.Title.String = 'Jz';
 end
-if 1 % n
+if 1*0 % n
   hca = h(isub); isub = isub + 1;
   pcolor(hca,X,Z,matN);
   shading(hca,'flat')
@@ -436,9 +529,26 @@ end
 
 if 1 % n_cut
   hca = h(isub); isub = isub + 1;  
-  plot(hca,zvec,fN(20,0,zvec),zvec,fNh(20,0,zvec),zvec,fNp(20,0,zvec))  
-  legend(hca,{'h_{hot}','n'})
+  plot(hca,zvec,fN(20,0,zvec),zvec,fNh(20,0,zvec),zvec,fNtop(20,0,zvec),zvec,fNbot(20,0,zvec))%,zvec,fNb(20,0,zvec))  
+  legend(hca,{'n_{tot}','n_{hot}','n_{cold,top}','n_{cold,bot}'})
   %hca.YLim = hca.YLim+diff(hca.YLim)*0.05*[-1 1];
+  hca.XGrid = 'on';
+  hca.YGrid = 'on';
+  hca.XTick = -30:2:30;
+  hca.XLabel.String = 'z/d_{i0}';
+  hca.YLabel.String = 'n/n_{0}';
+  hca.XLim = zcev([1 end])
+end
+if 1*0 % n_cut (abs(zvec))
+  hca = h(isub); isub = isub + 1;  
+  plot(hca,abs(zvec),fN(20,0,zvec),abs(zvec),fNh(20,0,zvec),abs(zvec),fNtop(20,0,zvec),abs(zvec),fNbot(20,0,zvec))%,zvec,fNb(20,0,zvec))  
+  legend(hca,{'n_{tot}','n_{hot}','n_{cold,top}','n_{cold,bot}'})
+  %hca.YLim = hca.YLim+diff(hca.YLim)*0.05*[-1 1];
+  hca.XGrid = 'on';
+  hca.YGrid = 'on';
+  hca.XTick = -30:2:30;
+  hca.XLabel.String = '|z|/d_{i0}';
+  hca.YLabel.String = 'n/n_{0}';
 end
 
 if 0
@@ -464,5 +574,36 @@ compact_panels(0.03,0.08)
 %h(1).YLim = [0 6];
 %hlinks.Targets(1).XLim = [-10 10];
 %hlinks.Targets(1).YLim = [-10 10];
+
+%% Plot macroparticles
+figure(102)
+nrows = 5;
+ncols = 1;
+npanels = nrows*ncols;
+%for ipanel = 1:npanels
+%  h(ipanel) = subplot(nrows,ncols,ipanel);  
+%end
+nPop = 3;
+h = setup_subplots(nPop,1);
+isub = 1;
+
+for iPop = 1:nPop  
+    hca = h(isub); isub = isub + 1;
+    c_eval('mfun = mf_mfun?;',iPop);
+    pcolor(hca,X,Z,mfun(X,Z));
+    shading(hca,'flat')
+    hcb = colorbar('peer',hca);
+    hcb.YLabel.String = sprintf('Species %g',iPop);    
+    hca.Title.String = sprintf('# Macro particles');
+end
+colormap(pic_colors('candy4'))
+compact_panels(0.03,0.08)
+
+hlinks = linkprop(h,{'XLim','YLim','CLim'});
+%h(1).CLim = [0 500];
+%h(1).YLim = [0 6];
+%hlinks.Targets(1).XLim = [-10 10];
+%hlinks.Targets(1).YLim = [-10 10];
+
 
 disp('Done.')
