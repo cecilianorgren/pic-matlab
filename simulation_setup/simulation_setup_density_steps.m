@@ -1,5 +1,5 @@
 %
-mtot = 1.4e10/4;
+mtot = 1.4e10/40;
 M_target = [1e9 3e9 3e9]/4;
 M_target = mtot*[0.05 0.23 0.21];
 
@@ -153,7 +153,7 @@ R = [x; y; z];
 %Btot = B0*tanh(z/l);
 BH = B0*tanh(z/l);
 Btot = B0;
-iPert = 4;
+iPert = 6;
 switch iPert
   case 1
     f1 = +0.5*dn*(1 + tanh((abs(z)-z1)/lin));
@@ -176,7 +176,7 @@ switch iPert
     f2b = -0.5*dn*(1 - tanh((abs(z)-2)/(lin*4)).^1);
     f = f1a + f1b + f2a + f2b;
   case 4 % 
-    % From t top (z>0)
+    % From the top (z>0)
     f1a = +4*0.5*dn*(1 + tanh(((z)-3.5)/1.4).^1);
     f1b = -1.0*0.5*dn*(1 + tanh(((z)-6)/0.5).^1);
     f1c = -1.0*0.5*dn*(1 + tanh(((z)-9)/0.5).^1);
@@ -211,6 +211,18 @@ switch iPert
     %f = f1a + f1b + f2a + f2b;
     %f = f1a + f1b + f2a + f2b;
     ftop = f1a + 0.001;
+    fbot = f2a + 0.001; % + f2b + f2c;
+    f = ftop + fbot;
+  case 6 % 
+    % From the top (z>0)
+    f1a = +6*0.5*dn*(1 + tanh(((z)-3)/1.0).^1);
+    f1b = -3*0.5*dn*(1 + tanh(((z)-6)/0.5).^1);
+    f1c = -3*0.5*dn*(1 + tanh(((z)-9)/0.5).^1);
+    
+    % From the bottom (z>0)
+    f2a = +2*0.5*dn*(1 + tanh(((-z)-3.8)/1.4).^1);
+    
+    ftop = f1a + f1b + f1c + 0.001;
     fbot = f2a + 0.001; % + f2b + f2c;
     f = ftop + fbot;
 end
@@ -410,7 +422,7 @@ if doLocal
   matJz(any([abs(X(:))>xp abs(Z(:))>xp],2)) = 0;
 end
 
-%% Plot
+% Plot
 figure(101)
 nrows = 1;
 ncols = 1;
