@@ -322,16 +322,16 @@ varstrs = {{'Bz','By','Bz'};{'Ex','Ey','Ez'};{'vex';'vey';'vez'};{'vix';'viy';'v
 h = pic.plot_line(comp,varstrs,'smooth',10);
 
 %% plot_line, vertical
-pic = gf05(gf05.nt);
+pic = gf05;
 comp = 'z';
 twpe = [100];
-twpe = 1000;
-xlim = 53+0.5*[-1 1];
+twci = 160;
+xlim = 80+0.5*[-1 1];
 zlim = [-15 15];
 zlim = pic.zi([1 end]);
 zlim = [-15 15];
-xlim = 60+0.5*[-1 1];
-pic = pic.xlim(xlim).zlim(zlim).twpelim(twpe,'exact');
+xlim = 80+0.5*[-1 1];
+pic = pic.xlim(xlim).zlim(zlim).twcilim(twci);
 varstrs = {{'Bx'};{'Jy'};{'n(1)','n([3 5])','n([1 3 5])'};{'Ey','Ez'};{'txx(1)','txx(3)','txx(5)','txx([1 3 5])'}};
 varstrs = {{'Bx'};{'Jy'};{'n([1 3 5])'};{'Ey'};{'Ez'};{'viz'};{'vez'}};
 varstrs = {{'Ey'};{'Ez'};{'vez'};{'tzz(4)'};{'txx(4)'}};
@@ -339,7 +339,12 @@ varstrs = {{'tzz([1])'};{'tzz(2)'};{'ni'}};
 %varstrs = {{'Ey'};{'n(4)'};{'tzz(4)'}};
 varstrs = {{'n([1])','n([3 5])'};{'Ey'};{'Ez'}};
 varstrs = {{'Ez';'Bx';'By';'Jy'}};
-h = pic.plot_line(comp,varstrs);
+
+% Ohm's law
+varstrs = {{'Ez';'-vex.*By';'vey.*Bx';'divpez';'Ez+vex.*By-vey.*Bx+divpez'},{'Ez';'-vix.*By';'viy.*Bx';'divpiz';'Ez+vix.*By-viy.*Bx-divpiz'},{'Ez';'Jx.*By';'-Jy.*Bx';'divpez';'Jx.*By-Jy.*Bx'}}';
+
+
+h = pic.plot_line(comp,varstrs,'smooth',5);
 
 %% plot_line, vertical
 pic = df04n;
@@ -502,12 +507,13 @@ varstrs = {{'Bz'};{'By'};{'Bx'};{'ni'};{'vix'};{'viy'};{'Ey'};{'Ez'};{'t([1 3 5]
 h = pic.plot_line(comp,varstrs);
 
 %% plotline, Ohm's law
-comp = 'x';
+comp = 'z';
 twpe = [1000:1000:9000];
 twpe = 3000;
 xlim = [120 200];
 zlim = 0.0+0.5*[-1 1];
-pic = no02.twpelim(twpe,'exact').xlim(xlim).zlim(zlim);
+%pic = no02.twpelim(twpe,'exact').xlim(xlim).zlim(zlim);
+pic = gf05.twcilim(108,'exact').xlim(75+[-0.5 05]).zlim([-12 12]);
 varstrs = {{'Bx','By','Bz'};{'Ex','Ey','Ez'};{'ni'};{'divpx([1 3 5])','divpx([1])','divpx([3 5])','divpx(1+[1 3 5])'};{'dvxdt([1])','vdvx(1)'};{'vex','vix','vExBx'};{'t([1 3 5])'}};
 varstrs = {{'Bx','By','Bz'};{'Ex','Ey','Ez'};{'divpx([1 3 5])','vxBx([1 3 5])','Ex','-divpx([1 3 5])+vxBx([1 3 5])'};{'dvxdt([1])','vdvx(1)'}};
 varstrs = {{'Bx','By','Bz'};{'Ex','Ey','Ez'};{'divpx([1 3 5])','vxBx([1 3 5])','Ex','-divpx([1 3 5])+vxBx([1 3 5])'};{'t([1 3 5])'}};
@@ -518,8 +524,19 @@ varstrs = {{'Bz','Ey','Jy','pi','pe'};{'jiy','jey'};{'Ex','vixBx','divpex','JxBx
 %varstrs = {{'Bz','Ey','Jy'};   {'JxBx','JxBy','JxBz'};{'Ey','vixBy','divpey','JxBy','JxBy-vixBy+divpey'};{'Ey','divpiy','vixBy','-vixBy+divpiy'};{'Ey','-vexBy','-divpey','-vexBy-divpey'};{'Ey+vixBy','Ey+vexBy'}};
 %varstrs = {{'Bz','Ey'};{'Jz','Jy','Jz'};{'JxBx','JxBy','JxBz'};{'Ex','JxBx','vxBx([1 3])','divpx(1+[1 3])','JxBx-vxBx([1 3])+divpx(1+[1 3])'};{'Ex','divpx([1 3])','vxBx([1 3])','-vxBx([1 3])+divpx([1 3])'};{'Ex','-vxBx(1+[1 3])','-divpx(1+[1 3])','-vxBx(1+[1 3])-divpx(1+[1 3])'}};
 %varstrs = {{'Bz'};{'t([1 3 5])'}};
-
-h = pic.plot_line(comp,varstrs,'smooth',20);
+varstrs = {{'By','Ez','Jx'};...
+  {'jix','jex'};...
+  {'(Jx.*By-Jy.*Bx)./ni','Jx.*By./ni','-Jy.*Bx./ni'};
+  {'Ez','vix.*By','-viy.*Bx','Ez+vix.*By-viy.*Bx'};...
+  {'Ez','vex.*By','-vey.*Bx','Ez+vex.*By-vey.*Bx'};...
+  {'Ez+vix.*By-viy.*Bx','(Jx.*By-Jy.*Bx)./ni','-divpex./ne'};...
+  {'Ez+vix.*By-viy.*Bx','-divpix./ni'};...
+  {'Ez+vex.*By-vey.*Bx','divpex./ne'}};%;...
+  %{'Ez','vix.*By','viy.*Bx','-divpex./ne','Jx.*By./ni','-Jy.*Bx./ni'}};%;...
+  %{'Ez','vixBx','divpix','-vixBx+divpix'};...
+  %{'Ez','-vexBx','-divpex','-vexBx-divpex'};...
+  %{'Ez+vixBx','Ex+vexBx'}};
+h = pic.plot_line(comp,varstrs,'smooth',10);
 
 %% plotline, typical df
 comp = 'x';
