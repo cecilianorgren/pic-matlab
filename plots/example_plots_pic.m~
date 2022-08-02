@@ -683,12 +683,11 @@ twpe = 7000:1000:12000;
 twpe = 10000:1000:24000;
 twpe = [15000 25000];
 twpe = [20000 23000];
-twpe = [15000:200:25000];
+twpe = [15000 25000];
 xlim = no02m.xi([1 end])+[100 -60]';
 zlim = [-8 8];
-xlim = no02m.xi([1 end])+[40 -40]';
-zlim = [-9 9];
-
+xlim = no02m.xi([1 end])+[40 40]';
+zlim = [-8 8];
 cmapbr = pic_colors('blue_red');
 cmapwa = pic_colors('waterfall');
 cmapjet = colormap('jet');
@@ -727,12 +726,11 @@ cmaps = {cmapbr,cmapth,cmapwa,cmapbr,cmapbr,cmapbr};
 
 
 varstrs = {'ni','ti'}';
-clims = {[0 1.2],[0 0.5999]};
+clims = {[0 1.2],[0 0.6]};
 cmaps = {cmapth,cmapth};
-cbarlabels = {'n_i','T_i'};
 
 filename = [printpath 'no02m_ni_ti'];
-pic.movie(varstrs,'A',1,'cmap',cmaps,'clim',clims,'cbarlabels',cbarlabels,'filename',filename);
+pic.movie(varstrs,'A',1,'cmap',cmaps,'sep','clim',clims,'filename',filename);
 %pic.twpelim([17000 25000]).movie({'Ez'},'A',1,'clim',{[-1 1]},'cmap',{pic_colors('blue_red')},'filename',[printpath 'no02m_Ez']);
 
 %% movie

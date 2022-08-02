@@ -5060,16 +5060,7 @@ classdef PIC
           out = S;
       end
     end
-    function out = Sx(obj)
-      out = obj.S('x');
-    end
-    function out = Sy(obj)
-      out = obj.S('y');
-    end
-    function out = Sz(obj)
-      out = obj.S('z');
-    end
-    
+    function out
     function out = vxBx(obj,species)
       % vxB_x(vyBz - vzBy)
       % out = vxBx(obj,species)
