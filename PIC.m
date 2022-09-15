@@ -3077,26 +3077,75 @@ classdef PIC
       iGroup = find(contains({fileInfo.Groups.Name},'/data'));
       nIter = numel(fileInfo.Groups(iGroup).Groups); % number of iterations
       
-      isub = 0;
-      for iIter = obj.it
-        isub = isub + 1;
-        % /data/00000xxxxx/ 
-        % redo to actually find the 
-        %iIter
-        iAtt = find(contains({fileInfo.Groups(iGroup).Groups(iIter).Attributes.Name},attr_str));
-        if numel(iAtt)>1
-          if iIter == 1
-            warning(sprintf('Found more than one (partial) match to %s, choosing the first match %s.',attr_str,fileInfo.Groups(iGroup).Groups(iIter).Attributes(iAtt(1)).Name))
+      doSparse = 1;
+      % Instead of finding Attr number, I should perhaps just load it using
+      % h5readatt?
+      if 1
+        isub = 0;
+        ifilled = [];
+        attr = [];
+        for iIter = obj.it
+          isub = isub + 1;
+          
+          % /data/00000xxxxx/ 
+          % redo to actually find the 
+          %iIter
+          %iAtt = find(contains({fileInfo.Groups(iGroup).Groups(iIter).Attributes.Name},attr_str));
+          cell_str_attr = {fileInfo.Groups(iGroup).Groups(iIter).Attributes.Name};
+          tmp = cellfun(@(x) strcmp(x,attr_str),cell_str_attr,'UniformOutput',false);
+          iAtt = find([tmp{:}]);
+          if numel(iAtt)>1            
+            if iIter == 1
+              warning(sprintf('Found more than one (partial) match to %s, choosing the first match %s.',attr_str,fileInfo.Groups(iGroup).Groups(iIter).Attributes(iAtt(1)).Name))
+            end
+            iAtt = iAtt(1);
           end
-          iAtt = iAtt(1);
+          if doSparse       
+            if not(isempty(iAtt))
+              ifilled = [ifilled isub];
+              %fileInfo.Groups(iGroup).Groups(iIter)
+              datasize = fileInfo.Groups(iGroup).Groups(iIter).Attributes(iAtt).Dataspace.Size;
+              new_data = reshape(fileInfo.Groups(iGroup).Groups(iIter).Attributes(iAtt).Value,1,max(datasize));
+              attr = [attr; new_data];           
+            end
+          else
+            if not(isempty(iAtt))
+              %fileInfo.Groups(iGroup).Groups(iIter)
+              datasize = fileInfo.Groups(iGroup).Groups(iIter).Attributes(iAtt).Dataspace.Size;
+              attr(isub,:) = fileInfo.Groups(iGroup).Groups(iIter).Attributes(iAtt).Value;
+            else
+              attr(isub,:) = NaN;
+            end
+          end
         end
-        if not(isempty(iAtt))
-          datasize = fileInfo.Groups(iGroup).Groups(iIter).Attributes(iAtt).Dataspace.Size;          
-          attr(isub,:) = fileInfo.Groups(iGroup).Groups(iIter).Attributes(iAtt).Value;
-        else
-          attr(isub,:) = NaN;
+        if doSparse
+          alldata = nan(obj.length,size(attr,2));
+          alldata(ifilled,:) = attr;
+          attr = alldata;
         end
-        
+      else
+        isub = 0;
+        for iIter = obj.it
+          isub = isub + 1;
+          % /data/00000xxxxx/ 
+          % redo to actually find the 
+          %iIter
+          iAtt = find(contains({fileInfo.Groups(iGroup).Groups(iIter).Attributes.Name},attr_str));
+          if numel(iAtt)>1
+            if iIter == 1
+              warning(sprintf('Found more than one (partial) match to %s, choosing the first match %s.',attr_str,fileInfo.Groups(iGroup).Groups(iIter).Attributes(iAtt(1)).Name))
+            end
+            iAtt = iAtt(1);
+          end
+          if not(isempty(iAtt))
+            %fileInfo.Groups(iGroup).Groups(iIter)
+            data = h5readatt(obj.file,fileInfo.Groups(iGroup).Groups(iIter).Name,attr_str);
+            attr(isub,:) = data;
+          else
+            attr(isub,:) = NaN;
+          end
+
+        end
       end
       out = attr;
     end
@@ -4353,7 +4402,7 @@ classdef PIC
       out = tfac.perp;       
     end
     function out = tpar(obj,species)
-      % PIC.TPAR {arallel temperature
+      % PIC.TPAR parallel temperature
       %   T_par =  PIC_obj.tpar(species);
       tfac = obj.t_fac(species);
       out = tfac.par;       
@@ -4727,13 +4776,13 @@ classdef PIC
       iSpecies = find(obj.get_charge == 1); % negatively charge particles are electrons
       out = obj.pary('v',iSpecies);
     end 
-    function out = vperpx(obj,iSpecies)      
+    function out = vperpx(obj,iSpecies)
       out = obj.perp('v','x',iSpecies);
     end
-    function out = vperpy(obj,iSpecies)      
+    function out = vperpy(obj,iSpecies)
       out = obj.perp('v','y',iSpecies);
     end
-    function out = vperpz(obj,iSpecies)      
+    function out = vperpz(obj,iSpecies)
       out = obj.perp('v','z',iSpecies);
     end 
     function out = viperpx(obj)
@@ -5456,15 +5505,25 @@ classdef PIC
       out = abs([0 cumsum(diff(out-out(1)))]);
       out = out(obj.indices_);
     end
-    function out = UK(obj,value)
+    function out = UK(obj,iSpecies)
       % 
-      out = h5read(obj.file,['/scalar_timeseries/U/K/' num2str(value)]);
-      out = out(obj.indices_);
+      try
+        out = h5read(obj.file,['/scalar_timeseries/U/K/' num2str(iSpecies)]);
+        out = out(obj.indices_);
+      catch
+        out = obj.get_timeline_attributes('UK');
+        out = out(:,iSpecies);        
+      end
     end
-    function out = UT(obj,value)
+    function out = UT(obj,iSpecies)
       % 
-      out = h5read(obj.file,['/scalar_timeseries/U/T/' num2str(value)]);
-      out = out(obj.indices_);
+      try
+        out = h5read(obj.file,['/scalar_timeseries/U/T/' num2str(iSpecies)]);
+        out = out(obj.indices_);
+      catch        
+        out = obj.get_timeline_attributes('UT');
+        out = out(:,iSpecies);
+      end
     end
     function out = Ute(obj)
       % Integrated electron thermal energy density

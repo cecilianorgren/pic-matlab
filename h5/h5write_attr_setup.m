@@ -20,6 +20,133 @@ for it = 1:pic.nt
   disp(sprintf('%g/%g',it,pic.nt))
 end
 
+%% Energy partitioning, UB, UK, UT
+times = pic.twci;
+%% Thermal and kinetic energy n08
+sim = no02m;
+tic;
+clear UT UK
+for it = 1 %sim.twpelim(2000:1000:3000,'exact').indices%:sim.length  
+  sim_tmp = sim(it); 
+  for iSpecies = 1:numel(sim.mass)    
+    disp(sprintf('it = %g/%g, sp = %g ',it,sim.length,iSpecies))
+    
+    [n,jx,jy,jz,pxx,pxy,pxz,pyy,pyz,pzz] = sim_tmp.njp(iSpecies);
+    %toc;
+    pdyn = sim.mass(iSpecies)/sim.mass(1)*0.5*(jx.^2 + jy.^2 + jz.^2)./n;
+    p = (pxx+pyy+pzz)/3; % scalar pressure
+    UT(it,iSpecies) = 3/2*nansum(p(:));
+    UK(it,iSpecies) = nansum(pdyn(:));
+    imagesc(sim.xi,sim.zi,squeeze(p)')
+    drawnow
+  end
+  h5write_attr(sim_tmp,sim_tmp.twci,'UK',UK(it,:))
+  h5write_attr(sim_tmp,sim_tmp.twci,'UT',UT(it,:))
+  toc
+end
+
+%% Thermal and kinetic energy n02m, cold
+sim = no02m;
+tic;
+clear UT UK
+species_groups = {[3 5],[4 6]};
+species_groups_str = {'cold_ions','cold_electrons'};
+for it = sim.twpelim(7000:1000:14000,'exact').indices%:sim.length  
+  sim_tmp = sim(it); 
+  for iSpecies_group = 1:numel(species_groups)
+    iSpecies = species_groups{iSpecies_group};
+    species_str = species_groups_str{iSpecies_group};
+    disp(sprintf('it = %g/%g, sp = %g ',it,sim.length,iSpecies))
+    
+    [n,jx,jy,jz,pxx,pxy,pxz,pyy,pyz,pzz] = sim_tmp.njp(iSpecies);
+    %toc;
+    pdyn = sim.mass(iSpecies(1))/sim.mass(1)*0.5*(jx.^2 + jy.^2 + jz.^2)./n;
+    p = (pxx+pyy+pzz)/3; % scalar pressure
+    UT(it,iSpecies_group) = 3/2*nansum(p(:));
+    UK(it,iSpecies_group) = nansum(pdyn(:));
+    imagesc(sim.xi,sim.zi,squeeze(p)')
+    drawnow
+    h5write_attr(sim_tmp,sim_tmp.twci,['UK_' species_str],UK(it,iSpecies_group))
+    h5write_attr(sim_tmp,sim_tmp.twci,['UT_' species_str],UT(it,iSpecies_group))
+  end
+  toc
+end
+
+%% Fix att
+for it = sim.twpelim(15000:1000:25000,'exact').indices
+  pic_tmp = sim(it);
+  str_iteration = sprintf('%010.0f',pic_tmp.iteration); % same group format as SMILEI      
+  dataset_name = ['/data/' str_iteration '/'];
+  
+  % Load data
+  UK_cold_ions = h5readatt(no02m.file,dataset_name,'UK_cold_ions');
+  UK_cold_electrons = h5readatt(no02m.file,dataset_name,'UK_cold_electrons');
+  UT_cold_ions = h5readatt(no02m.file,dataset_name,'UT_cold_ions');
+  UT_cold_electrons = h5readatt(no02m.file,dataset_name,'UT_cold_electrons');
+  
+  attrstr = {'UK_cold_ions','UK_cold_electrons','UT_cold_ions','UT_cold_electrons'};
+  
+  for iatt = 1:numel(attrstr)
+    % Remove attribute
+    h5file        =  pic_tmp.file;
+    location      =  dataset_name;
+    attributeName = attrstr{iatt};
+
+    % Open the file (ensure to close it automatically when done)
+    fileID = H5F.open(h5file,'H5F_ACC_RDWR','H5P_DEFAULT');
+    fileIDCleanUp = onCleanup(@()H5F.close(fileID));
+    % Open the dataset/group
+    locID  = H5O.open(fileID, location,'H5P_DEFAULT');
+    locIDCleanUp = onCleanup(@()H5O.close(locID));
+    try %to open the attribute.
+       attID = H5A.open(locID, attributeName, 'H5P_DEFAULT');
+       H5A.close(attID);
+       H5A.delete(locID, attributeName);
+    catch ALL
+        % do nothing if the attribute does not exist.
+    end
+    
+  end
+  
+  h5writeatt(no02m.file,dataset_name,'UK_cold_ions',UK_cold_ions(1));  
+  h5writeatt(no02m.file,dataset_name,'UK_cold_electrons',UK_cold_electrons(1));
+  h5writeatt(no02m.file,dataset_name,'UT_cold_ions',UT_cold_ions(1));  
+  h5writeatt(no02m.file,dataset_name,'UT_cold_electrons',UT_cold_electrons(1));
+end
+
+%% Rem att
+for it = 1:14
+  pic_tmp = sim(it);
+  str_iteration = sprintf('%010.0f',pic_tmp.iteration); % same group format as SMILEI      
+  dataset_name = ['/data/' str_iteration '/'];
+  
+    
+  attrstr = {'UK','UT'};
+  
+  for iatt = 1:numel(attrstr)
+    % Remove attribute
+    h5file        =  pic_tmp.file;
+    location      =  dataset_name;
+    attributeName = attrstr{iatt};
+
+    % Open the file (ensure to close it automatically when done)
+    fileID = H5F.open(h5file,'H5F_ACC_RDWR','H5P_DEFAULT');
+    fileIDCleanUp = onCleanup(@()H5F.close(fileID));
+    % Open the dataset/group
+    locID  = H5O.open(fileID, location,'H5P_DEFAULT');
+    locIDCleanUp = onCleanup(@()H5O.close(locID));
+    try %to open the attribute.
+       attID = H5A.open(locID, attributeName, 'H5P_DEFAULT');
+       H5A.close(attID);
+       H5A.delete(locID, attributeName);
+    catch ALL
+        % do nothing if the attribute does not exist.
+    end
+    
+  end
+    
+end
+
 %% X line position, Ey at X line, A at X line
 
 xXlineAll = [];

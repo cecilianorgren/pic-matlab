@@ -394,6 +394,20 @@ cmaps = {cmapbr;cmapbr;cmapbr;cmapbr};
 
 h = pic.plotmap(varstrs,'A',1,'clim',clims,'cmap',cmaps);
 
+%% plotmapm vepar, veperp
+twpe = 21000;
+xlim = [100 145];
+zlim = [-2 8];
+pic = no02m.twpelim(twpe).xlim(xlim).zlim(zlim);
+varstrs = {'tpar([2])';'tpar([4 6])';'tperp([2])';'tperp([4 6])'};
+clims = {0.3*[0 1];0.3*[0 1];0.3*[-0 1];0.3*[-0 1]};
+cmapbr = pic_colors('blue_red');
+cmapwa = pic_colors('waterfall');
+cmapth = pic_colors(flipdim('thermal',1));
+cmaps = {cmapth;cmapth;cmapth;cmapth};
+
+h = pic.plot_map(varstrs,'A',1,'clim',clims,'cmap',cmaps);
+
 %% plotmap, magnetic curvature
 twpe = 9000; xlim = [160 210]; zlim = [-10 10];
 
@@ -683,7 +697,7 @@ twpe = 7000:1000:12000;
 twpe = 10000:1000:24000;
 twpe = [15000 25000];
 twpe = [20000 23000];
-twpe = [15000:200:25000];
+twpe = [15000:100:25000];
 xlim = no02m.xi([1 end])+[100 -60]';
 zlim = [-8 8];
 xlim = no02m.xi([1 end])+[40 -40]';
@@ -731,7 +745,12 @@ clims = {[0 1.2],[0 0.5999]};
 cmaps = {cmapth,cmapth};
 cbarlabels = {'n_i','T_i'};
 
-filename = [printpath 'no02m_ni_ti'];
+varstrs = {'n(3)'}';
+clims = {[0 0.5]};
+cmaps = {cmapth,cmapth};
+cbarlabels = {'n_i^{cold,top}'};
+
+filename = [printpath 'no02m_nitop'];
 pic.movie(varstrs,'A',1,'cmap',cmaps,'clim',clims,'cbarlabels',cbarlabels,'filename',filename);
 %pic.twpelim([17000 25000]).movie({'Ez'},'A',1,'clim',{[-1 1]},'cmap',{pic_colors('blue_red')},'filename',[printpath 'no02m_Ez']);
 
@@ -4822,3 +4841,72 @@ hlinks_all = linkprop(h,{'XLim'});
 %hlinks_force = linkprop(h(iForce),{'YLim'});
 c_eval('h(?).XGrid = ''on''; h(?).YGrid = ''on'';',1:npanels)
 %h(1).YLim = 0.8*[-1 1];
+
+%% Map of 2D VDFs, compare to wenya
+
+iSpecies = [3 5];
+xs = [60:2:85];
+h = ds100.twpelim(24000).findtag({'line horizontal'}).xfind(xs).plot_map([iSpecies],2,'bline',no02m.twpelim(24000),'log');
+
+compact_panels(h.ax,0,0)
+hlinks = linkprop(h.ax,{'XLim','YLim','CLim'});
+h.ax(1).XLim = [-3 3]*0.99;
+h.ax(1).YLim = [-3 3]*0.99;
+h.ax(1).CLim = [-8 0];
+
+%% Map of 2D VDFs, gyroturning
+
+iSpecies = [3 5];
+xs = [70:5:90];
+xs = [82:2:92];
+%xs = [70:2:80];
+zs = 0;
+h = ds100.twpelim(24000).findtag({'line horizontal'}).xfind(xs).zfind(zs).plot_map([iSpecies],3,'log');
+%h = ds100.twpelim(24000).findtag({'line horizontal'}).xfind(xs).zfind(zs).plot_map([iSpecies],3,'ratio',[3 5]);
+
+compact_panels(h.ax,0,0)
+hlinks = linkprop(h.ax,{'XLim','YLim','CLim'});
+h.ax(1).XLim = [-3 3]*0.99;
+h.ax(1).YLim = [-3 3]*0.99;
+h.ax(1).CLim = [-8 0];
+drawnow
+c_eval('axis(h.ax(?),''square'');',1:numel(h.ax))
+
+
+%colormap([1 1 1; obs_colors('pasteljet')])
+
+%% Plot map: plasma origin
+twpe = 8000;
+xlim = [150 205];
+zlim = [-8 8];
+pic = no02m.twpelim(twpe).xlim(xlim).zlim(zlim);
+varstrs = {'Jx';'Ez';'pxy([3 5])';'pyz([3 5])';'pxy([2 4 6])';'pyz([2 4 6])';'ni'};
+clims = {0.7*[-1 1];[-1 1];0.2*[-1 1];0.2*[-1 1];0.1*[-1 1];0.1*[-1 1];[0 2]};
+cmapbr = pic_colors('blue_red');
+cmapwa = pic_colors('waterfall');
+cmaps = {cmapbr;cmapbr;cmapbr;cmapbr;cmapbr;cmapbr;cmapwa};
+inds = [3 4];
+cmaps = cmaps([3 4]);
+clims = clims([3 4]);
+varstrs = varstrs([3 4]);
+
+h = pic.plot_map(varstrs,'A',1,'clim',clims,'cmap',cmaps);
+
+%% Plot map, density origin
+xlim = no02m.xi([1 end])'+[40 -40];
+zlim = [-10 10]*0.99;
+twpe = 18000;
+varstrs = {'n([3 5])','n(3)','n(5)','n(3)./n([3 5])'}';
+clims = {[0 0.2],[0 0.2],[0 0.2],[0 1]};
+
+varstrs = {'n(1)','n([3 5])'}';
+clims = {[0 1.199],[0 1.199],[0 0.2],[0 1]};
+cbarlabels = {'n_{i}^{hot}','n_{i}^{cold}'};
+
+
+
+cmaps = {pic_colors('thermal'),pic_colors('thermal'),pic_colors('thermal'),pic_colors('pasteljet')};
+h = no02m.twpelim(twpe).xlim(xlim).zlim(zlim).plot_map(varstrs,'A',1,'clim',clims,'cmap',cmaps,'cbarlabels',cbarlabels);
+
+hc = findobj(gcf,'type','contour');
+c_eval('hc(?).Color = 0.5*[1 1 1];',1:numel(hc))
