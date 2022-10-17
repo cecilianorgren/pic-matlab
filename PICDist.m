@@ -563,6 +563,7 @@ classdef PICDist
       doLabel = 1;
       doNaN = 0;
       doExB = 0;
+      doVectors = 0;
       
       [ax,args,nargs] = irf.axescheck(varargin{:}); 
       iSpecies = args{1}; args = args(2:end); nargs = nargs - 1;
@@ -641,6 +642,11 @@ classdef PICDist
           case 'nan'
             doNaN = 1;
             l = 1;
+          case 'vectors'
+            doVectors = 1;
+            vectors = args{2};
+            pic = args{3};
+            l = 3;
         end
         args = args((1+l):end);
         if isempty(args); break; end
@@ -990,6 +996,12 @@ classdef PICDist
               %plot(hca,vExB1,vExB2,'marker','*','color',[0 0 0],'markersize',3);
             end
             hold(hca,'off')            
+          end
+          if doVectors
+            pic_tmp = pic.twpelim(obj.twpe,'exact').xlim(f.x).zlim(f.z);
+            for iVec = 1:numel(vectors)
+              
+            end
           end
 
           %print('-dpng','-r200',[savedir_root sub_dir '/' strprint '.png']);
