@@ -19,7 +19,7 @@ if nargin > 1 && strcmp(varargin{1},'group') % additional input given
   nGroups = numel(groupSpecies);
 end
 
-doGroup = 1;
+doGroup = 0;
 groupSpecies = {[1],[2],[3 5],[4 6]};
 groupNames = {'i_hot','e_hot','i_cold','e_cold'};
 nGroups = numel(groupSpecies);
@@ -27,7 +27,8 @@ nGroups = numel(groupSpecies);
 timesteps = pic_orig.twpe;
 for it = 1:pic_orig.nt
   pic_tmp = pic_orig(it);
-  if 0
+  
+  if 0 % Magnetic field energy density
     Bx = pic_tmp.Bx;
     By = pic_tmp.By;
     Bz = pic_tmp.Bz;
@@ -38,8 +39,8 @@ for it = 1:pic_orig.nt
     % Write data to file
     h5write_attr(pic_tmp,pic_tmp.twci,'UB',UB)
   end
-  % Plasma energy densities
-  if 0
+  
+  if 0 % Plasma energy densities
     ne = pic_tmp.ne;  
     pe = pic_tmp.pe;
     vex = pic_tmp.vex;
@@ -98,9 +99,12 @@ for it = 1:pic_orig.nt
       h5write_attr(pic_tmp,pic_tmp.twci,sprintf('Uk%s',groupNames{iGroup}),Uk)      
     end
   end
-  
-  % X line and reconnection rate
-  if 0
+    
+  if 1 % X line and reconnection rate
+    %if not(exist('Bx','var'))
+      Bx = pic_tmp.Bx;      
+      Bz = pic_tmp.Bz;      
+    %end
     A = vector_potential(pic_tmp.xi,pic_tmp.zi,Bx,Bz);        
     [Ainds,Avals] = saddle(A,'sort');
     xXline = pic_tmp.xi(Ainds(1,1));
@@ -112,6 +116,6 @@ for it = 1:pic_orig.nt
     h5write_attr(pic_tmp,pic_tmp.twci,'Axline',AXline)
     h5write_attr(pic_tmp,pic_tmp.twci,'xline_position',[xXline' zXline'])
     h5write_attr(pic_tmp,pic_tmp.twci,'RE',EyXline)  
-  end
+  end  
   
 end

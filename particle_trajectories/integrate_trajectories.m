@@ -444,8 +444,8 @@ y0 = zeros(size(x0));
 vx0 = zeros(size(x0));
 vy0 = zeros(size(x0));
 vz0 = zeros(size(x0));
-vx0 = vx_part(end,:);
-vz0 = vz_part(end,:);
+%vx0 = vx_part(end,:);
+%vz0 = vz_part(end,:);
 %%
 twpe = 1000;
 tspan = [no02m.twpelim(twpe).twci,no02m.twci(end)];

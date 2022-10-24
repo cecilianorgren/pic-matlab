@@ -1269,8 +1269,8 @@ classdef PIC
         else
           levA = stepA;
         end
-        iAx = 1:1:obj.nx;
-        iAz = 1:1:obj.nz;
+        iAx = 1:5:obj.nx;
+        iAz = 1:5:obj.nz;
       end
       if doSep
         if not(doA)
@@ -1278,8 +1278,8 @@ classdef PIC
         end        
         [saddle_locations,saddle_values] = saddle(A,'sort');
         sepA = saddle_values(1);
-        iAx = 1:1:obj.nx;
-        iAz = 1:1:obj.nz;
+        iAx = 1:5:obj.nx;
+        iAz = 1:5:obj.nz;
       end
       
       [nrows,ncols] = size(varstrs);      
@@ -4903,17 +4903,25 @@ classdef PIC
       [dzVz,dxVx] = gradient(vz,dz,dx);
       
       switch comp
-        case 'x' % vdv_x = vx*dvx/dx + vz*dvx/dz
-          vdivv = vx.*dxVx + vz.*dzVz;
-        case 'y' % vdv_y = vx*dvy/dx + vz*dvy/dz
-          vdivv = vx.*dxVy + vz.*dzVy;
-        case 'z' % vdv_z = vx*dvz/dx + vz*dvz/dz
-          vdivv = vx.*dxVz + vz.*dzVz;
+        case 'x' % vdv_x = vx*dvx/dx + vz*dvx/dx
+          
+          
+          vdivv = (dxV + dyV + dzV).*v;
+        case 'y', 
+          v = vy;
+          [dzV,dxV] = gradient(v,dz,dx);
+          dyV = 0;
+        case 'z', 
+          v = vz;
+          [dzV,dxV] = gradient(v,dz,dx);
+          dyV = 0;
       end
       
+
       %[dzV,dxV] = gradient(v,dz,dx);
-      %dyV = 0;                   
-      %vdivv = (dxV + dyV + dzV).*v;
+      %dyV = 0;
+                   
+      vdivv = (dxV + dyV + dzV).*v;
       out = vdivv;
       
     end
@@ -5121,7 +5129,7 @@ classdef PIC
       Babs = obj.Babs;   
       out = Babs/(obj.mass(species(1))/obj.mass(1));
     end
-    function out = rc(obj,species,mode)
+    function out = rc(obj,species,comp)
       %
       % wc = eB/m
       if not(exist('mode','var'))
@@ -5130,24 +5138,6 @@ classdef PIC
       vt = obj.vt(species,mode);
       wc = obj.wc(species);
       out = vt./wc; % because we have included a 2 inside vt = sqrt(2T/m)
-    end
-    function out = rcx(obj,species)
-      %
-      % wc = eB/m            
-      
-      out = rc(obj,species,'xx'); % because we have included a 2 inside vt = sqrt(2T/m)
-    end
-    function out = rcy(obj,species)
-      %
-      % wc = eB/m            
-      
-      out = rc(obj,species,'yy'); % because we have included a 2 inside vt = sqrt(2T/m)
-    end
-    function out = rcz(obj,species)
-      %
-      % wc = eB/m            
-      
-      out = rc(obj,species,'zz'); % because we have included a 2 inside vt = sqrt(2T/m)
     end
     function out = wp(obj,species) % plasma frequency
       % PIC.LDE Plasma frequency normalized to wp0, should be normalized to

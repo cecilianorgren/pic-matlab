@@ -563,6 +563,7 @@ classdef PICDist
       doLabel = 1;
       doNaN = 0;
       doExB = 0;
+      doCS_fieldaligned = 0;
       
       [ax,args,nargs] = irf.axescheck(varargin{:}); 
       iSpecies = args{1}; args = args(2:end); nargs = nargs - 1;
@@ -641,6 +642,10 @@ classdef PICDist
           case 'nan'
             doNaN = 1;
             l = 1;
+          case 'fieldaligned_cs'
+            doCS_fieldaligned = 1;
+            pic = args{2};
+            l = 2;            
         end
         args = args((1+l):end);
         if isempty(args); break; end
@@ -660,9 +665,10 @@ classdef PICDist
       if not(plotInAxes)      
         xlim = [min([obj.xi1_{1}(:)]) max([obj.xi2_{1}(:)])];
         zlim = [min([obj.zi1_{1}(:)]) max([obj.zi2_{1}(:)])];      
-        fig_position = get(0,'screensize'); %[1 330 2555 1015]; 
-        fig = figure;
-        fig.Position = fig_position; 
+   %     fig_position = get(0,'screensize'); %[1 330 2555 1015]; 
+   %     fig = figure;
+   %     fig.Position = fig_position; 
+        fig = gcf;
         border = [0.05,0.1,0.07,0.05]; % left, bottom, right, top
       end
       idist = 0;
@@ -991,7 +997,51 @@ classdef PICDist
             end
             hold(hca,'off')            
           end
-
+          if doCS_fieldaligned                      
+            Bx = mean(mean(pic.twpelim(obj.twpe,'exact').xlim(f.x).zlim(f.z).Bx));
+            By = mean(mean(pic.twpelim(obj.twpe,'exact').xlim(f.x).zlim(f.z).By));
+            Bz = mean(mean(pic.twpelim(obj.twpe,'exact').xlim(f.x).zlim(f.z).Bz));
+            Ex = mean(mean(pic.twpelim(obj.twpe,'exact').xlim(f.x).zlim(f.z).Ex));
+            Ey = mean(mean(pic.twpelim(obj.twpe,'exact').xlim(f.x).zlim(f.z).Ey));
+            Ez = mean(mean(pic.twpelim(obj.twpe,'exact').xlim(f.x).zlim(f.z).Ez));
+            
+            b = [Bx,By,Bz]/sqrt(Bx.^2+By.^2+Bz.^2);
+            e = [Ex,Ey,Ez]/sqrt(Ex.^2+Ey.^2+Ez.^2);
+            exb = cross(e,b); exb = exb/norm(exb);
+            bxexb = cross(b,exb); bxexb = bxexb/norm(bxexb);
+            
+            s = hca.XLim(2)*0.7;            
+                        
+            
+            hold(hca,'on')
+            switch sumdim
+              case 1 % f(vy,vz)
+               quiver(hca,0,0,b(2)*s,b(3)*s,0,'k')
+               quiver(hca,0,0,exb(2)*s,exb(3)*s,0,'k')
+               quiver(hca,0,0,bxexb(2)*s,bxexb(3)*s,0,'k')   
+               
+               text(hca,b(2)*s,b(3)*s,sprintf('b = [%.2f,%.2f,%.2f]',b(1),b(2),b(3)))
+               text(hca,exb(2)*s,exb(3)*s,sprintf('exb = [%.2f,%.2f,%.2f]',exb(1),exb(2),exb(3)))
+               text(hca,bxexb(2)*s,bxexb(3)*s,sprintf('bx(exb) = [%.2f,%.2f,%.2f]',b(1),b(2),b(3)))
+              case 2 % f(vx,vz)
+               quiver(hca,0,0,b(1)*s,b(3)*s,0,'k')
+               quiver(hca,0,0,exb(1)*s,exb(3)*s,0,'k')
+               quiver(hca,0,0,bxexb(1)*s,bxexb(3)*s,0,'k')   
+               
+               text(hca,b(1)*s,b(3)*s,sprintf('B = [%.2f,%.2f,%.2f]',b(1),b(2),b(3)))
+               text(hca,exb(1)*s,exb(3)*s,sprintf('exb = [%.2f,%.2f,%.2f]',b(1),b(2),b(3)))
+               text(hca,bxexb(1)*s,bxexb(3)*s,sprintf('bx(exb) = [%.2f,%.2f,%.2f]',b(1),b(2),b(3)))
+              case 3 % f(vx,vy)
+               quiver(hca,0,0,b(1)*s,b(2)*s,0,'k')
+               quiver(hca,0,0,exb(1)*s,exb(2)*s,0,'k')
+               quiver(hca,0,0,bxexb(1)*s,bxexb(2)*s,0,'k')   
+               
+               text(hca,b(1)*s,b(2)*s,sprintf('B = [%.2f,%.2f,%.2f]',b(1),b(2),b(3)))
+               text(hca,exb(1)*s,exb(2)*s,sprintf('exb = [%.2f,%.2f,%.2f]',b(1),b(2),b(3)))
+               text(hca,bxexb(1)*s,bxexb(2)*s,sprintf('bx(exb) = [%.2f,%.2f,%.2f]',b(1),b(2),b(3)))
+            end                        
+            hold(hca,'off')
+          end
           %print('-dpng','-r200',[savedir_root sub_dir '/' strprint '.png']);
           drawnow
           %pause(1)
@@ -2540,6 +2590,7 @@ classdef PICDist
         
         %[x_arr_sorted,i_sorted] = sort(x_arr);
         i_sorted = 1:numel(x_arr);
+        [~,i_sorted] = sort(x_arr);
         
         fout(itime).t = t_arr(i_sorted);          
         fout(itime).x = x_arr(i_sorted);
