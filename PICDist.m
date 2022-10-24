@@ -564,6 +564,7 @@ classdef PICDist
       doNaN = 0;
       doExB = 0;
       doCS_fieldaligned = 0;
+      doVectors = 0;
       
       [ax,args,nargs] = irf.axescheck(varargin{:}); 
       iSpecies = args{1}; args = args(2:end); nargs = nargs - 1;
@@ -646,6 +647,11 @@ classdef PICDist
             doCS_fieldaligned = 1;
             pic = args{2};
             l = 2;            
+          case 'vectors'
+            doVectors = 1;
+            vectors = args{2};
+            pic = args{3};
+            l = 3;
         end
         args = args((1+l):end);
         if isempty(args); break; end
@@ -997,6 +1003,7 @@ classdef PICDist
             end
             hold(hca,'off')            
           end
+          
           if doCS_fieldaligned                      
             Bx = mean(mean(pic.twpelim(obj.twpe,'exact').xlim(f.x).zlim(f.z).Bx));
             By = mean(mean(pic.twpelim(obj.twpe,'exact').xlim(f.x).zlim(f.z).By));
@@ -1042,6 +1049,15 @@ classdef PICDist
             end                        
             hold(hca,'off')
           end
+
+          if doVectors
+            pic_tmp = pic.twpelim(obj.twpe,'exact').xlim(f.x).zlim(f.z);
+            for iVec = 1:numel(vectors)
+              
+            end
+          end
+
+>>>>>>> b7f46ae82b389a171ae7d59ef14389bbb6c65b48
           %print('-dpng','-r200',[savedir_root sub_dir '/' strprint '.png']);
           drawnow
           %pause(1)

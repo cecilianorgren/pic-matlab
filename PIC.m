@@ -248,7 +248,7 @@ classdef PIC
     end
    
     % Get subset of data, time and/or space, using subsrefs for this for
-    % now
+    % now 9
     function obj = ilim(obj,value)
       % Get subset of output
       obj.twpe_ = obj.twpe_(value);
@@ -3122,26 +3122,75 @@ classdef PIC
       iGroup = find(contains({fileInfo.Groups.Name},'/data'));
       nIter = numel(fileInfo.Groups(iGroup).Groups); % number of iterations
       
-      isub = 0;
-      for iIter = obj.it
-        isub = isub + 1;
-        % /data/00000xxxxx/ 
-        % redo to actually find the 
-        %iIter
-        iAtt = find(contains({fileInfo.Groups(iGroup).Groups(iIter).Attributes.Name},attr_str));
-        if numel(iAtt)>1
-          if iIter == 1
-            warning(sprintf('Found more than one (partial) match to %s, choosing the first match %s.',attr_str,fileInfo.Groups(iGroup).Groups(iIter).Attributes(iAtt(1)).Name))
+      doSparse = 1;
+      % Instead of finding Attr number, I should perhaps just load it using
+      % h5readatt?
+      if 1
+        isub = 0;
+        ifilled = [];
+        attr = [];
+        for iIter = obj.it
+          isub = isub + 1;
+          
+          % /data/00000xxxxx/ 
+          % redo to actually find the 
+          %iIter
+          %iAtt = find(contains({fileInfo.Groups(iGroup).Groups(iIter).Attributes.Name},attr_str));
+          cell_str_attr = {fileInfo.Groups(iGroup).Groups(iIter).Attributes.Name};
+          tmp = cellfun(@(x) strcmp(x,attr_str),cell_str_attr,'UniformOutput',false);
+          iAtt = find([tmp{:}]);
+          if numel(iAtt)>1            
+            if iIter == 1
+              warning(sprintf('Found more than one (partial) match to %s, choosing the first match %s.',attr_str,fileInfo.Groups(iGroup).Groups(iIter).Attributes(iAtt(1)).Name))
+            end
+            iAtt = iAtt(1);
           end
-          iAtt = iAtt(1);
+          if doSparse       
+            if not(isempty(iAtt))
+              ifilled = [ifilled isub];
+              %fileInfo.Groups(iGroup).Groups(iIter)
+              datasize = fileInfo.Groups(iGroup).Groups(iIter).Attributes(iAtt).Dataspace.Size;
+              new_data = reshape(fileInfo.Groups(iGroup).Groups(iIter).Attributes(iAtt).Value,1,max(datasize));
+              attr = [attr; new_data];           
+            end
+          else
+            if not(isempty(iAtt))
+              %fileInfo.Groups(iGroup).Groups(iIter)
+              datasize = fileInfo.Groups(iGroup).Groups(iIter).Attributes(iAtt).Dataspace.Size;
+              attr(isub,:) = fileInfo.Groups(iGroup).Groups(iIter).Attributes(iAtt).Value;
+            else
+              attr(isub,:) = NaN;
+            end
+          end
         end
-        if not(isempty(iAtt))
-          datasize = fileInfo.Groups(iGroup).Groups(iIter).Attributes(iAtt).Dataspace.Size;          
-          attr(isub,:) = fileInfo.Groups(iGroup).Groups(iIter).Attributes(iAtt).Value;
-        else
-          attr(isub,:) = NaN;
+        if doSparse
+          alldata = nan(obj.length,size(attr,2));
+          alldata(ifilled,:) = attr;
+          attr = alldata;
         end
-        
+      else
+        isub = 0;
+        for iIter = obj.it
+          isub = isub + 1;
+          % /data/00000xxxxx/ 
+          % redo to actually find the 
+          %iIter
+          iAtt = find(contains({fileInfo.Groups(iGroup).Groups(iIter).Attributes.Name},attr_str));
+          if numel(iAtt)>1
+            if iIter == 1
+              warning(sprintf('Found more than one (partial) match to %s, choosing the first match %s.',attr_str,fileInfo.Groups(iGroup).Groups(iIter).Attributes(iAtt(1)).Name))
+            end
+            iAtt = iAtt(1);
+          end
+          if not(isempty(iAtt))
+            %fileInfo.Groups(iGroup).Groups(iIter)
+            data = h5readatt(obj.file,fileInfo.Groups(iGroup).Groups(iIter).Name,attr_str);
+            attr(isub,:) = data;
+          else
+            attr(isub,:) = NaN;
+          end
+
+        end
       end
       out = attr;
     end
@@ -3851,7 +3900,7 @@ classdef PIC
       vzs = zeros(numel(obj.xi),numel(obj.zi),obj.length);
       
       % Sum over species
-      for iSpecies = species                
+      for iSpecies = species
         n = n + obj.get_field(sprintf('dns/%.0f',iSpecies))*dfac(iSpecies);  % density      
         vxs = vxs + obj.get_field(sprintf('vxs/%.0f',iSpecies))*dfac(iSpecies); % flux
         vys = vys + obj.get_field(sprintf('vys/%.0f',iSpecies))*dfac(iSpecies); % flux
@@ -4398,7 +4447,7 @@ classdef PIC
       out = tfac.perp;       
     end
     function out = tpar(obj,species)
-      % PIC.TPAR {arallel temperature
+      % PIC.TPAR parallel temperature
       %   T_par =  PIC_obj.tpar(species);
       tfac = obj.t_fac(species);
       out = tfac.par;       
@@ -4978,6 +5027,148 @@ classdef PIC
       out = (Jx.*By-Jy.*Bx);
     end
     
+    % Enthalpy flux
+    function out = H(obj,species,comp)
+      % H = v*Tr(P)/2 + v dot P
+      % out = H(obj,species)
+      
+      switch comp
+        case 'x'
+          % Hx = vx*Tr(P) + vx*Pxx + vy*Pxy + vz*Pxz
+          pxx = obj.pxx(species);
+          pyy = obj.pyy(species);
+          pzz = obj.pzz(species);
+          pxy = obj.pxy(species);
+          pxz = obj.pxz(species);
+          vx = obj.vx(species);
+          vy = obj.vy(species);
+          vz = obj.vz(species);
+          
+          H = vx.*(pxx+pyy+pzz)/2 + vx.*pxx + vy.*pxy + vz.*pxz;
+          
+          out = H;
+        case 'y'
+          % Hy = vy*Tr(P) + vx*Pxy + vy*Pyy + vz*Pzy
+          pxx = obj.pxx(species);
+          pyy = obj.pyy(species);
+          pzz = obj.pzz(species);
+          pxy = obj.pxy(species);
+          pyz = obj.pyz(species);
+          vx = obj.vx(species);
+          vy = obj.vy(species);
+          vz = obj.vz(species);
+          
+          H = vx.*(pxx+pyy+pzz)/2 + vx.*pxy + vy.*pyy + vz.*pyz;
+          
+          out = H;
+        case 'z'
+          % Hx = vx*Tr(P) + vx*Pxx + vy*Pxy + vz*Pxz
+          pxx = obj.pxx(species);
+          pyy = obj.pyy(species);
+          pzz = obj.pzz(species);
+          pyz = obj.pxy(species);
+          pxz = obj.pxz(species);
+          vx = obj.vx(species);
+          vy = obj.vy(species);
+          vz = obj.vz(species);
+          
+          H = vz.*(pxx+pyy+pzz)/2 + vx.*pxz + vy.*pyz + vz.*pzz;
+          
+          out = H;
+      end     
+    end
+    function out = Hx(obj,species)
+      out = H(obj,species,'x');
+    end
+    function out = Hy(obj,species)
+      out = H(obj,species,'y');
+    end
+    function out = Hz(obj,species)
+      out = H(obj,species,'z');
+    end
+    % Kinetic energy flux 
+    function out = K(obj,species,comp)
+      % K_comp = 0.5*m*n*v^2*v_comp
+      % out = K(obj,species)
+      
+      m = obj.mass(species)./obj.mass(1);
+      if numel(unique(m)) ~= 1
+        error('Only species with the same mass supported.');
+        return;
+      else
+        m = m(1);
+      end
+      
+      n = obj.n(species);
+      vx = obj.vx(species);
+      vy = obj.vy(species);
+      vz = obj.vz(species);
+      v2 = vx.^2 + vy.^2 + vz.^2;
+      
+      switch comp
+        case 'x'
+          % Kx = 0.5*n*m*v^2*vx
+          K = 0.5*m*n.*v2.*vx;
+          out = K;
+        case 'y'
+          % Kx = 0.5*n*m*v^2*vx
+          K = 0.5*m*n.*v2.*vy;
+          out = K;
+        case 'z'
+          % Kx = 0.5*n*m*v^2*vx
+          K = 0.5*m*n.*v2.*vz;
+          out = K;
+      end     
+    end
+    function out = Kx(obj,species)
+      out = K(obj,species,'x');
+    end
+    function out = Ky(obj,species)
+      out = K(obj,species,'y');
+    end
+    function out = Kz(obj,species)
+      out = K(obj,species,'z');
+    end
+    % Poynting flux
+    function out = S(obj,comp)
+      % S = mu0*ExB
+      switch comp
+        case 'x'
+          % Sx = mu0*(Ey*Bz - Ez*By)
+          Ey = obj.Ey;
+          Ez = obj.Ez;
+          By = obj.By;
+          Bz = obj.Bz;
+          S = Ey.*Bz - Ez.*By;
+          out = S;
+        case 'y'
+          % Sy = mu0*(Ez*Bx - Ex*Bz)
+          Ex = obj.Ex;
+          Ez = obj.Ez;
+          Bx = obj.Bx;
+          Bz = obj.Bz;
+          S = Ez.*Bx - Ex.*Bz;
+          out = S;
+        case 'z'
+          % Sz = mu0*(Ex*By - Ey*Bx)
+          Ex = obj.Ex;
+          Ey = obj.Ey;
+          Bx = obj.Bx;
+          By = obj.By;
+          S = Ex.*By - Ey.*Bx;
+          out = S;
+      end
+    end
+    function out = Sx(obj)
+      out = obj.S('x');
+    end
+    function out = Sy(obj)
+      out = obj.S('y');
+    end
+    function out = Sz(obj)
+      out = obj.S('z');
+    end
+    
     function out = vxBx(obj,species)
       % vxB_x(vyBz - vzBy)
       % out = vxBx(obj,species)
@@ -5259,10 +5450,10 @@ classdef PIC
         switch comp{icomp}
           case {'x',1}
             pxx = obj.pxx(species);
-            pxy = obj.pxy(species);
+            % pxy = obj.pxy(species); % not needed
             pxz = obj.pxz(species);
             dxTxx = [1*diff(pxx(1:2,:),1,1); diff(pxx,diff_order,1)]/dx/diff_order;
-            dyTyx = 0;
+            dyTyx = 0;  
             dzTzx = [1*diff(pxz(:,1:2),1,2), diff(pxz,diff_order,2)]/dz/diff_order;
             div_x = dxTxx + dyTyx + dzTzx;
             varargout{end+1} = div_x;
@@ -5292,7 +5483,7 @@ classdef PIC
           case {'z',3}
             pzz = obj.pzz(species);
             pxz = obj.pxz(species);
-            pyz = obj.pyz(species);
+            %pyz = obj.pyz(species); % not needed
             dxTxz = [1*diff(pxz(1:2,:),1,1); diff(pxz,diff_order,1)]/dx/diff_order;
             dyTyz = 0;
             dzTzz = [1*diff(pzz(:,1:2),1,2), diff(pzz,diff_order,2)]/dz/diff_order;      
@@ -5419,15 +5610,25 @@ classdef PIC
       out = abs([0 cumsum(diff(out-out(1)))]);
       out = out(obj.indices_);
     end
-    function out = UK(obj,value)
+    function out = UK(obj,iSpecies)
       % 
-      out = h5read(obj.file,['/scalar_timeseries/U/K/' num2str(value)]);
-      out = out(obj.indices_);
+      try
+        out = h5read(obj.file,['/scalar_timeseries/U/K/' num2str(iSpecies)]);
+        out = out(obj.indices_);
+      catch
+        out = obj.get_timeline_attributes('UK');
+        out = out(:,iSpecies);        
+      end
     end
-    function out = UT(obj,value)
+    function out = UT(obj,iSpecies)
       % 
-      out = h5read(obj.file,['/scalar_timeseries/U/T/' num2str(value)]);
-      out = out(obj.indices_);
+      try
+        out = h5read(obj.file,['/scalar_timeseries/U/T/' num2str(iSpecies)]);
+        out = out(obj.indices_);
+      catch        
+        out = obj.get_timeline_attributes('UT');
+        out = out(:,iSpecies);
+      end
     end
     function out = Ute(obj)
       % Integrated electron thermal energy density

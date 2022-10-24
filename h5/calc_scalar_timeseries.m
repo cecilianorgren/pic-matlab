@@ -19,7 +19,7 @@ for it = 1:sim.length
 end
 
 %% Thermal and kinetic energy n08
-sim = df08;
+sim = no02m;
 tic;
 clear UT UK
 for it = 1:sim.length  
@@ -33,8 +33,8 @@ for it = 1:sim.length
     p = (pxx+pyy+pzz)/3; % scalar pressure
     UT(it,iSpecies) = 3/2*nansum(p(:));
     UK(it,iSpecies) = nansum(pdyn(:));
-    %imagesc(sim.xi,sim.zi,squeeze(p)')
-    %drawnow
+    imagesc(sim.xi,sim.zi,squeeze(p)')
+    drawnow
   end
 end
 toc
