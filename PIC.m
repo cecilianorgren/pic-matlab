@@ -516,7 +516,7 @@ classdef PIC
       % collect frames
       
     end
-    function [all_im, map] = movie(obj,varstrs,varargin)
+    function varargout = movie(obj,varstrs,varargin)
       % pic.MOVIE(obj,varstrs,varargin) Makes movie and gif.
       %   pic.MOVIE(varstrs,'inp1',arg1,'inp2',arg2,...)
       %   
@@ -719,10 +719,14 @@ classdef PIC
           if not(doA)
             A = tmp_obj.A;
           end        
-          [saddle_locations,saddle_values] = saddle(A,'sort');
-          sepA = saddle_values(1);
-          iAx = 1:5:obj.nx;
-          iAz = 1:5:obj.nz;
+            [saddle_locations,saddle_values] = saddle(A,'sort');
+            if isempty(saddle_values) || isnan(saddle_values(1))
+            doSep = 0;
+          else
+            sepA = saddle_values(1);
+            iAx = 1:1:obj.nx;
+            iAz = 1:1:obj.nz;
+          end
         end
                       
         for irow = 1:nrows
@@ -953,24 +957,30 @@ classdef PIC
       
       % Write gif
       if doGif
-        imwrite(all_im,map,[fileName,'.gif'],'DelayTime',0,'LoopCount',inf)
+        imwrite(all_im,map,[fileName,'.gif'],'DelayTime',0,'LoopCount',inf);
       end
       if doGif && doGifBackLoop
-        imwrite(cat(4,all_im,all_im(:,:,:,end:-1:1)),map,[fileName,'_loopback.gif'],'DelayTime',0,'LoopCount',inf)              
+        imwrite(cat(4,all_im,all_im(:,:,:,end:-1:1)),map,[fileName,'_loopback.gif'],'DelayTime',0,'LoopCount',inf);           
       end
       
       %hlinks = linkprop(h,{'XLim','YLim'});
       %set(gcf,'userdata',{'hlinks',hlinks})
+%       if nargout == 1
+%         varargout{1} = h;
+%       elseif nargout == 2
+%         varargout{1} = h;
+%         varargout{2} = hb;
+%       elseif nargout == 3
+%         varargout{1} = h;
+%         varargout{2} = hb;
+%         varargout{3} = hlinks;
+%       end
       if nargout == 1
-        varargout{1} = h;
+        varargout{1} = all_im;
       elseif nargout == 2
-        varargout{1} = h;
-        varargout{2} = hb;
-      elseif nargout == 3
-        varargout{1} = h;
-        varargout{2} = hb;
-        varargout{3} = hlinks;
-      end
+        varargout{1} = all_im;
+        varargout{2} = map;
+      end            
                      
     end
     function varargout = movie_line(obj,dim,varstrs_all,varargin)
@@ -1277,9 +1287,13 @@ classdef PIC
           A = obj.A;
         end        
         [saddle_locations,saddle_values] = saddle(A,'sort');
-        sepA = saddle_values(1);
-        iAx = 1:1:obj.nx;
-        iAz = 1:1:obj.nz;
+        if isempty(saddle_values) || isnan(saddle_values(1))
+          doSep = 0;
+        else
+          sepA = saddle_values(1);
+          iAx = 1:1:obj.nx;
+          iAz = 1:1:obj.nz;
+        end
       end
       
       [nrows,ncols] = size(varstrs);      
@@ -1392,6 +1406,8 @@ classdef PIC
       % Defaults
       doA = 0;
       doXline = 0;
+      doAdjustClim = 0;
+      doAdjustCmap = 0;
       
       % Which dimension to plot against
       if strfind(dim,'x')
@@ -1449,6 +1465,14 @@ classdef PIC
           case 'xline'
             doXline = 1;
             l = 1;
+          case 'clim'
+            l = 2;
+            doAdjustCLim = 1;  
+            clims = args{2};
+          case 'cmap'
+            l = 2;
+            doAdjustCMap = 1;
+            cmaps = args{2};
           otherwise 
             warning(sprintf('Unknown argument %s.',args{1}))
         end
@@ -1464,9 +1488,9 @@ classdef PIC
         levA = floor(min(A(:))/stepA)*stepA:stepA:ceil(max(A(:))/stepA)*stepA;
         if strfind(dim,'t') == 1
           iAdepx = 1:1:numel(plot_depx);
-          iAdepy = 1:5:numel(plot_depy);
+          iAdepy = 1:1:numel(plot_depy);
         else
-          iAdepx = 1:5:numel(plot_depx);
+          iAdepx = 1:1:numel(plot_depx);
           iAdepy = 1:1:numel(plot_depy);
         end
       end
@@ -1513,7 +1537,7 @@ classdef PIC
         hb(ivar) = colorbar('peer',hca);
         hb(ivar).YLabel.String = varstrs{ivar};
         hca.XLabel.String = [dim(1) ' (d_i)'];
-        hca.YLabel.String = [dim(2) ' (d_i)'];
+        hca.YLabel.String = [dim(2) ' (\omega_{ci}^{-1})'];
         hca.YDir = 'normal';
         clim = hca.CLim;
         if doA
@@ -1527,6 +1551,19 @@ classdef PIC
           hold(hca,'off')
         end
         hca.CLim = clim;   
+        
+        if doAdjustCLim
+          hca.CLim = clims{ivar};
+          %colormap(cmap)
+        end
+        if doAdjustCMap
+          if isa(cmaps,'cell')
+            colormap(hca,cmaps{ivar});
+          elseif isnumeric(cmaps)
+            colormap(hca,cmaps)
+          end
+        %colormap(cmap)
+        end
         drawnow;
       end
       drawnow;
@@ -4465,6 +4502,46 @@ classdef PIC
     function out = tzz(obj,species)
       n = obj.n(species);
       p = obj.pzz(species);
+      out = p./n;      
+    end
+    function out = tyz(obj,species)
+      n = obj.n(species);
+      p = obj.pyz(species);
+      out = p./n;      
+    end
+    function out = texx(obj)
+      % p = (pxx+pyy+pzz)/3
+      species = find(obj.get_charge == -1); % negatively charge particles are electrons      
+      out = obj.txy(species);
+    end
+    function out = texy(obj)
+      % p = (pxx+pyy+pzz)/3
+      species = find(obj.get_charge == -1); % negatively charge particles are electrons      
+      out = obj.txy(species);
+    end
+    function out = texz(obj)
+      % p = (pxx+pyy+pzz)/3
+      species = find(obj.get_charge == -1); % negatively charge particles are electrons      
+      out = obj.txz(species);
+    end
+    function out = teyy(obj)
+      % p = (pxx+pyy+pzz)/3
+      species = find(obj.get_charge == -1); % negatively charge particles are electrons      
+      out = obj.txy(species);
+    end
+    function out = teyz(obj)
+      % p = (pxx+pyy+pzz)/3
+      species = find(obj.get_charge == -1); % negatively charge particles are electrons      
+      out = obj.tyz(species);
+    end
+    function out = tezz(obj)
+      % p = (pxx+pyy+pzz)/3
+      species = find(obj.get_charge == -1); % negatively charge particles are electrons      
+      out = obj.tzz(species);
+    end
+    function out = txy(obj,species)
+      n = obj.n(species);
+      p = obj.pxy(species);
       out = p./n;      
     end
     function out = tepar(obj)
