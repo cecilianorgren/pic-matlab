@@ -10,7 +10,7 @@ h5filepath = '/Volumes/DataRaid/Susanne-onset/data_h5/fields.h5';
 datapath = '/Volumes/DataRaid/Susanne-onset/data/';
 nSpecies = 2;
 
-h5write_fields(datapath,h5filepath,[10050:100:13000],nSpecies)
+h5write_fields(datapath,h5filepath,[1000:200:10000],nSpecies)
 % If you tried at first and it failed (for example I didn't have the 
 % external harddrive connected, it might have made a new empty file, which 
 % will give a error:

@@ -1211,6 +1211,7 @@ classdef PIC
       doCompact = 1;
       doQuiv = 0;
       stepQuiv = 10;
+      doAdjustCLim = 0;
       
       % Check input
       % Check for axes
@@ -1345,7 +1346,9 @@ classdef PIC
           clim = hca.CLim;
           if doA
             hold(hca,'on')
-            contour(hca,obj.xi(iAx),obj.zi(iAz),A(iAx,iAz)',levA,'k')
+            dxA = 0*diff(obj.xi(iAx))*0.5;
+            dzA = 0*diff(obj.zi(iAz))*0.5;
+            contour(hca,obj.xi(iAx)+dxA(1),obj.zi(iAz)+dxA(1),A(iAx,iAz)',levA,'k')
             hold(hca,'off')
           end
           if doSep
@@ -1408,6 +1411,8 @@ classdef PIC
       doXline = 0;
       doAdjustClim = 0;
       doAdjustCmap = 0;
+      doSmooth = 0;
+      npSmooth = 0;
       
       % Which dimension to plot against
       if strfind(dim,'x')
@@ -1473,6 +1478,10 @@ classdef PIC
             l = 2;
             doAdjustCMap = 1;
             cmaps = args{2};
+          case 'smooth'
+            l = 2;
+            doSmooth = 1;
+            npSmooth = args{2};            
           otherwise 
             warning(sprintf('Unknown argument %s.',args{1}))
         end
@@ -1532,6 +1541,9 @@ classdef PIC
         var = obj.get_exp(varstrs{ivar});
         toc
         var = permute(squeeze(nanmean(var,sum_dim)),permuteorder);
+        if doSmooth
+          var = smooth2(var,npSmooth);
+        end
         pcolor(hca,plot_depx,plot_depy,var);
         shading(hca,'flat')
         hb(ivar) = colorbar('peer',hca);
