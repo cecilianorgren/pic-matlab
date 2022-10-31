@@ -71,7 +71,7 @@ sim.size_field_files_GB = sim.size_field_files_bytes/sim.byte_per_GB;
 % Quantities stored: np*5
 % x,z,vx,vy,vz
 sim.byte_per_entry_particles = 4; % 32 bits
-sim.n_entries_particle_files = 5*sim.np_per_task;
+sim.n_entries_particle_files = 5*sim.np_per_task; % x, z, vx, vy, vz
 sim.size_particle_files_bytes = sim.byte_per_entry_particles*sim.n_entries_particle_files;
 sim.size_particle_files_GB = sim.size_particle_files_bytes/sim.byte_per_GB;
 
