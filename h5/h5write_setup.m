@@ -6,11 +6,11 @@ datapath = '/Volumes/DataRaid/cno062/no_hot_bg_n02_m100/data/';
 nSpecies = 6;
 
 % Susannes rec-onset
-h5filepath = '/Volumes/DataRaid/Susanne-onset/data_h5/fields.h5';
-datapath = '/Volumes/DataRaid/Susanne-onset/data/';
-nSpecies = 2;
+% h5filepath = '/Volumes/DataRaid/Susanne-onset/data_h5/fields.h5';
+% datapath = '/Volumes/DataRaid/Susanne-onset/data/';
+% nSpecies = 2;
 
-h5write_fields(datapath,h5filepath,[1000:200:10000],nSpecies)
+h5write_fields(datapath,h5filepath,[2200:400:4999],nSpecies)
 % If you tried at first and it failed (for example I didn't have the 
 % external harddrive connected, it might have made a new empty file, which 
 % will give a error:
@@ -31,6 +31,7 @@ h5write_fields(datapath,h5filepath,[1000:200:10000],nSpecies)
 
 % First read object
 pic = PIC(h5filepath); % If you have many times saved, this can take up to a minute
+%pic = pic.twpelim([2200:400:4999],'exact');
 h5write_fields_complement(pic)
 
 % To work with the new data, the PIC object needs to be reloaded. Susanne, 

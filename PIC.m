@@ -1409,8 +1409,8 @@ classdef PIC
       % Defaults
       doA = 0;
       doXline = 0;
-      doAdjustClim = 0;
-      doAdjustCmap = 0;
+      doAdjustCLim = 0;
+      doAdjustCMap = 0;
       doSmooth = 0;
       npSmooth = 0;
       
