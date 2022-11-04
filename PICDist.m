@@ -1056,8 +1056,6 @@ classdef PICDist
               
             end
           end
-
->>>>>>> b7f46ae82b389a171ae7d59ef14389bbb6c65b48
           %print('-dpng','-r200',[savedir_root sub_dir '/' strprint '.png']);
           drawnow
           %pause(1)

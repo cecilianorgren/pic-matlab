@@ -2,7 +2,7 @@
 timestep = 24000;
 dirData = '/Volumes/DataRaid/cno062/no_hot_bg_n02_m100/distributions/24000/';
 h5FilePath = '/Volumes/DataRaid/cno062/no_hot_bg_n02_m100/data_h5/dists.h5';
-distIndRead = 501:1000;
+distIndRead = 1501:1500;
 nSpecies = 6;
 iteration = timestep*2;
 mass = [100 1 100 1 100 1];
