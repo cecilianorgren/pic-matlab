@@ -107,15 +107,22 @@ for it = 1:pic_orig.nt
     %end
     A = vector_potential(pic_tmp.xi,pic_tmp.zi,Bx,Bz);        
     [Ainds,Avals] = saddle(A,'sort');
-    xXline = pic_tmp.xi(Ainds(1,1));
-    zXline = pic_tmp.zi(Ainds(1,2));  
-    AXline = Avals(1);
-    EyXline = mean(mean(pic_tmp.xlim(xXline+[-0.1 0.1]).zlim(zXline+[-0.1 0.1]).Ey));
-    % Write data to file
-    h5write_fields_ancillary(pic_tmp,pic_tmp.twpe,'A',A)
-    h5write_attr(pic_tmp,pic_tmp.twci,'Axline',AXline)
-    h5write_attr(pic_tmp,pic_tmp.twci,'xline_position',[xXline' zXline'])
-    h5write_attr(pic_tmp,pic_tmp.twci,'RE',EyXline)  
+    if not(isempty(Ainds))
+      xXline = pic_tmp.xi(Ainds(1,1));
+      zXline = pic_tmp.zi(Ainds(1,2));  
+      AXline = Avals(1);
+      EyXline = mean(mean(pic_tmp.xlim(xXline+[-0.1 0.1]).zlim(zXline+[-0.1 0.1]).Ey));      
+    else
+      xXline = NaN;
+      zXline = NaN;
+      AXline = NaN;
+      EyXline = NaN;      
+    end
+      % Write data to file
+      h5write_fields_ancillary(pic_tmp,pic_tmp.twpe,'A',A)
+      h5write_attr(pic_tmp,pic_tmp.twci,'Axline',AXline)
+      h5write_attr(pic_tmp,pic_tmp.twci,'xline_position',[xXline' zXline'])
+      h5write_attr(pic_tmp,pic_tmp.twci,'RE',EyXline)  
   end  
   
 end

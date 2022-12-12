@@ -2,14 +2,13 @@
 timestep = 24000;
 dirData = '/Volumes/DataRaid/cno062/no_hot_bg_n02_m100/distributions/24000/';
 h5FilePath = '/Volumes/DataRaid/cno062/no_hot_bg_n02_m100/data_h5/dists.h5';
-distIndRead = 501:1000;
+distIndRead = 1501:1500;
 nSpecies = 6;
 iteration = timestep*2;
 mass = [100 1 100 1 100 1];
 charge = [1 -1 1 -1 1 -1];
 tag = '';
 h5write_dists(dirData,h5FilePath,distIndRead,nSpecies,mass,charge,timestep,iteration,tag)
-
 
 %% Reconnection onset, susannes
 timestep = 2400;
@@ -23,6 +22,19 @@ charge = [1 -1];
 tag = 'map_recsite';
 h5write_dists(dirData,h5FilePath,distIndRead,nSpecies,mass,charge,timestep,iteration,tag)
 
+
+%% Reconnection onset, rec_onset_4
+timestep = 00001;
+dirData = sprintf('/Users/cecilia/Data/PIC/rec_onset_4/distributions/%05.0f/',timestep);
+h5FilePath = '/Users/cecilia/Data/PIC/rec_onset_4/data_h5/dists.h5';
+distIndRead = 1:39;
+nSpecies = 4;
+iteration = timestep*2;
+mass = [100 1 100 1];
+charge = [1 -1 1 -1];
+tag = 'test';
+h5write_dists(dirData,h5FilePath,distIndRead,nSpecies,mass,charge,timestep,iteration,tag)
+dist = PICDist(h5FilePath);
 %%
 timestep = 10000;
 dirData = sprintf('/Volumes/Fountain/Data/PIC/no_hot_bg_test/distributions/%05.0f/',timestep);

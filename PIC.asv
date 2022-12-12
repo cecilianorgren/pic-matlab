@@ -1506,17 +1506,17 @@ classdef PIC
       if doXline
         switch dim
           case 'xt'
-            x_xline = obj.x_xline;
-            y_xline = obj.twci;
+            x_xline = pic.z_xline;
+            y_xline = pic.twci;
           case 'zt'
-            x_xline = obj.z_xline;
-            y_xline = obj.twci;
+            x_xline = pic.z_xline;
+            y_xline = pic.twci;
           case 'tx'
-            y_xline = obj.z_xline;
-            x_xline = obj.twci;
+            y_xline = pic.z_xline;
+            x_xline = pic.twci;
           case 'tz'
-            y_xline = obj.z_xline;
-            x_xline = obj.twci;
+            y_xline = pic.z_xline;
+            x_xline = pic.twci;
         end
       end
       [nrows,ncols] = size(varstrs);      
@@ -1604,7 +1604,6 @@ classdef PIC
       doVertical = 0;
       plotInAxes = 0;
       doCompact = 1;
-      doYLim = 0;
                   
       % Check additional input     
       [ax,args,nargs] = irf.axescheck(varargin{:});       
@@ -1626,10 +1625,6 @@ classdef PIC
           case {'vertical','vert'}
             doVertical = 1;
             l = 1;
-          case {'ylim'}
-            doYLim = 1;
-            ylims = args{2};
-            l = 2;
           otherwise 
             warning(sprintf('Unknown argument %s.',args{1}))
         end
@@ -1715,9 +1710,6 @@ classdef PIC
           hold(hca,'off')
           hca.XGrid = 'on';
           hca.YGrid = 'on';
-          if doYLim
-            hca.YLim = ylims{ip};
-          end
           if doVertical
             hleg(ip) = legend(hca,'location','northoutside'); % this may make the panels of different widths, fix below
           else
@@ -5033,15 +5025,6 @@ classdef PIC
       species = find(obj.get_charge == -1);
       out = obj.dvdt('z',species);
     end
-    function out = vzdzvy(obj,species)        
-      dx = obj.xi(2) - obj.xi(1);
-      dz = obj.zi(2) - obj.zi(1);      
-      vy = obj.vy(species);
-      vz = obj.vz(species);
-            
-      [dzVy,dxVy] = gradient(vy,dz,dx);      
-      out = vz.*dzVy;      
-    end
     function out = vdv(obj,comp,species)
       % 
       % vdivv_x = vx*dvxdx + vy*dvydx + vz*dvzdx
@@ -5689,37 +5672,8 @@ classdef PIC
         out.z_zz = dzTzz;
       end
     end
-    function out = dxPxy(obj,species)      
-      nx = obj.nx;     
-      nz = obj.nz;
-      dx = obj.xi(2)-obj.xi(1);
-      dy = Inf;
-      dz = obj.zi(2)-obj.zi(1);
-      pxy = obj.pxy(species);
-      if obj.nt == 1
-        [dzPxy,dxPxy] = gradient(pxy,dz,dx);
-      else
-        [dzPxy,dxPxy,~] = gradient(pxy,dz,dx,Inf);
-      end
-      out = dxPxy;
-    end
-    function out = dzPzy(obj,species)      
-      nx = obj.nx;     
-      nz = obj.nz;
-      dx = obj.xi(2)-obj.xi(1);
-      dy = Inf;
-      dz = obj.zi(2)-obj.zi(1);
-      pyz = obj.pyz(species);
-      [dzPzy,dxPzy] = gradient(pyz,dz,dx);
-      out = dzPzy;
-    end
-    function out = dxPexy(obj)      
-      species = find(obj.get_charge == -1);
-      out = dxPxy(obj,species);
-    end
-    function out = dzPezy(obj)      
-      species = find(obj.get_charge == -1);
-      out = dzPzy(obj,species);
+    function out = dxPxy(obj,species)
+
     end
     function out = divpx(obj,species)
       out = obj.divp(species,'comp',{'x'});

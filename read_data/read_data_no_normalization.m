@@ -45,6 +45,7 @@ ze = fread(fid,nnz,'real*4');                                 % ze
 mass = fread(fid,nss,'real*4');                               % mass 
 q = fread(fid,nss,'real*4');                                  % q 
 time = fread(fid,1,'real*8');                                 % time 
+%time = fread(fid,1,'real*4');                                 % time 
 wpewce = fread(fid,1,'real*4');                               % wpewce 
 dfac = fread(fid,nss,'real*4');                               % dfac
 vxx = zeros(nnx,nnz,nss); % vxvx
