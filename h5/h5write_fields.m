@@ -48,7 +48,8 @@ for itime = 1:numel(timesteps)
     warning(sprintf('File %s does not exist.',txtfile))
   end
     
-  tic; [varstrs,vars] = read_data_no_normalization(txtfile,nSpecies); toc
+  tic; [varstrs,vars] = read_data_no_normalization(txtfile,nSpecies); toc  
+  
   nss = numel(vars{find(contains(varstrs,'mass'))}); % number of species
   nnx = vars{find(contains(varstrs,'nnx'))}; % number of grid points in x
   nnz = vars{find(contains(varstrs,'nnz'))}; % number of grid points in z
@@ -61,7 +62,8 @@ for itime = 1:numel(timesteps)
   q    = vars{find(contains(varstrs,'q'))};    vars(find(contains(varstrs,'q'))) = [];    varstrs(find(contains(varstrs,'q'))) = [];
   dfac = vars{find(contains(varstrs,'dfac'))}; vars(find(contains(varstrs,'dfac'))) = []; varstrs(find(contains(varstrs,'dfac'))) = [];
   str_iteration = sprintf('%010.0f',iter); % same group format as SMILEI
-    
+  
+  disp(['time = ' num2str(time)])
   
   % Remaining non-datasize matrices are the same for each time, so only
   % save one time
@@ -72,6 +74,7 @@ for itime = 1:numel(timesteps)
   nvars = numel(vars);  
   for ivar = 1:nvars
     data = vars{ivar};
+  %  varstrs{ivar}
     
     % check data size, and see if it needs splitting up, and where to save
     if not(h5exist) && itime == 1 && not(sum(ismember(size(data),[nnx nnz]))>=2)
