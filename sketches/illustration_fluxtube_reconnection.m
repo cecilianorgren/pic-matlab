@@ -86,7 +86,7 @@ colors = pic_colors('matlab');
 color1 = colors(1,:);
 color2 = colors(2,:);
 colortube = [0.9 0.9 0.95];
-colortube = [0.95 0.95 1];
+colortube = [0.95 0.95 1; 0.95 0.95 1; 0.95 0.95 1; 0.95 0.95 1];
 %colortube = [0.95 1 1];
 
 % Initiate
@@ -100,7 +100,7 @@ if doGif
 end
       
       
-for it = 1:ntheta
+for it = [1 1:ntheta]
   
   theta = linspace(0,nturns*360,ntheta);
   z0_ = 0;
@@ -170,6 +170,7 @@ for it = 1:ntheta
   %hca.Box = 'off';
   %hca.BoxStyle = 'full';
   hca.Visible = 'off';
+  hca.Position = [0 0 1 1];
   
 
   hca.XLabel.String = 'x';

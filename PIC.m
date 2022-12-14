@@ -572,6 +572,8 @@ classdef PIC
       darkBackgroundColor = [33 33 33]/255;
       ntimes = obj.length;
       doSep = 0;
+      doFill = 0;
+      doFigPos = 0;
       
       
       have_options = 0;
@@ -634,6 +636,13 @@ classdef PIC
           case 'sep'
             doSep = 1;
             l = 1;
+          case 'fill'
+            doFill = 1;
+            l = 1;
+          case 'figpos'
+            doFigPos = 1;
+            figpos = args{2};
+            l = 2;
           otherwise
             warning(sprintf('Input ''%s'' not recognized.',args{1}))            
         end        
@@ -674,7 +683,7 @@ classdef PIC
         end
       end
       % setup figure
-      %fig = figure;      
+      %fig = figure;
       [nrows,ncols] = size(varstrs);           
       npanels = nrows*ncols;
       ip = 0;
@@ -682,11 +691,23 @@ classdef PIC
         for icol = 1:ncols
           ip = ip + 1;
           h(irow,icol) = subplot(nrows,ncols,ip);
-          h(irow,icol).Position(2) = h(irow,icol).Position(2)+0.05;
-          h(irow,icol).Position(4) = h(irow,icol).Position(4)-0.05/nrows;
+          
+          if doFill
+            h(irow,icol).Position(1) = 0; % left edge
+            h(irow,icol).Position(3) = 1/ncols; % entire width
+            h(irow,icol).Position(2) = (nrows-irow)/nrows;
+            h(irow,icol).Position(4) = 1/nrows; % fill entire height
+          else
+            h(irow,icol).Position(2) = h(irow,icol).Position(2)+0.05;
+            h(irow,icol).Position(4) = h(irow,icol).Position(4)-0.05/nrows;
+          end          
         end
       end
       
+      if doFigPos
+        fig = gcf;
+        fig.Position = figpos;
+      end
       if doVideo
         vidObj = VideoWriter([fileName '.mp4'],'MPEG-4');
         vidObj.FrameRate = 10;
@@ -714,7 +735,6 @@ classdef PIC
         if doA 
           A = tmp_obj.A;
         end
-        
         if doSep
           if not(doA)
             A = tmp_obj.A;
@@ -909,7 +929,11 @@ classdef PIC
             hca.XLim = obj.xi([1 end]);
             hca.YLim = obj.zi([1 end]);
             hca.FontSize = 20;
-           % drawnow;
+            % drawnow;
+            if doFill
+              hca.Visible = 'off';
+              delete(hb(ivar))
+            end
           end
         end 
         %drawnow;
@@ -917,7 +941,7 @@ classdef PIC
         if doDark
           h(1).Title.Color = darkAxisColor;
         end
-        compact_panels(0.01)
+        if not(doFill), compact_panels(0.01); end
 %        h(3).Position(3) = h(2).Position(3);
         % Collect frames
         pause(1)
