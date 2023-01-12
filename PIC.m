@@ -5079,7 +5079,7 @@ classdef PIC
       
       [dzVx,dxVx] = gradient(vx,dz,dx);
       [dzVy,dxVy] = gradient(vy,dz,dx);
-      [dzVz,dxVx] = gradient(vz,dz,dx);
+      [dzVz,dxVz] = gradient(vz,dz,dx);
       
       switch comp
         case 'x' % vdv_x = vx*dvx/dx + vz*dvx/dz
