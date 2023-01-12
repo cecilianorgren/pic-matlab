@@ -2,8 +2,11 @@
 
 h5filepath = '/Users/cecilia/Data/PIC/rec_onset_4/data_h5/fields.h5';
 datapath = '/Users/cecilia/Data/PIC/rec_onset_4/data/';
+%h5filepath = '/Users/cecilia/Data/PIC/rec_onset_asym/data_h5/fields.h5';
+%datapath = '/Users/cecilia/Data/PIC/rec_onset_asym/data/';
+
 nSpecies = 4;
-h5write_fields(datapath,h5filepath,[2600:100:3000],nSpecies)
+h5write_fields(datapath,h5filepath,[0:2:4],nSpecies)
 
 
 pic = PIC(h5filepath); % If you have many times saved, this can take up to a minute
