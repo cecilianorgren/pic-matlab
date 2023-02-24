@@ -574,6 +574,7 @@ classdef PIC
       doSep = 0;
       doFill = 0;
       doFigPos = 0;
+      doGrid = 0;
       
       
       have_options = 0;
@@ -643,6 +644,9 @@ classdef PIC
             doFigPos = 1;
             figpos = args{2};
             l = 2;
+          case 'grid'
+            doGrid = 1;
+            l = 1;
           otherwise
             warning(sprintf('Input ''%s'' not recognized.',args{1}))            
         end        
@@ -933,6 +937,11 @@ classdef PIC
             if doFill
               hca.Visible = 'off';
               delete(hb(ivar))
+            end
+            if doGrid
+              hca.XGrid = 'on';
+              hca.YGrid = 'on';
+              hca.Layer = 'top';
             end
           end
         end 
@@ -1437,6 +1446,7 @@ classdef PIC
       doAdjustCMap = 0;
       doSmooth = 0;
       npSmooth = 0;
+      doGrid = 0;
       
       % Which dimension to plot against
       if strfind(dim,'x')
@@ -1506,6 +1516,9 @@ classdef PIC
             l = 2;
             doSmooth = 1;
             npSmooth = args{2};            
+          case 'grid'
+            l = 1;
+            doGrid = 1;
           otherwise 
             warning(sprintf('Unknown argument %s.',args{1}))
         end
@@ -1599,6 +1612,12 @@ classdef PIC
             colormap(hca,cmaps)
           end
         %colormap(cmap)
+        end
+        
+        if doGrid
+          hca.XGrid = 'on';
+          hca.YGrid = 'on';
+          hca.Layer = 'top';
         end
         drawnow;
       end
