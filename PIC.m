@@ -3410,6 +3410,20 @@ classdef PIC
       out = obj.length;
     end
     
+    
+    function out = np(obj,species)
+      % pic.NP Number of particles in cell: n/dfac
+      %   iSpecies = [2 4]; np = pic.NP(iSpecies);
+      %   np = pic.NP(1);
+      %   np = pic.NP([1 3]);      
+      dfac = obj.get_dfac;
+      nptot = zeros(obj.nx,obj.nz);
+      for sp = species
+        nptot = nptot + obj.n(sp)/dfac(sp);      
+      end
+      out = nptot;
+    end
+    
     % Get fields
     % Convention is to build in the coordinate tranformation when loading
     % the Smilei data: x -> x, -z -> y, y -> z
@@ -3774,7 +3788,26 @@ classdef PIC
     function out = viz(obj)
       % Get ion velocity, z
       out = obj.jiz./obj.ni;
-    end   
+    end
+    function out = vA(obj,species)
+      % Alfven speed
+      
+      % check so that all species have the same mass and charge
+      mass_sp = obj.mass; 
+      if numel(unique(mass_sp(species))) > 1
+        error('All species do not have the same mass.'); 
+      else
+        mass_sp = mass_sp(species(1));
+      end
+      % Load data
+      B = obj.Babs;
+      n = obj.n(species);
+       
+      vA = B./sqrt(n*mass_sp);
+      vA(n<0.01) = NaN;
+      out = vA;
+      
+    end
     % Current
     function out = Jx(obj)
       out = obj.jix - obj.jex;
