@@ -35,6 +35,7 @@ nb = 0.1;
 Lhe = 10*2; % Harris sheet width in de, 5de = 1di
 Lhi = Lhe/sqrt(mime); % Harris sheet width in di
 l = Lhi; % harris sheet width
+le = l*sqrt(mime);
 zh = l;
 B0 = 1; % harris sheet asymptotic amplitude
 BG = 0*0.25;
@@ -145,7 +146,7 @@ z4 = 13;
 z5 = 16;
 z6 = 19;
 lin = 0.25;
-l = 0.5;
+%l = 0.5;
 
 B0 = 1;
 R = [x; y; z];
@@ -153,7 +154,7 @@ R = [x; y; z];
 %Btot = B0*tanh(z/l);
 BH = B0*tanh(z/l);
 Btot = B0;
-iPert = 6;
+iPert = 7;
 switch iPert
   case 1
     f1 = +0.5*dn*(1 + tanh((abs(z)-z1)/lin));
@@ -215,15 +216,30 @@ switch iPert
     f = ftop + fbot;
   case 6 % 
     % From the top (z>0)
-    f1a = +6*0.5*dn*(1 + tanh(((z)-3)/1.0).^1);
-    f1b = -3*0.5*dn*(1 + tanh(((z)-6)/0.5).^1);
-    f1c = -3*0.5*dn*(1 + tanh(((z)-9)/0.5).^1);
+    f1a = +6*0.5*dn*(1 + tanh(((z)-3)/1).^1);
+    f1b = -2*0.5*dn*(1 + tanh(((z)-6)/0.5).^1);
+    f1c = -2*0.5*dn*(1 + tanh(((z)-9)/0.5).^1);
     
     % From the bottom (z>0)
     f2a = +2*0.5*dn*(1 + tanh(((-z)-3.8)/1.4).^1);
+    f2a = +2*0.5*dn*(1 + tanh(((-z)-4)/1.5).^1);
     
     ftop = f1a + f1b + f1c + 0.001;
     fbot = f2a + 0.001; % + f2b + f2c;
+    f = ftop + fbot;
+  case 7 % 
+    % From the top (z>0)
+    ze = z*sqrt(mime);
+    f1a =  4*0.5*dn*(1 + tanh(((z)-35/sqrt(mime))/(15/sqrt(mime))).^1);
+    f1b = -1*0.5*dn*(1 + tanh(((z)-70/sqrt(mime))/(5/sqrt(mime))).^1);
+    f1c = -1*0.5*dn*(1 + tanh(((z)-100/sqrt(mime))/(5/sqrt(mime))).^1);
+    
+    % From the bottom (z>0)
+    f2a = +2*0.5*dn*(1 + tanh(((-z)-38/sqrt(mime))/(14/sqrt(mime))).^1);
+    f2a = +2*0.5*dn*(1 + tanh(((-z)-40/sqrt(mime))/(15/sqrt(mime))).^1);
+    
+    ftop = f1a + f1b + f1c + 0.000;
+    fbot = f2a + 0.000; % + f2b + f2c;
     f = ftop + fbot;
 end
 n_pert = symfun(f,[x z]);
@@ -258,6 +274,7 @@ c_eval('mf_mfun? = matlabFunction(n?*M_target(?)/sum_n?);',1:numel(M_target))
 % How to add a polarized inflow current sheet, such that the electrons are
 % drifting, and not the ions?
 
+if 0
 Ax = A(1);
 Ay = A(2);
 Az = A(3);
@@ -315,6 +332,7 @@ matJx = mfJx(X,0,Z); if isscalar(matJx); matJx = repmat(matJx,nz,nx); end
 matJy = mfJy(X,0,Z); if isscalar(matJy); matJy = repmat(matJy,nz,nx); end
 matJz = mfJz(X,0,Z); if isscalar(matJz); matJz = repmat(matJz,nz,nx); end
 
+end
 % fVi = symfun(Vi,[x y z]);
 % fViy = symfun(Viy,[x y z]);
 % mfViy = matlabFunction(fViy);

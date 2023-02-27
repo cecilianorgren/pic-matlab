@@ -5,8 +5,11 @@ datapath = '/Users/cecilia/Data/PIC/rec_onset_4/data/';
 %h5filepath = '/Users/cecilia/Data/PIC/rec_onset_asym/data_h5/fields.h5';
 %datapath = '/Users/cecilia/Data/PIC/rec_onset_asym/data/';
 
-nSpecies = 4;
-h5write_fields(datapath,h5filepath,[0:2:4],nSpecies)
+h5filepath = '/Users/cecilia/Data/PIC/varying_inflow_density_steps_1/data_h5/fields.h5';
+datapath = '/Users/cecilia/Data/PIC/varying_inflow_density_steps_1/data/';
+
+nSpecies = 6;
+h5write_fields(datapath,h5filepath,[100],nSpecies)
 
 
 pic = PIC(h5filepath); % If you have many times saved, this can take up to a minute
@@ -65,7 +68,7 @@ plot(hca,pic.twci,Bx_preexisting)
 hca.XLabel.String = 't\omega_{ci}';
 hca.YLabel.String = 'B_x';
 irf_legend(hca,sprintf('x = [%.2f,%.2f], z = [%.2f,%.2f]',pic_inflow_center_t0.xi(1),pic_inflow_center_t0.xi(end),pic_inflow_center_t0.zi(1),pic_inflow_center_t0.zi(end)),[0.98 0.98],'color','k')
-end
+end  
 
 hca = h(isub); isub = isub + 1;
 plot(hca,pic.twci,Flux_added,pic.twci,pic.twci*0+Flux_preexisting,'--')
