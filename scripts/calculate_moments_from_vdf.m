@@ -1,8 +1,9 @@
 % Load PICDist object
 %dist = PICDist('/Users/cno062/Data/PIC/no_hot_bg_n02_m100/data_h5/dists.h5');
 %dist = PICDist('/Volumes/Fountain/Data/PIC/no_hot_bg_n02_m100/data_h5/dists.h5');
-no02m = PIC('/Volumes/Fountain/Data/PIC/no_hot_bg_n02_m100/data_h5/fields.h5');
+%no02m = PIC('/Volumes/Fountain/Data/PIC/no_hot_bg_n02_m100/data_h5/fields.h5');
 
+dist = ds;
 
 % Load 3D phase space distribution
 iSpecies = 1;
@@ -11,8 +12,14 @@ id = 1;
 fxyz = dist.f(it,id,iSpecies); 
 
 % Load moments for comparison
-%pxy_all = no02m.twpelim(fxyz.twpe).pxy(iSpecies);
-%pxy_at_f = no02m.twpelim(fxyz.twpe).xlim(fxyz.x).zlim(fxyz.z).pxy(iSpecies);
+pxy_all = no02m.twpelim(fxyz.twpe).pxy(iSpecies);
+pxy_at_f = no02m.twpelim(fxyz.twpe).xlim(fxyz.x).zlim(fxyz.z).pxy(iSpecies);
+
+n_at_f = mean(mean(no02m.twpelim(fxyz.twpe).xlim(fxyz.x).zlim(fxyz.z).n(iSpecies)));
+vx_at_f = mean(mean(no02m.twpelim(fxyz.twpe).xlim(fxyz.x).zlim(fxyz.z).vx(iSpecies)));
+vy_at_f = mean(mean(no02m.twpelim(fxyz.twpe).xlim(fxyz.x).zlim(fxyz.z).vy(iSpecies)));
+vz_at_f = mean(mean(no02m.twpelim(fxyz.twpe).xlim(fxyz.x).zlim(fxyz.z).vz(iSpecies)));
+
 
 dx = diff(fxyz.x); % not used
 dz = diff(fxyz.z);
@@ -56,20 +63,20 @@ Pxz_arg = fxyz.f.*(VZ-vz_bulk).*(VZ-vz_bulk);
 
 
 % Plot
-nrows = 1;
-ncols = 3;
+nrows = 3;
+ncols = 1;
 isub = 1;
 
 colormap(pic_colors('candy4'))
 
 if 1 % pxy_all
   hca = subplot(nrows,ncols,isub); isub = isub + 1;
-  pcolor(hca,no02m.xi,no02m.xi,pxy_all')
+  pcolor(hca,no02m.xi,no02m.zi,pxy_all')
   shading(hca,'flat')
   hcb = colorbar('peer',hca);
   hcb.YLabel.String = 'p_{xy}';
   hold(hca,'on')
-  plot(hca,[f.x f.x([2 1])],[f.z(1) f.z(2) f.z(2) f.z(1)],'k')
+  plot(hca,[f.x(1) f.x(2) f.x(2) f.x(1)],[f.z(1) f.z(2) f.z(2) f.z(1)],'k')
   hold(hca,'off')
   hca.XLabel.String = 'x';
   hca.YLabel.String = 'z';

@@ -863,9 +863,7 @@ classdef PICDist
               [0.01 0.01],'color',[0 0 0],'fontsize',fontsize);
             hleg(size(hleg,1)+1,:) = hleg_;
           end
-          if doPIntegrand % make caxes symmetric
-            hca.CLim = max(abs(hca.CLim))*[-1 1];
-          end
+          
           if not(plotInAxes) % xy-labels
             if axes_position(1) == border(1)
               hca.YLabel.String = sprintf('v_{%s}',yaxstr);            
@@ -1018,7 +1016,7 @@ classdef PICDist
             hold(hca,'off')            
           end
           
-          if doCS_fieldaligned
+          if doCS_fieldaligned                      
             Bx = mean(mean(pic.twpelim(obj.twpe,'exact').xlim(f.x).zlim(f.z).Bx));
             By = mean(mean(pic.twpelim(obj.twpe,'exact').xlim(f.x).zlim(f.z).By));
             Bz = mean(mean(pic.twpelim(obj.twpe,'exact').xlim(f.x).zlim(f.z).Bz));

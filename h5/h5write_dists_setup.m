@@ -1,8 +1,9 @@
+
 %% no02m
 timestep = 24000;
 dirData = '/Volumes/DataRaid/cno062/no_hot_bg_n02_m100/distributions/24000/';
-h5FilePath = '/Volumes/DataRaid/cno062/no_hot_bg_n02_m100/data_h5/dists.h5';
-distIndRead = 1501:1500;
+h5FilePath = '/Volumes/DataRaid/cno062/no_hot_bg_n02_m100/data_h5/dists_new.h5';
+distIndRead = 2001:2243; % 2243
 nSpecies = 6;
 iteration = timestep*2;
 mass = [100 1 100 1 100 1];

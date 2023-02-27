@@ -969,7 +969,7 @@ end
 %% Tight smaller boxes around X line, to see off-diag pressure components
 twpe = 16000;
 x_center = 99:0.2:106;
-z_center = -0.4:0.05:0.4;
+z_center = -0.5:0.1:0.5;
 dx_box = 0.1;
 dz_box = 0.05;
 
@@ -1041,8 +1041,6 @@ for ibox = 1:n_boxes
   hpatch.FaceAlpha = 0;
   hpatch.LineWidth = 1;     
   hpatch = patch(h(2),keep_boxes(ibox,[1 1 2 2]),keep_boxes(ibox,[3 4 4 3]),'w');
-  hpatch.FaceAlpha = 0;
-  hpatch.LineWidth = 1;     
 end
 hold(h(1),'off')   
 hold(h(2),'off')   
