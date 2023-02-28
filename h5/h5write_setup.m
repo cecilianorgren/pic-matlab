@@ -5,12 +5,16 @@ h5filepath = '/Volumes/DataRaid/cno062/no_hot_bg_n02_m100/data_h5/fields.h5';
 datapath = '/Volumes/DataRaid/cno062/no_hot_bg_n02_m100/data/';
 nSpecies = 6;
 
+h5filepath = '/Volumes/DataRaid/cno062/rec_onset_4/data_h5/fields_E01.h5';
+datapath = '/Volumes/DataRaid/cno062/rec_onset_4/data_F1_E01/';
+nSpecies = 4;
+
 % Susannes rec-onset
 % h5filepath = '/Volumes/DataRaid/Susanne-onset/data_h5/fields.h5';
 % datapath = '/Volumes/DataRaid/Susanne-onset/data/';
 % nSpecies = 2;
 
-h5write_fields(datapath,h5filepath,[2200:400:4999],nSpecies)
+h5write_fields(datapath,h5filepath,[10000:500:20000],nSpecies)
 % If you tried at first and it failed (for example I didn't have the 
 % external harddrive connected, it might have made a new empty file, which 
 % will give a error:

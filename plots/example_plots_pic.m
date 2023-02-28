@@ -4950,3 +4950,34 @@ h = no02m.twpelim(twpe).xlim(xlim).zlim(zlim).plot_map(varstrs,'A',1,'clim',clim
 
 hc = findobj(gcf,'type','contour');
 c_eval('hc(?).Color = 0.5*[1 1 1];',1:numel(hc))
+
+%% Abnormal/opposite Hall fields
+% no02m = PIC('/Volumes/DataRaid/cno062/no_hot_bg_n02_m100/data_h5/fields.h5');
+%E01 = PIC('/Volumes/DataRaid/cno062/rec_onset_4/data_h5/fields_E01.h5');
+E05 = PIC('/Volumes/DataRaid/cno062/rec_onset_4/data_h5/fields.h5');
+pic = E05;
+twpe = 9400;
+xlim = mean(pic.xi) + [-20 05] + 0*10;
+zlim = [-5 5];
+pic = pic.twpelim(twpe).xlim(xlim).zlim(zlim);
+varstrs = {'Bz','By','Ez','ne','vez','vix','vex','Jx','JxBz','vepar','Ey+vexBy','Ey+vixBy'}';
+varstrs = reshape(varstrs,numel(varstrs)/2,2);
+clims = {[-1 1],[-1 1],[-1 1],[0 1.8],[-2 2],[-2 2],[-2 2],[-1 1],[-1 1],[-2 2],[-0.2 0.2],[-0.2 0.2]};
+cmapbr = pic_colors('blue_red');
+cmapwa = pic_colors('waterfall');
+cmaps = {cmapbr,cmapbr,cmapbr,cmapwa,cmapbr,cmapbr,cmapbr,cmapbr,cmapbr,cmapbr,cmapbr,cmapbr}';
+
+h = pic.plot_map(varstrs,'A',1,'clim',clims,'cmap',cmaps,'smooth',3);
+
+
+%% Plot timeseries of virtual spacecraft
+figure(77)
+pic = no02m;
+twpe = [15000 25000];
+xlim = 123 + 0.1*[-1 1];
+zlim = 2 + 0.1*[-1 1];
+pic = pic.twpelim(twpe).xlim(xlim).zlim(zlim);
+varstrs = {{'Bx','By','Bz'},{'Ex','Ey','Ez'},{'vix','viy','viz'},{'vex','vey','vez'},{'vix','vex','vExBx'},{'ne','ni'},{'Jx','Jy','Jz'},{'JxBx','JxBy','JxBz'}}';  
+
+h = pic.plottimeseries(varstrs);
+
