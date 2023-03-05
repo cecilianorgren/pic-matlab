@@ -8,8 +8,12 @@ datapath = '/Users/cecilia/Data/PIC/rec_onset_4/data/';
 h5filepath = '/Users/cecilia/Data/PIC/varying_inflow_density_steps_1/data_h5/fields.h5';
 datapath = '/Users/cecilia/Data/PIC/varying_inflow_density_steps_1/data/';
 
-nSpecies = 6;
-h5write_fields(datapath,h5filepath,[100],nSpecies)
+
+h5filepath = '/Users/cecilia/Data/PIC/rec_onset_4/data_F0_50_E0_05_TITE10/fields.h5';
+datapath = '/Users/cecilia/Data/PIC/rec_onset_4/data_F0_50_E0_05_TITE10/';
+
+nSpecies = 4;
+h5write_fields(datapath,h5filepath,[0000:1000:7000],nSpecies)
 
 
 pic = PIC(h5filepath); % If you have many times saved, this can take up to a minute
