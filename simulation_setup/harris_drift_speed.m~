@@ -1,0 +1,13 @@
+J = 1;
+n = 1;
+vi = @(teti) (J/n)./(1+teti);
+ve = @(teti) vi(teti).*(-teti);
+
+tite = 1:10;
+teti = sort(1./tite);
+
+hca = subplot(1,1,1);
+plot(hca,tite,[vi(1./tite);ve(1./tite)])
+hca.Y
+grid on
+
