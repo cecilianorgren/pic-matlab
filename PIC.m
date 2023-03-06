@@ -1434,7 +1434,7 @@ classdef PIC
         varargout{3} = hlinks;
       end
     end
-    function varargout = plot_timemap(obj,dim,varstrs,varargin)
+    function varargout = plot_timemap(obj,varargin)
       % Plots variables directly loaded from file
       % h = pic.PLOTTIMEMAP('zt',{'Ey','Ez'})
       % h = pic.PLOTTIMEMAP('tx',{'Ey','Ez'},'A')
@@ -1447,7 +1447,18 @@ classdef PIC
       doSmooth = 0;
       npSmooth = 0;
       doGrid = 0;
+      plotInAxes = 0;
       
+      [h,args,nargs] = irf.axescheck(varargin{:}); 
+      if not(isempty(h)); plotInAxes = 1; doCompact = 0; end
+%       
+      %varstrs = args{1};
+      %args = args(2:end);
+      %nargs = nargs-1;
+      
+      dim = args{1}; args = args(2:end); nargs = nargs-1;
+      varstrs = args{1}; args = args(2:end); nargs = nargs-1;
+
       % Which dimension to plot against
       if strfind(dim,'x')
         if strfind(dim,'x') == 1 % x on x-axis
@@ -1481,19 +1492,12 @@ classdef PIC
       lim_depx = plot_depx([1 end]);
       lim_depy = plot_depy([1 end]);
       
-%       [ax,args,nargs] = irf.axescheck(varargin{:}); 
-%       if not(isempty(ax)); plotInAxes = 1; doCompact = 0; end
-%       
-%       varstrs = args{1};
-%       args = args(2:end);
-%       nargs = nargs-1;
-%       have_options = 0;      
-%       if nargs > 0, have_options = 1; end
+      
+%      have_options = 0;      
       
       % Check input
       have_options = 0;
-      nargs = numel(varargin);      
-      if nargs > 0, have_options = 1; args = varargin(:); end      
+      if nargs > 0, have_options = 1; end        
       while have_options
         l = 1;
         switch(lower(args{1}))
@@ -1556,9 +1560,14 @@ classdef PIC
             x_xline = obj.twci;
         end
       end
-      [nrows,ncols] = size(varstrs);      
-      for ip = 1:nrows*ncols
-        h(ip) = subplot(nrows,ncols,ip);
+      if plotInAxes % initialize axis
+        [nrows,ncols] = size(h);
+      else        
+        [nrows,ncols] = size(varstrs);
+        h = gobjects(nrows,ncols);
+        for ip = 1:nrows*ncols
+          h(ip) = subplot(nrows,ncols,ip);
+        end
       end
       hb = gobjects(0);
       for ivar = 1:nrows*ncols
@@ -1623,7 +1632,9 @@ classdef PIC
       end
       drawnow;
       h(1).Title.String = sprintf('%s = [%.2f %.2f]',rangestr,range(1),range(2));
-      compact_panels(0.01)
+      if not(plotInAxes)
+        compact_panels(0.01)
+      end
       hlinks = linkprop(h,{'XLim','YLim'});
       set(gcf,'userdata',{'hlinks',hlinks})
       if nargout == 1
@@ -1813,11 +1824,17 @@ classdef PIC
         varargout{3} = hlinks;
       end
     end
-    function varargout = plottimeseries(obj,varstrs_all,varargin)
-       % Check additional input      
-      have_options = 0;
-      nargs = numel(varargin);      
-      if nargs > 0, have_options = 1; args = varargin(:); end      
+    function varargout = plottimeseries(obj,varargin)
+       
+      % Check for input axes
+      [h,args,nargs] = irf.axescheck(varargin{:}); 
+      if not(isempty(h)); plotInAxes = 1; doCompact = 0; end
+%       
+      varstrs_all = args{1}; args = args(2:end); nargs = nargs-1;            
+
+      % Check additional input         
+      have_options = 0; 
+      if nargs > 0, have_options = 1; end      
       while have_options
         l = 1;
         switch(lower(args{1}))
@@ -1829,15 +1846,19 @@ classdef PIC
         if isempty(args), break, end    
       end
            
-      [nrows,ncols] = size(varstrs_all);    
-      npanels = nrows*ncols;
-      ip = 0;
-      for irow = 1:nrows
-        for icol = 1:ncols
-          ip = ip + 1;
-          h(irow,icol) = subplot(nrows,ncols,ip);
+      if plotInAxes
+        [nrows,ncols] = size(h);
+      else 
+        [nrows,ncols] = size(varstrs_all);
+        ip = 0;
+        for irow = 1:nrows
+          for icol = 1:ncols
+            ip = ip + 1;
+            h(irow,icol) = subplot(nrows,ncols,ip);
+          end
         end
-      end
+      end    
+      npanels = nrows*ncols;
             
       hleg = gobjects(0);
       ip = 0;
@@ -1884,7 +1905,9 @@ classdef PIC
       for ip = 1:npanels, h(ip).Position(3) = min(panel_width); end      
       titlestring = sprintf('x/d_i = [%.2f %.2f], z/d_i= [%.2f %.2f],',obj.xi(1),obj.xi(end),obj.zi(1),obj.zi(end));      
       h(1).Title.String = titlestring;
-      compact_panels(0.01)
+      if not(plotInAxes)
+        compact_panels(0.01)
+      end
       hlinks = linkprop(h,{'XLim'});
       h(1).XLim = obj.twci([1 end]);
       set(gcf,'userdata',{'hlinks',hlinks})
