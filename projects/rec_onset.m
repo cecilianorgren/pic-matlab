@@ -9,21 +9,25 @@ h5filepath = '/Users/cecilia/Data/PIC/varying_inflow_density_steps_1/data_h5/fie
 datapath = '/Users/cecilia/Data/PIC/varying_inflow_density_steps_1/data/';
 
 
-h5filepath = '/Users/cno062/Data/PIC/rec_onset_4/data_F025_E005_TITE10/fields.h5';
-datapath = '/Users/cno062/Data/PIC/rec_onset_4/data_F025_E005_TITE10/';
 
 h5filepath = '/Users/cno062/Data/PIC/rec_onset_4/data_F025_E005_TITE05/fields.h5';
 datapath = '/Users/cno062/Data/PIC/rec_onset_4/data_F025_E005_TITE05/';
 
+h5filepath = '/Users/cno062/Data/PIC/rec_onset_4/data_F025_E005_TITE10/fields.h5';
+datapath = '/Users/cno062/Data/PIC/rec_onset_4/data_F025_E005_TITE10/';
+
+h5filepath = '/Users/cno062/Data/PIC/varying_tite/tite_05/fields.h5';
+datapath = '/Users/cno062/Data/PIC/varying_tite/tite_05/data/';
+
 nSpecies = 4;
-h5write_fields(datapath,h5filepath,[000:1000:15000],nSpecies)
+h5write_fields(datapath,h5filepath,[18000:1000:20000],nSpecies)
 
 
-h5filepath = '/Users/cecilia/Data/PIC/rec_onset_4/data_F0_50_E0_05_TITE10/fields.h5';
-datapath = '/Users/cecilia/Data/PIC/rec_onset_4/data_F0_50_E0_05_TITE10/';
+%h5filepath = '/Users/cecilia/Data/PIC/rec_onset_4/data_F0_50_E005_TITE10/fields.h5';
+%datapath = '/Users/cecilia/Data/PIC/rec_onset_4/data_F0_50_E005_TITE10/';
 
-nSpecies = 4;
-h5write_fields(datapath,h5filepath,[0000:1000:7000],nSpecies)
+%nSpecies = 4;
+%h5write_fields(datapath,h5filepath,[0000:1000:7000],nSpecies)
 
 
 

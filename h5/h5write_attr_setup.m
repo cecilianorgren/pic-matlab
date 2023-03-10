@@ -9,7 +9,7 @@ pic = pic.twcilim(pic.twci([missingAttr(1)-2:missingAttr(1)+2]),'exact');
 %pic = turb.twcilim(1:1:30,'exact');
 
 %% Energy partitioning, UB, UK, UT
-pic = pic3;
+pic = no02m;
 times = pic.twci;
 for it = 1:pic.nt
   pic_tmp = pic.twcilim(times(it));
@@ -24,8 +24,8 @@ end
 %% Energy partitioning, UB, UK, UT
 times = pic3.twci;
 %% Thermal and kinetic energy n08
-%sim = no02m;
-sim = pic3;
+sim = no02m;
+%sim = pic3;
 tic;
 clear UT UK
 for it = 1:sim.length %sim.twpelim(2000:1000:3000,'exact').indices%:sim.length  
@@ -53,7 +53,7 @@ tic;
 clear UT UK
 species_groups = {[3 5],[4 6]};
 species_groups_str = {'cold_ions','cold_electrons'};
-for it = sim.twpelim(7000:1000:14000,'exact').indices%:sim.length  
+for it = 1:sim.length  
   sim_tmp = sim(it); 
   for iSpecies_group = 1:numel(species_groups)
     iSpecies = species_groups{iSpecies_group};
@@ -227,7 +227,7 @@ end
 indsave = 1:(pic.nt-3);
 indsave = (pic.nt-2):pic.nt;
 indsave = 1:pic.nt;
-indsave = 2:(pic.nt-1);
+%indsave = 2:(pic.nt-1);
 %indsave = 1:pic.nt;
 h5write_attr(pic.subset('t',indsave),times(indsave),'RE',EyXline(indsave))
 %h5write_attr(pic.subset('t',indsave),times(indsave),'RA',dAdt(indsave))
