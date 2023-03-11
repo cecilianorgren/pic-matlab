@@ -305,7 +305,7 @@ h(2).Title.String = '';
 
 
 %% Energy partition for no02m
-fileName  = [printpath 'vid_pic2'];
+fileName  = [printpath 'vid_no02m'];
 doVideo = 1;
 doGif = 1;
 doGifBackLoop = 0;
@@ -314,7 +314,7 @@ colors = pic_colors('matlab');
 fontsize = 16;
 
 % Energy partition
-pic = pic2; % no02m
+pic = no02m; % no02m
 
 h(1) = subplot(1,1,1);
 
@@ -332,7 +332,7 @@ disp('Adjust figure size, then hit any key to continue.')
 pause
 iSpecies = 1:numel(pic.mass);
 iSpeciesHot = [1 2];
-iSpeciesCold = [3 4];
+iSpeciesCold = [3 4 5 6];
 for it = 1:pic.length
   it
   pic_tmp = pic(1:it);
@@ -363,16 +363,12 @@ for it = 1:pic.length
     UP2_ = [UPtot2(1);  UPtot2]/Unorm;
     t_ = [0 t];
     %plot(hca,t_,[0; diff(UB_)./diff(t_)'],t_,[0; diff(UP1_)./diff(t_)'],t_,[0; diff(UP2_)./diff(t_)'],'linewidth',3)
-    plot(hca,t_,UB_-UB_(1),t_,UP1_-UP1_(1),t_,UP2_-UP2_(1),'linewidth',3)
-    hca.YLabel.String = '\Delta Energy (%)';
-    %irf_legend(hca,{'Magnetic energy'},[0.8 0.20],'color',colors(1,:),'fontsize',fontsize,'fontweight','bold')
-    %irf_legend(hca,{{'Plasma energy:','pre-existing plasma sheet'}},[0.5 0.85],'color',colors(2,:),'fontsize',fontsize,'fontweight','bold','horizontalalignment','left')
-    %irf_legend(hca,{'Plasma energy: cold inflow'},[0.05 0.6],'color',colors(3,:),'fontsize',fontsize,'fontweight','bold')
-    irf_legend(hca,{'Magnetic energy'},[0.8 0.20],'color',colors(1,:),'fontsize',fontsize,'fontweight','bold')
-    irf_legend(hca,{{'Plasma energy:','pre-existing plasma sheet'}},[0.5 0.85],'color',colors(2,:),'fontsize',fontsize,'fontweight','bold','horizontalalignment','left')
-    irf_legend(hca,{'Plasma energy: cold inflow'},[0.05 0.6],'color',colors(3,:),'fontsize',fontsize,'fontweight','bold')
-    hca.YLim = [-25 25]; % no02m
-    hca.YLim = [0 30];
+    plot(hca,t_,[0; UB_]-UB_(1),t_,[0; UP1_]-UP1_(1),t_,[0; diff(UP2_)./diff(t_)'],'linewidth',3)
+    hca.YLabel.String = 'Energy (%)';
+    irf_legend(hca,{'Magnetic energy'},[0.05 0.70],'color',colors(1,:),'fontsize',fontsize,'fontweight','bold')
+    irf_legend(hca,{'Plasma energy: pre-existing plasma sheet'},[0.05 0.35],'color',colors(2,:),'fontsize',fontsize,'fontweight','bold')
+    irf_legend(hca,{'Plasma energy: cold inflow'},[0.05 0.07],'color',colors(3,:),'fontsize',fontsize,'fontweight','bold')
+  
   else
     plot(hca,[0 t],[UB(1); UB]/Unorm,[0 t],[UPtot1(1);  UPtot1]/Unorm,[0 t],[UPtot2(1);  UPtot2]/Unorm,'linewidth',3)
     hca.YLabel.String = 'Energy (%)';
@@ -383,7 +379,6 @@ for it = 1:pic.length
     
   end
   hca.XLim = [0 pic.twci(pic.nt)];
-  hca.XLim = [0 120];
   hca.XLabel.String = 'Time (\omega_{ci}^{-1})';
   %legend(hca,{'Magnetic energy','Plasma energy'},'box','off')
   hca.FontSize = fontsize;

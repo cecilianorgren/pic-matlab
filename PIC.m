@@ -1257,18 +1257,18 @@ classdef PIC
       have_options = 0;      
       if nargs > 0, have_options = 1; end
       
-      while have_options
+      while have_options       
         l = 1;
         switch(lower(args{1}))
           case 'a'
             doA = 1;
             stepA = args{2};
             l = 2;
-          case 'clim'
+          case {'clim','clims'}
             l = 2;
             doAdjustCLim = 1;  
             clims = args{2};
-          case 'cmap'
+          case {'cmap','cmaps'}
             l = 2;
             doAdjustCMap = 1;
             cmaps = args{2};
@@ -1279,7 +1279,7 @@ classdef PIC
           case 'sep'
             doSep = 1;
             l = 1;
-          case 'cbarlabels'
+          case {'cbarlabels','cbarlabel'}
             doCBarLabels = 1;
             cBarLabels = args{2};
             l = 2;
@@ -1440,6 +1440,7 @@ classdef PIC
       % h = pic.PLOTTIMEMAP('tx',{'Ey','Ez'},'A')
       
       % Defaults
+      doCBarLabels = 0;
       doA = 0;
       doXline = 0;
       doAdjustCLim = 0;
@@ -1512,11 +1513,15 @@ classdef PIC
             l = 2;
             doAdjustCLim = 1;  
             clims = args{2};
+          case 'cbarlabel'
+            l = 2;
+            doCBarLabels = 1;
+            cBarLabels = args{2};
           case 'cmap'
             l = 2;
             doAdjustCMap = 1;
             cmaps = args{2};
-          case 'smooth'
+          case 'smooth'            
             l = 2;
             doSmooth = 1;
             npSmooth = args{2};            
@@ -1592,12 +1597,17 @@ classdef PIC
         end
         pcolor(hca,plot_depx,plot_depy,var);
         shading(hca,'flat')
-        hb(ivar) = colorbar('peer',hca);
-        hb(ivar).YLabel.String = varstrs{ivar};
+        hb(ivar) = colorbar('peer',hca);        
         hca.XLabel.String = [dim(1) ' (d_i)'];
         hca.YLabel.String = [dim(2) ' (\omega_{ci}^{-1})'];
         hca.YDir = 'normal';
         clim = hca.CLim;
+        
+        if doCBarLabels
+          hb(ivar).YLabel.String = cBarLabels{ivar};
+        else
+          hb(ivar).YLabel.String = varstrs{ivar};                
+        end
         if doA
           hold(hca,'on')
           contour(hca,plot_depx(iAdepx),plot_depy(iAdepy),A(iAdepy,iAdepx),levA,'k')

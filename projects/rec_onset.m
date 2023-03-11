@@ -19,8 +19,11 @@ datapath = '/Users/cno062/Data/PIC/rec_onset_4/data_F025_E005_TITE10/';
 h5filepath = '/Users/cno062/Data/PIC/varying_tite/tite_05/fields.h5';
 datapath = '/Users/cno062/Data/PIC/varying_tite/tite_05/data/';
 
+%h5filepath = '/Users/cno062/Data/PIC/varying_tite/tite_10/fields.h5';
+%datapath = '/Users/cno062/Data/PIC/varying_tite/tite_10/data/';
+
 nSpecies = 4;
-h5write_fields(datapath,h5filepath,[18000:1000:20000],nSpecies)
+h5write_fields(datapath,h5filepath,[0000:1000:20000],nSpecies)
 
 
 %h5filepath = '/Users/cecilia/Data/PIC/rec_onset_4/data_F0_50_E005_TITE10/fields.h5';
