@@ -104,9 +104,10 @@ end
 
 
 %% Compare two simulations
+localuser = datastore('local','user');
 % Load PICs
-pic1 = PIC('/Users/cno062/Data/PIC/varying_tite/tite_05/fields.h5');
-pic2 = PIC('/Users/cno062/Data/PIC/varying_tite/tite_10/fields.h5');
+pic1 = PIC(['/Users/' localuser '/Data/PIC/varying_tite/tite_05/fields.h5']);
+pic2 = PIC(['/Users/' localuser '/Data/PIC/varying_tite/tite_10/fields.h5']);
 pics = {pic1,pic2};
 
 
@@ -139,7 +140,7 @@ disp('Adjust figure size, then hit any key to continue.')
 pause
 iSpecies = 1:numel(pic.mass);
 iSpecies = [1:4];
-times = pic1.twci;
+times = pic2.twci;
 Unorm = (pic1(1).UB + sum(pic1(1).UT(:)) + sum(pic1(1).UK(:)))/100;
 for it = 1:numel(times)
   % Collect data
