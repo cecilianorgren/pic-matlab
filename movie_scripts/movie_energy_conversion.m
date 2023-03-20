@@ -4,6 +4,8 @@ doGif = 1;
 doGifBackLoop = 0;
 doDark = 0;
 colors = pic_colors('matlab');
+colors = [0 0 0; pic_colors('matlab'); 1 0 0; 0 1 0; 0 0 1; 1 1 0];
+
 fontsize = 16;
 
 % Energy partition
@@ -108,10 +110,10 @@ localuser = datastore('local','user');
 % Load PICs
 pic1 = PIC(['/Users/' localuser '/Data/PIC/varying_tite/tite_05/fields.h5']);
 pic2 = PIC(['/Users/' localuser '/Data/PIC/varying_tite/tite_10/fields.h5']);
-pics = {pic1,pic2};
+pics = {pic1,pic1};
 
 
-fileName  = [printpath 'vid'];
+fileName  = [printpath 'vid__'];
 doVideo = 1;
 doGif = 1;
 doGifBackLoop = 0;
@@ -220,6 +222,216 @@ for it = 1:numel(times)
   
   hca.XLim = [0 times(end)];
   hca.YLim = [0 110];
+  hca.XLabel.String = 'Time (\omega_{ci}^{-1})';
+  hca.YLabel.String = 'Energy (%)';  
+  hca.FontSize = fontsize;
+  hca.FontWeight = 'bold';
+  hca.LineWidth = 1;
+
+  drawnow
+  if doVideo
+    if doDark
+      set(gcf,'color',darkBackgroundColor);          
+    else
+      set(gcf,'color','white');
+    end
+    currFrame = getframe(gcf);
+    writeVideo(vidObj,currFrame);
+  end
+  if doGif
+    if 1 % collect frames, for making gif
+      iframe = iframe + 1;    
+      nframes = pic.nt;
+      currentBackgroundColor = get(gcf,'color');
+      if doDark
+        set(gcf,'color',darkBackgroundColor);          
+      else
+        set(gcf,'color','white');
+      end
+      drawnow      
+      tmp_frame = getframe(gcf);
+      %cell_movies{imovie}(itime) = tmp_frame;
+      if iframe == 1 % initialize animated gif matrix
+        [im_tmp,map] = rgb2ind(tmp_frame.cdata,256,'nodither');
+        %map(end+1,:) = get(gcf,'color');
+        im_tmp(1,1,1,nframes) = 0;                                                
+        all_im = im_tmp;             
+      else
+        all_im(:,:,1,iframe) = rgb2ind(tmp_frame.cdata,map,'nodither');
+      end       
+    end    
+  end    
+
+end
+
+% Write gif and video
+if doVideo 
+  close(vidObj);   
+end
+if doGif
+  imwrite(all_im,map,[fileName,'.gif'],'DelayTime',0,'LoopCount',inf);
+end
+if doGif && doGifBackLoop
+  imwrite(cat(4,all_im,all_im(:,:,:,end:-1:1)),map,[fileName,'_loopback.gif'],'DelayTime',0,'LoopCount',inf);           
+end
+
+%% Compare two simulations
+localuser = datastore('local','user');
+% Load PICs
+pic1 = PIC(['/Users/' localuser '/Data/PIC/varying_tite/tite_05/fields.h5']);
+pic2 = PIC(['/Users/' localuser '/Data/PIC/varying_tite/tite_10/fields.h5']);
+pics = {pic1,pic2};
+
+
+fileName  = [printpath 'vid_UP_part'];
+doVideo = 1;
+doGif = 1;
+doGifBackLoop = 0;
+doDark = 0;
+colors = pic_colors('matlab');
+fontsize = 16;
+
+% Energy partition
+
+h(1) = subplot(1,1,1);
+h(1).Position(2) = 0.15;
+colors = pic_colors('matlab');
+colors = [0 0 0; pic_colors('matlab'); 1 0 0; 0 1 0; 0 0 1; 1 1 0];
+linestyles = {'-','--'};
+
+
+if doVideo
+  vidObj = VideoWriter([fileName '.mp4'],'MPEG-4');
+  vidObj.FrameRate = 10;
+  open(vidObj);        
+end
+if doGif
+  iframe = 0;
+end
+
+disp('Adjust figure size, then hit any key to continue.')
+pause
+iSpecies = 1:numel(pic.mass);
+iSpecies = [1:4];
+times = pic2.twci;
+Unorm = (pic1(1).UB + sum(pic1(1).UT(:)) + sum(pic1(1).UK(:)))/100;
+for it = 1:numel(times)
+  % Collect data
+  sp = struct([]);
+  for ipic = 1:numel(pics)
+    if it > pics{ipic}.nt
+      pic_tmp = pics{ipic}; 
+    else
+      pic_tmp = pics{ipic}(1:it);
+    end
+      UKall = pic_tmp.UK(:);
+      UTall = pic_tmp.UT(:);
+    
+      UKtot = sum(pic_tmp.UK(iSpecies),2);
+      UTtot = sum(pic_tmp.UT(iSpecies),2);
+      UPtot = UKtot + UTtot;
+      UB = pic_tmp.UB;
+      Utot = UB + UPtot;
+      %Unorm = Utot(1)/100;
+      t = pic_tmp.twci;
+      sp(ipic).t = pic_tmp.twci;
+      sp(ipic).UKall = UKall;
+      sp(ipic).UTall = UTall;
+      sp(ipic).UKtot = UKtot;
+      sp(ipic).UTtot = UTtot;
+      sp(ipic).UPtot = UPtot;
+      sp(ipic).UB = UB;
+      %sp(ipic).Unorm = Utot(1)/100;        
+  end
+
+  hca = h(1);
+  %pic_tmp(pic_tmp.nt).plot_map(hca,{'(3/2)*pi'},'A',1,'cmap',pic_colors('thermal'),'clim',{[0 1.3]},'cbarlabels',{'Ion thermal energy'})
+
+  hca = h(1);
+  if 1
+    hp = plot(hca,sp(1).t,sp(1).UTall/Unorm,...
+                  sp(1).t,sp(1).UKall/Unorm,...
+                  sp(2).t,sp(2).UTall/Unorm,...
+                  sp(2).t,sp(2).UKall/Unorm,...
+                  'linewidth',3);
+    hp(1).Color = colors(1,:).^.25; hp(1).LineStyle = linestyles{1};
+    hp(2).Color = colors(2,:).^.25; hp(2).LineStyle = linestyles{1};
+    hp(3).Color = colors(3,:).^.25; hp(3).LineStyle = linestyles{1};
+    hp(4).Color = colors(4,:).^.25; hp(4).LineStyle = linestyles{1};
+    hp(5).Color = colors(5,:).^.25; hp(5).LineStyle = linestyles{1};
+    hp(6).Color = colors(6,:).^.25; hp(6).LineStyle = linestyles{1};
+    hp(7).Color = colors(7,:).^.25; hp(7).LineStyle = linestyles{1};
+    hp(8).Color = colors(8,:).^.25; hp(8).LineStyle = linestyles{1};
+    %hp(9).Color = colors(9,:).^.25; hp(9).LineStyle = linestyles{1};
+    hp(1+8).Color = colors(1,:).^.99; hp(1+8).LineStyle = linestyles{2};
+    hp(2+8).Color = colors(2,:).^.99; hp(2+8).LineStyle = linestyles{2};
+    hp(3+8).Color = colors(3,:).^.99; hp(3+8).LineStyle = linestyles{2};
+    hp(4+8).Color = colors(4,:).^.99; hp(4+8).LineStyle = linestyles{2};
+    hp(5+8).Color = colors(5,:).^.99; hp(5+8).LineStyle = linestyles{2};
+    hp(6+8).Color = colors(6,:).^.99; hp(6+8).LineStyle = linestyles{2};
+    hp(7+8).Color = colors(7,:).^.99; hp(7+8).LineStyle = linestyles{2};
+    hp(8+8).Color = colors(8,:).^.99; hp(8+8).LineStyle = linestyles{2};
+    %hp(9+9).Color = colors(9,:).^.99; hp(9).LineStyle = linestyles{2};
+
+    %irf_legend(hca,{'Magnetic energy'},[0.05 0.60],'color',colors(1,:),'fontsize',fontsize,'fontweight','bold')
+    %irf_legend(hca,{'Plasma thermal energy'},[0.05 0.32],'color',colors(2,:),'fontsize',fontsize,'fontweight','bold')  
+    %irf_legend(hca,{'Plasma kinetic energy'},[0.05 0.07],'color',colors(3,:),'fontsize',fontsize,'fontweight','bold')  
+
+    irf_legend(hp(1:8),{'U_{T1}','U_{T2}','U_{T3}','U_{T4}','U_{K1}','U_{K2}','U_{K3}','U_{K4}'}',...
+      [1.01 0.98],'fontsize',fontsize,'fontweight','bold')
+
+  elseif 1
+
+
+    hp = plot(hca,sp(1).t,sp(1).UB/Unorm,...
+                  sp(1).t,sp(1).UTtot/Unorm,...
+                  sp(1).t,sp(1).UKtot/Unorm,...
+                  sp(2).t,sp(2).UB/Unorm,...
+                  sp(2).t,sp(2).UTtot/Unorm,...
+                  sp(2).t,sp(2).UKtot/Unorm,...
+                  'linewidth',3);
+    hp(1).Color = colors(1,:).^.25; hp(1).LineStyle = linestyles{1};
+    hp(2).Color = colors(2,:).^.25; hp(2).LineStyle = linestyles{1};
+    hp(3).Color = colors(3,:).^.25; hp(3).LineStyle = linestyles{1};
+    hp(4).Color = colors(1,:);      hp(4).LineStyle = linestyles{2};
+    hp(5).Color = colors(2,:);      hp(5).LineStyle = linestyles{2};
+    hp(6).Color = colors(3,:);      hp(6).LineStyle = linestyles{2};
+
+    irf_legend(hca,{'Magnetic energy'},[0.05 0.60],'color',colors(1,:),'fontsize',fontsize,'fontweight','bold')
+    irf_legend(hca,{'Plasma thermal energy'},[0.05 0.32],'color',colors(2,:),'fontsize',fontsize,'fontweight','bold')  
+    irf_legend(hca,{'Plasma kinetic energy'},[0.05 0.07],'color',colors(3,:),'fontsize',fontsize,'fontweight','bold')  
+    
+  elseif 1
+    hp = plot(hca,sp(1).t,sp(1).UB/Unorm,...
+                  sp(1).t,sp(1).UPtot/Unorm,...
+                  sp(2).t,sp(2).UB/Unorm,...
+                  sp(2).t,sp(2).UPtot/Unorm,...
+                  'linewidth',3);
+    hp(1).Color = colors(1,:).^.25; hp(1).LineStyle = linestyles{1};
+    hp(2).Color = colors(2,:).^.25; hp(2).LineStyle = linestyles{1};
+    hp(3).Color = colors(1,:);      hp(3).LineStyle = linestyles{2};
+    hp(4).Color = colors(2,:);      hp(4).LineStyle = linestyles{2};
+
+    irf_legend(hca,{'Magnetic energy'},[0.05 0.60],'color',colors(1,:),'fontsize',fontsize,'fontweight','bold')
+    irf_legend(hca,{'Plasma energy'},[0.05 0.22],'color',colors(2,:),'fontsize',fontsize,'fontweight','bold')  
+    
+  else
+    hp = plot(hca,sp(1).t,sp(1).UB/Unorm,...
+                  sp(1).t,sp(1).UTtot/Unorm,...
+                  sp(2).t,sp(2).UB/Unorm,...
+                  sp(2).t,sp(2).UTtot/Unorm,...
+                  'linewidth',3);
+    hp(1).Color = colors(1,:).^.25; hp(1).LineStyle = linestyles{1};
+    hp(2).Color = colors(2,:).^.25; hp(2).LineStyle = linestyles{1};
+    hp(3).Color = colors(1,:);      hp(3).LineStyle = linestyles{2};
+    hp(4).Color = colors(2,:);      hp(4).LineStyle = linestyles{2};
+
+    irf_legend(hca,{'Magnetic energy'},[0.05 0.60],'color',colors(1,:),'fontsize',fontsize,'fontweight','bold')
+    irf_legend(hca,{'Thermal plasma energy'},[0.05 0.22],'color',colors(2,:),'fontsize',fontsize,'fontweight','bold')  
+  end
+  
+  hca.XLim = [0 times(end)];
+  hca.YLim = [0 35];
   hca.XLabel.String = 'Time (\omega_{ci}^{-1})';
   hca.YLabel.String = 'Energy (%)';  
   hca.FontSize = fontsize;

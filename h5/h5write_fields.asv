@@ -116,18 +116,14 @@ for itime = 1:numel(timesteps)
   end
   toc
 
-  % Write attributes
-  % UB
+  % Write attributes, UT, UK, UB  
+
   bx = vars{find(strcmp(varstrs,'bx'))};
   by = vars{find(strcmp(varstrs,'by'))};
   bz = vars{find(strcmp(varstrs,'bz'))};
-  UB = (bx.^2+by.^2+bz.^2)/2;
-  UB = sum(UB(:));
-  h5writeatt(filePath,['/data/' str_iteration '/'],'UB',UB)
+  UB = 
 
-  % UT, UK
-  if 0
-  n = vars{find(strcmp(varstrs,'dns'))};
+  n = vars{find(strcmp(varstrs,'n'))};
   jx = vars{find(strcmp(varstrs,'jx'))};
   jy = vars{find(strcmp(varstrs,'jy'))};
   jz = vars{find(strcmp(varstrs,'jz'))};
@@ -136,14 +132,13 @@ for itime = 1:numel(timesteps)
   pzz = vars{find(strcmp(varstrs,'pzz'))};
 
   for iSpecies = 1:nss
-    pdyn = mass(iSpecies)/mass(1)*0.5*(jx(:,:,iSpecies).^2 + jy(:,:,iSpecies).^2 + jz(:,:,iSpecies).^2)./n(:,:,iSpecies);
+    pdyn = sim.mass(iSpecies)/sim.mass(1)*0.5*(jx(:,:,iSpecies).^2 + jy(:,:,iSpecies).^2 + jz(:,:,iSpecies).^2)./n(:,:,iSpecies);
     p = (pxx(:,:,iSpecies)+pyy(:,:,iSpecies)+pzz(:,:,iSpecies))/3; % scalar pressure
     UT(1,iSpecies) = 3/2*nansum(p(:));
     UK(1,iSpecies) = nansum(pdyn(:));
   end
-  h5writeatt(filePath,['/data/' str_iteration '/'],'UK',UK)
-  h5writeatt(filePath,['/data/' str_iteration '/'],'UT',UT)
-  end
+  h5write_attr(filePath,['/data/' str_iteration '/'],'UK',UK)
+  h5write_attr(filePath,['/data/' str_iteration '/'],'UT',UT)
 end
 
 disp('Done.')

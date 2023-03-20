@@ -9,7 +9,7 @@ pic = pic.twcilim(pic.twci([missingAttr(1)-2:missingAttr(1)+2]),'exact');
 %pic = turb.twcilim(1:1:30,'exact');
 
 %% Energy partitioning, UB, UK, UT
-pic = pic2;
+pic = no02m;
 times = pic.twci;
 for it = 1:pic.nt
   pic_tmp = pic.twcilim(times(it));
@@ -25,7 +25,7 @@ end
 times = pic3.twci;
 %% Thermal and kinetic energy n08
 %sim = no02m;
-sim = pic2;
+sim = pic;
 %sim = pic3;
 tic;
 clear UT UK
@@ -49,7 +49,7 @@ for it = 1:sim.length %sim.twpelim(2000:1000:3000,'exact').indices%:sim.length
 end
 
 %% Thermal and kinetic energy n02m, cold
-sim = pic2;
+sim = no02m;
 tic;
 clear UT UK
 species_groups = {[3 5],[4 6]};
