@@ -79,10 +79,12 @@ if doX
   end
 end
 
+if 0
 for iax = 1:nax
   if not(ybottom == ax(iax).Position(2)) % not bottom row
     ax(iax).XTickLabels = [];
     ax(iax).XLabel.String = '';
   end
+end
 end
 1;
