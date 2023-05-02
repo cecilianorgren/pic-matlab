@@ -176,7 +176,9 @@ t1 = 1;
 t2 = 2.1;
 
 Bx = @(z) B0*tanh(z/L);
+Bx = @(z) B0*z./z;
 Ay = @(z) B0*L*log(cosh(z/L));
+Ay = @(z) B0*L*z/L;
 Ey = @(x,z,t) E0*exp(-x.^2/(Lx*t)^2-z.^2/(Lz*t)^2);
 
 
@@ -225,7 +227,7 @@ cmap = flipdim(pic_colors('thermal'),1);
 cmap = flipdim(colormap('gray'),1);
 colors = pic_colors('matlab');
 
-alev = 0:0.1:1.5;
+alev = -1.5:0.1:1.5;
 
 hca = subplot(1,1,1);
 hE = pcolor(hca,X,Z,EY2);
