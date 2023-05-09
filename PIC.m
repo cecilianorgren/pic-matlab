@@ -3687,7 +3687,7 @@ classdef PIC
     end
     % Flux
     function out = jx(obj,species)
-      % pic.JX Particle flux jx = n*vx of selected populations.      
+      % pic.JX Particle flux jx = n*vx of selected populations.
       %     iSpecies = [2 4]; jx = pic.JX(iSpecies);
       %     jx = pic.JX(1);
       %     jx = pic.JX([1 3]);
