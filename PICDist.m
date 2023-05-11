@@ -629,6 +629,7 @@ classdef PICDist
             force_exp = args{2};
             pic = args{3};            
             l = 3;
+            cmap = pic_colors('blue_red');
           case 'smooth'
             doSmooth = 1;
             npSmooth = args{2};
@@ -656,6 +657,11 @@ classdef PICDist
           case 'off-diag'
             doPIntegrand = 1;
             l = 1;
+          case 'p-integrand'
+            doPIntegrand = 1;
+            l = 2;  
+            P_comps = args{2};
+            cmap = pic_colors('blue_red');
         end
         args = args((1+l):end);
         if isempty(args); break; end
@@ -717,10 +723,31 @@ classdef PICDist
           end
         end
         if doForce
-%           switch force_exp
-%             case 'EvBy'
-%               Ey = pic.get_exp('Ey');
-%           end
+          switch force_exp
+             case 'EvBy'
+               Ey = pic.get_exp('Ey');
+            case 'vx*Bz'
+              pic_tmp = pic.twpelim(obj.twpe,'exact').xlim(f.x).zlim(f.z);
+              Bz = mean(mean(pic_tmp.Bz));
+              [V1,V2] = ndgrid(f.v,f.v);
+              % assume V1 is vx
+              force = V1*Bz;
+            case 'vx*Bz-Ey'
+              pic_tmp = pic.twpelim(obj.twpe,'exact').xlim(f.x).zlim(f.z);
+              Bz = mean(mean(pic_tmp.Bz));
+              Ey = mean(mean(pic_tmp.Ey));
+              [V1,V2] = ndgrid(f.v,f.v);
+              % assume V1 is vx
+              force = V1*Bz-Ey;
+            case '-vy*Bz-Ex'
+              pic_tmp = pic.twpelim(obj.twpe,'exact').xlim(f.x).zlim(f.z);
+              Bz = mean(mean(pic_tmp.Bz));
+              Ex = mean(mean(pic_tmp.Ex));
+              [V1,V2] = ndgrid(f.v,f.v);
+              % assume V1 is vx
+              force = -V2*Bz-Ex;
+          end
+
         end
         if doPIntegrand
           [V1,V2] = ndgrid(f.v,f.v);  
@@ -841,7 +868,18 @@ classdef PICDist
           if doNaN
             fplot(fplot==0) = NaN;
           end
+          if doForce
+            fplot = force;
+            doContour = 1;
+          end
           imagesc(hca,f.v,f.v,fplot')
+          
+          if doContour
+            hold(hca,'on')
+            contour(hca,f.v,f.v,smooth2(f.f,3)','k')
+            hold(hca,'off')
+          end
+          
           %hca.XLabel.String = '';
           %hca.YLabel.String = '';
           hca.YDir = 'normal';        
@@ -858,13 +896,20 @@ classdef PICDist
           %irf_legend(hca,{sprintf('x=%.1f, z=%.1f',xloc,zloc);sprintf('B=[%.2f,%.2f,%.2f]',Bloc.x,Bloc.y,Bloc.z)},[0.01 0.99],'color',[0 0 0],'fontsize',9)
           if doLabel
             hleg_ = irf_legend(hca,{...
-              sprintf('x=[%.1f,%.1f]',f.x(1),f.x(2));...
-              sprintf('z=[%.1f,%.1f]',f.z(1),f.z(2))},...
+              sprintf('x=[%.2f,%.2f]',f.x(1),f.x(2));...
+              sprintf('z=[%.2f,%.2f]',f.z(1),f.z(2))},...
               [0.01 0.01],'color',[0 0 0],'fontsize',fontsize);
             hleg(size(hleg,1)+1,:) = hleg_;
           end
           if doPIntegrand % make caxes symmetric
             hca.CLim = max(abs(hca.CLim))*[-1 1];
+            sumf = sum(fplot(:));
+            if sumf >= 0 
+              sumf_color = 'r';
+            else
+              sumf_color = 'b';
+            end
+            irf_legend(hca,{sprintf('sum = %g',sumf)},[0.02 0.98],'color',sumf_color,'fontsize',fontsize)
           end
           if not(plotInAxes) % xy-labels
             if axes_position(1) == border(1)

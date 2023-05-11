@@ -1,14 +1,14 @@
 
 %% no02m
-timestep = 24000;
-dirData = '/Volumes/DataRaid/cno062/no_hot_bg_n02_m100/distributions/24000/';
+timestep = 16000;
+dirData = '/Users/cno062/Data/PIC/no_hot_bg_n02_m100/distributions/16000/';
 h5FilePath = '/Volumes/DataRaid/cno062/no_hot_bg_n02_m100/data_h5/dists_new.h5';
-distIndRead = 2001:2243; % 2243
+distIndRead = 307:612; % 2243
 nSpecies = 6;
 iteration = timestep*2;
 mass = [100 1 100 1 100 1];
 charge = [1 -1 1 -1 1 -1];
-tag = '';
+tag = 'xline_map';
 h5write_dists(dirData,h5FilePath,distIndRead,nSpecies,mass,charge,timestep,iteration,tag)
 
 %% Reconnection onset, susannes

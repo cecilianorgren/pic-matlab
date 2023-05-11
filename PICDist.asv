@@ -656,6 +656,10 @@ classdef PICDist
           case 'off-diag'
             doPIntegrand = 1;
             l = 1;
+          case 'p-integrand'
+            doPIntegrand = 1;
+            l = 2;  
+            P_comps = args{2};
         end
         args = args((1+l):end);
         if isempty(args); break; end
@@ -717,10 +721,16 @@ classdef PICDist
           end
         end
         if doForce
-%           switch force_exp
-%             case 'EvBy'
-%               Ey = pic.get_exp('Ey');
-%           end
+          switch force_exp
+             case 'EvBy'
+               Ey = pic.get_exp('Ey');
+            case '-vx*Bz'
+              Bz = pic.get_exp('Bz');
+              [V1,V2] = ndgrid(f.v,f.v);
+              % assume V1 is vx
+              f.f = V1.*Bx;
+          end
+
         end
         if doPIntegrand
           [V1,V2] = ndgrid(f.v,f.v);  
@@ -858,12 +868,21 @@ classdef PICDist
           %irf_legend(hca,{sprintf('x=%.1f, z=%.1f',xloc,zloc);sprintf('B=[%.2f,%.2f,%.2f]',Bloc.x,Bloc.y,Bloc.z)},[0.01 0.99],'color',[0 0 0],'fontsize',9)
           if doLabel
             hleg_ = irf_legend(hca,{...
-              sprintf('x=[%.1f,%.1f]',f.x(1),f.x(2));...
-              sprintf('z=[%.1f,%.1f]',f.z(1),f.z(2))},...
+              sprintf('x=[%.2f,%.2f]',f.x(1),f.x(2));...
+              sprintf('z=[%.2f,%.2f]',f.z(1),f.z(2))},...
               [0.01 0.01],'color',[0 0 0],'fontsize',fontsize);
             hleg(size(hleg,1)+1,:) = hleg_;
           end
-          
+          if doPIntegrand % make caxes symmetric
+            hca.CLim = max(abs(hca.CLim))*[-1 1];
+            sumf = sum(fplot(:));
+            if sumf >= 0 
+              sumf_color = 'r';
+            else
+              sumf_color = 'b';
+            end
+            irf_legend(hca,{sprintf('sum = %g',sumf)},[0.02 0.98],'color',sumf_color,'fontsize',fontsize)
+          end
           if not(plotInAxes) % xy-labels
             if axes_position(1) == border(1)
               hca.YLabel.String = sprintf('v_{%s}',yaxstr);            
@@ -1016,7 +1035,7 @@ classdef PICDist
             hold(hca,'off')            
           end
           
-          if doCS_fieldaligned                      
+          if doCS_fieldaligned
             Bx = mean(mean(pic.twpelim(obj.twpe,'exact').xlim(f.x).zlim(f.z).Bx));
             By = mean(mean(pic.twpelim(obj.twpe,'exact').xlim(f.x).zlim(f.z).By));
             Bz = mean(mean(pic.twpelim(obj.twpe,'exact').xlim(f.x).zlim(f.z).Bz));

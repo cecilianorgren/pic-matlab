@@ -988,8 +988,13 @@ var_lim = [-24 -17];
 pic = no02m.twpelim(twpe).xlim(x_center([1 end])+dx_box*[-1 1]).zlim(z_center([1 end])+dz_box*[-1 1]);
 x = pic.xi;
 z = pic.zi;
-pexy = pic.pexy;
-peyz = pic.peyz;
+%pexy = pic.pxy(2);
+pexy = pic.pyz(2);
+peyz = pic.pyz([4 6]);
+dzPezy = pic.dzPezy;
+ne = pic.ne;
+dzPezy_ne = dzPezy./ne;
+Jy = pic.Jy;
 %var_center = max(abs(var(:)));
 %dvar_minus = 1.2;
 %dvar_plus = 0.0;
@@ -1012,8 +1017,9 @@ keep_boxes = all_boxes;
 n_boxes = size(keep_boxes,1);
 
 figure(401)
+nrows = 4;
 clear h
-hca = subplot(2,1,1); h(1) = hca;
+hca = subplot(nrows,1,1); h(1) = hca;
 imagesc(hca,x,z,pexy')
 %hca.XLim = [100 210];
 %hca.YLim = [-12 12];
@@ -1022,7 +1028,7 @@ hca.Title.Interpreter = 'none';
 hcb = colorbar('peer',hca);
 colormap(hca,pic_colors('blue_red'))
 
-hca = subplot(2,1,2); h(2) = hca;
+hca = subplot(nrows,1,2); h(2) = hca;
 imagesc(hca,x,z,peyz')
 %hca.XLim = [100 210];
 %hca.YLim = [-12 12];
@@ -1031,18 +1037,43 @@ hca.Title.Interpreter = 'none';
 hcb = colorbar('peer',hca);
 colormap(hca,pic_colors('blue_red'))
 
+hca = subplot(nrows,1,3); h(3) = hca;
+imagesc(hca,x,z,dzPezy_ne')
+%hca.XLim = [100 210];
+%hca.YLim = [-12 12];
+hca.Title.String = sprintf('n_boxes = %g',n_boxes);
+hca.Title.Interpreter = 'none';
+hcb = colorbar('peer',hca);
+colormap(hca,pic_colors('blue_red'))
+hca.CLim = [-1 1];
 
-hold(h(1),'on')
-hold(h(2),'on')
-for ibox = 1:n_boxes      
+hca = subplot(nrows,1,4); h(4) = hca;
+imagesc(hca,x,z,Jy')
+%hca.XLim = [100 210];
+%hca.YLim = [-12 12];
+hca.Title.String = sprintf('n_boxes = %g',n_boxes);
+hca.Title.Interpreter = 'none';
+hcb = colorbar('peer',hca);
+colormap(hca,pic_colors('blue_red'))
+hca.CLim = [-1 1];
+
+
+
+%hold(h(2),'on')
+%hold(h(3),'on')
+for ip = 1:numel(h)  
+  hold(h(ip),'on')
+  for ibox = 1:n_boxes      
   %hstar = plot(hca,[xlo xlo xhi xhi],[zlo zhi zhi zlo],'*k');
   %hpatch = patch(hca,[keep_boxes(ibox,1) keep_boxes(ibox,1) keep_boxes(ibox,2) keep_boxes(ibox,2)],[keep_boxes(ibox,1) keep_boxes(ibox,2) keep_boxes(ibox,2) keep_boxes(ibox,1)],'w');
-  hpatch = patch(h(1),keep_boxes(ibox,[1 1 2 2]),keep_boxes(ibox,[3 4 4 3]),'w');
-  hpatch.FaceAlpha = 0;
-  hpatch.LineWidth = 1;     
-  hpatch = patch(h(2),keep_boxes(ibox,[1 1 2 2]),keep_boxes(ibox,[3 4 4 3]),'w');
-  hpatch.FaceAlpha = 0;
-  hpatch.LineWidth = 1;     
+    hpatch = patch(h(ip),keep_boxes(ibox,[1 1 2 2]),keep_boxes(ibox,[3 4 4 3]),'w');
+    hpatch.FaceAlpha = 0;
+    hpatch.LineWidth = 1;     
+    %hpatch = patch(h(2),keep_boxes(ibox,[1 1 2 2]),keep_boxes(ibox,[3 4 4 3]),'w');
+    %hpatch.FaceAlpha = 0;
+    %hpatch.LineWidth = 1;     
+  end
+hold(h(ip),'off')   
 end
-hold(h(1),'off')   
-hold(h(2),'off')   
+%hold(h(2),'off')   
+%hold(h(3),'off')   
