@@ -566,6 +566,7 @@ classdef PICDist
       doCS_fieldaligned = 0;
       doVectors = 0;
       doPIntegrand = 0;
+      doContour = 0;
       
       [ax,args,nargs] = irf.axescheck(varargin{:});       
       iSpecies = args{1}; args = args(2:end); nargs = nargs - 1;
@@ -712,6 +713,8 @@ classdef PICDist
           fdiff = obj.fxyz(1,idist,iSpeciesDiff,sumdim); % sum over 3rd dim
           %f.f = f.f./fdiff.f;
           f.f = f.f./fdiff.f;
+          %f.f(fdiff.f == 0) = NaN;
+          cmap = pic_colors('blue_red');
         end
         if doFrac
           fdiff = obj.fxyz(1,idist,iSpeciesDiff,sumdim); % sum over 3rd dim
@@ -721,6 +724,7 @@ classdef PICDist
           else
             f.f = f.f./fdiff.f;
           end
+          cmap = pic_colors('blue_red');
         end
         if doForce
           switch force_exp

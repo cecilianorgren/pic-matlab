@@ -26,7 +26,10 @@ zpick = -0.4:0.1:0.4;
 xpick = 99:0.4:102.4;
 
 zpick = -0.2:0.05:0.2;
-xpick = 100.8:0.2:102.4;
+xpick = 100.8:0.2:104.2;
+
+zpick = -0.4:0.1:0.4;
+xpick = 100.8:0.2:104.2;
 
 ds = ds.xfind(xpick).zfind(zpick);
 % ds.plot_map(4,3,'off-diag')
@@ -48,7 +51,7 @@ end
 
 %% Plot off-diagonal components
 fig = figure(502); delete(fig.Children);
-h = ds.plot_map([2 4 6],3,'off-diag','bline',pic);
+h = ds.plot_map([2 4 6],1,'off-diag','bline',pic);
 colormap(pic_colors('blue_red'));
 compact_panels(0.00,0.00)
 
@@ -59,9 +62,10 @@ for ip = 1:numel(h.ax)
   h.ax(ip).YTick = [-20:5:20];
   h.ax(ip).XTick = [-20:5:20];
 end
+hlinks = linkprop(h.ax,{'CLim'});
 %% Plot distributions
 fig = figure(503); delete(fig.Children);
-h = ds.plot_map([2 4 6],2);
+h = ds.plot_map([2 4 6],3,'bline',pic);
 compact_panels(0.00,0.00)
 
 for ip = 1:numel(h.ax)
@@ -71,10 +75,24 @@ for ip = 1:numel(h.ax)
   h.ax(ip).YTick = [-20:5:20];
   h.ax(ip).XTick = [-20:5:20];
 end
-%% Plot forces
+%% Plot distributions, ratio between top and bot
 fig = figure(504); delete(fig.Children);
-%h = ds.plot_map([2 4 6],3,'bline',pic,'force','vx*Bz-Ey',pic);
-h = ds.plot_map([2 4 6],3,'bline',pic,'force','-vy*Bz-Ex',pic);
+h = ds.plot_map(4,1,'ratio',[4 6],'bline',pic);
+compact_panels(0.00,0.00)
+colormap([0.9 0.9 0.9; pic_colors('blue_red'); 0.9 0.9 0.9]);
+
+for ip = 1:numel(h.ax)
+  axis(h.ax(ip),'square')
+  h.ax(ip).XGrid = 'on'; 
+  h.ax(ip).YGrid = 'on';
+  h.ax(ip).YTick = [-20:5:20];
+  h.ax(ip).XTick = [-20:5:20];
+  h.ax(ip).CLim = [0 1]+ [-1 1]*(2/204);
+end
+%% Plot forces
+fig = figure(505); delete(fig.Children);
+h = ds.plot_map([2 4 6],3,'bline',pic,'force','vx*Bz-Ey',pic);
+%h = ds.plot_map([2 4 6],3,'bline',pic,'force','-vy*Bz-Ex',pic);
 
 colormap(pic_colors('blue_red'));
 compact_panels(0.00,0.00)

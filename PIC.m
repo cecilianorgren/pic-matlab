@@ -4175,6 +4175,7 @@ classdef PIC
         end        
         % p = P - mnvv
         out = mass_sp*obj.wpewce^2*(vxx - vxs.*vxs./n); % pxx
+        % out = mass_sp*mime*obj.wpewce^2*(vxx - vxs.*vxs./n); % pxx
       elseif strcmp(obj.software,'Smilei')
         % Initialize variables
         n = zeros(numel(obj.xi),numel(obj.zi),obj.length);      
