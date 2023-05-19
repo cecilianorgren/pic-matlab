@@ -19,7 +19,13 @@ nSpecies = 4;
 % datapath = '/Volumes/DataRaid/Susanne-onset/data/';
 % nSpecies = 2;
 
-h5write_fields(datapath,h5filepath,[6000],nSpecies)
+
+
+h5filepath = '/Volumes/Fountain/Data/PIC/varying_tite/E05/fields.h5';
+datapath = '/Volumes/DataRaid/cno062/rec_onset_4/data_F1_E05';
+nSpecies = 4;
+
+h5write_fields(datapath,h5filepath,[4000:200:5000],nSpecies)
 % If you tried at first and it failed (for example I didn't have the 
 % external harddrive connected, it might have made a new empty file, which 
 % will give a error:

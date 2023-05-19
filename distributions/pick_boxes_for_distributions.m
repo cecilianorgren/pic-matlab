@@ -410,7 +410,7 @@ Ez = squeeze(pic(ind).Ez);
 
 
 [saddle_locations,saddle_values] = saddle(A,'sort');
-xx = pic(pic.nt).x_xline;
+%xx = pic(pic.nt).x_xline;
 %
 x_center = (75:5:95);
 %x_center = (70:0.5:135);
@@ -995,6 +995,7 @@ dzPezy = pic.dzPezy;
 ne = pic.ne;
 dzPezy_ne = dzPezy./ne;
 Jy = pic.Jy;
+A = pic.A;
 %var_center = max(abs(var(:)));
 %dvar_minus = 1.2;
 %dvar_plus = 0.0;

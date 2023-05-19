@@ -463,8 +463,9 @@ twpe = 6000:1000:12000;%:1000:10000;
 twpe = [4000 12000];
 xlim = [120 200];
 zlim = 0+0.1*[-1 1];
-pic = df04.twpelim(twpe).xlim(xlim).zlim(zlim);
+pic = sus.twpelim(twpe).xlim(xlim).zlim(zlim);
 varstrs = {'Bz';'tperp([3 5])';'magmom([3 5])'};
+varstrs = {'Bz'};
 
 h = pic.plot_timemap(comp,varstrs);
 %h(2).CLim = [0 0.15];
@@ -4963,12 +4964,13 @@ xlim = mean(pic.xi) + [-20 20] + -0;
 zlim = [-5 5];
 pic = pic.twpelim(twpe).xlim(xlim).zlim(zlim);
 varstrs = {'Bz','By','Ez','ne','vez','vix','vex','Jx','JxBz','vepar','vExBx','Ey+vixBy','vex'}';
+varstrs = {'vepar'}';
 clims = {[-1 1],[-1 1],[-1 1],[0 1.8],[-2 2],[-2 2],[-2 2],[-1 1],[-1 1],[-2 2],[-0.2 0.2],[-0.5 0.5],[-0.5 0.5]};
 cmapbr = pic_colors('blue_red');
 cmapwa = pic_colors('waterfall');
 cmaps = {cmapbr,cmapbr,cmapbr,cmapwa,cmapbr,cmapbr,cmapbr,cmapbr,cmapbr,cmapbr,cmapbr,cmapbr}';
 
-varstrs = reshape(varstrs,numel(varstrs)/2,2);
+%varstrs = reshape(varstrs,numel(varstrs)/2,2);
 h = pic.plot_map(varstrs,'A',1,'clim',clims,'cmap',cmaps,'smooth',3);
 
 
