@@ -713,7 +713,7 @@ classdef PICDist
           fdiff = obj.fxyz(1,idist,iSpeciesDiff,sumdim); % sum over 3rd dim
           %f.f = f.f./fdiff.f;
           f.f = f.f./fdiff.f;
-          %f.f(fdiff.f == 0) = NaN;
+          f.f(fdiff.f == 0) = NaN;
           cmap = pic_colors('blue_red');
         end
         if doFrac
