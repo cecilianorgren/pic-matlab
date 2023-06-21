@@ -80,7 +80,7 @@ for itime = 1:numel(timesteps)
     if not(h5exist) && itime == 1 && not(sum(ismember(size(data),[nnx nnz]))>=2)
       %continue % implement later
       disp(['/simulation_information/' varstrs{ivar}])
-      h5create(filePath,['/simulation_information/' varstrs{ivar}], size(data));
+      h5create(filePath,['/simulation_information/' varstrs{ivar}], size(data),ChunkSize=[1 1]);
       h5write(filePath,['/simulation_information/' varstrs{ivar}], data);
       continue % jump to next variable
     end
@@ -90,14 +90,14 @@ for itime = 1:numel(timesteps)
     if ndims(data) == 2 && all(size(data) == [nnx nnz]) % is (E,B)
       dataset_name = ['/data/' str_iteration '/' varstrs{ivar}];
       disp(dataset_name)
-      h5create(filePath, dataset_name, size(data));
+      h5create(filePath, dataset_name, size(data),ChunkSize=[50 50]);
       h5write( filePath, dataset_name, data);
     elseif size(data,3) == nss % is (n,vs,vv)
       for iSpecies = 1:nss
         data_tmp = data(:,:,iSpecies);
         dataset_name = ['/data/' str_iteration '/' varstrs{ivar} '/' num2str(iSpecies)];
         disp(dataset_name)
-        h5create(filePath, dataset_name, size(data_tmp));
+        h5create(filePath, dataset_name, size(data_tmp),ChunkSize=[50 50]);
         h5write( filePath, dataset_name, data_tmp);
         % Also write species data as attributes
         h5writeatt(filePath,dataset_name, 'mass',mass(iSpecies)) 

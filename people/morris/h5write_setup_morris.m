@@ -37,7 +37,7 @@ for it = 1:pic.nt
 end
 
 %% Particle/plasma energy partitioning
-sim = pic2;
+sim = pic;
 tic;
 clear UT UK
 species_groups = {[1 3],[2 4]};
