@@ -657,7 +657,8 @@ classdef PICDist
             l = 3;
           case 'off-diag'
             doPIntegrand = 1;
-            l = 1;
+            l = 2;
+            mass = args{2};
           case 'p-integrand'
             doPIntegrand = 1;
             l = 2;  
@@ -761,6 +762,7 @@ classdef PICDist
           vbulk1 = sum(fv1(:))*(f.dv^2)/n;
           vbulk2 = sum(fv2(:))*(f.dv^2)/n;
           f.f = f.f.*(V1-vbulk1).*(V2-vbulk2);
+          colormap(pic_colors('blue_red'))
         end
         %if not(all(xlo>xlim(1) && xhi<xlim(2) && zlo>zlim(1) && zhi<zlim(2)))
         %  disp([sprintf('%.2f %.2f %.2f %.2f outside of box',xlo,xhi,zlo,zhi)])
@@ -913,7 +915,7 @@ classdef PICDist
             else
               sumf_color = 'b';
             end
-            irf_legend(hca,{sprintf('sum = %g',sumf)},[0.02 0.98],'color',sumf_color,'fontsize',fontsize)
+            irf_legend(hca,{sprintf('sum = %g',sumf*mass)},[0.02 0.98],'color',sumf_color,'fontsize',fontsize)
           end
           if not(plotInAxes) % xy-labels
             if axes_position(1) == border(1)
