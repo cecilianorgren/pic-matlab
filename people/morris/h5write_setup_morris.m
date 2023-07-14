@@ -32,7 +32,7 @@ V2 = V2(:);
 F = F(:);
 
 v2edges_lin = linspace(0,0.1*max(V2),40);
-v2edges_log = logspace(-3,log10(0.1*max(V2)),10);
+v2edges_log = logspace(-3,log10(0.1*max(V2)),30);
 
 vedges_lin = sqrt(v2edges_lin); % v = sqrt(v^2)
 vedges_log = sqrt(v2edges_log);
