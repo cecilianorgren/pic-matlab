@@ -178,7 +178,7 @@ t2 = 2.1;
 Bx = @(z) B0*tanh(z/L);
 Bx = @(z) B0*z./z;
 Ay = @(z) B0*L*log(cosh(z/L));
-Ay = @(z) B0*L*z/L;
+%Ay = @(z) B0*L*z/L;
 Ey = @(x,z,t) E0*exp(-x.^2/(Lx*t)^2-z.^2/(Lz*t)^2);
 
 
@@ -221,6 +221,7 @@ BXq2 = Bx(Zq2);
 EYq2 = Ey(Xq2,Zq2,t1);
 BZq2 = Zq2*0;
 
+%% Plot
 
 cmap = pic_colors('blue_red'); cmap = flipdim(cmap(1:floor(size(cmap,1)/2),:),1);
 cmap = flipdim(pic_colors('thermal'),1);
@@ -230,31 +231,47 @@ colors = pic_colors('matlab');
 alev = -1.5:0.1:1.5;
 
 hca = subplot(1,1,1);
-hE = pcolor(hca,X,Z,EY2);
-shading(hca,'flat')
-hca.XGrid = 'off';
-hca.YGrid = 'off';
+legs = {};
 
-hold(hca,'on')
-contour(hca,X,Z,Ay(Z),alev,'k-','linewidth',1.5)
-contour(hca,X,Z,Ay(Z)+dA,alev,'k--','linewidth',1.5)
-colormap(hca,cmap)
-hold(hca,'off')
-
-Sq = 0.5;
-lwidth = 2;
-
-if 1 % B
+if 1 % A0  
+  %hold(hca,'on')
+  [hl_,hl] = contour(hca,X,Z,Ay(Z),alev,'k-','linewidth',1.0);
+  %hold(hca,'off')  
+  legs{end+1} = 'B';  
+end
+if 1 % Ey
+  hold(hca,'on')
+  hE = surf(hca,X,Z,X*0-1,EY2);
+  shading(hca,'flat')
+  hca.XGrid = 'off';
+  hca.YGrid = 'off';
+  view([0 0 1])
+  hold(hca,'off')
+  legs{end+1} = 'E_y';
+end
+if 0 % B0
   hold(hca,'on')
   hB2 = quiver(hca,Xq2,Zq2,BXq2,BZq2,Sq,'color',colors(1,:),'linewidth',5);
   hold(hca,'off')
+  legs{end+1} = '\Delta B';
 end
-
 if 1 % -rotX, ADD along stream linesaq
   hold(hca,'on')
-  hB2 = quiver(hca,Xq,Zq,-rotEYq_x,-rotEYq_z,Sq,'color',colors(6,:),'linewidth',lwidth);
+  Sq = 0.5;
+  lwidth = 1.5;
+  hB2 = quiver(hca,Xq,Zq,-rotEYq_x,-rotEYq_z,Sq,'color',colors(3,:).^2,'linewidth',lwidth);
   hold(hca,'off')
+  legs{end+1} = '\Delta{B}=-\Delta{t}\nabla\times E';
 end
+if 1 % A1
+  hold(hca,'on')
+  hl = contour(hca,X,Z,Ay(Z)+dA,alev,'k--','linewidth',1.0);  
+  hold(hca,'off')
+  legs{end+1} = 'B+\Delta{B}';
+end
+
+
+
 
 
 
@@ -264,11 +281,15 @@ if 0 % B-dt*rotX, ADD along stream linesaq
   hold(hca,'off')
 end
 
+legend(hca,legs,'fontsize',14,'location','eastoutside','box','off')
+colormap(hca,cmap)
 hca.CLim = [0 E0*1.3];
 hca.XLim = [-1.5 1.5];
 axis equal
-hca.XLim = [-1.7 1.7];
-hca.YLim = [-1.5 1.5];
-hca.Box = 'on';
-legend(hca,{'E_y','B','B-\int \nabla\times E dt','B','-\nabla\times E'},'fontsize',16,'location','eastoutside','box','off')
+hca.XLim = [-1.5 1.5];
+hca.YLim = [-1.1 1.1];
+hca.Box = 'off';
+axis off
+hca.Position = [0.1300    0.1100    0.6023    0.8150];
+%legend(hca,{'E_y','B','B-\int \nabla\times E dt','B','-\nabla\times E'},'fontsize',16,'location','eastoutside','box','off')
 
