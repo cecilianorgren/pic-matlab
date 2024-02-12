@@ -93,10 +93,12 @@ for iax = 1:nax
     ax(iax).XLabel.String = '';
   end
 end
-for iax = 1:nax
-  if not(xbottom == ax(iax).Position(1)) % not left row
-    ax(iax).YTickLabels = [];
-    ax(iax).YLabel.String = '';
+if doX
+  for iax = 1:nax
+    if not(xbottom == ax(iax).Position(1)) % not left row
+      ax(iax).YTickLabels = [];
+      ax(iax).YLabel.String = '';
+    end
   end
 end
 end

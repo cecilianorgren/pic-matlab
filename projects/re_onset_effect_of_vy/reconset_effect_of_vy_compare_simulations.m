@@ -175,7 +175,7 @@ compact_panels(0.01)
 clims = {[-0.5 0.5],[0.9 1.5],[-0.2 0.2],[-0.2 0.2],[0 0.5],[-0.45 0.45],[-0.8 0.8]};
 cmapbr = pic_colors('blue_red');
 cmapwa = pic_colors('candy4');
-cmaps = {cmapbr,cmapbr,cmapbr,cmapbr,cmapwa,cmapbr,cmapbr}
+cmaps = {cmapbr,cmapbr,cmapbr,cmapbr,cmapwa,cmapbr,cmapbr};
 varstrs = {'Ey','abs(Bx)','viz','vez','viy','vey','Jy'}';
 
 nvars = numel(varstrs);
