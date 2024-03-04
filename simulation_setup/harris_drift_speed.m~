@@ -15,8 +15,7 @@ hca.XLabel.String = 'T_i/T_e';
 hca.YLabel.String = 'v_y';
 
 hold(hca,'on')
-%plot(hca,5,[vi(1./5);ve(1./5)],'*','linewidth',1)
-plot(hca,5,[vi(1./5);ve(1./5)],'*k','linewidth',1)
+plot(hca,5,[vi(1./tite);ve(1./tite)],'linewidth',1)
 hold(hca,'off')
 
 legend(hca,{'v_i','v_e'},'box','off')

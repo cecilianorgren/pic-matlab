@@ -7,9 +7,11 @@ if isempty(ax)
   ax = findobj(fig.Children,'Type','Axes');  
 end
 nax = numel(ax);
-  for iax = 1:nax
-    positions(iax,:) = ax(iax).Position;
-  end
+for iax = 1:nax
+  positions(iax,:) = ax(iax).Position;
+end
+mean_width = mean(positions(:,3),1);
+mean_height = mean(positions(:,4),1);
 
 doY = 1;
 doX = 0;
@@ -26,14 +28,19 @@ end
 
 % find unique y-positions
 
-unique_xpos = sort(unique(positions(:,1)),'descend');
-unique_ypos = sort(unique(positions(:,2)),'descend');
+unique_xpos = sort(uniquetol(positions(:,1),0.2*mean_width),'descend');
+unique_ypos = sort(uniquetol(positions(:,2),0.2*mean_height),'descend');
 n_rows = numel(unique_ypos);
 n_cols = numel(unique_xpos);
 
 for iax = 1:nax % find row and col
-  row(iax) = find(positions(iax,2)==unique_ypos);
-  col(iax) = find(positions(iax,1)==unique_xpos);
+  [~,irow] = min(abs(positions(iax,2)-unique_ypos));
+  row(iax) = irow;
+  
+  [~,icol] = min(abs(positions(iax,1)-unique_xpos));
+  col(iax) = icol;
+  %row(iax) = find(positions(iax,2)==unique_ypos);
+  %col(iax) = find(positions(iax,1)==unique_xpos);
   iax_rowcol(iax,:) = [row(iax) col(iax)];
 end
 
@@ -84,6 +91,14 @@ for iax = 1:nax
   if not(ybottom == ax(iax).Position(2)) % not bottom row
     ax(iax).XTickLabels = [];
     ax(iax).XLabel.String = '';
+  end
+end
+if doX
+  for iax = 1:nax
+    if not(xbottom == ax(iax).Position(1)) % not left row
+      ax(iax).YTickLabels = [];
+      ax(iax).YLabel.String = '';
+    end
   end
 end
 end
