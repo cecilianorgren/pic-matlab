@@ -11,6 +11,18 @@ charge = [1 -1 1 -1 1 -1];
 tag = 'xline_map';
 h5write_dists(dirData,h5FilePath,distIndRead,nSpecies,mass,charge,timestep,iteration,tag)
 
+%% no02m
+timestep = 20000;
+dirData = sprintf('/Users/cno062/Data/PIC/no_hot_bg_n02_m100/distributions/%g/',timestep);
+h5FilePath = '/Users/cno062/Data/PIC/no_hot_bg_n02_m100/data_h5/dists.h5';
+distIndRead = 301:509; % 2243
+nSpecies = 6;
+iteration = timestep*2;
+mass = [100 1 100 1 100 1];
+charge = [1 -1 1 -1 1 -1];
+tag = '';
+h5write_dists(dirData,h5FilePath,distIndRead,nSpecies,mass,charge,timestep,iteration,tag)
+
 %% Reconnection onset, susannes
 timestep = 2400;
 dirData = '/Users/cecilia/Data/PIC/rec_onset/distributions/t2400/';

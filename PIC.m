@@ -1245,6 +1245,7 @@ classdef PIC
       doQuiv = 0;
       stepQuiv = 10;
       doAdjustCLim = 0;
+      doDe = 0;
       
       % Check input
       % Check for axes
@@ -1260,6 +1261,9 @@ classdef PIC
       while have_options       
         l = 1;
         switch(lower(args{1}))
+          case 'de'
+            doDe = 1;            
+            l = 1;
           case 'a'
             doA = 1;
             stepA = args{2};
@@ -1370,6 +1374,13 @@ classdef PIC
           if doSmooth
             var = smooth2(var,npSmooth);
           end
+          %if doDe 
+          %  xx = obj.xe;
+          %  zz = obj.ze;
+          %else
+          %  xx = obj.xi;
+          %  zz = obj.zi;
+          %end
           imagesc(hca,obj.xi,obj.zi,var');
           hb(ivar) = colorbar('peer',hca);
           hb(ivar).YLabel.String = varstrs{ivar};

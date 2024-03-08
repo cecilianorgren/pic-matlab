@@ -45,13 +45,18 @@ h5filepath = '/Users/cno062/Data/PIC/rec_onset_4/data_h5/fields_F025_E005_TITE10
 datapath = '/Users/cno062/Data/PIC/rec_onset_4/data_F025_E005_TITE10/';
 nSpecies = 4;
 
+
+h5filepath = '/Users/cno062/Data/PIC/no_hot_bg_n02_m100/data_h5/fields.h5';
+datapath = '/Users/cno062/Data/PIC/no_hot_bg_n02_m100/data/';
+nSpecies = 6;
+
 %h5filepath = '/Users/cno062/Data/PIC/varying_tite/tite_05/fields.h5';
 %datapath = '/Users/cno062/Data/PIC/rec_onset_4/data_F025_E005_TITE10/';
 %nSpecies = 4;
 
 
 %h5write_fields(datapath,h5filepath,3000:1000:20000,nSpecies)
-h5write_fields(datapath,h5filepath,10000,nSpecies)
+h5write_fields(datapath,h5filepath,16000,nSpecies)
 
 % If you tried at first and it failed (for example I didn't have the 
 % external harddrive connected, it might have made a new empty file, which 

@@ -2397,7 +2397,7 @@ classdef PICDist
       varargout{1} = fout;
     end
     function varargout = reduce_1d_new(obj,depvar,iSpecies,vaxes,varargin)
-      % reduce_1d(obj,depvar,x0,z0,vaxes,iSpecies) Make f(x,vx),f(z,vx), etc...
+      % reduce_1d(obj,depvar,vaxes,iSpecies) Make f(x,vx),f(z,vx), etc...
       %
       % apply time indices and xlim zlim outside before
       % do all vdims, doesnt take much more time anyways
