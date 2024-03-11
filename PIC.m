@@ -1287,7 +1287,7 @@ classdef PIC
             doQuiv = 1;
             quivers = args{2};
             l = 2;
-          case 'quivstep'            
+          case 'quivstep'
             stepQuiv = args{2};
             l = 2;
           otherwise 
@@ -1392,6 +1392,8 @@ classdef PIC
           if doQuiv
             hold(hca,'on')
             hq = quiver(hca,quiv_loc_x,quiv_loc_z,quiv_vec_x,quiv_vec_z,'color',[0 0 0]);
+            hq.ShowArrowHead = 'off';
+            hq.Marker = '.';
             hold(hca,'off')
           end        
           hca.CLim = clim;
