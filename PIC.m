@@ -2263,8 +2263,8 @@ classdef PIC
       %    dimensions, particularly important for temporal dimension where
       %    the time steps are quite large
             
-      method = 'spline';
-      %method = 'linear';
+      %method = 'spline';
+      method = 'linear';
       
       if numel(varargin) > 0
         have_options = 1;
@@ -2669,7 +2669,7 @@ classdef PIC
       % Default values
       doPrintInfo = 0;            
       method = 'spline';
-      %method = 'linear';
+      method = 'linear';
       
 %       if numel(varargin) > 0
 %         have_options = 1;
