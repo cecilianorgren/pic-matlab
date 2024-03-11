@@ -94,14 +94,16 @@ else % n
 end
 
 %% Integrate trajectories based on fpeaks (which may be based or moments)
-trp = PICTraj('/Volumes/Fountain/Data/PIC/no_hot_bg_n02_m100/data_h5/trajectories_paul.h5');
+%trp = PICTraj('/Volumes/Fountain/Data/PIC/no_hot_bg_n02_m100/data_h5/trajectories_paul.h5');
+h5path_traj = '/Users/cno062/Data/PIC/no_hot_bg_n02_m100/data_h5/trajectories.h5';
+%trp = PICTraj();
 pic = no02m;
 tspan = [75,125];
 
 m = 1/100; 
 q = -1;
 istart = 28;
-ntr_pre = trp.ntr-(istart-1); % the +(istart-1) is there becuse i already did the 1 and added it to the datafile
+ntr_pre = 0;%trp.ntr-(istart-1); % the +(istart-1) is there becuse i already did the 1 and added it to the datafile
 %ntr_pre = 0;
 
 for iTr = istart:numel(fpeaks)
@@ -134,7 +136,7 @@ for iTr = istart:numel(fpeaks)
 %   tr_tmp.By = By;
 %   tr_tmp.Bz = Bz;
   
-  h5write_trajs('/Volumes/Fountain/Data/PIC/no_hot_bg_n02_m100/data_h5/trajectories_paul.h5',tr_tmp,'id',ntr_pre+iTr)
+  h5write_trajs(h5path_traj,tr_tmp,'id',ntr_pre+iTr)
   %h5write_trajs('/Volumes/Fountain/Data/PIC/df_cold_protons_n04/data_h5/trajectories.h5',tr_tmp)
   %tr(iPeak,id) = tr_tmp;
   toc

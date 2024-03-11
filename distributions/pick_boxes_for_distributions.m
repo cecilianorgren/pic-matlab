@@ -967,9 +967,9 @@ for ip = 1:numel(h)
 end
 
 %% Tight smaller boxes around X line, to see off-diag pressure components
-twpe = 16000;
-x_center = 99:0.2:106;
-z_center = -0.4:0.05:0.4;
+twpe = 20000;
+x_center = 102.8:0.2:104;
+z_center = -0.3:0.05:0.3;
 dx_box = 0.1;
 dz_box = 0.05;
 
@@ -986,6 +986,7 @@ ZC = reshape(ZC,prod(size(ZC)),1);
 nboxes = numel(XC);
 var_lim = [-24 -17];
 pic = no02m.twpelim(twpe).xlim(x_center([1 end])+dx_box*[-1 1]).zlim(z_center([1 end])+dz_box*[-1 1]);
+pic = no02m.twpelim(twpe).xlim(x_center([1 end])+dx_box*[-1 1]*30).zlim(z_center([1 end])+dz_box*[-1 1]*30);
 x = pic.xi;
 z = pic.zi;
 %pexy = pic.pxy(2);
@@ -1028,6 +1029,7 @@ hca.Title.String = sprintf('n_boxes = %g',n_boxes);
 hca.Title.Interpreter = 'none';
 hcb = colorbar('peer',hca);
 colormap(hca,pic_colors('blue_red'))
+hca.CLim = 0.01*[-1 1];
 
 hca = subplot(nrows,1,2); h(2) = hca;
 imagesc(hca,x,z,peyz')
@@ -1037,9 +1039,10 @@ hca.Title.String = sprintf('n_boxes = %g',n_boxes);
 hca.Title.Interpreter = 'none';
 hcb = colorbar('peer',hca);
 colormap(hca,pic_colors('blue_red'))
+hca.CLim = 0.01*[-1 1];
 
 hca = subplot(nrows,1,3); h(3) = hca;
-imagesc(hca,x,z,dzPezy_ne')
+imagesc(hca,x,z,smooth2(dzPezy_ne,0)')
 %hca.XLim = [100 210];
 %hca.YLim = [-12 12];
 hca.Title.String = sprintf('n_boxes = %g',n_boxes);
@@ -1067,7 +1070,7 @@ for ip = 1:numel(h)
   for ibox = 1:n_boxes      
   %hstar = plot(hca,[xlo xlo xhi xhi],[zlo zhi zhi zlo],'*k');
   %hpatch = patch(hca,[keep_boxes(ibox,1) keep_boxes(ibox,1) keep_boxes(ibox,2) keep_boxes(ibox,2)],[keep_boxes(ibox,1) keep_boxes(ibox,2) keep_boxes(ibox,2) keep_boxes(ibox,1)],'w');
-    hpatch = patch(h(ip),keep_boxes(ibox,[1 1 2 2]),keep_boxes(ibox,[3 4 4 3]),'w');
+    hpatch = patch(h(ip),keep_boxes(ibox,[1 1 2 2]),keep_boxes(ibox,[3 4 4 3]),'w','EdgeColor',[0.7 0.7 0.7]);
     hpatch.FaceAlpha = 0;
     hpatch.LineWidth = 1;     
     %hpatch = patch(h(2),keep_boxes(ibox,[1 1 2 2]),keep_boxes(ibox,[3 4 4 3]),'w');

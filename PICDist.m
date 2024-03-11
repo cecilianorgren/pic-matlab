@@ -1165,6 +1165,7 @@ classdef PICDist
     function varargout = plot_boxes(obj,varargin)
       % PDIST.PLOT_BOXES Plot boxes of distributions.
       
+      doDe = 0;
       doTagColor = 0;
       color = [0 0 0];
       doPlotIntoAxes = 0;
@@ -1177,6 +1178,10 @@ classdef PICDist
       while have_options
         l = 1;
         switch lower(args{1})
+          case 'de'
+            doDe = 1;
+            mime = args{2};
+            l = 2;
           case 'color' % plot a line defined by argument
             color = args{2};
             if ischar(color) && strcmp(color,'tags')
@@ -1241,7 +1246,11 @@ classdef PICDist
             iuniquetag = find(cellfun(@(s) ~isempty(strfind(tag, s)), uniquetags));
             color = colors(iuniquetag,:);        
           end
-          hbox(idist) = plot(hca,xplot,zplot,'color',color,'linewidth',1);
+          if doDe
+            hbox(idist) = plot(hca,xplot*sqrt(mime),zplot*sqrt(mime),'color',color,'linewidth',1);
+          else
+            hbox(idist) = plot(hca,xplot,zplot,'color',color,'linewidth',1);
+          end
           if doTagColor && not(skipTagColor)% Save first handle of each tag            
             ihsave(iuniquetag) = idist;
           end
@@ -2397,7 +2406,7 @@ classdef PICDist
       varargout{1} = fout;
     end
     function varargout = reduce_1d_new(obj,depvar,iSpecies,vaxes,varargin)
-      % reduce_1d(obj,depvar,x0,z0,vaxes,iSpecies) Make f(x,vx),f(z,vx), etc...
+      % reduce_1d(obj,depvar,vaxes,iSpecies) Make f(x,vx),f(z,vx), etc...
       %
       % apply time indices and xlim zlim outside before
       % do all vdims, doesnt take much more time anyways
