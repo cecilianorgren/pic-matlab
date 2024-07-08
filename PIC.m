@@ -2884,7 +2884,7 @@ classdef PIC
         tstart,tstop,x_init(1),x_init(2),x_init(3),x_init(4),x_init(5),x_init(6)))
 
       % Integrate trajectory
-      options = odeset('AbsTol',1e-14);
+      options = odeset('AbsTol',1e-8);
       [XI,ZI] = meshgrid(obj.xi,obj.zi);
       fields.x = XI;
       fields.z = ZI;
