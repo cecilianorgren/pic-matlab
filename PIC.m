@@ -2904,7 +2904,7 @@ classdef PIC
       [t,x_sol] = ode45(EoM,[tstart tstop],x_init,options);%,options); % 
       x_sol(:,7) = t; % x_sol = (x,y,z,vx,vy,vz,t)
 
-      doPlot = 1;
+      doPlot = 0;
       if doPlot
         %%
         h = setup_subplots(2,2);

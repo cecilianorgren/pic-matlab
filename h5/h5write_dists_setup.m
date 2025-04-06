@@ -118,7 +118,7 @@ charge = [1 -1 1 -1 1 -1];
 h5write_dists(dirData,h5FilePath,distIndRead,nSpecies,mass,charge,timestep,iteration,tags)
 
 %%
-timestep = 20000;
+timestep = 24000;
 dirData = sprintf('/Users/cno062/Data/PIC/no_hot_bg_n02_m100/distributions/%05.0f/',timestep);
 h5FilePath = '/Users/cno062/Data/PIC/no_hot_bg_n02_m100/data_h5/dists.h5';
 distIndRead = 1:20;%1738
