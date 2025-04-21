@@ -1,5 +1,7 @@
 function compact_panels(varargin)
 
+doRemoveLabels = 1;
+
 [ax,args,nargs] = irf.axescheck(varargin{:});
 nargin = nargs;
 if isempty(ax)
@@ -86,7 +88,7 @@ if doX
   end
 end
 
-if 1
+if doRemoveLabels
 for iax = 1:nax
   if not(ybottom == ax(iax).Position(2)) % not bottom row
     ax(iax).XTickLabels = [];

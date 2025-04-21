@@ -15,8 +15,12 @@ end
 
 if isa(pic,'PIC')
   [Ex,Ey,Ez,Bx,By,Bz] = pic.interp_EB(x,z,t);
+<<<<<<< HEAD
 elseif isa(pic,'struct')
   %1
+=======
+elseif isa(pic,'struct') 
+>>>>>>> ba8f8f43bf99be48b77f7524b0ddff96a12f8f7f
   Ex = interp2(pic.x,pic.z,pic.Ex',x,z);
   Ey = interp2(pic.x,pic.z,pic.Ey',x,z);
   Ez = interp2(pic.x,pic.z,pic.Ez',x,z);

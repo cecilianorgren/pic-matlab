@@ -246,7 +246,8 @@ h5write_attr(pic.subset('t',indsave),times(indsave),'xline_position',[xXline(ind
 
 %% Write ancillary data (not attributes), for example A
 pic = no02m;
-timesteps = pic.twpelim([15100:100:15900 16100:100:16900],'exact').twpe;
+%timesteps = pic.twpelim([15100:100:15900 16100:100:16900],'exact').twpe;
+timesteps = pic.twpe;
 
 for time = timesteps
   pic_tmp = pic.twpelim(time);
