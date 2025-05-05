@@ -3565,6 +3565,60 @@ classdef PIC
         out = A;
       end
     end
+    function out = intExdz(obj)
+      % Assume Ax is defined by By. By = - dAz/dx + dAx/dz, with Az = 0
+      
+      Ez = obj.Ex;
+      %By = smooth2(By,100);
+      
+      A = calc_intEz(obj.xi,obj.zi,Ez);
+        
+      out = A;      
+      % nested function
+      function out = calc_intEz(x,z,by)
+        % Grid
+        dz = z(2)-z(1);
+        nz = numel(z);
+
+
+        ntimes = size(by,3);
+        A = by*0;
+        for itime = 1:ntimes
+          by_tmp = squeeze(by(:,:,itime));          
+          % Advance up
+          A_tmp = cumsum(by_tmp,2)*dz;                    
+          A(:,:,itime) = A_tmp;
+        end
+        out = A;
+      end
+    end
+    function out = intEz(obj)
+      % Assume Ax is defined by By. By = - dAz/dx + dAx/dz, with Az = 0
+      
+      Ez = obj.Ez;
+      %By = smooth2(By,100);
+      
+      A = calc_intEz(obj.xi,obj.zi,Ez);
+        
+      out = A;      
+      % nested function
+      function out = calc_intEz(x,z,by)
+        % Grid
+        dz = z(2)-z(1);
+        nz = numel(z);
+
+
+        ntimes = size(by,3);
+        A = by*0;
+        for itime = 1:ntimes
+          by_tmp = squeeze(by(:,:,itime));          
+          % Advance up
+          A_tmp = cumsum(by_tmp,2)*dz;                    
+          A(:,:,itime) = A_tmp;
+        end
+        out = A+0.;
+      end
+    end
     function out = Az(obj)
       % Assume Az is defined by By. By = dAz/dx - dAx/dz, with Ax = 0
       
