@@ -5062,7 +5062,37 @@ classdef PIC
       out = obj.parz('E');
     end
     function out = Eperpx(obj)
-      out = obj.E - obj.par('E');
+      Epar = obj.par('E');
+      Bx = obj.Bx;
+      By = obj.By;
+      Bz = obj.Bz;
+      Babs = sqrt(Bx.^2 + By.^2 + Bz.^2);
+      bx = Bx./Babs;
+      by = By./Babs;
+      bz = Bz./Babs;
+      out = obj.Ex - Epar.*bx;
+    end
+    function out = Eperpy(obj)
+      Epar = obj.par('E');
+      Bx = obj.Bx;
+      By = obj.By;
+      Bz = obj.Bz;
+      Babs = sqrt(Bx.^2 + By.^2 + Bz.^2);
+      bx = Bx./Babs;
+      by = By./Babs;
+      bz = Bz./Babs;
+      out = obj.Ey - Epar.*by;
+    end
+    function out = Eperpz(obj)
+      Epar = obj.par('E');
+      Bx = obj.Bx;
+      By = obj.By;
+      Bz = obj.Bz;
+      Babs = sqrt(Bx.^2 + By.^2 + Bz.^2);
+      bx = Bx./Babs;
+      by = By./Babs;
+      bz = Bz./Babs;
+      out = obj.Ez - Epar.*bz;
     end
     function out = vpar(obj,species)
       out = obj.par('v',species);
