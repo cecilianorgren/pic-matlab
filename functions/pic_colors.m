@@ -50,9 +50,9 @@ switch colorOption
   case 'islands'
     out = load([path_pic filesep 'colormaps' filesep 'white_jet.mat']);
     colors = out.cmap;    
-  case 'blue_gray_red' % fancy-schmancy
+  case 'blue_gray_red' 
     c = [0,0,1;...
-        0.92,0.92,0.92;...
+        0.95,0.95,0.95;...
         1,0,0];
     colors = interp1(linspace(1,64,size(c,1)),c,1:64);  
   case 'waterfall' % fancy-schmancy
