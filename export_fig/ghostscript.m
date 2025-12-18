@@ -186,10 +186,10 @@ function cmd = gs_command(path_)
     % TODO: in Unix/Mac, find a way to determine whether to use "export" (bash) or "setenv" (csh/tcsh)
     shell_cmd = '';
     if isunix
-        shell_cmd = 'export LD_LIBRARY_PATH=""; '; % Avoids an error on Linux with GS 9.07
+        shell_cmd = 'setenv LD_LIBRARY_PATH=""; '; % Avoids an error on Linux with GS 9.07
     end
     if ismac
-        shell_cmd = 'export DYLD_LIBRARY_PATH=""; ';  % Avoids an error on Mac with GS 9.07
+        shell_cmd = 'setenv DYLD_LIBRARY_PATH=""; ';  % Avoids an error on Mac with GS 9.07
     end
     % Construct the command string
     cmd = sprintf('%s"%s" ', shell_cmd, path_);
