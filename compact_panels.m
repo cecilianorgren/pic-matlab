@@ -17,6 +17,7 @@ mean_height = mean(positions(:,4),1);
 
 doY = 1;
 doX = 0;
+keep_label = 0;
 if nargin == 0
   space = 0.01;
 elseif nargin == 1
@@ -25,6 +26,11 @@ elseif nargin == 2
   space = args{1};
   space_x = args{2};
   doX = 1;
+elseif nargin == 3
+  space = args{1};
+  space_x = args{2};
+  doX = 1;
+  doRemoveLabels = ~args{3};
 end
 
 
